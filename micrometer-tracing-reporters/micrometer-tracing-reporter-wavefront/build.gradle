@@ -1,0 +1,10 @@
+plugins {
+    id 'idea'
+}
+
+dependencies {
+    implementation("com.wavefront:wavefront-sdk-java")
+    // JUnit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+

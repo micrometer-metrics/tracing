@@ -1,0 +1,21 @@
+plugins {
+    id 'idea'
+}
+
+dependencies {
+    implementation("io.zipkin.zipkin2:zipkin")
+    implementation("io.zipkin.reporter2:zipkin-reporter")
+    implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+    implementation("io.zipkin.reporter2:zipkin-sender-kafka") {
+        exclude group: "org.apache.kafka", module: "kafka-clients"
+    }
+    implementation("io.zipkin.reporter2:zipkin-sender-activemq-client") {
+        exclude group: "org.apache.activemq", module: "activemq-client"
+    }
+    implementation("io.zipkin.reporter2:zipkin-sender-amqp-client") {
+        exclude group: "com.rabbitmq", module: "amqp-client"
+    }
+    // JUnit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+

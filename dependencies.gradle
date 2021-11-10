@@ -1,14 +1,22 @@
 def VERSIONS = [
+        // logging
         'ch.qos.logback:logback-classic:1.2.+',
         'org.apache.logging.log4j:log4j-core:2.+',
+        'org.slf4j:slf4j-api:1.7.+',
+        // otel
+        'io.opentelemetry:opentelemetry-bom:1.7.1',
+        // zipkin
+        'io.zipkin.aws:brave-propagation-aws:0.23.2',
+        // wavefront
+        'com.wavefront:wavefront-sdk-java:2.6.4',
+        // test
         'org.assertj:assertj-core:latest.release',
         'org.awaitility:awaitility:latest.release',
         'org.junit.jupiter:junit-jupiter:5.8.+',
         'org.junit.platform:junit-platform-launcher:1.8.+',
         'org.junit.vintage:junit-vintage-engine:5.8.+',
         'org.mockito:mockito-core:latest.release',
-        'org.mockito:mockito-inline:latest.release',
-        'org.slf4j:slf4j-api:1.7.+'
+        'org.mockito:mockito-inline:latest.release'
 ]
 
 subprojects {
@@ -24,6 +32,7 @@ subprojects {
           runtimeOnly version
         }
       }
+      implementation platform('io.zipkin.brave:brave-bom:5.13.2')
     }
   }
 }

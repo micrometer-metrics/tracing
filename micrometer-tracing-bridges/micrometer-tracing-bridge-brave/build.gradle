@@ -1,0 +1,16 @@
+plugins {
+    id 'idea'
+}
+
+dependencies {
+    implementation("io.zipkin.brave:brave") {
+        exclude group: "io.zipkin.reporter2"
+        exclude group: "io.zipkin.zipkin2"
+    }
+    implementation("io.zipkin.brave:brave-context-slf4j")
+    implementation("io.zipkin.brave:brave-instrumentation-http")
+    implementation("io.zipkin.aws:brave-propagation-aws")
+    // JUnit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
