@@ -61,8 +61,6 @@ jobs:
     executor: circle-jdk-executor
     steps:
       - gradlew-build
-      - run: ./gradlew shenandoahTest
-      - run: ./gradlew zgcTest
 
   build-jdk8:
     executor: circle-jdk8-executor
