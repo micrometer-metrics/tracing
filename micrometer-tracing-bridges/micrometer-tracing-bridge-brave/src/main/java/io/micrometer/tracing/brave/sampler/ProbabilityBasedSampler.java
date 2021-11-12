@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.sampler;
+package io.micrometer.tracing.brave.sampler;
 
 import java.util.BitSet;
 import java.util.Random;
@@ -22,8 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import brave.sampler.Sampler;
-
-import org.springframework.util.Assert;
 
 /**
  * This sampler is appropriate for low-traffic instrumentation (ex servers that each
@@ -42,70 +40,72 @@ import org.springframework.util.Assert;
  *
  * @author Marcin Grzejszczak
  * @author Adrian Cole
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class ProbabilityBasedSampler extends Sampler {
 
-	private final AtomicInteger counter = new AtomicInteger(0);
+    private final AtomicInteger counter = new AtomicInteger(0);
 
-	private final BitSet sampleDecisions;
+    private final BitSet sampleDecisions;
 
-	private final Supplier<Float> probability;
+    private final Supplier<Float> probability;
 
-	/**
-	 * @param probability supplier of probability
-	 */
-	public ProbabilityBasedSampler(Supplier<Float> probability) {
-		Assert.notNull(probability, "probability property is required for ProbabilityBasedSampler");
-		this.probability = probability;
-		int outOf100 = (int) (probability.get() * 100.0f);
-		this.sampleDecisions = randomBitSet(100, outOf100, new Random());
-	}
+    /**
+     * @param probability supplier of probability
+     */
+    public ProbabilityBasedSampler(Supplier<Float> probability) {
+        if (probability == null) {
+            throw new IllegalStateException("probability property is required for ProbabilityBasedSampler");
+        }
+        this.probability = probability;
+        int outOf100 = (int) (probability.get() * 100.0f);
+        this.sampleDecisions = randomBitSet(100, outOf100, new Random());
+    }
 
-	/**
-	 * Reservoir sampling algorithm borrowed from Stack Overflow.
-	 *
-	 * https://stackoverflow.com/questions/12817946/generate-a-random-bitset-with-n-1s
-	 * @param size size of the bit set
-	 * @param cardinality cardinality of the bit set
-	 * @param rnd random generator
-	 * @return a random bitset
-	 */
-	static BitSet randomBitSet(int size, int cardinality, Random rnd) {
-		BitSet result = new BitSet(size);
-		int[] chosen = new int[cardinality];
-		int i;
-		for (i = 0; i < cardinality; ++i) {
-			chosen[i] = i;
-			result.set(i);
-		}
-		for (; i < size; ++i) {
-			int j = rnd.nextInt(i + 1);
-			if (j < cardinality) {
-				result.clear(chosen[j]);
-				result.set(i);
-				chosen[j] = i;
-			}
-		}
-		return result;
-	}
+    /**
+     * Reservoir sampling algorithm borrowed from Stack Overflow.
+     *
+     * https://stackoverflow.com/questions/12817946/generate-a-random-bitset-with-n-1s
+     * @param size size of the bit set
+     * @param cardinality cardinality of the bit set
+     * @param rnd random generator
+     * @return a random bitset
+     */
+    static BitSet randomBitSet(int size, int cardinality, Random rnd) {
+        BitSet result = new BitSet(size);
+        int[] chosen = new int[cardinality];
+        int i;
+        for (i = 0; i < cardinality; ++i) {
+            chosen[i] = i;
+            result.set(i);
+        }
+        for (; i < size; ++i) {
+            int j = rnd.nextInt(i + 1);
+            if (j < cardinality) {
+                result.clear(chosen[j]);
+                result.set(i);
+                chosen[j] = i;
+            }
+        }
+        return result;
+    }
 
-	@Override
-	public boolean isSampled(long traceId) {
-		if (this.probability.get() == 0) {
-			return false;
-		}
-		else if (this.probability.get() == 1.0f) {
-			return true;
-		}
-		synchronized (this) {
-			final int i = this.counter.getAndIncrement();
-			boolean result = this.sampleDecisions.get(i);
-			if (i == 99) {
-				this.counter.set(0);
-			}
-			return result;
-		}
-	}
+    @Override
+    public boolean isSampled(long traceId) {
+        if (this.probability.get() == 0) {
+            return false;
+        }
+        else if (this.probability.get() == 1.0f) {
+            return true;
+        }
+        synchronized (this) {
+            final int i = this.counter.getAndIncrement();
+            boolean result = this.sampleDecisions.get(i);
+            if (i == 99) {
+                this.counter.set(0);
+            }
+            return result;
+        }
+    }
 
 }

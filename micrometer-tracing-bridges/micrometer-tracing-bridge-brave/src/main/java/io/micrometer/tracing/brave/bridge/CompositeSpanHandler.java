@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,55 +22,54 @@ import java.util.List;
 import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
-
-import io.micrometer.core.instrument.tracing.exporter.SpanFilter;
-import io.micrometer.core.instrument.tracing.exporter.SpanReporter;
+import io.micrometer.tracing.exporter.SpanFilter;
+import io.micrometer.tracing.exporter.SpanReporter;
 
 /**
  * Merges {@link SpanFilter}s and {@link SpanReporter}s into a {@link SpanHandler}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class CompositeSpanHandler extends SpanHandler {
 
-	private final List<SpanFilter> filters;
+    private final List<SpanFilter> filters;
 
-	private final List<SpanReporter> reporters;
+    private final List<SpanReporter> reporters;
 
-	/**
-	 * @param filters span filters
-	 * @param reporters span reporters
-	 */
-	public CompositeSpanHandler(List<SpanFilter> filters, List<SpanReporter> reporters) {
-		this.filters = filters == null ? Collections.emptyList() : filters;
-		this.reporters = reporters == null ? Collections.emptyList() : reporters;
-	}
+    /**
+     * @param filters span filters
+     * @param reporters span reporters
+     */
+    public CompositeSpanHandler(List<SpanFilter> filters, List<SpanReporter> reporters) {
+        this.filters = filters == null ? Collections.emptyList() : filters;
+        this.reporters = reporters == null ? Collections.emptyList() : reporters;
+    }
 
-	@Override
-	public boolean end(TraceContext context, MutableSpan span, Cause cause) {
-		if (cause != Cause.FINISHED) {
-			return true;
-		}
-		boolean shouldProcess = shouldProcess(span);
-		if (!shouldProcess) {
-			return false;
-		}
-		shouldProcess = super.end(context, span, cause);
-		if (!shouldProcess) {
-			return false;
-		}
-		this.reporters.forEach(r -> r.report(BraveFinishedSpan.fromBrave(span)));
-		return true;
-	}
+    @Override
+    public boolean end(TraceContext context, MutableSpan span, Cause cause) {
+        if (cause != Cause.FINISHED) {
+            return true;
+        }
+        boolean shouldProcess = shouldProcess(span);
+        if (!shouldProcess) {
+            return false;
+        }
+        shouldProcess = super.end(context, span, cause);
+        if (!shouldProcess) {
+            return false;
+        }
+        this.reporters.forEach(r -> r.report(io.micrometer.tracing.brave.bridge.BraveFinishedSpan.fromBrave(span)));
+        return true;
+    }
 
-	private boolean shouldProcess(MutableSpan span) {
-		for (SpanFilter exporter : this.filters) {
-			if (!exporter.isExportable(BraveFinishedSpan.fromBrave(span))) {
-				return false;
-			}
-		}
-		return true;
-	}
+    private boolean shouldProcess(MutableSpan span) {
+        for (SpanFilter exporter : this.filters) {
+            if (!exporter.isExportable(io.micrometer.tracing.brave.bridge.BraveFinishedSpan.fromBrave(span))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

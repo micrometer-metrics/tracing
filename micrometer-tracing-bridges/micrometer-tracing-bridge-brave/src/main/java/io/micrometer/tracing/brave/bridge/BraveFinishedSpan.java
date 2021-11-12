@@ -14,127 +14,126 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import java.util.Collection;
 import java.util.Map;
 
 import brave.handler.MutableSpan;
-
-import io.micrometer.core.instrument.tracing.Span;
-import io.micrometer.core.instrument.tracing.exporter.FinishedSpan;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.exporter.FinishedSpan;
 
 /**
  * Brave implementation of a {@link FinishedSpan}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class BraveFinishedSpan implements FinishedSpan {
 
-	private final MutableSpan mutableSpan;
+    private final MutableSpan mutableSpan;
 
-	/**
-	 * @param mutableSpan Brave delegate
-	 */
-	public BraveFinishedSpan(MutableSpan mutableSpan) {
-		this.mutableSpan = mutableSpan;
-	}
+    /**
+     * @param mutableSpan Brave delegate
+     */
+    public BraveFinishedSpan(MutableSpan mutableSpan) {
+        this.mutableSpan = mutableSpan;
+    }
 
-	/**
-	 * Converts from Brave to Spring Observability.
-	 * @param mutableSpan Brave delegate
-	 * @return converted version
-	 */
-	public static FinishedSpan fromBrave(MutableSpan mutableSpan) {
-		return new BraveFinishedSpan(mutableSpan);
-	}
+    /**
+     * Converts from Brave to Spring Observability.
+     * @param mutableSpan Brave delegate
+     * @return converted version
+     */
+    public static FinishedSpan fromBrave(MutableSpan mutableSpan) {
+        return new BraveFinishedSpan(mutableSpan);
+    }
 
-	/**
-	 * Converts from Spring Observability to Brave.
-	 * @param finishedSpan Spring Observability delegate
-	 * @return converted version
-	 */
-	public static MutableSpan toBrave(FinishedSpan finishedSpan) {
-		return ((BraveFinishedSpan) finishedSpan).mutableSpan;
-	}
+    /**
+     * Converts from Spring Observability to Brave.
+     * @param finishedSpan Spring Observability delegate
+     * @return converted version
+     */
+    public static MutableSpan toBrave(FinishedSpan finishedSpan) {
+        return ((BraveFinishedSpan) finishedSpan).mutableSpan;
+    }
 
-	@Override
-	public String getName() {
-		return this.mutableSpan.name();
-	}
+    @Override
+    public String getName() {
+        return this.mutableSpan.name();
+    }
 
-	@Override
-	public long getStartTimestamp() {
-		return this.mutableSpan.startTimestamp();
-	}
+    @Override
+    public long getStartTimestamp() {
+        return this.mutableSpan.startTimestamp();
+    }
 
-	@Override
-	public long getEndTimestamp() {
-		return this.mutableSpan.finishTimestamp();
-	}
+    @Override
+    public long getEndTimestamp() {
+        return this.mutableSpan.finishTimestamp();
+    }
 
-	@Override
-	public Map<String, String> getTags() {
-		return this.mutableSpan.tags();
-	}
+    @Override
+    public Map<String, String> getTags() {
+        return this.mutableSpan.tags();
+    }
 
-	@Override
-	public Collection<Map.Entry<Long, String>> getEvents() {
-		return this.mutableSpan.annotations();
-	}
+    @Override
+    public Collection<Map.Entry<Long, String>> getEvents() {
+        return this.mutableSpan.annotations();
+    }
 
-	@Override
-	public String getSpanId() {
-		return this.mutableSpan.id();
-	}
+    @Override
+    public String getSpanId() {
+        return this.mutableSpan.id();
+    }
 
-	@Override
-	public String getParentId() {
-		return this.mutableSpan.parentId();
-	}
+    @Override
+    public String getParentId() {
+        return this.mutableSpan.parentId();
+    }
 
-	@Override
-	public String getRemoteIp() {
-		return this.mutableSpan.remoteIp();
-	}
+    @Override
+    public String getRemoteIp() {
+        return this.mutableSpan.remoteIp();
+    }
 
-	@Override
-	public String getLocalIp() {
-		return this.mutableSpan.localIp();
-	}
+    @Override
+    public String getLocalIp() {
+        return this.mutableSpan.localIp();
+    }
 
-	@Override
-	public int getRemotePort() {
-		return this.mutableSpan.remotePort();
-	}
+    @Override
+    public int getRemotePort() {
+        return this.mutableSpan.remotePort();
+    }
 
-	@Override
-	public String getTraceId() {
-		return this.mutableSpan.traceId();
-	}
+    @Override
+    public String getTraceId() {
+        return this.mutableSpan.traceId();
+    }
 
-	@Override
-	public Throwable getError() {
-		return this.mutableSpan.error();
-	}
+    @Override
+    public Throwable getError() {
+        return this.mutableSpan.error();
+    }
 
-	@Override
-	public Span.Kind getKind() {
-		if (this.mutableSpan.kind() == null) {
-			return null;
-		}
-		return Span.Kind.valueOf(this.mutableSpan.kind().name());
-	}
+    @Override
+    public Span.Kind getKind() {
+        if (this.mutableSpan.kind() == null) {
+            return null;
+        }
+        return Span.Kind.valueOf(this.mutableSpan.kind().name());
+    }
 
-	@Override
-	public String getRemoteServiceName() {
-		return this.mutableSpan.remoteServiceName();
-	}
+    @Override
+    public String getRemoteServiceName() {
+        return this.mutableSpan.remoteServiceName();
+    }
 
-	@Override
-	public String toString() {
-		return "BraveFinishedSpan{" + "mutableSpan=" + mutableSpan + '}';
-	}
+    @Override
+    public String toString() {
+        return "BraveFinishedSpan{" + "mutableSpan=" + mutableSpan + '}';
+    }
 
 }

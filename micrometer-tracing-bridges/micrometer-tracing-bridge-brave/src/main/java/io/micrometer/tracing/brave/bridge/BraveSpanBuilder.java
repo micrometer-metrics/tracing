@@ -14,124 +14,123 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import brave.Tracer;
 import brave.propagation.TraceContextOrSamplingFlags;
-
-import io.micrometer.core.instrument.tracing.Span;
-import io.micrometer.core.instrument.tracing.TraceContext;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 
 /**
  * Brave implementation of a {@link Span.Builder}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 class BraveSpanBuilder implements Span.Builder {
 
-	private final Tracer tracer;
+    private final Tracer tracer;
 
-	brave.Span delegate;
+    brave.Span delegate;
 
-	TraceContextOrSamplingFlags parentContext;
+    TraceContextOrSamplingFlags parentContext;
 
-	private long startTimestamp;
+    private long startTimestamp;
 
-	BraveSpanBuilder(Tracer tracer) {
-		this.tracer = tracer;
-	}
+    BraveSpanBuilder(Tracer tracer) {
+        this.tracer = tracer;
+    }
 
-	BraveSpanBuilder(Tracer tracer, TraceContextOrSamplingFlags parentContext) {
-		this.tracer = tracer;
-		this.parentContext = parentContext;
-	}
+    BraveSpanBuilder(Tracer tracer, TraceContextOrSamplingFlags parentContext) {
+        this.tracer = tracer;
+        this.parentContext = parentContext;
+    }
 
-	static Span.Builder toBuilder(Tracer tracer, TraceContextOrSamplingFlags context) {
-		return new BraveSpanBuilder(tracer, context);
-	}
+    static Span.Builder toBuilder(Tracer tracer, TraceContextOrSamplingFlags context) {
+        return new BraveSpanBuilder(tracer, context);
+    }
 
-	brave.Span span() {
-		if (this.delegate != null) {
-			return this.delegate;
-		}
-		else if (this.parentContext != null) {
-			this.delegate = this.tracer.nextSpan(this.parentContext);
-		}
-		else {
-			this.delegate = this.tracer.nextSpan();
-		}
-		return this.delegate;
-	}
+    brave.Span span() {
+        if (this.delegate != null) {
+            return this.delegate;
+        }
+        else if (this.parentContext != null) {
+            this.delegate = this.tracer.nextSpan(this.parentContext);
+        }
+        else {
+            this.delegate = this.tracer.nextSpan();
+        }
+        return this.delegate;
+    }
 
-	@Override
-	public Span.Builder setParent(TraceContext context) {
-		this.parentContext = TraceContextOrSamplingFlags.create(BraveTraceContext.toBrave(context));
-		return this;
-	}
+    @Override
+    public Span.Builder setParent(TraceContext context) {
+        this.parentContext = TraceContextOrSamplingFlags.create(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context));
+        return this;
+    }
 
-	@Override
-	public Span.Builder setNoParent() {
-		return this;
-	}
+    @Override
+    public Span.Builder setNoParent() {
+        return this;
+    }
 
-	@Override
-	public Span.Builder name(String name) {
-		span().name(name);
-		return this;
-	}
+    @Override
+    public Span.Builder name(String name) {
+        span().name(name);
+        return this;
+    }
 
-	@Override
-	public Span.Builder event(String value) {
-		span().annotate(value);
-		return this;
-	}
+    @Override
+    public Span.Builder event(String value) {
+        span().annotate(value);
+        return this;
+    }
 
-	@Override
-	public Span.Builder tag(String key, String value) {
-		span().tag(key, value);
-		return this;
-	}
+    @Override
+    public Span.Builder tag(String key, String value) {
+        span().tag(key, value);
+        return this;
+    }
 
-	@Override
-	public Span.Builder error(Throwable throwable) {
-		span().error(throwable);
-		return this;
-	}
+    @Override
+    public Span.Builder error(Throwable throwable) {
+        span().error(throwable);
+        return this;
+    }
 
-	@Override
-	public Span.Builder kind(Span.Kind kind) {
-		span().kind(kind != null ? brave.Span.Kind.valueOf(kind.toString()) : null);
-		return this;
-	}
+    @Override
+    public Span.Builder kind(Span.Kind kind) {
+        span().kind(kind != null ? brave.Span.Kind.valueOf(kind.toString()) : null);
+        return this;
+    }
 
-	@Override
-	public Span.Builder remoteServiceName(String remoteServiceName) {
-		span().remoteServiceName(remoteServiceName);
-		return this;
-	}
+    @Override
+    public Span.Builder remoteServiceName(String remoteServiceName) {
+        span().remoteServiceName(remoteServiceName);
+        return this;
+    }
 
-	@Override
-	public Span.Builder remoteIpAndPort(String ip, int port) {
-		span().remoteIpAndPort(ip, port);
-		return this;
-	}
+    @Override
+    public Span.Builder remoteIpAndPort(String ip, int port) {
+        span().remoteIpAndPort(ip, port);
+        return this;
+    }
 
-	@Override
-	public Span start() {
-		if (this.startTimestamp > 0) {
-			span().start(this.startTimestamp);
-		}
-		else {
-			span().start();
-		}
-		return BraveSpan.fromBrave(this.delegate);
-	}
+    @Override
+    public Span start() {
+        if (this.startTimestamp > 0) {
+            span().start(this.startTimestamp);
+        }
+        else {
+            span().start();
+        }
+        return io.micrometer.tracing.brave.bridge.BraveSpan.fromBrave(this.delegate);
+    }
 
-	@Override
-	public Span start(long micros) {
-		this.startTimestamp = micros;
-		return start();
-	}
+    @Override
+    public Span start(long micros) {
+        this.startTimestamp = micros;
+        return start();
+    }
 
 }

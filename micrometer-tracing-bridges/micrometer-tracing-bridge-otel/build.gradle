@@ -1,56 +1,24 @@
 plugins {
-    id 'idea'
+	id 'idea'
 }
 
 dependencies {
-   implementation("io.opentelemetry:opentelemetry-api")
-		implementation("io.opentelemetry:opentelemetry-api-metrics")
-           implementation("io.opentelemetry:opentelemetry-extension-aws")
-		implementation("io.opentelemetry:opentelemetry-semconv")
-   implementation("io.opentelemetry:opentelemetry-sdk-common")
-		implementation("io.opentelemetry:opentelemetry-sdk-trace")
-		</dependency>
-           implementation("io.opentelemetry:opentelemetry-sdk</artifactId>
-    <exclusions>
-            <exclusion>
-            <groupId>io.opentelemetry:		*</artifactId>
-            </exclusion>
-			</exclusions>
-    </dependency>
-		implementation("io.opentelemetry.instrumentation:        opentelemetry-instrumentation-api</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>io.opentelemetry:*</artifactId>
-				</exclusion>
-            <exclusion>
-            <groupId>io.opentelemetry.instrumentation:		*</artifactId>
-    </exclusion>
-			</exclusions>
-            </dependency>
-		implementation("io.opentelemetry:opentelemetry-exporter-logging</artifactId>
-			<optional>true</optional>
-            <exclusions>
-            <exclusion>
-            <groupId>io.opentelemetry:		*</artifactId>
-    </exclusion>
-			</exclusions>
-            </dependency>
-		implementation("io.opentelemetry:opentelemetry-extension-trace-propagators</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>io.opentelemetry:        *</artifactId>
-				</exclusion>
-    </exclusions>
-		</dependency>
-           implementation("io.opentelemetry:opentelemetry-opentracing-shim</artifactId>
-    <optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>io.opentelemetry:        *</artifactId>
-				</exclusion>
-    </exclusions>
-		</dependency>
-    // JUnit 5
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+	api project(':micrometer-tracing')
+	api 'io.micrometer:micrometer-core'
+	api 'org.slf4j:slf4j-api'
+
+	implementation("io.opentelemetry:opentelemetry-api")
+	implementation("io.opentelemetry:opentelemetry-api-metrics")
+	implementation("io.opentelemetry:opentelemetry-extension-aws")
+	implementation("io.opentelemetry:opentelemetry-semconv")
+	implementation("io.opentelemetry:opentelemetry-sdk-common")
+	implementation("io.opentelemetry:opentelemetry-sdk-trace")
+	implementation("io.opentelemetry:opentelemetry-sdk")
+	implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+	optionalApi("io.opentelemetry:opentelemetry-exporter-logging")
+	implementation("io.opentelemetry:opentelemetry-extension-trace-propagators")
+	optionalApi("io.opentelemetry:opentelemetry-opentracing-shim")
+
+	testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 

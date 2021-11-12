@@ -14,66 +14,65 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import brave.baggage.BaggageField;
-
-import io.micrometer.core.instrument.tracing.BaggageInScope;
-import io.micrometer.core.instrument.tracing.TraceContext;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.TraceContext;
 
 /**
  * Brave implementation of a {@link BaggageInScope}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 class BraveBaggageInScope implements BaggageInScope {
 
-	private final BaggageField delegate;
+    private final BaggageField delegate;
 
-	BraveBaggageInScope(BaggageField delegate) {
-		this.delegate = delegate;
-	}
+    BraveBaggageInScope(BaggageField delegate) {
+        this.delegate = delegate;
+    }
 
-	@Override
-	public String name() {
-		return this.delegate.name();
-	}
+    @Override
+    public String name() {
+        return this.delegate.name();
+    }
 
-	@Override
-	public String get() {
-		return this.delegate.getValue();
-	}
+    @Override
+    public String get() {
+        return this.delegate.getValue();
+    }
 
-	@Override
-	public String get(TraceContext traceContext) {
-		return this.delegate.getValue(BraveTraceContext.toBrave(traceContext));
-	}
+    @Override
+    public String get(TraceContext traceContext) {
+        return this.delegate.getValue(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext));
+    }
 
-	@Override
-	public BraveBaggageInScope set(String value) {
-		this.delegate.updateValue(value);
-		return this;
-	}
+    @Override
+    public BraveBaggageInScope set(String value) {
+        this.delegate.updateValue(value);
+        return this;
+    }
 
-	BaggageField unwrap() {
-		return this.delegate;
-	}
+    BaggageField unwrap() {
+        return this.delegate;
+    }
 
-	@Override
-	public BraveBaggageInScope set(TraceContext traceContext, String value) {
-		this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
-		return this;
-	}
+    @Override
+    public BraveBaggageInScope set(TraceContext traceContext, String value) {
+        this.delegate.updateValue(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext), value);
+        return this;
+    }
 
-	@Override
-	public BaggageInScope makeCurrent() {
-		return this;
-	}
+    @Override
+    public BaggageInScope makeCurrent() {
+        return this;
+    }
 
-	@Override
-	public void close() {
+    @Override
+    public void close() {
 
-	}
+    }
 
 }

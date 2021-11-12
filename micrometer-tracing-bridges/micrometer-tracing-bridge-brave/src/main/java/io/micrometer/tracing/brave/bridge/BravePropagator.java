@@ -14,53 +14,52 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import java.util.List;
 
 import brave.Tracing;
 import brave.propagation.SamplingFlags;
 import brave.propagation.TraceContextOrSamplingFlags;
-
-import io.micrometer.core.instrument.tracing.Span;
-import io.micrometer.core.instrument.tracing.TraceContext;
-import io.micrometer.core.instrument.tracing.propagation.Propagator;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.propagation.Propagator;
 
 /**
  * Brave implementation of a {@link Propagator}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class BravePropagator implements Propagator {
 
-	private final Tracing tracing;
+    private final Tracing tracing;
 
-	/**
-	 * @param tracing Brave tracing
-	 */
-	public BravePropagator(Tracing tracing) {
-		this.tracing = tracing;
-	}
+    /**
+     * @param tracing Brave tracing
+     */
+    public BravePropagator(Tracing tracing) {
+        this.tracing = tracing;
+    }
 
-	@Override
-	public List<String> fields() {
-		return this.tracing.propagation().keys();
-	}
+    @Override
+    public List<String> fields() {
+        return this.tracing.propagation().keys();
+    }
 
-	@Override
-	public <C> void inject(TraceContext traceContext, C carrier, Setter<C> setter) {
-		this.tracing.propagation().injector(setter::set).inject(BraveTraceContext.toBrave(traceContext), carrier);
-	}
+    @Override
+    public <C> void inject(TraceContext traceContext, C carrier, Setter<C> setter) {
+        this.tracing.propagation().injector(setter::set).inject(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext), carrier);
+    }
 
-	@Override
-	public <C> Span.Builder extract(C carrier, Getter<C> getter) {
-		TraceContextOrSamplingFlags extract = this.tracing.propagation().extractor(getter::get).extract(carrier);
-		if (extract.samplingFlags() == SamplingFlags.EMPTY) {
-			this.tracing.tracer().nextSpan();
-			return new BraveSpanBuilder(this.tracing.tracer());
-		}
-		return BraveSpanBuilder.toBuilder(this.tracing.tracer(), extract);
-	}
+    @Override
+    public <C> Span.Builder extract(C carrier, Getter<C> getter) {
+        TraceContextOrSamplingFlags extract = this.tracing.propagation().extractor(getter::get).extract(carrier);
+        if (extract.samplingFlags() == SamplingFlags.EMPTY) {
+            this.tracing.tracer().nextSpan();
+            return new io.micrometer.tracing.brave.bridge.BraveSpanBuilder(this.tracing.tracer());
+        }
+        return io.micrometer.tracing.brave.bridge.BraveSpanBuilder.toBuilder(this.tracing.tracer(), extract);
+    }
 
 }

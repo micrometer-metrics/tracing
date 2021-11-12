@@ -2,7 +2,8 @@
 
 This Contributing Guide is intended for those that would like to contribute to Micrometer Tracing.
 
-If you would like to use any of the published Micrometer Tracing modules as a library in your project, you can instead include the Micrometer Tracing artifacts from the Maven Central repository using your build tool of choice.
+If you would like to use any of the published Micrometer Tracing modules as a library in your project, you can instead
+include the Micrometer Tracing artifacts from the Maven Central repository using your build tool of choice.
 
 ## Code of Conduct
 
@@ -10,25 +11,28 @@ See [our Contributor Code of Conduct](https://github.com/micrometer-metrics/.git
 
 ## Contributions
 
-Contributions come in various forms and are not limited to code changes.
-The Micrometer Tracing community benefits from contributions in all forms.
+Contributions come in various forms and are not limited to code changes. The Micrometer Tracing community benefits from
+contributions in all forms.
 
-For example, those with Micrometer Tracing knowledge and experience can contribute by: 
+For example, those with Micrometer Tracing knowledge and experience can contribute by:
+
 * TODO: [Contributing documentation]()
 * Answering [Stackoverflow questions](https://stackoverflow.com/tags/micrometer-tracing)
 * Answering questions on the [Micrometer slack](https://slack.micrometer.io)
 * Share Micrometer Tracing knowledge in other ways (e.g. presentations, blogs)
 
-The remainder of this document will focus on guidance for contributing code changes. It will help contributors to build, modify, or test the Micrometer Tracing source code.
+The remainder of this document will focus on guidance for contributing code changes. It will help contributors to build,
+modify, or test the Micrometer Tracing source code.
 
 ## Contributor License Agreement
 
-Contributions in the form of source changes require that you fill out and submit the [Contributor License Agreement](https://cla.pivotal.io/sign/pivotal) if you have not done so previously.
+Contributions in the form of source changes require that you fill out and submit
+the [Contributor License Agreement](https://cla.pivotal.io/sign/pivotal) if you have not done so previously.
 
 ## Getting the source
 
-The Micrometer Tracing source code is hosted on GitHub at https://github.com/micrometer-metrics/tracing.
-You can use a Git client to clone the source code to your local machine.
+The Micrometer Tracing source code is hosted on GitHub at https://github.com/micrometer-metrics/tracing. You can use a
+Git client to clone the source code to your local machine.
 
 ## Building
 
@@ -50,8 +54,8 @@ The Gradle `check` task depends on the `test` task, and so tests will be run as 
 
 ### Publishing local snapshots
 
-Run `./gradlew pTML` to publish a Maven-style snapshot to your Maven local repo.
-The build automatically calculates the "next" version for you when publishing snapshots.
+Run `./gradlew pTML` to publish a Maven-style snapshot to your Maven local repo. The build automatically calculates
+the "next" version for you when publishing snapshots.
 
 These local snapshots can be used in another project to test the changes. For example:
 

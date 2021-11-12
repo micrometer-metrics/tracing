@@ -14,55 +14,52 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import brave.sampler.SamplerFunctions;
-
-import io.micrometer.core.instrument.tracing.SamplerFunction;
 import io.micrometer.core.instrument.transport.http.HttpRequest;
-
-import io.micrometer.core.instrument.transport.http.HttpRequest;
+import io.micrometer.tracing.SamplerFunction;
 
 /**
  * Brave implementation of a {@link SamplerFunction}.
  *
  * @param <T> type of the input, for example a request or method
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 @SuppressWarnings("unchecked")
 public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
 
-	final brave.sampler.SamplerFunction<T> samplerFunction;
+    final brave.sampler.SamplerFunction<T> samplerFunction;
 
-	/**
-	 * @param samplerFunction Brave delegate
-	 */
-	public BraveSamplerFunction(brave.sampler.SamplerFunction<T> samplerFunction) {
-		this.samplerFunction = samplerFunction;
-	}
+    /**
+     * @param samplerFunction Brave delegate
+     */
+    public BraveSamplerFunction(brave.sampler.SamplerFunction<T> samplerFunction) {
+        this.samplerFunction = samplerFunction;
+    }
 
-	static <T, V> brave.sampler.SamplerFunction<V> toBrave(SamplerFunction<T> samplerFunction, Class<T> sleuthInput,
-			Class<V> braveInput) {
-		if (sleuthInput.equals(HttpRequest.class) && braveInput.equals(brave.http.HttpRequest.class)) {
-			return arg -> samplerFunction.trySample((T) BraveHttpRequest.fromBrave((brave.http.HttpRequest) arg));
-		}
-		return SamplerFunctions.deferDecision();
-	}
+    static <T, V> brave.sampler.SamplerFunction<V> toBrave(SamplerFunction<T> samplerFunction, Class<T> sleuthInput,
+            Class<V> braveInput) {
+        if (sleuthInput.equals(HttpRequest.class) && braveInput.equals(brave.http.HttpRequest.class)) {
+            return arg -> samplerFunction.trySample((T) io.micrometer.tracing.brave.bridge.BraveHttpRequest.fromBrave((brave.http.HttpRequest) arg));
+        }
+        return SamplerFunctions.deferDecision();
+    }
 
-	/**
-	 * Converts from Spring Observability to Brave.
-	 * @param samplerFunction Spring Observability delegate
-	 * @return converted version
-	 */
-	public static brave.sampler.SamplerFunction<brave.http.HttpRequest> toHttpBrave(
-			SamplerFunction<HttpRequest> samplerFunction) {
-		return arg -> samplerFunction.trySample(BraveHttpRequest.fromBrave(arg));
-	}
+    /**
+     * Converts from Spring Observability to Brave.
+     * @param samplerFunction Spring Observability delegate
+     * @return converted version
+     */
+    public static brave.sampler.SamplerFunction<brave.http.HttpRequest> toHttpBrave(
+            SamplerFunction<HttpRequest> samplerFunction) {
+        return arg -> samplerFunction.trySample(io.micrometer.tracing.brave.bridge.BraveHttpRequest.fromBrave(arg));
+    }
 
-	@Override
-	public Boolean trySample(T arg) {
-		return this.samplerFunction.trySample(arg);
-	}
+    @Override
+    public Boolean trySample(T arg) {
+        return this.samplerFunction.trySample(arg);
+    }
 
 }

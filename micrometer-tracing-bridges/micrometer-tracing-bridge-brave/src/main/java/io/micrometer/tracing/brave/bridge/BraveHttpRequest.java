@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -26,58 +26,58 @@ import io.micrometer.core.instrument.transport.http.HttpRequest;
  * Brave implementation of a {@link HttpRequest}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 class BraveHttpRequest implements HttpRequest {
 
-	final brave.http.HttpRequest delegate;
+    final brave.http.HttpRequest delegate;
 
-	BraveHttpRequest(brave.http.HttpRequest delegate) {
-		this.delegate = delegate;
-	}
+    BraveHttpRequest(brave.http.HttpRequest delegate) {
+        this.delegate = delegate;
+    }
 
-	static brave.http.HttpRequest toBrave(HttpRequest httpRequest) {
-		return ((BraveHttpRequest) httpRequest).delegate;
-	}
+    static brave.http.HttpRequest toBrave(HttpRequest httpRequest) {
+        return ((BraveHttpRequest) httpRequest).delegate;
+    }
 
-	static HttpRequest fromBrave(brave.http.HttpRequest httpRequest) {
-		return new BraveHttpRequest(httpRequest);
-	}
+    static HttpRequest fromBrave(brave.http.HttpRequest httpRequest) {
+        return new BraveHttpRequest(httpRequest);
+    }
 
-	@Override
-	public String method() {
-		return this.delegate.method();
-	}
+    @Override
+    public String method() {
+        return this.delegate.method();
+    }
 
-	@Override
-	public String path() {
-		return this.delegate.path();
-	}
+    @Override
+    public String path() {
+        return this.delegate.path();
+    }
 
-	@Override
-	public String url() {
-		return this.delegate.url();
-	}
+    @Override
+    public String url() {
+        return this.delegate.url();
+    }
 
-	@Override
-	public String header(String name) {
-		return this.delegate.header(name);
-	}
+    @Override
+    public String header(String name) {
+        return this.delegate.header(name);
+    }
 
-	@Override
-	public Collection<String> headerNames() {
-		// this is unused by Brave
-		return Collections.emptyList();
-	}
+    @Override
+    public Collection<String> headerNames() {
+        // this is unused by Brave
+        return Collections.emptyList();
+    }
 
-	@Override
-	public Kind kind() {
-		return Kind.valueOf(this.delegate.spanKind().name());
-	}
+    @Override
+    public Kind kind() {
+        return Kind.valueOf(this.delegate.spanKind().name());
+    }
 
-	@Override
-	public Object unwrap() {
-		return this.delegate.unwrap();
-	}
+    @Override
+    public Object unwrap() {
+        return this.delegate.unwrap();
+    }
 
 }

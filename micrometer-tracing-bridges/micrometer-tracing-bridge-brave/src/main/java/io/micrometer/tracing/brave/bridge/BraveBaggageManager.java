@@ -14,55 +14,54 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import java.io.Closeable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import brave.baggage.BaggageField;
-
-import io.micrometer.core.instrument.tracing.BaggageInScope;
-import io.micrometer.core.instrument.tracing.BaggageManager;
-import io.micrometer.core.instrument.tracing.TraceContext;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.BaggageManager;
+import io.micrometer.tracing.TraceContext;
 
 /**
  * Brave implementation of a {@link BaggageManager}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class BraveBaggageManager implements Closeable, BaggageManager {
 
-	private static final Map<String, BaggageInScope> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, BaggageInScope> CACHE = new ConcurrentHashMap<>();
 
-	public Map<String, String> getAllBaggage() {
-		return BaggageField.getAllValues();
-	}
+    public Map<String, String> getAllBaggage() {
+        return BaggageField.getAllValues();
+    }
 
-	@Override
-	public BaggageInScope getBaggage(String name) {
-		return createBaggage(name);
-	}
+    @Override
+    public BaggageInScope getBaggage(String name) {
+        return createBaggage(name);
+    }
 
-	@Override
-	public BaggageInScope getBaggage(TraceContext traceContext, String name) {
-		return new BraveBaggageInScope(BaggageField.getByName(BraveTraceContext.toBrave(traceContext), name));
-	}
+    @Override
+    public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+        return new io.micrometer.tracing.brave.bridge.BraveBaggageInScope(BaggageField.getByName(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext), name));
+    }
 
-	@Override
-	public BaggageInScope createBaggage(String name) {
-		return CACHE.computeIfAbsent(name, s -> new BraveBaggageInScope(BaggageField.create(s)));
-	}
+    @Override
+    public BaggageInScope createBaggage(String name) {
+        return CACHE.computeIfAbsent(name, s -> new io.micrometer.tracing.brave.bridge.BraveBaggageInScope(BaggageField.create(s)));
+    }
 
-	@Override
-	public BaggageInScope createBaggage(String name, String value) {
-		return createBaggage(name).set(value);
-	}
+    @Override
+    public BaggageInScope createBaggage(String name, String value) {
+        return createBaggage(name).set(value);
+    }
 
-	@Override
-	public void close() {
-		CACHE.clear();
-	}
+    @Override
+    public void close() {
+        CACHE.clear();
+    }
 
 }

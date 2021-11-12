@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.micrometer.tracing.util.StringUtils;
+
 /**
  * {@link SpanFilter} that ignores spans via names.
  *

@@ -18,9 +18,8 @@ package org.springframework.boot.autoconfigure.observability.tracing.internal;
 
 import java.lang.reflect.Method;
 
-import org.springframework.core.annotation.AnnotationUtils;
-import io.micrometer.core.instrument.tracing.SpanName;
-import io.micrometer.core.instrument.tracing.SpanNamer;
+import io.micrometer.tracing.SpanName;
+import io.micrometer.tracing.SpanNamer;
 
 /**
  * Default implementation of SpanNamer that tries to get the span name as follows:
@@ -41,29 +40,29 @@ import io.micrometer.core.instrument.tracing.SpanNamer;
  */
 public class DefaultSpanNamer implements SpanNamer {
 
-	private static boolean isDefaultToString(Object delegate, String spanName) {
-		if (delegate instanceof Method) {
-			return delegate.toString().equals(spanName);
-		}
-		return (delegate.getClass().getName() + "@" + Integer.toHexString(delegate.hashCode())).equals(spanName);
-	}
+    private static boolean isDefaultToString(Object delegate, String spanName) {
+        if (delegate instanceof Method) {
+            return delegate.toString().equals(spanName);
+        }
+        return (delegate.getClass().getName() + "@" + Integer.toHexString(delegate.hashCode())).equals(spanName);
+    }
 
-	@Override
-	public String name(Object object, String defaultValue) {
-		SpanName annotation = annotation(object);
-		String spanName = annotation != null ? annotation.value() : object.toString();
-		// If there is no overridden toString method we'll put a constant value
-		if (isDefaultToString(object, spanName)) {
-			return defaultValue;
-		}
-		return spanName;
-	}
+    @Override
+    public String name(Object object, String defaultValue) {
+        SpanName annotation = annotation(object);
+        String spanName = annotation != null ? annotation.value() : object.toString();
+        // If there is no overridden toString method we'll put a constant value
+        if (isDefaultToString(object, spanName)) {
+            return defaultValue;
+        }
+        return spanName;
+    }
 
-	private SpanName annotation(Object o) {
-		if (o instanceof Method) {
-			return AnnotationUtils.findAnnotation((Method) o, SpanName.class);
-		}
-		return AnnotationUtils.findAnnotation(o.getClass(), SpanName.class);
-	}
+    private SpanName annotation(Object o) {
+        if (o instanceof Method) {
+            return ((Method) o).getAnnotation(SpanName.class);
+        }
+        return o.getClass().getAnnotation(SpanName.class);
+    }
 
 }

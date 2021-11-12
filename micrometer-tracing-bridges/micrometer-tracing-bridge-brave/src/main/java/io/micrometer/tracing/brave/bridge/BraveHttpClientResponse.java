@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,99 +27,99 @@ import io.micrometer.core.instrument.transport.http.HttpClientResponse;
  * Brave implementation of a {@link HttpClientResponse}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 class BraveHttpClientResponse implements HttpClientResponse {
 
-	final brave.http.HttpClientResponse delegate;
+    final brave.http.HttpClientResponse delegate;
 
-	BraveHttpClientResponse(brave.http.HttpClientResponse delegate) {
-		this.delegate = delegate;
-	}
+    BraveHttpClientResponse(brave.http.HttpClientResponse delegate) {
+        this.delegate = delegate;
+    }
 
-	static brave.http.HttpClientResponse toBrave(HttpClientResponse httpClientResponse) {
-		if (httpClientResponse == null) {
-			return null;
-		}
-		else if (httpClientResponse instanceof BraveHttpClientResponse) {
-			return ((BraveHttpClientResponse) httpClientResponse).delegate;
-		}
-		return new brave.http.HttpClientResponse() {
-			@Override
-			public int statusCode() {
-				return httpClientResponse.statusCode();
-			}
+    static brave.http.HttpClientResponse toBrave(HttpClientResponse httpClientResponse) {
+        if (httpClientResponse == null) {
+            return null;
+        }
+        else if (httpClientResponse instanceof BraveHttpClientResponse) {
+            return ((BraveHttpClientResponse) httpClientResponse).delegate;
+        }
+        return new brave.http.HttpClientResponse() {
+            @Override
+            public int statusCode() {
+                return httpClientResponse.statusCode();
+            }
 
-			@Override
-			public Object unwrap() {
-				return httpClientResponse.unwrap();
-			}
+            @Override
+            public Object unwrap() {
+                return httpClientResponse.unwrap();
+            }
 
-			@Override
-			public brave.http.HttpClientRequest request() {
-				return BraveHttpClientRequest.toBrave(httpClientResponse.request());
-			}
+            @Override
+            public brave.http.HttpClientRequest request() {
+                return io.micrometer.tracing.brave.bridge.BraveHttpClientRequest.toBrave(httpClientResponse.request());
+            }
 
-			@Override
-			public Throwable error() {
-				return httpClientResponse.error();
-			}
+            @Override
+            public Throwable error() {
+                return httpClientResponse.error();
+            }
 
-			@Override
-			public String method() {
-				return httpClientResponse.method();
-			}
+            @Override
+            public String method() {
+                return httpClientResponse.method();
+            }
 
-			@Override
-			public String route() {
-				return httpClientResponse.route();
-			}
-		};
-	}
+            @Override
+            public String route() {
+                return httpClientResponse.route();
+            }
+        };
+    }
 
-	@Override
-	public String method() {
-		return this.delegate.method();
-	}
+    @Override
+    public String method() {
+        return this.delegate.method();
+    }
 
-	@Override
-	public String route() {
-		return this.delegate.route();
-	}
+    @Override
+    public String route() {
+        return this.delegate.route();
+    }
 
-	@Override
-	public int statusCode() {
-		return this.delegate.statusCode();
-	}
+    @Override
+    public int statusCode() {
+        return this.delegate.statusCode();
+    }
 
-	@Override
-	public Object unwrap() {
-		return this.delegate.unwrap();
-	}
+    @Override
+    public Object unwrap() {
+        return this.delegate.unwrap();
+    }
 
-	@Override
-	public Collection<String> headerNames() {
-		// this is unused by Brave
-		return Collections.emptyList();
-	}
+    @Override
+    public Collection<String> headerNames() {
+        // this is unused by Brave
+        return Collections.emptyList();
+    }
 
-	@Override
-	public Kind kind() {
-		return Kind.valueOf(this.delegate.spanKind().name());
-	}
+    @Override
+    public Kind kind() {
+        return Kind.valueOf(this.delegate.spanKind().name());
+    }
 
-	@Override
-	public HttpClientRequest request() {
-		brave.http.HttpClientRequest request = this.delegate.request();
-		if (request == null) {
-			return null;
-		}
-		return new BraveHttpClientRequest(request);
-	}
+    @Override
+    public HttpClientRequest request() {
+        brave.http.HttpClientRequest request = this.delegate.request();
+        if (request == null) {
+            return null;
+        }
+        return new io.micrometer.tracing.brave.bridge.BraveHttpClientRequest(request);
+    }
 
-	@Override
-	public Throwable error() {
-		return this.delegate.error();
-	}
+    @Override
+    public Throwable error() {
+        return this.delegate.error();
+    }
 
 }

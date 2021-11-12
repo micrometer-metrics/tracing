@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.propagation;
+package io.micrometer.tracing.brave.propagation;
 
 /**
  * Supported propagation types.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public enum PropagationType {
 
-	/**
-	 * AWS propagation type.
-	 */
-	AWS,
+    /**
+     * AWS propagation type.
+     */
+    AWS,
 
-	/**
-	 * B3 propagation type.
-	 */
-	B3,
+    /**
+     * B3 propagation type.
+     */
+    B3,
 
-	/**
-	 * W3C propagation type.
-	 */
-	W3C,
+    /**
+     * W3C propagation type.
+     */
+    W3C,
 
-	/**
-	 * Custom propagation type.
-	 */
-	CUSTOM
+    /**
+     * Custom propagation type.
+     */
+    CUSTOM
 
 }

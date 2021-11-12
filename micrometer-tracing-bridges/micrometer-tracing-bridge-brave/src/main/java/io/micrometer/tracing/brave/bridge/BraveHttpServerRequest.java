@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
-import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -24,133 +23,140 @@ import javax.servlet.ServletRequest;
 
 import io.micrometer.core.instrument.transport.Kind;
 import io.micrometer.core.instrument.transport.http.HttpServerRequest;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.ClassUtils;
+
 
 /**
  * Brave implementation of a {@link HttpServerRequest}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 class BraveHttpServerRequest implements HttpServerRequest {
 
-	private static final boolean SERVLET_REQUEST_PRESENT = ClassUtils.isPresent("javax.servlet.ServletRequest", null);
+    private static final boolean SERVLET_REQUEST_PRESENT = isClassPresent("javax.servlet.ServletRequest");
 
-	private static final boolean SERVER_HTTP_REQUEST_PRESENT = ClassUtils
-			.isPresent("org.springframework.http.server.reactive.ServerHttpRequest", null);
+    final brave.http.HttpServerRequest delegate;
 
-	final brave.http.HttpServerRequest delegate;
+    BraveHttpServerRequest(brave.http.HttpServerRequest delegate) {
+        this.delegate = delegate;
+    }
 
-	BraveHttpServerRequest(brave.http.HttpServerRequest delegate) {
-		this.delegate = delegate;
-	}
+    private static boolean isClassPresent(String clazz) {
+        try {
+            Class.forName(clazz);
+            return true;
+        }
+        catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
-	static brave.http.HttpServerRequest toBrave(HttpServerRequest request) {
-		if (request == null) {
-			return null;
-		}
-		if (request instanceof BraveHttpServerRequest) {
-			return ((BraveHttpServerRequest) request).delegate;
-		}
-		return new brave.http.HttpServerRequest() {
+    static brave.http.HttpServerRequest toBrave(HttpServerRequest request) {
+        if (request == null) {
+            return null;
+        }
+        if (request instanceof BraveHttpServerRequest) {
+            return ((BraveHttpServerRequest) request).delegate;
+        }
+        return new brave.http.HttpServerRequest() {
 
-			@Override
-			public Object unwrap() {
-				return request.unwrap();
-			}
+            @Override
+            public Object unwrap() {
+                return request.unwrap();
+            }
 
-			@Override
-			public String method() {
-				return request.method();
-			}
+            @Override
+            public String method() {
+                return request.method();
+            }
 
-			@Override
-			public String path() {
-				return request.path();
-			}
+            @Override
+            public String path() {
+                return request.path();
+            }
 
-			@Override
-			public String url() {
-				return request.url();
-			}
+            @Override
+            public String url() {
+                return request.url();
+            }
 
-			@Override
-			public String header(String name) {
-				return request.header(name);
-			}
+            @Override
+            public String header(String name) {
+                return request.header(name);
+            }
 
-			@Override
-			public boolean parseClientIpAndPort(brave.Span span) {
-				boolean clientIpAndPortParsed = super.parseClientIpAndPort(span);
-				if (clientIpAndPortParsed) {
-					return true;
-				}
-				return resolveFromInetAddress(span);
-			}
+            @Override
+            public boolean parseClientIpAndPort(brave.Span span) {
+                boolean clientIpAndPortParsed = super.parseClientIpAndPort(span);
+                if (clientIpAndPortParsed) {
+                    return true;
+                }
+                return resolveFromInetAddress(span);
+            }
 
-			private boolean resolveFromInetAddress(brave.Span span) {
-				Object delegate = request.unwrap();
-				if (SERVER_HTTP_REQUEST_PRESENT && delegate instanceof ServerHttpRequest) {
-					InetSocketAddress addr = ((ServerHttpRequest) delegate).getRemoteAddress();
-					if (addr == null) {
-						return false;
-					}
-					return span.remoteIpAndPort(addr.getAddress().getHostAddress(), addr.getPort());
-				}
-				else if (SERVLET_REQUEST_PRESENT && delegate instanceof ServletRequest) {
-					ServletRequest servletRequest = (ServletRequest) delegate;
-					String addr = servletRequest.getRemoteAddr();
-					if (addr == null) {
-						return false;
-					}
-					return span.remoteIpAndPort(addr, servletRequest.getRemotePort());
-				}
-				return false;
-			}
+            private boolean resolveFromInetAddress(brave.Span span) {
+                Object delegate = request.unwrap();
+//                if (SERVER_HTTP_REQUEST_PRESENT && delegate instanceof ServerHttpRequest) {
+//                    InetSocketAddress addr = ((ServerHttpRequest) delegate).getRemoteAddress();
+//                    if (addr == null) {
+//                        return false;
+//                    }
+//                    return span.remoteIpAndPort(addr.getAddress().getHostAddress(), addr.getPort());
+//                }
+//                else
+                if (SERVLET_REQUEST_PRESENT && delegate instanceof ServletRequest) {
+                    ServletRequest servletRequest = (ServletRequest) delegate;
+                    String addr = servletRequest.getRemoteAddr();
+                    if (addr == null) {
+                        return false;
+                    }
+                    return span.remoteIpAndPort(addr, servletRequest.getRemotePort());
+                }
+                return false;
+            }
 
-		};
-	}
+        };
+    }
 
-	@Override
-	public String method() {
-		return this.delegate.method();
-	}
+    @Override
+    public String method() {
+        return this.delegate.method();
+    }
 
-	@Override
-	public String route() {
-		return this.delegate.route();
-	}
+    @Override
+    public String route() {
+        return this.delegate.route();
+    }
 
-	@Override
-	public Object unwrap() {
-		return this.delegate.unwrap();
-	}
+    @Override
+    public Object unwrap() {
+        return this.delegate.unwrap();
+    }
 
-	@Override
-	public Collection<String> headerNames() {
-		// this is unused by Brave
-		return Collections.emptyList();
-	}
+    @Override
+    public Collection<String> headerNames() {
+        // this is unused by Brave
+        return Collections.emptyList();
+    }
 
-	@Override
-	public Kind kind() {
-		return Kind.valueOf(this.delegate.spanKind().name());
-	}
+    @Override
+    public Kind kind() {
+        return Kind.valueOf(this.delegate.spanKind().name());
+    }
 
-	@Override
-	public String path() {
-		return this.delegate.path();
-	}
+    @Override
+    public String path() {
+        return this.delegate.path();
+    }
 
-	@Override
-	public String url() {
-		return this.delegate.url();
-	}
+    @Override
+    public String url() {
+        return this.delegate.url();
+    }
 
-	@Override
-	public String header(String name) {
-		return this.delegate.header(name);
-	}
+    @Override
+    public String header(String name) {
+        return this.delegate.header(name);
+    }
 
 }

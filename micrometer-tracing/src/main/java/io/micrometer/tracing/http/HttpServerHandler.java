@@ -16,6 +16,8 @@
 
 package io.micrometer.tracing.http;
 
+import io.micrometer.core.instrument.transport.http.HttpServerRequest;
+import io.micrometer.core.instrument.transport.http.HttpServerResponse;
 import io.micrometer.tracing.Span;
 
 /**

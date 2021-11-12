@@ -14,92 +14,92 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
 import java.util.Objects;
 
-import io.micrometer.core.instrument.tracing.TraceContext;
-import org.springframework.lang.Nullable;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.lang.Nullable;
 
 /**
  * Brave implementation of a {@link TraceContext}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class BraveTraceContext implements TraceContext {
 
-	final brave.propagation.TraceContext traceContext;
+    final brave.propagation.TraceContext traceContext;
 
-	/**
-	 * @param traceContext Brave delegate
-	 */
-	public BraveTraceContext(brave.propagation.TraceContext traceContext) {
-		this.traceContext = traceContext;
-	}
+    /**
+     * @param traceContext Brave delegate
+     */
+    public BraveTraceContext(brave.propagation.TraceContext traceContext) {
+        this.traceContext = traceContext;
+    }
 
-	/**
-	 * Converts from Spring Observability to Brave.
-	 * @param traceContext Spring Observability delegate
-	 * @return converted version
-	 */
-	public static brave.propagation.TraceContext toBrave(TraceContext traceContext) {
-		if (traceContext == null) {
-			return null;
-		}
-		return ((BraveTraceContext) traceContext).traceContext;
-	}
+    /**
+     * Converts from Spring Observability to Brave.
+     * @param traceContext Spring Observability delegate
+     * @return converted version
+     */
+    public static brave.propagation.TraceContext toBrave(TraceContext traceContext) {
+        if (traceContext == null) {
+            return null;
+        }
+        return ((BraveTraceContext) traceContext).traceContext;
+    }
 
-	/**
-	 * Converts from Brave to Spring Observability.
-	 * @param traceContext Brave delegate
-	 * @return converted version
-	 */
-	public static TraceContext fromBrave(brave.propagation.TraceContext traceContext) {
-		return new BraveTraceContext(traceContext);
-	}
+    /**
+     * Converts from Brave to Spring Observability.
+     * @param traceContext Brave delegate
+     * @return converted version
+     */
+    public static TraceContext fromBrave(brave.propagation.TraceContext traceContext) {
+        return new BraveTraceContext(traceContext);
+    }
 
-	@Override
-	public String traceId() {
-		return this.traceContext.traceIdString();
-	}
+    @Override
+    public String traceId() {
+        return this.traceContext.traceIdString();
+    }
 
-	@Override
-	@Nullable
-	public String parentId() {
-		return this.traceContext.parentIdString();
-	}
+    @Override
+    @Nullable
+    public String parentId() {
+        return this.traceContext.parentIdString();
+    }
 
-	@Override
-	public String spanId() {
-		return this.traceContext.spanIdString();
-	}
+    @Override
+    public String spanId() {
+        return this.traceContext.spanIdString();
+    }
 
-	@Override
-	public Boolean sampled() {
-		return this.traceContext.sampled();
-	}
+    @Override
+    public Boolean sampled() {
+        return this.traceContext.sampled();
+    }
 
-	@Override
-	public String toString() {
-		return this.traceContext != null ? this.traceContext.toString() : "null";
-	}
+    @Override
+    public String toString() {
+        return this.traceContext != null ? this.traceContext.toString() : "null";
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		BraveTraceContext that = (BraveTraceContext) o;
-		return Objects.equals(this.traceContext, that.traceContext);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BraveTraceContext that = (BraveTraceContext) o;
+        return Objects.equals(this.traceContext, that.traceContext);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(this.traceContext);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.traceContext);
+    }
 
 }

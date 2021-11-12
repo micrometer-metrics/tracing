@@ -14,46 +14,46 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
-import io.micrometer.core.instrument.tracing.SpanCustomizer;
-import io.micrometer.core.instrument.tracing.TraceContext;
-import io.micrometer.core.instrument.tracing.http.HttpResponseParser;
 import io.micrometer.core.instrument.transport.http.HttpResponse;
+import io.micrometer.tracing.SpanCustomizer;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.http.HttpResponseParser;
 
 /**
  * Brave implementation of a {@link HttpResponseParser}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class BraveHttpResponseParser implements HttpResponseParser {
 
-	final brave.http.HttpResponseParser delegate;
+    final brave.http.HttpResponseParser delegate;
 
-	/**
-	 * @param delegate Brave delegate
-	 */
-	public BraveHttpResponseParser(brave.http.HttpResponseParser delegate) {
-		this.delegate = delegate;
-	}
+    /**
+     * @param delegate Brave delegate
+     */
+    public BraveHttpResponseParser(brave.http.HttpResponseParser delegate) {
+        this.delegate = delegate;
+    }
 
-	/**
-	 * @param parser Sleuth's API parser
-	 * @return Brave's parser
-	 */
-	public static brave.http.HttpResponseParser toBrave(HttpResponseParser parser) {
-		if (parser instanceof BraveHttpResponseParser) {
-			return ((BraveHttpResponseParser) parser).delegate;
-		}
-		return (response, context, span) -> parser.parse(BraveHttpResponse.fromBrave(response),
-				BraveTraceContext.fromBrave(context), BraveSpanCustomizer.fromBrave(span));
-	}
+    /**
+     * @param parser Sleuth's API parser
+     * @return Brave's parser
+     */
+    public static brave.http.HttpResponseParser toBrave(HttpResponseParser parser) {
+        if (parser instanceof BraveHttpResponseParser) {
+            return ((BraveHttpResponseParser) parser).delegate;
+        }
+        return (response, context, span) -> parser.parse(io.micrometer.tracing.brave.bridge.BraveHttpResponse.fromBrave(response),
+                io.micrometer.tracing.brave.bridge.BraveTraceContext.fromBrave(context), io.micrometer.tracing.brave.bridge.BraveSpanCustomizer.fromBrave(span));
+    }
 
-	@Override
-	public void parse(HttpResponse response, TraceContext context, SpanCustomizer span) {
-		this.delegate.parse(BraveHttpResponse.toBrave(response), BraveTraceContext.toBrave(context),
-				BraveSpanCustomizer.toBrave(span));
-	}
+    @Override
+    public void parse(HttpResponse response, TraceContext context, SpanCustomizer span) {
+        this.delegate.parse(io.micrometer.tracing.brave.bridge.BraveHttpResponse.toBrave(response), io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context),
+                io.micrometer.tracing.brave.bridge.BraveSpanCustomizer.toBrave(span));
+    }
 
 }

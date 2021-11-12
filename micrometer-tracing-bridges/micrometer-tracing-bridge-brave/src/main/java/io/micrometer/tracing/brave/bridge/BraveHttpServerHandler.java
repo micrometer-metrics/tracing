@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
-import io.micrometer.core.instrument.tracing.Span;
-import io.micrometer.core.instrument.tracing.http.HttpServerHandler;
 import io.micrometer.core.instrument.transport.http.HttpServerRequest;
 import io.micrometer.core.instrument.transport.http.HttpServerResponse;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.http.HttpServerHandler;
 
 /**
  * Brave implementation of a {@link HttpServerHandler}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class BraveHttpServerHandler implements HttpServerHandler {
 
-	final brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate;
+    final brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate;
 
-	/**
-	 * @param delegate Brave delegate
-	 */
-	public BraveHttpServerHandler(
-			brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
-		this.delegate = delegate;
-	}
+    /**
+     * @param delegate Brave delegate
+     */
+    public BraveHttpServerHandler(
+            brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
+        this.delegate = delegate;
+    }
 
-	@Override
-	public Span handleReceive(HttpServerRequest request) {
-		return BraveSpan.fromBrave(this.delegate.handleReceive(BraveHttpServerRequest.toBrave(request)));
-	}
+    @Override
+    public Span handleReceive(HttpServerRequest request) {
+        return io.micrometer.tracing.brave.bridge.BraveSpan.fromBrave(this.delegate.handleReceive(io.micrometer.tracing.brave.bridge.BraveHttpServerRequest.toBrave(request)));
+    }
 
-	@Override
-	public void handleSend(HttpServerResponse response, Span span) {
-		this.delegate.handleSend(BraveHttpServerResponse.toBrave(response), BraveSpan.toBrave(span));
-	}
+    @Override
+    public void handleSend(HttpServerResponse response, Span span) {
+        this.delegate.handleSend(io.micrometer.tracing.brave.bridge.BraveHttpServerResponse.toBrave(response), io.micrometer.tracing.brave.bridge.BraveSpan.toBrave(span));
+    }
 
 }

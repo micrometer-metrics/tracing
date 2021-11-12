@@ -1,9 +1,10 @@
 plugins {
-    id 'idea'
+	id 'idea'
 }
 
 dependencies {
-    // JUnit 5
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+	api 'io.micrometer:micrometer-core'
+
+	testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 

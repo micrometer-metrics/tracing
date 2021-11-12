@@ -14,49 +14,49 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.bridge;
+package io.micrometer.tracing.brave.bridge;
 
-import io.micrometer.core.instrument.tracing.SpanCustomizer;
-import io.micrometer.core.instrument.tracing.docs.AssertingSpanCustomizer;
+import io.micrometer.tracing.SpanCustomizer;
+import io.micrometer.tracing.docs.AssertingSpanCustomizer;
 
 /**
  * Brave implementation of a {@link SpanCustomizer}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class BraveSpanCustomizer implements SpanCustomizer {
 
-	private final brave.SpanCustomizer spanCustomizer;
+    private final brave.SpanCustomizer spanCustomizer;
 
-	/**
-	 * @param spanCustomizer Brave delegate
-	 */
-	public BraveSpanCustomizer(brave.SpanCustomizer spanCustomizer) {
-		this.spanCustomizer = spanCustomizer;
-	}
+    /**
+     * @param spanCustomizer Brave delegate
+     */
+    public BraveSpanCustomizer(brave.SpanCustomizer spanCustomizer) {
+        this.spanCustomizer = spanCustomizer;
+    }
 
-	static brave.SpanCustomizer toBrave(SpanCustomizer spanCustomizer) {
-		return ((BraveSpanCustomizer) AssertingSpanCustomizer.unwrap(spanCustomizer)).spanCustomizer;
-	}
+    static brave.SpanCustomizer toBrave(SpanCustomizer spanCustomizer) {
+        return ((BraveSpanCustomizer) AssertingSpanCustomizer.unwrap(spanCustomizer)).spanCustomizer;
+    }
 
-	static SpanCustomizer fromBrave(brave.SpanCustomizer spanCustomizer) {
-		return new BraveSpanCustomizer(spanCustomizer);
-	}
+    static SpanCustomizer fromBrave(brave.SpanCustomizer spanCustomizer) {
+        return new BraveSpanCustomizer(spanCustomizer);
+    }
 
-	@Override
-	public SpanCustomizer name(String name) {
-		return new BraveSpanCustomizer(this.spanCustomizer.name(name));
-	}
+    @Override
+    public SpanCustomizer name(String name) {
+        return new BraveSpanCustomizer(this.spanCustomizer.name(name));
+    }
 
-	@Override
-	public SpanCustomizer tag(String key, String value) {
-		return new BraveSpanCustomizer(this.spanCustomizer.tag(key, value));
-	}
+    @Override
+    public SpanCustomizer tag(String key, String value) {
+        return new BraveSpanCustomizer(this.spanCustomizer.tag(key, value));
+    }
 
-	@Override
-	public SpanCustomizer event(String value) {
-		return new BraveSpanCustomizer(this.spanCustomizer.annotate(value));
-	}
+    @Override
+    public SpanCustomizer event(String value) {
+        return new BraveSpanCustomizer(this.spanCustomizer.annotate(value));
+    }
 
 }

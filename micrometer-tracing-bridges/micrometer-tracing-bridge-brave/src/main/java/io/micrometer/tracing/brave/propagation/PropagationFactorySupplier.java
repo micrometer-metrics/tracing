@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.brave.propagation;
+package io.micrometer.tracing.brave.propagation;
 
 import brave.propagation.Propagation;
 
@@ -22,13 +22,13 @@ import brave.propagation.Propagation;
  * Provides logic for supplying of a {@link Propagation.Factory}.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public interface PropagationFactorySupplier {
 
-	/**
-	 * @return an instance of a {@link Propagation.Factory}
-	 */
-	Propagation.Factory get();
+    /**
+     * @return an instance of a {@link Propagation.Factory}
+     */
+    Propagation.Factory get();
 
 }

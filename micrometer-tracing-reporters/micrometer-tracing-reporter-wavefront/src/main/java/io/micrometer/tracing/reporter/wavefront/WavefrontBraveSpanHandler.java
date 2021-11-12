@@ -14,47 +14,46 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.reporter.wavefront;
+package io.micrometer.tracing.reporter.wavefront;
 
 import java.io.Closeable;
 
 import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
-
-import org.springframework.boot.autoconfigure.observability.tracing.brave.bridge.BraveFinishedSpan;
-import org.springframework.boot.autoconfigure.observability.tracing.brave.bridge.BraveTraceContext;
+import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
+import io.micrometer.tracing.brave.bridge.BraveTraceContext;
 
 /**
  * A {@link SpanHandler} that sends spans to Wavefront.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class WavefrontBraveSpanHandler extends SpanHandler implements Runnable, Closeable {
 
-	private final WavefrontSpringObservabilitySpanHandler spanHandler;
+    private final WavefrontSpringObservabilitySpanHandler spanHandler;
 
-	/**
-	 * @param spanHandler wavefront span handler
-	 */
-	public WavefrontBraveSpanHandler(WavefrontSpringObservabilitySpanHandler spanHandler) {
-		this.spanHandler = spanHandler;
-	}
+    /**
+     * @param spanHandler wavefront span handler
+     */
+    public WavefrontBraveSpanHandler(WavefrontSpringObservabilitySpanHandler spanHandler) {
+        this.spanHandler = spanHandler;
+    }
 
-	@Override
-	public boolean end(TraceContext context, MutableSpan span, Cause cause) {
-		return spanHandler.end(BraveTraceContext.fromBrave(context), BraveFinishedSpan.fromBrave(span));
-	}
+    @Override
+    public boolean end(TraceContext context, MutableSpan span, Cause cause) {
+        return spanHandler.end(BraveTraceContext.fromBrave(context), BraveFinishedSpan.fromBrave(span));
+    }
 
-	@Override
-	public void close() {
-		this.spanHandler.close();
-	}
+    @Override
+    public void close() {
+        this.spanHandler.close();
+    }
 
-	@Override
-	public void run() {
-		this.spanHandler.run();
-	}
+    @Override
+    public void run() {
+        this.spanHandler.run();
+    }
 
 }
