@@ -3,9 +3,22 @@ plugins {
 }
 
 dependencies {
+	api project(':micrometer-tracing')
+	optionalApi project(':micrometer-tracing-bridge-brave')
+	optionalApi("io.zipkin.brave:brave")
+	optionalApi("io.zipkin.brave:brave-context-slf4j")
+	optionalApi("io.zipkin.brave:brave-instrumentation-http")
+	optionalApi("io.zipkin.aws:brave-propagation-aws")
+
+	optionalApi project(':micrometer-tracing-bridge-otel')
+	optionalApi("io.opentelemetry:opentelemetry-exporter-zipkin")
+	optionalApi("io.opentelemetry:opentelemetry-sdk-trace")
+	optionalApi("io.opentelemetry:opentelemetry-extension-trace-propagators")
+
 	implementation("io.zipkin.zipkin2:zipkin")
 	implementation("io.zipkin.reporter2:zipkin-reporter")
 	implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+	implementation("io.zipkin.reporter2:zipkin-sender-urlconnection")
 	implementation("io.zipkin.reporter2:zipkin-sender-kafka") {
 		exclude group: "org.apache.kafka", module: "kafka-clients"
 	}

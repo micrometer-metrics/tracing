@@ -5,7 +5,6 @@ plugins {
 dependencies {
 	api project(':micrometer-tracing')
 	api 'io.micrometer:micrometer-core'
-	api 'org.slf4j:slf4j-api'
 
 	optionalImplementation("io.zipkin.brave:brave") {
 		exclude group: "io.zipkin.reporter2"

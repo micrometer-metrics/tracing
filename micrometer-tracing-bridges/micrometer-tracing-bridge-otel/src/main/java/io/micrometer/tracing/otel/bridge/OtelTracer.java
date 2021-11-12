@@ -142,7 +142,7 @@ public class OtelTracer implements Tracer {
         return this.otelBaggageManager.createBaggage(name, value);
     }
 
-    interface EventPublisher {
+    public interface EventPublisher {
 
         void publishEvent(Object event);
     }
