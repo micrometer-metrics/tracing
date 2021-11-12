@@ -16,7 +16,6 @@
 
 package io.micrometer.tracing.reporter.zipkin;
 
-import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,7 +23,6 @@ import brave.Tracing;
 import brave.http.HttpTracing;
 import brave.sampler.Sampler;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;

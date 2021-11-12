@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
 	api project(':micrometer-tracing')
+	api 'org.slf4j:slf4j-api'
 	api 'io.micrometer:micrometer-core'
 
 	implementation("io.opentelemetry:opentelemetry-api")
