@@ -31,18 +31,10 @@ public class BraveTraceContext implements TraceContext {
 
     final brave.propagation.TraceContext traceContext;
 
-    /**
-     * @param traceContext Brave delegate
-     */
     public BraveTraceContext(brave.propagation.TraceContext traceContext) {
         this.traceContext = traceContext;
     }
 
-    /**
-     * Converts from Spring Observability to Brave.
-     * @param traceContext Spring Observability delegate
-     * @return converted version
-     */
     public static brave.propagation.TraceContext toBrave(TraceContext traceContext) {
         if (traceContext == null) {
             return null;
@@ -50,11 +42,6 @@ public class BraveTraceContext implements TraceContext {
         return ((BraveTraceContext) traceContext).traceContext;
     }
 
-    /**
-     * Converts from Brave to Spring Observability.
-     * @param traceContext Brave delegate
-     * @return converted version
-     */
     public static TraceContext fromBrave(brave.propagation.TraceContext traceContext) {
         return new BraveTraceContext(traceContext);
     }

@@ -65,7 +65,7 @@ class BraveTraceContextBuilder implements TraceContext.Builder {
     @Override
     public TraceContext build() {
         brave.propagation.TraceContext context = this.delegate.build();
-        return io.micrometer.tracing.brave.bridge.BraveTraceContext.fromBrave(context);
+        return BraveTraceContext.fromBrave(context);
     }
 
 }

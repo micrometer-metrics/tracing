@@ -19,5 +19,6 @@ dependencies {
 	implementation("com.wavefront:wavefront-internal-reporter-java")
 
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'org.assertj:assertj-core'
 }
 

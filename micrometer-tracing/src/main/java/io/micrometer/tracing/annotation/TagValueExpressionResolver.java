@@ -20,7 +20,7 @@ package io.micrometer.tracing.annotation;
  * Resolves the tag value for the given parameter and the provided expression.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 1.0.0
  */
 public interface TagValueExpressionResolver {
 

@@ -31,9 +31,6 @@ public class BraveHttpRequestParser implements HttpRequestParser {
 
     final brave.http.HttpRequestParser delegate;
 
-    /**
-     * @param delegate Brave delegate
-     */
     public BraveHttpRequestParser(brave.http.HttpRequestParser delegate) {
         this.delegate = delegate;
     }
@@ -46,14 +43,14 @@ public class BraveHttpRequestParser implements HttpRequestParser {
         if (parser instanceof BraveHttpRequestParser) {
             return ((BraveHttpRequestParser) parser).delegate;
         }
-        return (request, context, span) -> parser.parse(io.micrometer.tracing.brave.bridge.BraveHttpRequest.fromBrave(request),
-                io.micrometer.tracing.brave.bridge.BraveTraceContext.fromBrave(context), io.micrometer.tracing.brave.bridge.BraveSpanCustomizer.fromBrave(span));
+        return (request, context, span) -> parser.parse(BraveHttpRequest.fromBrave(request),
+                BraveTraceContext.fromBrave(context), BraveSpanCustomizer.fromBrave(span));
     }
 
     @Override
     public void parse(HttpRequest request, TraceContext context, SpanCustomizer span) {
-        this.delegate.parse(io.micrometer.tracing.brave.bridge.BraveHttpRequest.toBrave(request), io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context),
-                io.micrometer.tracing.brave.bridge.BraveSpanCustomizer.toBrave(span));
+        this.delegate.parse(BraveHttpRequest.toBrave(request), BraveTraceContext.toBrave(context),
+                BraveSpanCustomizer.toBrave(span));
     }
 
 }

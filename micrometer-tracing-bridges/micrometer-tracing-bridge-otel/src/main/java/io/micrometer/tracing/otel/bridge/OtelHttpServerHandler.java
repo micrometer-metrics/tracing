@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
 
 import io.micrometer.core.instrument.transport.http.HttpServerRequest;
 import io.micrometer.core.instrument.transport.http.HttpServerResponse;
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.http.HttpRequestParser;
 import io.micrometer.tracing.http.HttpResponseParser;
@@ -33,8 +35,6 @@ import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  */
 public class OtelHttpServerHandler implements HttpServerHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(OtelHttpClientHandler.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelHttpClientHandler.class);
 
     private static final ContextKey<HttpServerRequest> REQUEST_CONTEXT_KEY = ContextKey
             .named(OtelHttpServerHandler.class.getName() + ".request");
@@ -66,7 +66,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
         this.httpServerResponseParser = httpServerResponseParser;
         this.pattern = skipPattern;
         this.instrumenter = Instrumenter
-                .<HttpServerRequest, HttpServerResponse>newBuilder(openTelemetry, "org.springframework.cloud.sleuth",
+                .<HttpServerRequest, HttpServerResponse>newBuilder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))
                 .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
                 .addAttributesExtractor(new HttpRequestNetServerAttributesExtractor())

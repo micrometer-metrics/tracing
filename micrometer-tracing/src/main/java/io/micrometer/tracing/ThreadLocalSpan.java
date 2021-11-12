@@ -20,14 +20,18 @@ import java.util.Deque;
 import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 
 /**
  * Represents a {@link Span} stored in thread local.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public class ThreadLocalSpan {
+
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(ThreadLocalSpan.class);
 
     private final ThreadLocal<SpanAndScope> threadLocalSpan = new ThreadLocal<>();
 
@@ -35,30 +39,13 @@ public class ThreadLocalSpan {
 
     private final Tracer tracer;
 
-    /**
-     * Creates a new instance of {@link ThreadLocalSpan}.
-     *
-     * @param tracer tracer
-     */
     public ThreadLocalSpan(Tracer tracer) {
         this.tracer = tracer;
     }
 
     /**
-     * Creates a new span and sets it in scope.
-     *
-     * @return new thread local span
-     */
-    public Span nextSpan() {
-        Span span = this.tracer.nextSpan();
-        set(span);
-        return span;
-    }
-
-    /**
      * Sets given span and scope.
-     *
-     * @param span span to be put in scope
+     * @param span - span to be put in scope
      */
     public void set(Span span) {
         Tracer.SpanInScope spanInScope = this.tracer.withSpan(span);
@@ -71,8 +58,6 @@ public class ThreadLocalSpan {
     }
 
     /**
-     * Returns the current span and scope.
-     *
      * @return currently stored span and scope
      */
     public SpanAndScope get() {
@@ -90,22 +75,16 @@ public class ThreadLocalSpan {
         }
         try {
             SpanAndScope span = this.spans.removeFirst();
+            if (log.isDebugEnabled()) {
+                log.debug("Took span [" + span + "] from thread local");
+            }
             this.threadLocalSpan.set(span);
         }
         catch (NoSuchElementException ex) {
+            if (log.isTraceEnabled()) {
+                log.trace("Failed to remove a span from the queue", ex);
+            }
         }
-    }
-
-    /**
-     * Ends the current span and puts the previous one as the current span if present.
-     */
-    public void end() {
-        SpanAndScope spanAndScope = get();
-        if (spanAndScope == null) {
-            return;
-        }
-        spanAndScope.close();
-        remove();
     }
 
 }

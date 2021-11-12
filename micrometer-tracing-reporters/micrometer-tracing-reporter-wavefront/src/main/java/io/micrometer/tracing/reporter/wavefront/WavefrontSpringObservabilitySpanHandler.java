@@ -43,11 +43,11 @@ import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.wavefront.internal.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
 import static com.wavefront.internal.SpanDerivedMetricsUtils.reportHeartbeats;
@@ -92,7 +92,7 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  */
 public class WavefrontSpringObservabilitySpanHandler implements Runnable, Closeable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WavefrontSpringObservabilitySpanHandler.class);
+    private static final InternalLogger LOG = InternalLoggerFactory.getInstance(WavefrontSpringObservabilitySpanHandler.class);
 
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
     private static final String DEFAULT_SPAN_NAME = "defaultOperation";

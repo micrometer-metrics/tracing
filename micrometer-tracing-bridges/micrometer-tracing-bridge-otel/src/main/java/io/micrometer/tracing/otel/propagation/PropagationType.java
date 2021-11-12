@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.sleuth.otel.propagation;
+package io.micrometer.tracing.otel.propagation;
 
 /*
  * Supported propagation types.

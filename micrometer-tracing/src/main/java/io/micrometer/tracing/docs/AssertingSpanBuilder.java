@@ -23,13 +23,11 @@ import io.micrometer.tracing.TraceContext;
  * A {@link Span.Builder} that can perform assertions on itself.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public interface AssertingSpanBuilder extends Span.Builder {
 
     /**
-     * Creates an asserting wrapper.
-     *
      * @param documentedSpan span configuration
      * @param builder builder to wrap in assertions
      * @return asserting span builder
@@ -45,15 +43,11 @@ public interface AssertingSpanBuilder extends Span.Builder {
     }
 
     /**
-     * Returns a {@link DocumentedSpan} with span configuration.
-     *
-     * @return a {@link DocumentedSpan}
+     * @return a {@link DocumentedSpan} with span configuration
      */
     DocumentedSpan getDocumentedSpan();
 
     /**
-     * The delegate.
-     *
      * @return wrapped {@link Span.Builder}
      */
     Span.Builder getDelegate();
@@ -69,7 +63,7 @@ public interface AssertingSpanBuilder extends Span.Builder {
      * Sets a tag on a span.
      * @param key tag key
      * @param value tag
-     * @return this
+     * @return this, for chaining
      */
     default AssertingSpanBuilder tag(TagKey key, String value) {
         DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
@@ -87,7 +81,7 @@ public interface AssertingSpanBuilder extends Span.Builder {
     /**
      * Sets an event on a span.
      * @param value event
-     * @return this
+     * @return this, for chaining
      */
     default AssertingSpanBuilder event(EventValue value) {
         DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
@@ -141,15 +135,6 @@ public interface AssertingSpanBuilder extends Span.Builder {
     @Override
     default AssertingSpan start() {
         Span span = getDelegate().start();
-        return assertingDocumentedSpan(span);
-    }
-
-    /**
-     * Converts a span to an asserting span for the given documented span.
-     * @param span span to convert
-     * @return asserting span
-     */
-    default AssertingSpan assertingDocumentedSpan(Span span) {
         DocumentedSpan documentedSpan = getDocumentedSpan();
         return new AssertingSpan() {
             @Override
@@ -172,12 +157,6 @@ public interface AssertingSpanBuilder extends Span.Builder {
                 return getDelegate().toString();
             }
         };
-    }
-
-    @Override
-    default Span start(long micros) {
-        Span span = getDelegate().start(micros);
-        return assertingDocumentedSpan(span);
     }
 
 }

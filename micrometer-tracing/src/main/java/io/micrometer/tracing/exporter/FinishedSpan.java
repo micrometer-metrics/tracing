@@ -30,71 +30,53 @@ import io.micrometer.tracing.lang.Nullable;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface FinishedSpan {
 
     /**
-     * Returns the span name.
-     *
-     * @return name
+     * @return span's name
      */
     String getName();
 
     /**
-     * Returns the span's start timestamp.
-     *
-     * @return start timestamp
+     * @return span's start timestamp
      */
     long getStartTimestamp();
 
     /**
-     * Returns the span's end timestamp.
-     *
-     * @return end timestamp
+     * @return span's end timestamp
      */
     long getEndTimestamp();
 
     /**
-     * Returns the span tags.
-     *
-     * @return tags
+     * @return span's tags
      */
     Map<String, String> getTags();
 
     /**
-     * Returns the span events.
-     *
      * @return span's events as timestamp to value mapping
      */
     Collection<Map.Entry<Long, String>> getEvents();
 
     /**
-     * Returns the span id.
-     *
      * @return span's span id
      */
     String getSpanId();
 
     /**
-     * Returns the span's parent id.
-     *
      * @return span's parent id or {@code null} if not set
      */
     @Nullable
     String getParentId();
 
     /**
-     * Returns the span's remote ip.
-     *
      * @return span's remote ip
      */
     @Nullable
     String getRemoteIp();
 
     /**
-     * Returns the span's local ip.
-     *
      * @return span's local ip
      */
     @Nullable
@@ -103,37 +85,27 @@ public interface FinishedSpan {
     }
 
     /**
-     * Returns the span's remote port.
-     *
      * @return span's remote port
      */
     int getRemotePort();
 
     /**
-     * Returns the span's trace id.
-     *
      * @return span's trace id
      */
     String getTraceId();
 
     /**
-     * Returns the error.
-     *
      * @return corresponding error or {@code null} if one was not thrown
      */
     @Nullable
     Throwable getError();
 
     /**
-     * Returns the span's kind.
-     *
      * @return span's kind
      */
     Span.Kind getKind();
 
     /**
-     * Returns the remote service name.
-     *
      * @return remote service name or {@code null} if not set
      */
     @Nullable

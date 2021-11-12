@@ -55,7 +55,7 @@ public class ProbabilityBasedSampler extends Sampler {
      */
     public ProbabilityBasedSampler(Supplier<Float> probability) {
         if (probability == null) {
-            throw new IllegalStateException("probability property is required for ProbabilityBasedSampler");
+            throw new IllegalArgumentException("probability property is required for ProbabilityBasedSampler");
         }
         this.probability = probability;
         int outOf100 = (int) (probability.get() * 100.0f);

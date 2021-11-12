@@ -33,14 +33,12 @@ import io.micrometer.tracing.lang.Nullable;
  * @author OpenZipkin Brave Authors
  * @author OpenTelemetry Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface Propagator {
 
     /**
-     * Collection of headers that contain tracing information.
-     *
-     * @return tracing fields
+     * @return collection of headers that contain tracing information
      */
     List<String> fields();
 
@@ -48,11 +46,10 @@ public interface Propagator {
      * Injects the value downstream, for example as HTTP headers. The carrier may be null
      * to facilitate calling this method with a lambda for the {@link Setter}, in which
      * case that null will be passed to the {@link Setter} implementation.
-     *
-     * @param context the {@code Context} containing the value to be injected
+     * @param context the {@code Context} containing the value to be injected.
      * @param carrier holds propagation fields. For example, an outgoing message or http
-     * request
-     * @param setter invoked for each propagation key to add or remove
+     * request.
+     * @param setter invoked for each propagation key to add or remove.
      * @param <C> carrier of propagation fields, such as an http request
      */
     <C> void inject(TraceContext context, @Nullable C carrier, Setter<C> setter);
@@ -64,12 +61,11 @@ public interface Propagator {
      * If the value could not be parsed, the underlying implementation will decide to set
      * an object representing either an empty value, an invalid value, or a valid value.
      * Implementation must not set {@code null}.
-     *
      * @param carrier holds propagation fields. For example, an outgoing message or http
-     * request
-     * @param getter invoked for each propagation key to get
-     * @param <C> carrier of propagation fields, such as an http request
-     * @return the {@code Context} containing the extracted value
+     * request.
+     * @param getter invoked for each propagation key to get.
+     * @param <C> carrier of propagation fields, such as an http request.
+     * @return the {@code Context} containing the extracted value.
      */
     <C> Span.Builder extract(C carrier, Getter<C> getter);
 
@@ -81,8 +77,8 @@ public interface Propagator {
      * {@code Setter} is stateless and allows to be saved as a constant to avoid runtime
      * allocations.
      *
-     * @since 6.0.0
      * @param <C> carrier of propagation fields, such as an http request
+     * @since 0.1.0
      */
     interface Setter<C> {
 
@@ -92,13 +88,12 @@ public interface Propagator {
          * <p>
          * For example, a setter for an {@link java.net.HttpURLConnection} would be the
          * method reference
-         *
          * {@link java.net.HttpURLConnection#addRequestProperty(String, String)}
          * @param carrier holds propagation fields. For example, an outgoing message or
          * http request. To facilitate implementations as java lambdas, this parameter may
-         * be null
-         * @param key the key of the field
-         * @param value the value of the field
+         * be null.
+         * @param key the key of the field.
+         * @param value the value of the field.
          */
         void set(@Nullable C carrier, String key, String value);
 
@@ -112,18 +107,17 @@ public interface Propagator {
      * {@code Getter} is stateless and allows to be saved as a constant to avoid runtime
      * allocations.
      *
-     * @param <C> carrier of propagation fields, such as an http request
+     * @param <C> carrier of propagation fields, such as an http request.
      */
     interface Getter<C> {
 
         /**
          * Returns the first value of the given propagation {@code key} or returns
          * {@code null}.
-         *
-         * @param carrier carrier of propagation fields, such as an http request
-         * @param key the key of the field
+         * @param carrier carrier of propagation fields, such as an http request.
+         * @param key the key of the field.
          * @return the first value of the given propagation {@code key} or returns
-         * {@code null}
+         * {@code null}.
          */
         @Nullable
         String get(C carrier, String key);

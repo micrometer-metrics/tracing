@@ -30,24 +30,25 @@ import brave.propagation.Propagation;
 import brave.propagation.TraceContext;
 import brave.propagation.TraceContextOrSamplingFlags;
 import brave.propagation.aws.AWSPropagation;
+import io.micrometer.tracing.brave.propagation.PropagationType;
 
 @SuppressWarnings({"unchecked", "deprecation"})
 class CompositePropagationFactory extends Propagation.Factory implements Propagation<String> {
 
-    private final Map<io.micrometer.tracing.brave.propagation.PropagationType, Map.Entry<Factory, Propagation<String>>> mapping = new HashMap<>();
+    private final Map<PropagationType, Map.Entry<Propagation.Factory, Propagation<String>>> mapping = new HashMap<>();
 
-    private final List<io.micrometer.tracing.brave.propagation.PropagationType> types;
+    private final List<PropagationType> types;
 
     CompositePropagationFactory(Supplier<Factory> factorySupplier, BraveBaggageManager braveBaggageManager,
             List<String> localFields, List<io.micrometer.tracing.brave.propagation.PropagationType> types) {
         this.types = types;
-        this.mapping.put(io.micrometer.tracing.brave.propagation.PropagationType.AWS,
+        this.mapping.put(PropagationType.AWS,
                 new AbstractMap.SimpleEntry<>(AWSPropagation.FACTORY, AWSPropagation.FACTORY.get()));
         // Note: Versions <2.2.3 use injectFormat(MULTI) for non-remote (ex
         // spring-messaging)
         // See #1643
         Factory b3Factory = b3Factory();
-        this.mapping.put(io.micrometer.tracing.brave.propagation.PropagationType.B3, new AbstractMap.SimpleEntry<>(b3Factory, b3Factory.get()));
+        this.mapping.put(PropagationType.B3, new AbstractMap.SimpleEntry<>(b3Factory, b3Factory.get()));
         W3CPropagation w3CPropagation = new W3CPropagation(braveBaggageManager, localFields);
         this.mapping.put(io.micrometer.tracing.brave.propagation.PropagationType.W3C, new AbstractMap.SimpleEntry<>(w3CPropagation, w3CPropagation.get()));
         LazyPropagationFactory lazyPropagationFactory = new LazyPropagationFactory(factorySupplier);
@@ -76,7 +77,7 @@ class CompositePropagationFactory extends Propagation.Factory implements Propaga
     @Override
     public <R> TraceContext.Extractor<R> extractor(Getter<R, String> getter) {
         return request -> {
-            for (io.micrometer.tracing.brave.propagation.PropagationType type : this.types) {
+            for (PropagationType type : this.types) {
                 Map.Entry<Factory, Propagation<String>> entry = this.mapping.get(type);
                 if (entry == null) {
                     continue;
@@ -111,7 +112,7 @@ class CompositePropagationFactory extends Propagation.Factory implements Propaga
 
     @Override
     public TraceContext decorate(TraceContext context) {
-        for (io.micrometer.tracing.brave.propagation.PropagationType type : this.types) {
+        for (PropagationType type : this.types) {
             Map.Entry<Factory, Propagation<String>> entry = this.mapping.get(type);
             if (entry == null) {
                 continue;
@@ -125,20 +126,20 @@ class CompositePropagationFactory extends Propagation.Factory implements Propaga
     }
 
     @SuppressWarnings("unchecked")
-    private static final class LazyPropagationFactory extends Factory {
+    private static final class LazyPropagationFactory extends Propagation.Factory {
 
         private final Supplier<Factory> delegate;
 
-        private volatile Factory propagationFactory;
+        private volatile Propagation.Factory propagationFactory;
 
         private LazyPropagationFactory(Supplier<Factory> delegate) {
             this.delegate = delegate;
         }
 
-        private Factory propagationFactory() {
+        private Propagation.Factory propagationFactory() {
             if (this.propagationFactory == null) {
-                Factory factory = this.delegate.get();
-                this.propagationFactory = factory == null ? NoOpPropagation.INSTANCE : factory;
+                Factory supplier = this.delegate.get();
+                this.propagationFactory = supplier != null ? supplier : NoOpPropagation.INSTANCE;
             }
             return this.propagationFactory;
         }
@@ -205,7 +206,7 @@ class CompositePropagationFactory extends Propagation.Factory implements Propaga
 
     }
 
-    private static class NoOpPropagation extends Factory implements Propagation<String> {
+    private static class NoOpPropagation extends Propagation.Factory implements Propagation<String> {
 
         static final NoOpPropagation INSTANCE = new NoOpPropagation();
 

@@ -82,7 +82,7 @@ class BraveHttpResponse implements HttpResponse {
         if (request == null) {
             return null;
         }
-        return new io.micrometer.tracing.brave.bridge.BraveHttpRequest(request);
+        return new BraveHttpRequest(request);
     }
 
     @Override

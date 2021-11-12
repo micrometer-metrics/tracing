@@ -33,22 +33,10 @@ import io.micrometer.core.instrument.transport.http.HttpServerRequest;
  */
 class BraveHttpServerRequest implements HttpServerRequest {
 
-    private static final boolean SERVLET_REQUEST_PRESENT = isClassPresent("javax.servlet.ServletRequest");
-
     final brave.http.HttpServerRequest delegate;
 
     BraveHttpServerRequest(brave.http.HttpServerRequest delegate) {
         this.delegate = delegate;
-    }
-
-    private static boolean isClassPresent(String clazz) {
-        try {
-            Class.forName(clazz);
-            return true;
-        }
-        catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     static brave.http.HttpServerRequest toBrave(HttpServerRequest request) {
@@ -96,15 +84,14 @@ class BraveHttpServerRequest implements HttpServerRequest {
 
             private boolean resolveFromInetAddress(brave.Span span) {
                 Object delegate = request.unwrap();
-//                if (SERVER_HTTP_REQUEST_PRESENT && delegate instanceof ServerHttpRequest) {
+//                if (delegate instanceof ServerHttpRequest) {
 //                    InetSocketAddress addr = ((ServerHttpRequest) delegate).getRemoteAddress();
 //                    if (addr == null) {
 //                        return false;
 //                    }
 //                    return span.remoteIpAndPort(addr.getAddress().getHostAddress(), addr.getPort());
 //                }
-//                else
-                if (SERVLET_REQUEST_PRESENT && delegate instanceof ServletRequest) {
+                if (delegate instanceof ServletRequest) {
                     ServletRequest servletRequest = (ServletRequest) delegate;
                     String addr = servletRequest.getRemoteAddr();
                     if (addr == null) {

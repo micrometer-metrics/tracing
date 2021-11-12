@@ -33,29 +33,16 @@ public class BraveFinishedSpan implements FinishedSpan {
 
     private final MutableSpan mutableSpan;
 
-    /**
-     * @param mutableSpan Brave delegate
-     */
     public BraveFinishedSpan(MutableSpan mutableSpan) {
         this.mutableSpan = mutableSpan;
     }
 
-    /**
-     * Converts from Brave to Spring Observability.
-     * @param mutableSpan Brave delegate
-     * @return converted version
-     */
     public static FinishedSpan fromBrave(MutableSpan mutableSpan) {
         return new BraveFinishedSpan(mutableSpan);
     }
 
-    /**
-     * Converts from Spring Observability to Brave.
-     * @param finishedSpan Spring Observability delegate
-     * @return converted version
-     */
-    public static MutableSpan toBrave(FinishedSpan finishedSpan) {
-        return ((BraveFinishedSpan) finishedSpan).mutableSpan;
+    public static MutableSpan toBrave(FinishedSpan mutableSpan) {
+        return ((BraveFinishedSpan) mutableSpan).mutableSpan;
     }
 
     @Override

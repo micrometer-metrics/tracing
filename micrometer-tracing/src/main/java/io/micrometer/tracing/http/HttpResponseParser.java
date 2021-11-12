@@ -27,14 +27,13 @@ import io.micrometer.tracing.TraceContext;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface HttpResponseParser {
 
     /**
      * Implement to choose what data from the http response are parsed into the span
      * representing it.
-     *
      * @param response current response
      * @param context corresponding trace context
      * @param span customizer for the current span

@@ -22,7 +22,7 @@ import java.util.Arrays;
  * Adopted from OpenTelemetry API.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 1.0.0
  */
 public final class EncodingUtils {
 
@@ -114,7 +114,7 @@ public final class EncodingUtils {
 
     private static void isTrue(boolean expression, String text) {
         if (!expression) {
-            throw new IllegalStateException(text);
+            throw new IllegalArgumentException(text);
         }
     }
 

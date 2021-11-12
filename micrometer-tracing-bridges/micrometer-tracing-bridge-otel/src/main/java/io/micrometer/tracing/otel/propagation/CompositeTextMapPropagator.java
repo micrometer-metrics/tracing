@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.sleuth.otel.propagation;
+package io.micrometer.tracing.otel.propagation;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.trace.Span;
@@ -35,8 +37,6 @@ import io.opentelemetry.extension.aws.AwsXrayPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.extension.trace.propagation.JaegerPropagator;
 import io.opentelemetry.extension.trace.propagation.OtTracePropagator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link TextMapPropagator} implementation that can read / write from multiple
@@ -47,33 +47,33 @@ import org.slf4j.LoggerFactory;
  */
 public class CompositeTextMapPropagator implements TextMapPropagator {
 
-    private static final Logger log = LoggerFactory.getLogger(CompositeTextMapPropagator.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(CompositeTextMapPropagator.class);
 
-    private final Map<org.springframework.cloud.sleuth.otel.propagation.PropagationType, TextMapPropagator> mapping = new HashMap<>();
+    private final Map<PropagationType, TextMapPropagator> mapping = new HashMap<>();
 
-    private final List<org.springframework.cloud.sleuth.otel.propagation.PropagationType> types;
+    private final List<PropagationType> types;
 
-    public CompositeTextMapPropagator(PropagationSupplier beanFactory, List<org.springframework.cloud.sleuth.otel.propagation.PropagationType> types) {
+    public CompositeTextMapPropagator(PropagationSupplier beanFactory, List<PropagationType> types) {
         this.types = types;
         if (isOnClasspath(awsClass())) {
-            this.mapping.put(org.springframework.cloud.sleuth.otel.propagation.PropagationType.AWS, beanFactory.getProvider(AwsXrayPropagator.class)
+            this.mapping.put(PropagationType.AWS, beanFactory.getProvider(AwsXrayPropagator.class)
                     .getIfAvailable(AwsXrayPropagator::getInstance));
         }
         if (isOnClasspath(b3Class())) {
-            this.mapping.put(org.springframework.cloud.sleuth.otel.propagation.PropagationType.B3, beanFactory.getProvider(B3Propagator.class)
+            this.mapping.put(PropagationType.B3, beanFactory.getProvider(B3Propagator.class)
                     .getIfAvailable(B3Propagator::injectingSingleHeader));
         }
         if (isOnClasspath(jaegerClass())) {
-            this.mapping.put(org.springframework.cloud.sleuth.otel.propagation.PropagationType.JAEGER,
+            this.mapping.put(PropagationType.JAEGER,
                     beanFactory.getProvider(JaegerPropagator.class).getIfAvailable(JaegerPropagator::getInstance));
         }
         if (isOnClasspath(otClass())) {
-            this.mapping.put(org.springframework.cloud.sleuth.otel.propagation.PropagationType.OT_TRACER, beanFactory.getProvider(OtTracePropagator.class)
+            this.mapping.put(PropagationType.OT_TRACER, beanFactory.getProvider(OtTracePropagator.class)
                     .getIfAvailable(OtTracePropagator::getInstance));
         }
-        this.mapping.put(org.springframework.cloud.sleuth.otel.propagation.PropagationType.W3C, TextMapPropagator.composite(W3CTraceContextPropagator.getInstance(),
+        this.mapping.put(PropagationType.W3C, TextMapPropagator.composite(W3CTraceContextPropagator.getInstance(),
                 W3CBaggagePropagator.getInstance()));
-        this.mapping.put(org.springframework.cloud.sleuth.otel.propagation.PropagationType.CUSTOM, NoopTextMapPropagator.INSTANCE);
+        this.mapping.put(PropagationType.CUSTOM, NoopTextMapPropagator.INSTANCE);
         if (log.isDebugEnabled()) {
             log.debug("Registered the following context propagation types " + this.mapping.keySet());
         }
@@ -119,7 +119,7 @@ public class CompositeTextMapPropagator implements TextMapPropagator {
 
     @Override
     public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-        for (org.springframework.cloud.sleuth.otel.propagation.PropagationType type : this.types) {
+        for (PropagationType type : this.types) {
             TextMapPropagator propagator = this.mapping.get(type);
             if (propagator == null || propagator == NoopTextMapPropagator.INSTANCE) {
                 continue;
@@ -134,7 +134,7 @@ public class CompositeTextMapPropagator implements TextMapPropagator {
         return context;
     }
 
-    interface PropagationSupplier {
+    public interface PropagationSupplier {
 
         <T> ObjectProvider<T> getProvider(Class<T> clazz);
 

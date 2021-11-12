@@ -47,7 +47,7 @@ class BraveHttpServerResponse implements HttpServerResponse {
         return new brave.http.HttpServerResponse() {
             @Override
             public brave.http.HttpServerRequest request() {
-                return io.micrometer.tracing.brave.bridge.BraveHttpServerRequest.toBrave(response.request());
+                return BraveHttpServerRequest.toBrave(response.request());
             }
 
             @Override
@@ -119,7 +119,7 @@ class BraveHttpServerResponse implements HttpServerResponse {
         if (request == null) {
             return null;
         }
-        return new io.micrometer.tracing.brave.bridge.BraveHttpServerRequest(request);
+        return new BraveHttpServerRequest(request);
     }
 
     @Override

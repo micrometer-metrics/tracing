@@ -46,12 +46,16 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
 
     @Override
     public BaggageInScope getBaggage(TraceContext traceContext, String name) {
-        return new io.micrometer.tracing.brave.bridge.BraveBaggageInScope(BaggageField.getByName(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext), name));
+        BaggageField baggageField = BaggageField.getByName(BraveTraceContext.toBrave(traceContext), name);
+        if (baggageField == null) {
+            return null;
+        }
+        return new BraveBaggageInScope(baggageField);
     }
 
     @Override
     public BaggageInScope createBaggage(String name) {
-        return CACHE.computeIfAbsent(name, s -> new io.micrometer.tracing.brave.bridge.BraveBaggageInScope(BaggageField.create(s)));
+        return CACHE.computeIfAbsent(name, s -> new BraveBaggageInScope(BaggageField.create(s)));
     }
 
     @Override

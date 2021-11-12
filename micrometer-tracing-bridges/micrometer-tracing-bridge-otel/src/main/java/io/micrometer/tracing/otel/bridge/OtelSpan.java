@@ -17,7 +17,6 @@
 package io.micrometer.tracing.otel.bridge;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.micrometer.tracing.Span;
@@ -85,13 +84,6 @@ class OtelSpan implements Span {
     }
 
     @Override
-    public Span start(long micros) {
-        // they are already started via the builder
-        // TODO: How to support this?
-        return this;
-    }
-
-    @Override
     public Span name(String name) {
         this.delegate.updateName(name);
         return new OtelSpan(this.delegate);
@@ -101,12 +93,6 @@ class OtelSpan implements Span {
     public Span event(String value) {
         this.delegate.addEvent(value);
         return new OtelSpan(this.delegate);
-    }
-
-    @Override
-    public Span event(long micros, String value) {
-        this.delegate.addEvent(value, micros, TimeUnit.MICROSECONDS);
-        return this;
     }
 
     @Override
@@ -127,11 +113,6 @@ class OtelSpan implements Span {
     }
 
     @Override
-    public void end(long micros) {
-
-    }
-
-    @Override
     public void abandon() {
         // TODO: [OTEL] doesn't seem to have this notion yet
     }
@@ -140,11 +121,6 @@ class OtelSpan implements Span {
     public Span remoteServiceName(String remoteServiceName) {
         this.delegate.setAttribute(OtelSpanBuilder.REMOTE_SERVICE_NAME_KEY, remoteServiceName);
         return this;
-    }
-
-    @Override
-    public Span remoteIpAndPort(String ip, int port) {
-        return null;
     }
 
     @Override

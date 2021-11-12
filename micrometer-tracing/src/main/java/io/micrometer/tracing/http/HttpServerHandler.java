@@ -29,15 +29,14 @@ import io.micrometer.tracing.Span;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface HttpServerHandler {
 
     /**
      * Conditionally joins a span, or starts a new trace, depending on if a trace context
      * was extracted from the request. Tags are added before the span is started.
-     *
-     * @param request an HTTP request
+     * @param request HTTP request
      * @return server side span (either joined or a new trace)
      */
     Span handleReceive(HttpServerRequest request);
@@ -45,8 +44,7 @@ public interface HttpServerHandler {
     /**
      * Finishes the server span after assigning it tags according to the response or
      * error.
-     *
-     * @param response an HTTP response
+     * @param response HTTP response
      * @param span server side span to end
      */
     void handleSend(HttpServerResponse response, Span span);

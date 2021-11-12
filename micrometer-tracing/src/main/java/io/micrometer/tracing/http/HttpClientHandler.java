@@ -18,9 +18,9 @@ package io.micrometer.tracing.http;
 
 import io.micrometer.core.instrument.transport.http.HttpClientRequest;
 import io.micrometer.core.instrument.transport.http.HttpClientResponse;
-import io.micrometer.core.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.lang.Nullable;
 
 /**
  * This API is taken from OpenZipkin Brave.
@@ -31,7 +31,7 @@ import io.micrometer.tracing.TraceContext;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface HttpClientHandler {
 
@@ -40,7 +40,6 @@ public interface HttpClientHandler {
      * context onto the request before returning.
      *
      * Call this before sending the request on the wire.
-     *
      * @param request to inject the tracing context with
      * @return client side span
      */
@@ -49,7 +48,6 @@ public interface HttpClientHandler {
     /**
      * Same as {@link #handleSend(HttpClientRequest)} but with an explicit parent
      * {@link TraceContext}.
-     *
      * @param request to inject the tracing context with
      * @param parent {@link TraceContext} that is to be the client side span's parent
      * @return client side span
@@ -59,7 +57,6 @@ public interface HttpClientHandler {
     /**
      * Finishes the client span after assigning it tags according to the response or
      * error.
-     *
      * @param response the HTTP response
      * @param span span to be ended
      */

@@ -29,9 +29,6 @@ public class BraveSpanCustomizer implements SpanCustomizer {
 
     private final brave.SpanCustomizer spanCustomizer;
 
-    /**
-     * @param spanCustomizer Brave delegate
-     */
     public BraveSpanCustomizer(brave.SpanCustomizer spanCustomizer) {
         this.spanCustomizer = spanCustomizer;
     }

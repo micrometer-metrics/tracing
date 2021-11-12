@@ -1,6 +1,7 @@
 def VERSIONS = [
 		'io.micrometer:micrometer-core:2.0.0-SNAPSHOT',
 		'javax.servlet:javax.servlet-api:4.0.1',
+		'aopalliance:aopalliance:1.0',
 		// logging
 		'ch.qos.logback:logback-classic:1.2.+',
 		'org.apache.logging.log4j:log4j-core:2.+',

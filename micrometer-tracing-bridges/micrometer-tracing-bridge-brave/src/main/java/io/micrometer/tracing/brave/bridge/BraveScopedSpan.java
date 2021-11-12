@@ -42,7 +42,7 @@ class BraveScopedSpan implements ScopedSpan {
 
     @Override
     public TraceContext context() {
-        return new io.micrometer.tracing.brave.bridge.BraveTraceContext(this.span.context());
+        return new BraveTraceContext(this.span.context());
     }
 
     @Override

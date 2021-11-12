@@ -32,27 +32,18 @@ public class BraveSpan implements Span {
 
     final brave.Span delegate;
 
-    /**
-     * @param delegate Brave delegate
-     */
     public BraveSpan(brave.Span delegate) {
         this.delegate = delegate;
     }
 
-    /**
-     * Converts from Spring Observability to Brave.
-     * @param span Spring Observability delegate
-     * @return converted version
-     */
     public static brave.Span toBrave(Span span) {
-        return ((BraveSpan) AssertingSpan.unwrap(span)).delegate;
+        BraveSpan unwrap = (BraveSpan) AssertingSpan.unwrap(span);
+        if (unwrap == null) {
+            return null;
+        }
+        return unwrap.delegate;
     }
 
-    /**
-     * Converts from Brave to Spring Observability.
-     * @param span Brave delegate
-     * @return converted version
-     */
     public static Span fromBrave(brave.Span span) {
         return new BraveSpan(span);
     }
@@ -67,18 +58,12 @@ public class BraveSpan implements Span {
         if (this.delegate == null) {
             return null;
         }
-        return new io.micrometer.tracing.brave.bridge.BraveTraceContext(this.delegate.context());
+        return new BraveTraceContext(this.delegate.context());
     }
 
     @Override
     public Span start() {
         this.delegate.start();
-        return this;
-    }
-
-    @Override
-    public Span start(long micros) {
-        this.delegate.start(micros);
         return this;
     }
 
@@ -91,12 +76,6 @@ public class BraveSpan implements Span {
     @Override
     public Span event(String value) {
         this.delegate.annotate(value);
-        return this;
-    }
-
-    @Override
-    public Span event(long micros, String value) {
-        this.delegate.annotate(micros, value);
         return this;
     }
 
@@ -117,11 +96,6 @@ public class BraveSpan implements Span {
     @Override
     public void end() {
         this.delegate.finish();
-    }
-
-    @Override
-    public void end(long micros) {
-        this.delegate.finish(micros);
     }
 
     @Override

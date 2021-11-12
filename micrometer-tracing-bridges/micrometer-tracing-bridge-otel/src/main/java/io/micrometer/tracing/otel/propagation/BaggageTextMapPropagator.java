@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.sleuth.otel.propagation;
+package io.micrometer.tracing.otel.propagation;
 
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageManager;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.baggage.BaggageBuilder;
@@ -29,8 +31,6 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link TextMapPropagator} that adds Sleuth compatible baggage entries (name of the
@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BaggageTextMapPropagator implements TextMapPropagator {
 
-    private static final Logger log = LoggerFactory.getLogger(BaggageTextMapPropagator.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(BaggageTextMapPropagator.class);
 
     private final List<String> remoteFields;
 

@@ -19,7 +19,6 @@ package io.micrometer.tracing.brave.bridge;
 import java.util.Collection;
 import java.util.Collections;
 
-import io.micrometer.core.instrument.transport.Kind;
 import io.micrometer.core.instrument.transport.http.HttpClientRequest;
 import io.micrometer.core.instrument.transport.http.HttpClientResponse;
 
@@ -57,7 +56,7 @@ class BraveHttpClientResponse implements HttpClientResponse {
 
             @Override
             public brave.http.HttpClientRequest request() {
-                return io.micrometer.tracing.brave.bridge.BraveHttpClientRequest.toBrave(httpClientResponse.request());
+                return BraveHttpClientRequest.toBrave(httpClientResponse.request());
             }
 
             @Override
@@ -104,17 +103,12 @@ class BraveHttpClientResponse implements HttpClientResponse {
     }
 
     @Override
-    public Kind kind() {
-        return Kind.valueOf(this.delegate.spanKind().name());
-    }
-
-    @Override
     public HttpClientRequest request() {
         brave.http.HttpClientRequest request = this.delegate.request();
         if (request == null) {
             return null;
         }
-        return new io.micrometer.tracing.brave.bridge.BraveHttpClientRequest(request);
+        return new BraveHttpClientRequest(request);
     }
 
     @Override

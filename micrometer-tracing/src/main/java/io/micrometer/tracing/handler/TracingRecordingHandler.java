@@ -28,7 +28,7 @@ import io.micrometer.tracing.lang.Nullable;
  *
  * @author Marcin Grzejszczak
  * @param <T> type of event
- * @since 6.0.0
+ * @since 1.0.0
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public interface TracingRecordingHandler<T extends Timer.HandlerContext>
@@ -109,7 +109,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
      * Basic tracing context.
      *
      * @author Marcin Grzejszczak
-     * @since 6.0.0
+     * @since 1.0.0
      */
     class TracingContext {
 

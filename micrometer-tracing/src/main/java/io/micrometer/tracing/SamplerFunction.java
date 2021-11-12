@@ -27,14 +27,12 @@ import io.micrometer.tracing.lang.Nullable;
  * @param <T> type of the input, for example a request or method
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
-@SuppressWarnings("unchecked")
 public interface SamplerFunction<T> {
 
     /**
      * Always deferring {@link SamplerFunction}.
-     *
      * @param <T> type of the input, for example a request or method
      * @return decision deferring sampler function
      */
@@ -44,7 +42,6 @@ public interface SamplerFunction<T> {
 
     /**
      * Never sampling {@link SamplerFunction}.
-     *
      * @param <T> type of the input, for example a request or method
      * @return never sampling sampler function
      */
@@ -54,7 +51,6 @@ public interface SamplerFunction<T> {
 
     /**
      * Always sampling {@link SamplerFunction}.
-     *
      * @param <T> type of the input, for example a request or method
      * @return always sampling sampler function
      */
@@ -64,17 +60,16 @@ public interface SamplerFunction<T> {
 
     /**
      * Returns an overriding sampling decision for a new trace.
-     *
      * @param arg parameter to evaluate for a sampling decision. {@code null} input
      * results in a {@code null} result
      * @return {@code true} to sample a new trace or {@code false} to deny. {@code null}
-     * defers the decision
+     * defers the decision.
      */
     @Nullable
     Boolean trySample(@Nullable T arg);
 
     /**
-     * Constant {@link SamplerFunction}.
+     * Constant {@link SamplerFunction}s.
      */
     enum Constants implements SamplerFunction<Object> {
 

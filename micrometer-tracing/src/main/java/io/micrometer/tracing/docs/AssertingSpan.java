@@ -28,13 +28,11 @@ import io.micrometer.tracing.TraceContext;
  * information.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public interface AssertingSpan extends Span {
 
     /**
-     * Wraps a span in an asserting wrapper.
-     *
      * @param documentedSpan span configuration
      * @param span span to wrap in assertions
      * @return asserting span
@@ -51,12 +49,10 @@ public interface AssertingSpan extends Span {
 
     /**
      * Returns the underlying delegate. Used when casting is necessary.
-     *
      * @param span span to check for wrapping
      * @param <T> type extending a span
      * @return unwrapped object
      */
-    @SuppressWarnings("unchecked")
     static <T extends Span> T unwrap(Span span) {
         if (span == null) {
             return null;
@@ -68,22 +64,16 @@ public interface AssertingSpan extends Span {
     }
 
     /**
-     * Returns a {@link DocumentedSpan}.
-     *
-     * @return a {@link DocumentedSpan}.
+     * @return a {@link DocumentedSpan} with span configuration
      */
     DocumentedSpan getDocumentedSpan();
 
     /**
-     * Returns the delegate.
-     *
-     * @return wrapped {@link Span}.
+     * @return wrapped {@link Span}
      */
     Span getDelegate();
 
     /**
-     * Determines whether the span was started.
-     *
      * @return {@code true} when this span was started
      */
     default boolean isStarted() {
@@ -99,10 +89,9 @@ public interface AssertingSpan extends Span {
 
     /**
      * Tags a span via {@link TagKey}.
-     *
      * @param key tag key
      * @param value tag value
-     * @return this
+     * @return this for chaining
      */
     default AssertingSpan tag(TagKey key, String value) {
         DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
@@ -117,18 +106,10 @@ public interface AssertingSpan extends Span {
         return this;
     }
 
-    @Override
-    default AssertingSpan event(long micros, String value) {
-        DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
-        getDelegate().event(micros, value);
-        return this;
-    }
-
     /**
      * Annotates with an event via {@link EventValue}.
-     *
      * @param value event value
-     * @return this
+     * @return this for chaining
      */
     default AssertingSpan event(EventValue value) {
         DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
@@ -160,12 +141,6 @@ public interface AssertingSpan extends Span {
     }
 
     @Override
-    default Span start(long micros) {
-        getDelegate().start(micros);
-        return this;
-    }
-
-    @Override
     default AssertingSpan error(Throwable throwable) {
         getDelegate().error(throwable);
         return this;
@@ -175,12 +150,6 @@ public interface AssertingSpan extends Span {
     default void end() {
         DocumentedSpanAssertions.assertThatSpanStartedBeforeEnd(this);
         getDelegate().end();
-    }
-
-    @Override
-    default void end(long micros) {
-        DocumentedSpanAssertions.assertThatSpanStartedBeforeEnd(this);
-        getDelegate().end(micros);
     }
 
     @Override

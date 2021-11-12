@@ -32,9 +32,6 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
 
     final brave.sampler.SamplerFunction<T> samplerFunction;
 
-    /**
-     * @param samplerFunction Brave delegate
-     */
     public BraveSamplerFunction(brave.sampler.SamplerFunction<T> samplerFunction) {
         this.samplerFunction = samplerFunction;
     }
@@ -42,19 +39,14 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
     static <T, V> brave.sampler.SamplerFunction<V> toBrave(SamplerFunction<T> samplerFunction, Class<T> sleuthInput,
             Class<V> braveInput) {
         if (sleuthInput.equals(HttpRequest.class) && braveInput.equals(brave.http.HttpRequest.class)) {
-            return arg -> samplerFunction.trySample((T) io.micrometer.tracing.brave.bridge.BraveHttpRequest.fromBrave((brave.http.HttpRequest) arg));
+            return arg -> samplerFunction.trySample((T) BraveHttpRequest.fromBrave((brave.http.HttpRequest) arg));
         }
         return SamplerFunctions.deferDecision();
     }
 
-    /**
-     * Converts from Spring Observability to Brave.
-     * @param samplerFunction Spring Observability delegate
-     * @return converted version
-     */
     public static brave.sampler.SamplerFunction<brave.http.HttpRequest> toHttpBrave(
             SamplerFunction<HttpRequest> samplerFunction) {
-        return arg -> samplerFunction.trySample(io.micrometer.tracing.brave.bridge.BraveHttpRequest.fromBrave(arg));
+        return arg -> samplerFunction.trySample(BraveHttpRequest.fromBrave((brave.http.HttpRequest) arg));
     }
 
     @Override

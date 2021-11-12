@@ -38,20 +38,21 @@ public class BraveTracer implements Tracer {
 
     private final brave.Tracer tracer;
 
-    private final brave.propagation.CurrentTraceContext currentTraceContext;
+    private final BraveBaggageManager braveBaggageManager;
 
-    private final io.micrometer.tracing.brave.bridge.BraveBaggageManager braveBaggageManager;
+    private final CurrentTraceContext currentTraceContext;
 
-    /**
-     * @param tracer Brave delegate
-     * @param currentTraceContext Brave current trace context
-     * @param braveBaggageManager baggage manager
-     */
-    public BraveTracer(brave.Tracer tracer, brave.propagation.CurrentTraceContext currentTraceContext,
-            io.micrometer.tracing.brave.bridge.BraveBaggageManager braveBaggageManager) {
+    @Deprecated
+    public BraveTracer(brave.Tracer tracer, BraveBaggageManager braveBaggageManager) {
         this.tracer = tracer;
-        this.currentTraceContext = currentTraceContext;
         this.braveBaggageManager = braveBaggageManager;
+        this.currentTraceContext = null;
+    }
+
+    public BraveTracer(brave.Tracer tracer, CurrentTraceContext context, BraveBaggageManager braveBaggageManager) {
+        this.tracer = tracer;
+        this.braveBaggageManager = braveBaggageManager;
+        this.currentTraceContext = context;
     }
 
     @Override
@@ -59,22 +60,22 @@ public class BraveTracer implements Tracer {
         if (parent == null) {
             return nextSpan();
         }
-        brave.propagation.TraceContext context = (((io.micrometer.tracing.brave.bridge.BraveTraceContext) parent.context()).traceContext);
+        brave.propagation.TraceContext context = (((BraveTraceContext) parent.context()).traceContext);
         if (context == null) {
             return null;
         }
-        return new io.micrometer.tracing.brave.bridge.BraveSpan(this.tracer.nextSpan(TraceContextOrSamplingFlags.create(context)));
+        return new BraveSpan(this.tracer.nextSpan(TraceContextOrSamplingFlags.create(context)));
     }
 
     @Override
     public SpanInScope withSpan(Span span) {
         return new BraveSpanInScope(
-                tracer.withSpanInScope(span == null ? null : ((io.micrometer.tracing.brave.bridge.BraveSpan) AssertingSpan.unwrap(span)).delegate));
+                tracer.withSpanInScope(span == null ? null : ((BraveSpan) AssertingSpan.unwrap(span)).delegate));
     }
 
     @Override
     public SpanCustomizer currentSpanCustomizer() {
-        return new io.micrometer.tracing.brave.bridge.BraveSpanCustomizer(this.tracer.currentSpanCustomizer());
+        return new BraveSpanCustomizer(this.tracer.currentSpanCustomizer());
     }
 
     @Override
@@ -83,32 +84,27 @@ public class BraveTracer implements Tracer {
         if (currentSpan == null) {
             return null;
         }
-        return new io.micrometer.tracing.brave.bridge.BraveSpan(currentSpan);
+        return new BraveSpan(currentSpan);
     }
 
     @Override
     public Span nextSpan() {
-        return new io.micrometer.tracing.brave.bridge.BraveSpan(this.tracer.nextSpan());
+        return new BraveSpan(this.tracer.nextSpan());
     }
 
     @Override
     public ScopedSpan startScopedSpan(String name) {
-        return new io.micrometer.tracing.brave.bridge.BraveScopedSpan(this.tracer.startScopedSpan(name));
+        return new BraveScopedSpan(this.tracer.startScopedSpan(name));
     }
 
     @Override
     public Span.Builder spanBuilder() {
-        return new io.micrometer.tracing.brave.bridge.BraveSpanBuilder(this.tracer);
+        return new BraveSpanBuilder(this.tracer);
     }
 
     @Override
     public TraceContext.Builder traceContextBuilder() {
-        return new io.micrometer.tracing.brave.bridge.BraveTraceContextBuilder();
-    }
-
-    @Override
-    public CurrentTraceContext currentTraceContext() {
-        return new io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext(this.currentTraceContext);
+        return new BraveTraceContextBuilder();
     }
 
     @Override
@@ -134,6 +130,11 @@ public class BraveTracer implements Tracer {
     @Override
     public BaggageInScope createBaggage(String name, String value) {
         return this.braveBaggageManager.createBaggage(name).set(value);
+    }
+
+    @Override
+    public CurrentTraceContext currentTraceContext() {
+        return this.currentTraceContext;
     }
 
 }

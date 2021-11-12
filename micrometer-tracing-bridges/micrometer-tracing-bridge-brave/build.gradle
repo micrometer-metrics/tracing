@@ -16,5 +16,7 @@ dependencies {
 	implementation("io.zipkin.aws:brave-propagation-aws")
 
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
 }
 

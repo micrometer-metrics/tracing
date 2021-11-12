@@ -35,9 +35,6 @@ public class BravePropagator implements Propagator {
 
     private final Tracing tracing;
 
-    /**
-     * @param tracing Brave tracing
-     */
     public BravePropagator(Tracing tracing) {
         this.tracing = tracing;
     }
@@ -49,17 +46,16 @@ public class BravePropagator implements Propagator {
 
     @Override
     public <C> void inject(TraceContext traceContext, C carrier, Setter<C> setter) {
-        this.tracing.propagation().injector(setter::set).inject(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext), carrier);
+        this.tracing.propagation().injector(setter::set).inject(BraveTraceContext.toBrave(traceContext), carrier);
     }
 
     @Override
     public <C> Span.Builder extract(C carrier, Getter<C> getter) {
         TraceContextOrSamplingFlags extract = this.tracing.propagation().extractor(getter::get).extract(carrier);
         if (extract.samplingFlags() == SamplingFlags.EMPTY) {
-            this.tracing.tracer().nextSpan();
-            return new io.micrometer.tracing.brave.bridge.BraveSpanBuilder(this.tracing.tracer());
+            return new BraveSpanBuilder(this.tracing.tracer());
         }
-        return io.micrometer.tracing.brave.bridge.BraveSpanBuilder.toBuilder(this.tracing.tracer(), extract);
+        return BraveSpanBuilder.toBuilder(this.tracing.tracer(), extract);
     }
 
 }

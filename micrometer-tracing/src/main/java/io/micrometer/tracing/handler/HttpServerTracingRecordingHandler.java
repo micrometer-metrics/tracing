@@ -29,7 +29,7 @@ import io.micrometer.tracing.http.HttpServerHandler;
  * side.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 1.0.0
  */
 public class HttpServerTracingRecordingHandler extends
         HttpTracingRecordingHandler<IntervalHttpServerEvent, HttpServerRequest, HttpServerResponse>

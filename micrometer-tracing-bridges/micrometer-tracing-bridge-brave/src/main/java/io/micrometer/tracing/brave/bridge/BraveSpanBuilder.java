@@ -65,7 +65,7 @@ class BraveSpanBuilder implements Span.Builder {
 
     @Override
     public Span.Builder setParent(TraceContext context) {
-        this.parentContext = TraceContextOrSamplingFlags.create(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context));
+        this.parentContext = TraceContextOrSamplingFlags.create(BraveTraceContext.toBrave(context));
         return this;
     }
 
@@ -124,13 +124,13 @@ class BraveSpanBuilder implements Span.Builder {
         else {
             span().start();
         }
-        return io.micrometer.tracing.brave.bridge.BraveSpan.fromBrave(this.delegate);
+        return BraveSpan.fromBrave(this.delegate);
     }
 
     @Override
-    public Span start(long micros) {
-        this.startTimestamp = micros;
-        return start();
+    public String toString() {
+        return "{" + " delegate='" + this.delegate + "'" + ", parentContext='" + this.parentContext + "'"
+                + ", startTimestamp='" + this.startTimestamp + "'" + "}";
     }
 
 }

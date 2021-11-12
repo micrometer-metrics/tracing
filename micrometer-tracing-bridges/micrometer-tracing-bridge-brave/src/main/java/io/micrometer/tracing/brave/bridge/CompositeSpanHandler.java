@@ -37,10 +37,6 @@ public class CompositeSpanHandler extends SpanHandler {
 
     private final List<SpanReporter> reporters;
 
-    /**
-     * @param filters span filters
-     * @param reporters span reporters
-     */
     public CompositeSpanHandler(List<SpanFilter> filters, List<SpanReporter> reporters) {
         this.filters = filters == null ? Collections.emptyList() : filters;
         this.reporters = reporters == null ? Collections.emptyList() : reporters;
@@ -59,13 +55,13 @@ public class CompositeSpanHandler extends SpanHandler {
         if (!shouldProcess) {
             return false;
         }
-        this.reporters.forEach(r -> r.report(io.micrometer.tracing.brave.bridge.BraveFinishedSpan.fromBrave(span)));
+        this.reporters.forEach(r -> r.report(BraveFinishedSpan.fromBrave(span)));
         return true;
     }
 
     private boolean shouldProcess(MutableSpan span) {
         for (SpanFilter exporter : this.filters) {
-            if (!exporter.isExportable(io.micrometer.tracing.brave.bridge.BraveFinishedSpan.fromBrave(span))) {
+            if (!exporter.isExportable(BraveFinishedSpan.fromBrave(span))) {
                 return false;
             }
         }

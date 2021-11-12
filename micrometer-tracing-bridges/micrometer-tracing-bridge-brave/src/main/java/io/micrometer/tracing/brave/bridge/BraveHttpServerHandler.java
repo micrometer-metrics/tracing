@@ -31,9 +31,6 @@ public class BraveHttpServerHandler implements HttpServerHandler {
 
     final brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate;
 
-    /**
-     * @param delegate Brave delegate
-     */
     public BraveHttpServerHandler(
             brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
         this.delegate = delegate;
@@ -41,12 +38,12 @@ public class BraveHttpServerHandler implements HttpServerHandler {
 
     @Override
     public Span handleReceive(HttpServerRequest request) {
-        return io.micrometer.tracing.brave.bridge.BraveSpan.fromBrave(this.delegate.handleReceive(io.micrometer.tracing.brave.bridge.BraveHttpServerRequest.toBrave(request)));
+        return BraveSpan.fromBrave(this.delegate.handleReceive(BraveHttpServerRequest.toBrave(request)));
     }
 
     @Override
     public void handleSend(HttpServerResponse response, Span span) {
-        this.delegate.handleSend(io.micrometer.tracing.brave.bridge.BraveHttpServerResponse.toBrave(response), io.micrometer.tracing.brave.bridge.BraveSpan.toBrave(span));
+        this.delegate.handleSend(BraveHttpServerResponse.toBrave(response), BraveSpan.toBrave(span));
     }
 
 }

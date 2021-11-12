@@ -16,14 +16,14 @@
 
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.opentelemetry.api.trace.Span;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 public class Slf4JEventListener implements EventListener {
 
-    private static final Logger log = LoggerFactory.getLogger(Slf4JEventListener.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JEventListener.class);
 
     private void onScopeAttached(EventPublishingContextWrapper.ScopeAttachedEvent event) {
         log.trace("Got scope changed event [{}]", event);

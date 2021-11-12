@@ -46,7 +46,7 @@ class BraveBaggageInScope implements BaggageInScope {
 
     @Override
     public String get(TraceContext traceContext) {
-        return this.delegate.getValue(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext));
+        return this.delegate.getValue(BraveTraceContext.toBrave(traceContext));
     }
 
     @Override
@@ -61,7 +61,7 @@ class BraveBaggageInScope implements BaggageInScope {
 
     @Override
     public BraveBaggageInScope set(TraceContext traceContext, String value) {
-        this.delegate.updateValue(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(traceContext), value);
+        this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
         return this;
     }
 

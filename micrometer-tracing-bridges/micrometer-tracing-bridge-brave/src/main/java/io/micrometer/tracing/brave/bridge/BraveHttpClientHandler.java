@@ -18,11 +18,11 @@ package io.micrometer.tracing.brave.bridge;
 
 import io.micrometer.core.instrument.transport.http.HttpClientRequest;
 import io.micrometer.core.instrument.transport.http.HttpClientResponse;
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.http.HttpClientHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Brave implementation of a {@link HttpClientHandler}.
@@ -32,13 +32,10 @@ import org.slf4j.LoggerFactory;
  */
 public class BraveHttpClientHandler implements HttpClientHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(BraveHttpClientHandler.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(BraveHttpClientHandler.class);
 
     final brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate;
 
-    /**
-     * @param delegate Brave delegate
-     */
     public BraveHttpClientHandler(
             brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate) {
         this.delegate = delegate;
@@ -46,26 +43,28 @@ public class BraveHttpClientHandler implements HttpClientHandler {
 
     @Override
     public Span handleSend(HttpClientRequest request) {
-        return io.micrometer.tracing.brave.bridge.BraveSpan.fromBrave(this.delegate.handleSend(io.micrometer.tracing.brave.bridge.BraveHttpClientRequest.toBrave(request)));
+        return BraveSpan.fromBrave(this.delegate.handleSend(BraveHttpClientRequest.toBrave(request)));
     }
 
     @Override
     public Span handleSend(HttpClientRequest request, TraceContext parent) {
-        brave.Span span = this.delegate.handleSendWithParent(io.micrometer.tracing.brave.bridge.BraveHttpClientRequest.toBrave(request),
-                io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(parent));
+        brave.Span span = this.delegate.handleSendWithParent(BraveHttpClientRequest.toBrave(request),
+                BraveTraceContext.toBrave(parent));
         if (!span.isNoop()) {
             span.remoteIpAndPort(request.remoteIp(), request.remotePort());
         }
-        return io.micrometer.tracing.brave.bridge.BraveSpan.fromBrave(span);
+        return BraveSpan.fromBrave(span);
     }
 
     @Override
     public void handleReceive(HttpClientResponse response, Span span) {
         if (response == null) {
-            log.debug("Response is null, will not handle receiving of span [{}]", span);
+            if (log.isDebugEnabled()) {
+                log.debug("Response is null, will not handle receiving of span [" + span + "]");
+            }
             return;
         }
-        this.delegate.handleReceive(io.micrometer.tracing.brave.bridge.BraveHttpClientResponse.toBrave(response), io.micrometer.tracing.brave.bridge.BraveSpan.toBrave(span));
+        this.delegate.handleReceive(BraveHttpClientResponse.toBrave(response), BraveSpan.toBrave(span));
     }
 
 }

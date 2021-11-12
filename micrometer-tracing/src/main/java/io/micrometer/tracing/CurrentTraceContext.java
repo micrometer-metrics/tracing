@@ -32,14 +32,12 @@ import io.micrometer.tracing.lang.Nullable;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface CurrentTraceContext {
 
     /**
-     * Returns the current {@link TraceContext}.
-     *
-     * @return current {@link TraceContext} or {@code null} if not set
+     * @return current {@link TraceContext} or {@code null} if not set.
      */
     @Nullable
     TraceContext context();
@@ -48,24 +46,21 @@ public interface CurrentTraceContext {
      * Sets the current span in scope until the returned object is closed. It is a
      * programming error to drop or never close the result. Using try-with-resources is
      * preferred for this reason.
-     *
      * @param context span to place into scope or {@code null} to clear the scope
      * @return the scope with the span set
      */
-    Scope newScope(@Nullable TraceContext context);
+    CurrentTraceContext.Scope newScope(@Nullable TraceContext context);
 
     /**
      * Like {@link #newScope(TraceContext)}, except returns a noop scope if the given
      * context is already in scope.
-     *
      * @param context span to place into scope or {@code null} to clear the scope
      * @return the scope with the span set
      */
-    Scope maybeScope(@Nullable TraceContext context);
+    CurrentTraceContext.Scope maybeScope(@Nullable TraceContext context);
 
     /**
      * Wraps a task in a trace representation.
-     *
      * @param task task to wrap
      * @param <C> task return type
      * @return wrapped task
@@ -74,7 +69,6 @@ public interface CurrentTraceContext {
 
     /**
      * Wraps a task in a trace representation.
-     *
      * @param task task to wrap
      * @return wrapped task
      */
@@ -82,7 +76,6 @@ public interface CurrentTraceContext {
 
     /**
      * Wraps an executor in a trace representation.
-     *
      * @param delegate executor to wrap
      * @return wrapped executor
      */
@@ -90,7 +83,6 @@ public interface CurrentTraceContext {
 
     /**
      * Wraps an executor service in a trace representation.
-     *
      * @param delegate executor service to wrap
      * @return wrapped executor service
      */

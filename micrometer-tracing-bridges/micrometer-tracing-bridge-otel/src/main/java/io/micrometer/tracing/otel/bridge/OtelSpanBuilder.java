@@ -138,9 +138,4 @@ class OtelSpanBuilder implements Span.Builder {
         return OtelSpan.fromOtel(span);
     }
 
-    @Override
-    public Span start(long micros) {
-        return null;
-    }
-
 }

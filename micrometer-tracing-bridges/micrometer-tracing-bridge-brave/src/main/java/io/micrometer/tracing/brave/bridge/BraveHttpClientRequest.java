@@ -19,7 +19,6 @@ package io.micrometer.tracing.brave.bridge;
 import java.util.Collection;
 import java.util.Collections;
 
-import io.micrometer.core.instrument.transport.Kind;
 import io.micrometer.core.instrument.transport.http.HttpClientRequest;
 
 /**
@@ -93,11 +92,6 @@ class BraveHttpClientRequest implements HttpClientRequest {
     public Collection<String> headerNames() {
         // this is unused by Brave
         return Collections.emptyList();
-    }
-
-    @Override
-    public Kind kind() {
-        return Kind.valueOf(this.delegate.spanKind().name());
     }
 
     @Override

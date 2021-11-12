@@ -18,44 +18,43 @@ package io.micrometer.tracing;
 
 import java.util.Map;
 
+import io.micrometer.tracing.lang.Nullable;
+
 /**
  * Manages {@link BaggageInScope} entries. Upon retrieval / creation of a baggage entry
  * puts it in scope. Scope must be closed.
  *
  * @author OpenTelemetry Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface BaggageManager {
 
     /**
-     * Returns the mapping of all baggage entries from the given scope.
-     *
-     * @return mapping of all baggage entries
+     * @return mapping of all baggage entries from the given scope
      */
     Map<String, String> getAllBaggage();
 
     /**
      * Retrieves {@link BaggageInScope} for the given name.
-     *
      * @param name baggage name
      * @return baggage or {@code null} if not present
      */
+    @Nullable
     BaggageInScope getBaggage(String name);
 
     /**
      * Retrieves {@link BaggageInScope} for the given name.
-     *
      * @param traceContext trace context with baggage attached to it
      * @param name baggage name
      * @return baggage or {@code null} if not present
      */
+    @Nullable
     BaggageInScope getBaggage(TraceContext traceContext, String name);
 
     /**
      * Creates a new {@link BaggageInScope} entry for the given name or returns an
      * existing one if it's already present.
-     *
      * @param name baggage name
      * @return new or already created baggage
      */
@@ -64,7 +63,6 @@ public interface BaggageManager {
     /**
      * Creates a new {@link BaggageInScope} entry for the given name or returns an
      * existing one if it's already present.
-     *
      * @param name baggage name
      * @param value baggage value
      * @return new or already created baggage
