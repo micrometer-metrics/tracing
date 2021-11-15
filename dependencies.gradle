@@ -1,5 +1,4 @@
 def VERSIONS = [
-		'io.micrometer:micrometer-core:2.0.0-SNAPSHOT',
 		'javax.servlet:javax.servlet-api:4.0.1',
 		'aopalliance:aopalliance:1.0',
 		// logging
@@ -7,7 +6,7 @@ def VERSIONS = [
 		'org.apache.logging.log4j:log4j-core:2.+',
 		'org.slf4j:slf4j-api:1.7.+',
 		// otel
-		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.8.0-alpha',
+		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.7.0-alpha',
 		// zipkin
 		'io.zipkin.aws:brave-propagation-aws:0.23.2',
 		// wavefront
@@ -20,7 +19,8 @@ def VERSIONS = [
 		'org.junit.platform:junit-platform-launcher:1.8.+',
 		'org.junit.vintage:junit-vintage-engine:5.8.+',
 		'org.mockito:mockito-core:latest.release',
-		'org.mockito:mockito-inline:latest.release'
+		'org.mockito:mockito-inline:latest.release',
+		'com.squareup.okhttp3:mockwebserver:4.8.0'
 ]
 
 subprojects {
@@ -36,9 +36,10 @@ subprojects {
 					runtimeOnly version
 				}
 			}
+			implementation platform('io.micrometer:micrometer-bom:1.9.0-SNAPSHOT')
 			implementation platform('io.zipkin.brave:brave-bom:5.13.2')
-			implementation platform('io.opentelemetry:opentelemetry-bom:1.9.0')
-			implementation platform('io.opentelemetry:opentelemetry-bom-alpha:1.9.0-alpha')
+			implementation platform('io.opentelemetry:opentelemetry-bom:1.7.0')
+			implementation platform('io.opentelemetry:opentelemetry-bom-alpha:1.7.0-alpha')
 		}
 	}
 }

@@ -44,6 +44,7 @@ public interface AssertingSpanCustomizer extends SpanCustomizer {
      * @param <T> type extending a span
      * @return unwrapped object
      */
+    @SuppressWarnings("unchecked")
     static <T extends SpanCustomizer> T unwrap(SpanCustomizer span) {
         if (span == null) {
             return null;

@@ -53,6 +53,7 @@ public interface AssertingSpan extends Span {
      * @param <T> type extending a span
      * @return unwrapped object
      */
+    @SuppressWarnings("unchecked")
     static <T extends Span> T unwrap(Span span) {
         if (span == null) {
             return null;

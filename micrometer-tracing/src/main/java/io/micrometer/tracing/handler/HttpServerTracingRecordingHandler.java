@@ -62,7 +62,7 @@ public class HttpServerTracingRecordingHandler extends
 
     @Override
     public boolean supportsContext(Timer.HandlerContext context) {
-        return context != null && context.getClass().isAssignableFrom(IntervalHttpServerEvent.class);
+        return context != null && IntervalHttpServerEvent.class.isAssignableFrom(context.getClass());
     }
 
     // taken from Brave

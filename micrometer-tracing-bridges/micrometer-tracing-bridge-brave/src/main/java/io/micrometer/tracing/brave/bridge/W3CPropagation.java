@@ -297,6 +297,7 @@ class W3CPropagation extends Propagation.Factory implements Propagation<String> 
 /**
  * Taken from OpenTelemetry API.
  */
+@SuppressWarnings("deprecation")
 class W3CBaggagePropagator {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(W3CBaggagePropagator.class);

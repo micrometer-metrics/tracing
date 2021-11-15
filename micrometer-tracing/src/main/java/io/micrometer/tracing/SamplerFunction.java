@@ -36,6 +36,7 @@ public interface SamplerFunction<T> {
      * @param <T> type of the input, for example a request or method
      * @return decision deferring sampler function
      */
+    @SuppressWarnings("unchecked")
     static <T> SamplerFunction<T> deferDecision() {
         return (SamplerFunction<T>) Constants.DEFER_DECISION;
     }
@@ -45,6 +46,7 @@ public interface SamplerFunction<T> {
      * @param <T> type of the input, for example a request or method
      * @return never sampling sampler function
      */
+    @SuppressWarnings("unchecked")
     static <T> SamplerFunction<T> neverSample() {
         return (SamplerFunction<T>) Constants.NEVER_SAMPLE;
     }
@@ -54,6 +56,7 @@ public interface SamplerFunction<T> {
      * @param <T> type of the input, for example a request or method
      * @return always sampling sampler function
      */
+    @SuppressWarnings("unchecked")
     static <T> SamplerFunction<T> alwaysSample() {
         return (SamplerFunction<T>) Constants.ALWAYS_SAMPLE;
     }

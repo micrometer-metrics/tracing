@@ -46,7 +46,7 @@ public class HttpClientTracingRecordingHandler extends
 
     @Override
     public boolean supportsContext(Timer.HandlerContext context) {
-        return context != null && context.getClass().isAssignableFrom(IntervalHttpClientEvent.class);
+        return context != null && IntervalHttpClientEvent.class.isAssignableFrom(context.getClass());
     }
 
     @Override
