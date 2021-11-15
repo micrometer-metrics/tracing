@@ -34,7 +34,7 @@ dependencies {
 		exclude group: "com.rabbitmq", module: "amqp-client"
 	}
 
-	// JUnit 5
+	// Tests
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'com.squareup.okhttp3:mockwebserver'
 	testImplementation 'org.assertj:assertj-core'

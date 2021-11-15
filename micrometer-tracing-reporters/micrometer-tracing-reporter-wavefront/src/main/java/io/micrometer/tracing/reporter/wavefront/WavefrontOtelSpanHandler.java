@@ -32,12 +32,12 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
  */
 public class WavefrontOtelSpanHandler implements SpanExporter {
 
-    private final WavefrontSpringObservabilitySpanHandler spanHandler;
+    private final WavefrontSpanHandler spanHandler;
 
     /**
      * @param spanHandler wavefront span handler
      */
-    public WavefrontOtelSpanHandler(WavefrontSpringObservabilitySpanHandler spanHandler) {
+    public WavefrontOtelSpanHandler(WavefrontSpanHandler spanHandler) {
         this.spanHandler = spanHandler;
     }
 

@@ -6,18 +6,32 @@ dependencies {
 	api project(':micrometer-tracing')
 	api 'io.micrometer:micrometer-core'
 
+	// Brave
 	optionalImplementation("io.zipkin.brave:brave") {
 		exclude group: "io.zipkin.reporter2"
 		exclude group: "io.zipkin.zipkin2"
 	}
 	optionalImplementation project(':micrometer-tracing-bridge-brave')
+	optionalImplementation("io.zipkin.brave:brave-instrumentation-http") {
+		exclude group: "io.zipkin.reporter2"
+		exclude group: "io.zipkin.zipkin2"
+	}
+
+	// OTel
 	optionalImplementation project(':micrometer-tracing-bridge-otel')
+	optionalImplementation("io.opentelemetry:opentelemetry-sdk")
 	optionalImplementation("io.opentelemetry:opentelemetry-sdk-trace")
+	optionalImplementation("io.opentelemetry:opentelemetry-extension-trace-propagators")
+	optionalImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
 
 	implementation("com.wavefront:wavefront-sdk-java")
 	implementation("com.wavefront:wavefront-internal-reporter-java")
 
+	// Tests
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'com.squareup.okhttp3:mockwebserver'
 	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'org.awaitility:awaitility'
+	testImplementation 'ch.qos.logback:logback-classic'
 }
 

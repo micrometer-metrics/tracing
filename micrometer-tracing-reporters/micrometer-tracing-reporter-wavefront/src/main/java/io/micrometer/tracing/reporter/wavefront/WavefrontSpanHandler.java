@@ -64,7 +64,7 @@ import static com.wavefront.sdk.common.Constants.SOURCE_KEY;
 import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
 
 /**
- * This converts a span recorded by Brave and invokes {@link WavefrontSender#sendSpan}.
+ * This converts a span recorded by Micrometer Tracing and invokes {@link WavefrontSender#sendSpan}.
  *
  * <p>
  * This uses a combination of conversion approaches from Wavefront projects:
@@ -90,9 +90,9 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  *
  * @since 3.1.0
  */
-public class WavefrontSpringObservabilitySpanHandler implements Runnable, Closeable {
+public class WavefrontSpanHandler implements Runnable, Closeable {
 
-    private static final InternalLogger LOG = InternalLoggerFactory.getInstance(WavefrontSpringObservabilitySpanHandler.class);
+    private static final InternalLogger LOG = InternalLoggerFactory.getInstance(WavefrontSpanHandler.class);
 
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
     private static final String DEFAULT_SPAN_NAME = "defaultOperation";
@@ -153,7 +153,7 @@ public class WavefrontSpringObservabilitySpanHandler implements Runnable, Closea
      * @param applicationTags additional application tags
      * @param redMetricsCustomTagKeys RED metrics custom tag keys
      */
-    public WavefrontSpringObservabilitySpanHandler(int maxQueueSize, WavefrontSender wavefrontSender, MeterRegistry meterRegistry,
+    public WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender, MeterRegistry meterRegistry,
             String source, ApplicationTags applicationTags, Set<String> redMetricsCustomTagKeys) {
         this.wavefrontSender = wavefrontSender;
         this.applicationTags = applicationTags;

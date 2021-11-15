@@ -32,12 +32,12 @@ import io.micrometer.tracing.brave.bridge.BraveTraceContext;
  */
 public class WavefrontBraveSpanHandler extends SpanHandler implements Runnable, Closeable {
 
-    private final WavefrontSpringObservabilitySpanHandler spanHandler;
+    private final WavefrontSpanHandler spanHandler;
 
     /**
      * @param spanHandler wavefront span handler
      */
-    public WavefrontBraveSpanHandler(WavefrontSpringObservabilitySpanHandler spanHandler) {
+    public WavefrontBraveSpanHandler(WavefrontSpanHandler spanHandler) {
         this.spanHandler = spanHandler;
     }
 

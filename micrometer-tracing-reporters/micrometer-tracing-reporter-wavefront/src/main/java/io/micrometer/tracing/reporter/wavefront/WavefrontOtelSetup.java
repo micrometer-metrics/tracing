@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.reporter.zipkin;
+package io.micrometer.tracing.reporter.wavefront;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import com.wavefront.sdk.common.application.ApplicationTags;
+import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.SamplerFunction;
@@ -38,27 +40,24 @@ import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
 import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
-import io.micrometer.tracing.reporter.zipkin.ZipkinOtelSetup.Builder.OtelBuildingBlocks;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 /**
- * Work in progress. Requires HTTP instrumentation dependendency to be on the classpath.
+ * Work in progress.
  *
- * Provides Zipkin setup with OTel.
+ * Provides Wavefront setup with OTel.
  */
-public final class ZipkinOtelSetup implements AutoCloseable {
+public final class WavefrontOtelSetup implements AutoCloseable {
 
-    private final Consumer<OtelBuildingBlocks> closingFunction;
+    private final Consumer<Builder.OtelBuildingBlocks> closingFunction;
 
-    private final OtelBuildingBlocks otelBuildingBlocks;
+    private final Builder.OtelBuildingBlocks otelBuildingBlocks;
 
-    ZipkinOtelSetup(Consumer<OtelBuildingBlocks> closingFunction, OtelBuildingBlocks otelBuildingBlocks) {
+    WavefrontOtelSetup(Consumer<Builder.OtelBuildingBlocks> closingFunction, Builder.OtelBuildingBlocks otelBuildingBlocks) {
         this.closingFunction = closingFunction;
         this.otelBuildingBlocks = otelBuildingBlocks;
     }
@@ -71,25 +70,37 @@ public final class ZipkinOtelSetup implements AutoCloseable {
     /**
      * @return all the OTel building blocks required to communicate with Zipkin
      */
-    public OtelBuildingBlocks getBuildingBlocks() {
+    public Builder.OtelBuildingBlocks getBuildingBlocks() {
         return this.otelBuildingBlocks;
     }
 
     /**
-     * @return builder for the {@link ZipkinOtelSetup}
+     * @param server Wavefront server URL
+     * @param token Wavefront token
+     * @return builder for the {@link WavefrontOtelSetup}
      */
-    public static ZipkinOtelSetup.Builder builder() {
-        return new ZipkinOtelSetup.Builder();
+    public static WavefrontOtelSetup.Builder builder(String server, String token) {
+        return new WavefrontOtelSetup.Builder(server, token);
     }
 
     /**
-     * Builder for OTel with Zipkin.
+     * Builder for OTel with Wavefront.
      */
     public static class Builder {
 
-        private Supplier<ZipkinSpanExporter> zipkinSpanExporter;
+        private final String server;
 
-        private Function<ZipkinSpanExporter, SdkTracerProvider> sdkTracerProvider;
+        private final String token;
+
+        private String source;
+
+        private String applicationName;
+
+        private String serviceName;
+
+        private Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler;
+
+        private Function<WavefrontOtelSpanHandler, SdkTracerProvider> sdkTracerProvider;
 
         private Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
 
@@ -105,12 +116,16 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private Consumer<OtelBuildingBlocks> closingFunction;
 
+        public Builder(String server, String token) {
+            this.server = server;
+            this.token = token;
+        }
+
         /**
          * All OTel building blocks required to communicate with Zipkin.
          */
         public static class OtelBuildingBlocks {
-
-            public final ZipkinSpanExporter zipkinSpanExporter;
+            public final WavefrontOtelSpanHandler wavefrontOTelSpanHandler;
 
             public final SdkTracerProvider sdkTracerProvider;
 
@@ -124,8 +139,8 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public OtelBuildingBlocks(ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, io.opentelemetry.api.trace.Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler) {
-                this.zipkinSpanExporter = zipkinSpanExporter;
+            public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, io.opentelemetry.api.trace.Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler) {
+                this.wavefrontOTelSpanHandler = wavefrontOTelSpanHandler;
                 this.sdkTracerProvider = sdkTracerProvider;
                 this.openTelemetrySdk = openTelemetrySdk;
                 this.tracer = tracer;
@@ -135,12 +150,28 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             }
         }
 
-        public Builder zipkinSpanExporter(Supplier<ZipkinSpanExporter> zipkinSpanExporter) {
-            this.zipkinSpanExporter = zipkinSpanExporter;
+
+        public Builder source(String source) {
+            this.source = source;
             return this;
         }
 
-        public Builder sdkTracerProvider(Function<ZipkinSpanExporter, SdkTracerProvider> sdkTracerProvider) {
+        public Builder applicationName(String applicationName) {
+            this.applicationName = applicationName;
+            return this;
+        }
+
+        public Builder serviceName(String serviceName) {
+            this.serviceName = serviceName;
+            return this;
+        }
+
+        public Builder wavefrontSpanHandler(Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler) {
+            this.wavefrontSpanHandler = wavefrontSpanHandler;
+            return this;
+        }
+
+        public Builder sdkTracerProvider(Function<WavefrontOtelSpanHandler, SdkTracerProvider> sdkTracerProvider) {
             this.sdkTracerProvider = sdkTracerProvider;
             return this;
         }
@@ -184,33 +215,33 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          * @param meterRegistry meter registry to which the {@link TimerRecordingHandler} should be attached
          * @return setup with all OTel building blocks
          */
-        public ZipkinOtelSetup register(MeterRegistry meterRegistry) {
-            ZipkinSpanExporter zipkinSpanExporter = this.zipkinSpanExporter != null ? this.zipkinSpanExporter.get() : zipkinSpanExporter();
-            SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(zipkinSpanExporter) : sdkTracerProvider(zipkinSpanExporter);
+        public WavefrontOtelSetup register(MeterRegistry meterRegistry) {
+            WavefrontSpanHandler wavefrontSpanHandler = this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(meterRegistry) : wavefrontSpanHandler(meterRegistry);
+            WavefrontOtelSpanHandler wavefrontOTelSpanHandler = wavefrontOtelSpanHandler(wavefrontSpanHandler);
+            SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(wavefrontOTelSpanHandler) : sdkTracerProvider(wavefrontOTelSpanHandler);
             OpenTelemetrySdk openTelemetrySdk = this.openTelemetrySdk != null ? this.openTelemetrySdk.apply(sdkTracerProvider) : openTelemetrySdk(sdkTracerProvider);
             io.opentelemetry.api.trace.Tracer tracer = this.tracer != null ? this.tracer.apply(openTelemetrySdk) : tracer(openTelemetrySdk);
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
-            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler);
+            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(wavefrontOTelSpanHandler, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
             meterRegistry.config().timerRecordingListener(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
-            return new ZipkinOtelSetup(closingFunction, otelBuildingBlocks);
+            return new WavefrontOtelSetup(closingFunction, otelBuildingBlocks);
         }
 
-        private static ZipkinSpanExporter zipkinSpanExporter() {
-            return ZipkinSpanExporter.builder()
-                    .setSender(URLConnectionSender.newBuilder()
-                            .connectTimeout(1000)
-                            .readTimeout(1000)
-                            .endpoint("http://localhost:9411/api/v2/spans").build())
-                    .build();
+        private WavefrontSpanHandler wavefrontSpanHandler(MeterRegistry meterRegistry) {
+            return new WavefrontSpanHandler(50000, new WavefrontClient.Builder(this.server, this.token).build(), meterRegistry, this.source, new ApplicationTags.Builder(this.applicationName, this.serviceName).build(), new HashSet<>());
         }
 
-        private static SdkTracerProvider sdkTracerProvider(ZipkinSpanExporter zipkinSpanExporter) {
+        private static WavefrontOtelSpanHandler wavefrontOtelSpanHandler(WavefrontSpanHandler handler) {
+            return new WavefrontOtelSpanHandler(handler);
+        }
+
+        private static SdkTracerProvider sdkTracerProvider(WavefrontOtelSpanHandler spanHandler) {
             return SdkTracerProvider.builder().setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                    .addSpanProcessor(SimpleSpanProcessor.create(zipkinSpanExporter)).build();
+                    .addSpanProcessor(SimpleSpanProcessor.create(spanHandler)).build();
         }
 
         private static OpenTelemetrySdk openTelemetrySdk(SdkTracerProvider sdkTracerProvider) {
@@ -237,7 +268,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private static Consumer<OtelBuildingBlocks> closingFunction() {
             return deps -> {
-                ZipkinSpanExporter reporter = deps.zipkinSpanExporter;
+                WavefrontOtelSpanHandler reporter = deps.wavefrontOTelSpanHandler;
                 reporter.flush();
                 reporter.close();
             };
@@ -255,23 +286,25 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
     /**
      * Runs the given lambda with Zipkin setup.
+     * @param server Wavefront's server URL
+     * @param token Wavefront's token
      * @param meterRegistry meter registry to register the handlers against
      * @param consumer lambda to be executed with the building blocks
      */
-    public static void run(MeterRegistry meterRegistry, Consumer<OtelBuildingBlocks> consumer) {
-        run(ZipkinOtelSetup.builder().register(meterRegistry), consumer);
+    public static void run(String server, String token, MeterRegistry meterRegistry, Consumer<Builder.OtelBuildingBlocks> consumer) {
+        run(WavefrontOtelSetup.builder(server, token).register(meterRegistry), consumer);
     }
 
     /**
-     * @param localZipkinBrave Brave setup with Zipkin
+     * @param setup OTel setup with Wavefront
      * @param consumer runnable to run
      */
-    public static void run(ZipkinOtelSetup localZipkinBrave, Consumer<OtelBuildingBlocks> consumer) {
+    public static void run(WavefrontOtelSetup setup, Consumer<Builder.OtelBuildingBlocks> consumer) {
         try {
-            consumer.accept(localZipkinBrave.getBuildingBlocks());
+            consumer.accept(setup.getBuildingBlocks());
         }
         finally {
-            localZipkinBrave.close();
+            setup.close();
         }
     }
 }
