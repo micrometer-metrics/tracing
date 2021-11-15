@@ -36,7 +36,7 @@ subprojects {
 					runtimeOnly version
 				}
 			}
-			implementation platform('io.micrometer:micrometer-bom:1.9.0-SNAPSHOT')
+			implementation platform('io.micrometer:micrometer-bom:2.0.0-SNAPSHOT')
 			implementation platform('io.zipkin.brave:brave-bom:5.13.2')
 			implementation platform('io.opentelemetry:opentelemetry-bom:1.7.0')
 			implementation platform('io.opentelemetry:opentelemetry-bom-alpha:1.7.0-alpha')
