@@ -28,8 +28,6 @@ import io.micrometer.tracing.util.StringUtils;
  * In order to turn on the assertions you need to either turn on the
  * {@code spring.cloud.sleuth.assertions.enabled} system property or
  * {@code SPRING_CLOUD_SLEUTH_ASSERTIONS_ENABLED} environment variable.
- *
- * @author Marcin Grzejszczak
  */
 final class DocumentedSpanAssertions {
 
@@ -63,7 +61,7 @@ final class DocumentedSpanAssertions {
     }
 
     private static String prefixWarningIfPresent(DocumentedSpan documentedSpan) {
-        return StringUtils.isNotBlank(documentedSpan.prefix())
+        return StringUtils.isNotEmpty(documentedSpan.prefix())
                 ? ". Also it has start with [" + documentedSpan.prefix() + "] prefix" : "";
     }
 
@@ -138,7 +136,7 @@ final class DocumentedSpanAssertions {
     }
 
     private static boolean hasRequiredPrefix(String value, String prefix) {
-        if (StringUtils.isNotBlank(prefix)) {
+        if (StringUtils.isNotEmpty(prefix)) {
             return value.startsWith(prefix);
         }
         return true;

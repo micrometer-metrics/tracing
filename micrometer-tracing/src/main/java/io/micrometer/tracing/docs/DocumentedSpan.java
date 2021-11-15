@@ -35,20 +35,16 @@ import io.micrometer.tracing.SpanCustomizer;
  * method to retrieve the array of allowed keys / events
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public interface DocumentedSpan {
 
     /**
-     * Returns the span name.
-     *
      * @return span name
      */
     String getName();
 
     /**
-     * Returns the allowed tag keys.
-     *
      * @return allowed tag keys
      */
     default TagKey[] getTagKeys() {
@@ -56,8 +52,6 @@ public interface DocumentedSpan {
     }
 
     /**
-     * Returns the allowed events.
-     *
      * @return allowed events
      */
     default EventValue[] getEvents() {
@@ -68,7 +62,6 @@ public interface DocumentedSpan {
      * Returns required prefix to be there for events and tags. Example {@code foo.} would
      * require the tags and events to have a {code foo} prefix like this for tags:
      * {@code foo.bar=true} and {@code foo.started} for events.
-     *
      * @return required prefix
      */
     default String prefix() {
@@ -77,7 +70,6 @@ public interface DocumentedSpan {
 
     /**
      * Asserts on tags, names and allowed events.
-     *
      * @param span to wrap
      * @return wrapped span
      */
@@ -93,7 +85,6 @@ public interface DocumentedSpan {
 
     /**
      * Asserts on tags, names and allowed events.
-     *
      * @param span to wrap
      * @return wrapped span
      */
@@ -109,7 +100,6 @@ public interface DocumentedSpan {
 
     /**
      * Asserts on tags, names and allowed events.
-     *
      * @param span builder to wrap
      * @return wrapped span
      */

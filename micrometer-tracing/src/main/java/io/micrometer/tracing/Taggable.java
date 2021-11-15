@@ -17,19 +17,19 @@
 package io.micrometer.tracing;
 
 /**
+ *
  * Describes the behaviour of an object that can be tagged.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.3
  */
 public interface Taggable {
 
     /**
      * Sets a tag.
-     *
      * @param key tag key
      * @param value tag value
-     * @return this
+     * @return this, for chaining
      */
     Taggable tag(String key, String value);
 

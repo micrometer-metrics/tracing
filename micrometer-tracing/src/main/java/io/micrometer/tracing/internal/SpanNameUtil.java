@@ -22,7 +22,7 @@ import io.micrometer.tracing.util.StringUtils;
  * Utility class that provides the name in hyphen based notation.
  *
  * @author Adrian Cole
- * @since 6.0.0
+ * @since 1.0.0
  */
 public final class SpanNameUtil {
 

@@ -22,35 +22,30 @@ import io.micrometer.tracing.lang.Nullable;
  * Contains trace and span data.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface TraceContext {
 
     /**
-     * Returns the trace id.
-     *
+     * Trace id.
      * @return trace id of a span
      */
     String traceId();
 
     /**
-     * Returns the parent span id.
-     *
+     * Parent span id.
      * @return parent span id or {@code null} if one is not set
      */
     @Nullable
     String parentId();
 
     /**
-     * Returns the span id.
-     *
+     * Span id.
      * @return span id
      */
     String spanId();
 
     /**
-     * Decides whether the span is sampled.
-     *
      * @return {@code true} when sampled, {@code false} when not sampled and {@code null}
      * when sampling decision should be deferred
      */
@@ -59,45 +54,40 @@ public interface TraceContext {
     /**
      * Builder for {@link TraceContext}.
      *
-     * @since 6.0.0
+     * @since 3.1.0
      */
     interface Builder {
 
         /**
          * Sets trace id on the trace context.
-         *
          * @param traceId trace id
          * @return this
          */
-        Builder traceId(String traceId);
+        TraceContext.Builder traceId(String traceId);
 
         /**
          * Sets parent id on the trace context.
-         *
          * @param parentId parent trace id
          * @return this
          */
-        Builder parentId(String parentId);
+        TraceContext.Builder parentId(String parentId);
 
         /**
          * Sets span id on the trace context.
-         *
          * @param spanId span id
          * @return this
          */
-        Builder spanId(String spanId);
+        TraceContext.Builder spanId(String spanId);
 
         /**
          * Sets sampled on the trace context.
-         *
          * @param sampled if span is sampled
          * @return this
          */
-        Builder sampled(Boolean sampled);
+        TraceContext.Builder sampled(Boolean sampled);
 
         /**
          * Builds the trace context.
-         *
          * @return trace context
          */
         TraceContext build();

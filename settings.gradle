@@ -1,25 +1,35 @@
 pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven { url 'https://repo.spring.io/release' }
-        maven { url "https://repo.spring.io/milestone" }
-    }
+	repositories {
+		gradlePluginPortal()
+		maven { url 'https://repo.spring.io/release' }
+		maven { url "https://repo.spring.io/milestone" }
+	}
 }
 
 plugins {
-    id 'com.gradle.enterprise' version '3.7'
-    id 'io.spring.ge.conventions' version '0.0.8'
+	id 'com.gradle.enterprise' version '3.7'
+	id 'io.spring.ge.conventions' version '0.0.8'
 }
 
 rootProject.name = 'tracing'
 
 buildCache {
-    remote(HttpBuildCache) {
-        url = 'https://ge.micrometer.io/cache/'
-    }
+	remote(HttpBuildCache) {
+		url = 'https://ge.micrometer.io/cache/'
+	}
 }
 gradleEnterprise {
-    server = 'https://ge.micrometer.io'
+	server = 'https://ge.micrometer.io'
 }
 
 include 'micrometer-tracing', 'micrometer-tracing-bom'
+
+['brave', 'otel'].each { bridge ->
+	include "micrometer-tracing-bridge-$bridge"
+	project(":micrometer-tracing-bridge-$bridge").projectDir = new File(rootProject.projectDir, "micrometer-tracing-bridges/micrometer-tracing-bridge-$bridge")
+}
+
+['wavefront', 'zipkin'].each { reporter ->
+	include "micrometer-tracing-reporter-$reporter"
+	project(":micrometer-tracing-reporter-$reporter").projectDir = new File(rootProject.projectDir, "micrometer-tracing-reporters/micrometer-tracing-reporter-$reporter")
+}

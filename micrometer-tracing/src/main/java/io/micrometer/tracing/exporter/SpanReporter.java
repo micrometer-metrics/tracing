@@ -20,14 +20,13 @@ package io.micrometer.tracing.exporter;
  * An interface that allows to process spans after they got finished.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public interface SpanReporter {
 
     /**
      * Reports the finished span.
-     *
-     * @param span a span that was ended and is ready to be reported
+     * @param span a span that was ended and is ready to be reported.
      */
     void report(FinishedSpan span);
 

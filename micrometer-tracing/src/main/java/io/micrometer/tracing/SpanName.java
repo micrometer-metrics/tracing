@@ -53,12 +53,8 @@ import java.lang.annotation.Target;
  *     };
  * }</pre>
  *
- * Starting with version {@code 1.3.0} you can also put the annotation on an
- * {@code @Async} annotated method and the value of that annotation will be used as the
- * span name.
- *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 1.0.0
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -67,8 +63,7 @@ public @interface SpanName {
 
     /**
      * Name of the span to be resolved at runtime.
-     *
-     * @return value of the span name
+     * @return - value of the span name.
      */
     String value();
 

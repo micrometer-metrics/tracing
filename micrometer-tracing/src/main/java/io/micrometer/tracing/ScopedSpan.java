@@ -21,56 +21,48 @@ package io.micrometer.tracing;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface ScopedSpan {
 
     /**
-     * Decides whether span is noop.
-     *
      * @return {@code true} when no recording is done and nothing is reported to an
      * external system. However, this span should still be injected into outgoing
-     * requests. Use this flag to avoid performing expensive computation
+     * requests. Use this flag to avoid performing expensive computation.
      */
     boolean isNoop();
 
     /**
-     * Returns the {@link TraceContext}.
-     *
      * @return {@link TraceContext} corresponding to this span.
      */
     TraceContext context();
 
     /**
      * Sets a name on this span.
-     *
      * @param name name to set on the span
-     * @return this
+     * @return this span
      */
     ScopedSpan name(String name);
 
     /**
      * Sets a tag on this span.
-     *
      * @param key tag key
      * @param value tag value
-     * @return this
+     * @return this span
      */
     ScopedSpan tag(String key, String value);
 
     /**
      * Sets an event on this span.
-     *
      * @param value event name to set on the span
-     * @return this
+     * @return this span
      */
     ScopedSpan event(String value);
 
     /**
      * Records an exception for this span.
-     *
      * @param throwable to record
-     * @return this
+     * @return this span
      */
     ScopedSpan error(Throwable throwable);
 

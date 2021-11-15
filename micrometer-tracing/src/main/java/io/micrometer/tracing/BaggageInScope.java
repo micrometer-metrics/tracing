@@ -30,37 +30,31 @@ import io.micrometer.tracing.lang.Nullable;
  * Represents a single baggage entry.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface BaggageInScope extends Closeable {
 
     /**
-     * Returns the baggage name.
-     *
      * @return name of the baggage entry
      */
     String name();
 
     /**
-     * Returns the baggage value.
-     *
-     * @return value of the baggage entry or {@code null} if not set
+     * @return value of the baggage entry or {@code null} if not set.
      */
     @Nullable
     String get();
 
     /**
      * Retrieves baggage from the given {@link TraceContext}.
-     *
      * @param traceContext context containing baggage
-     * @return value of the baggage entry or {@code null} if not set
+     * @return value of the baggage entry or {@code null} if not set.
      */
     @Nullable
     String get(TraceContext traceContext);
 
     /**
      * Sets the baggage value.
-     *
      * @param value to set
      * @return new scope
      */
@@ -68,7 +62,6 @@ public interface BaggageInScope extends Closeable {
 
     /**
      * Sets the baggage value for the given {@link TraceContext}.
-     *
      * @param traceContext context containing baggage
      * @param value to set
      * @return new scope
@@ -77,7 +70,6 @@ public interface BaggageInScope extends Closeable {
 
     /**
      * Sets the current baggage in scope.
-     *
      * @return this in scope
      */
     BaggageInScope makeCurrent();

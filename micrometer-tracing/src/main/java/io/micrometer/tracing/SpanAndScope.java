@@ -18,43 +18,33 @@ package io.micrometer.tracing;
 
 import java.io.Closeable;
 
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
+
 /**
  * Container object for {@link Span} and its corresponding {@link Tracer.SpanInScope}.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @author Arthur Gavlyukovskiy
+ * @since 3.1.0
  */
 public class SpanAndScope implements Closeable {
+
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(SpanAndScope.class);
 
     private final Span span;
 
     private final Tracer.SpanInScope scope;
 
-    /**
-     * Creates a new instance of {@link SpanAndScope}.
-     *
-     * @param span span
-     * @param scope scope of the span
-     */
     public SpanAndScope(Span span, Tracer.SpanInScope scope) {
         this.span = span;
         this.scope = scope;
     }
 
-    /**
-     * Returns the span.
-     *
-     * @return stored span
-     */
     public Span getSpan() {
         return this.span;
     }
 
-    /**
-     * Returns the span in scope.
-     *
-     * @return stored scope of the span
-     */
     public Tracer.SpanInScope getScope() {
         return this.scope;
     }
@@ -66,7 +56,12 @@ public class SpanAndScope implements Closeable {
 
     @Override
     public void close() {
-        this.scope.close();
+        if (log.isTraceEnabled()) {
+            log.trace("Closing span [" + this.span + "]");
+        }
+        if (this.scope != null) {
+            this.scope.close();
+        }
         this.span.end();
     }
 

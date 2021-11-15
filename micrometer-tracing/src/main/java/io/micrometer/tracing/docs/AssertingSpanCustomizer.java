@@ -22,13 +22,11 @@ import io.micrometer.tracing.SpanCustomizer;
  * A {@link SpanCustomizer} that can perform assertions on itself.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public interface AssertingSpanCustomizer extends SpanCustomizer {
 
     /**
-     * Creates an asserting wrapper.
-     *
      * @param documentedSpan span configuration
      * @param span span to wrap in assertions
      * @return asserting span customizer
@@ -42,7 +40,6 @@ public interface AssertingSpanCustomizer extends SpanCustomizer {
 
     /**
      * Returns the underlying delegate. Used when casting is necessary.
-     *
      * @param span span to check for wrapping
      * @param <T> type extending a span
      * @return unwrapped object
@@ -59,15 +56,11 @@ public interface AssertingSpanCustomizer extends SpanCustomizer {
     }
 
     /**
-     * Returns a documented span.
-     *
      * @return a {@link DocumentedSpan} with span configuration
      */
     DocumentedSpan getDocumentedSpan();
 
     /**
-     * Returns the delegate.
-     *
      * @return wrapped {@link SpanCustomizer}
      */
     SpanCustomizer getDelegate();
@@ -81,10 +74,9 @@ public interface AssertingSpanCustomizer extends SpanCustomizer {
 
     /**
      * Sets a tag on a span.
-     *
      * @param key tag key
      * @param value tag
-     * @return this
+     * @return this, for chaining
      */
     default AssertingSpanCustomizer tag(TagKey key, String value) {
         DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
@@ -101,9 +93,8 @@ public interface AssertingSpanCustomizer extends SpanCustomizer {
 
     /**
      * Sets an event on a span.
-     *
      * @param value event
-     * @return this
+     * @return this, for chaining
      */
     default AssertingSpanCustomizer event(EventValue value) {
         DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());

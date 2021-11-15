@@ -44,12 +44,12 @@ class ImmutableAssertingSpanCustomizer implements AssertingSpanCustomizer {
             return false;
         }
         ImmutableAssertingSpanCustomizer that = (ImmutableAssertingSpanCustomizer) o;
-        return Objects.equals(this.documentedSpan, that.documentedSpan) && Objects.equals(this.delegate, that.delegate);
+        return Objects.equals(documentedSpan, that.documentedSpan) && Objects.equals(delegate, that.delegate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.documentedSpan, this.delegate);
+        return Objects.hash(documentedSpan, delegate);
     }
 
     @Override

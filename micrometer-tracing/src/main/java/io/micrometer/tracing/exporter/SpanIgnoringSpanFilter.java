@@ -23,27 +23,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.util.StringUtils;
+
 /**
  * {@link SpanFilter} that ignores spans via names.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public class SpanIgnoringSpanFilter implements SpanFilter {
 
     static final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(SpanIgnoringSpanFilter.class);
+
     private final List<String> spanNamePatternsToSkip;
 
     private final List<String> additionalSpanNamePatternsToIgnore;
 
-    /**
-     * Creates a new instance of {@link SpanIgnoringSpanFilter}.
-     *
-     * @param spanNamePatternsToSkip default span name patterns to skip
-     * @param additionalSpanNamePatternsToIgnore additional span name patterns to ignore
-     */
     public SpanIgnoringSpanFilter(List<String> spanNamePatternsToSkip,
             List<String> additionalSpanNamePatternsToIgnore) {
         this.spanNamePatternsToSkip = spanNamePatternsToSkip;
@@ -65,7 +64,13 @@ public class SpanIgnoringSpanFilter implements SpanFilter {
     public boolean isExportable(FinishedSpan span) {
         List<Pattern> spanNamesToIgnore = spanNamesToIgnore();
         String name = span.getName();
-        return !StringUtils.isNotBlank(name) || spanNamesToIgnore.stream().noneMatch(p -> p.matcher(name).matches());
+        if (StringUtils.isNotEmpty(name) && spanNamesToIgnore.stream().anyMatch(p -> p.matcher(name).matches())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Will ignore a span with name [" + name + "]");
+            }
+            return false;
+        }
+        return true;
     }
 
 }

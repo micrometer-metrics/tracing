@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * {@code toString()} value of the parameter
  *
  * @author Christian Schwerdtfeger
- * @since 6.0.0
+ * @since 1.0.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

@@ -22,13 +22,12 @@ package io.micrometer.tracing;
  * be resolved at runtime this interface will provide the name of the span.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 1.0.0
  */
 public interface SpanNamer {
 
     /**
      * Retrieves the span name for the given object.
-     *
      * @param object - object for which span name should be picked
      * @param defaultValue - the default valued to be returned if span name can't be
      * calculated

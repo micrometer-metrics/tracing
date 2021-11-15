@@ -1,0 +1,26 @@
+plugins {
+	id 'idea'
+}
+
+dependencies {
+	api project(':micrometer-tracing')
+	api 'org.slf4j:slf4j-api'
+	api 'io.micrometer:micrometer-core'
+
+	implementation("io.opentelemetry:opentelemetry-api")
+	implementation("io.opentelemetry:opentelemetry-api-metrics")
+	implementation("io.opentelemetry:opentelemetry-extension-aws")
+	implementation("io.opentelemetry:opentelemetry-semconv")
+	implementation("io.opentelemetry:opentelemetry-sdk-common")
+	implementation("io.opentelemetry:opentelemetry-sdk-trace")
+	implementation("io.opentelemetry:opentelemetry-sdk")
+	implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+	optionalApi("io.opentelemetry:opentelemetry-exporter-logging")
+	implementation("io.opentelemetry:opentelemetry-extension-trace-propagators")
+	optionalApi("io.opentelemetry:opentelemetry-opentracing-shim")
+
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'org.mockito:mockito-core'
+}
+

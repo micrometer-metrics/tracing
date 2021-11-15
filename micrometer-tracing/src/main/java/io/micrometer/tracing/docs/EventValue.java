@@ -20,13 +20,11 @@ package io.micrometer.tracing.docs;
  * Event value representing a notable event in time.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public interface EventValue {
 
     /**
-     * Returns the event value.
-     *
      * @return event value
      */
     String getValue();

@@ -22,13 +22,12 @@ import java.util.Arrays;
  * Represents a tag key.
  *
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.1.0
  */
 public interface TagKey {
 
     /**
      * Merges arrays of tags.
-     *
      * @param tags array of tags
      * @return a merged array of tags
      */
@@ -37,8 +36,6 @@ public interface TagKey {
     }
 
     /**
-     * Returns the tag key.
-     *
      * @return tag key
      */
     String getKey();

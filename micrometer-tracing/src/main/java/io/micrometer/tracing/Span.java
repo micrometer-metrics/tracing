@@ -28,83 +28,54 @@ import io.micrometer.tracing.propagation.Propagator;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
-public interface Span extends SpanCustomizer {
+public interface Span extends io.micrometer.tracing.SpanCustomizer {
 
     /**
-     * Decides whether span is noop.
-     *
      * @return {@code true} when no recording is done and nothing is reported to an
      * external system. However, this span should still be injected into outgoing
-     * requests. Use this flag to avoid performing expensive computation
+     * requests. Use this flag to avoid performing expensive computation.
      */
     boolean isNoop();
 
     /**
-     * Returns the {@link TraceContext}.
-     *
-     * @return {@link TraceContext} corresponding to this span
+     * @return {@link TraceContext} corresponding to this span.
      */
-    TraceContext context();
+    io.micrometer.tracing.TraceContext context();
 
     /**
      * Starts this span.
-     *
-     * @return this
+     * @return this span
      */
     Span start();
 
     /**
-     * Starts this span except with a given timestamp in microseconds.
-     *
-     * @param micros timestamp in microseconds
-     * @return this
-     */
-    Span start(long micros);
-
-    /**
      * Sets a name on this span.
-     *
      * @param name name to set on the span
-     * @return this
+     * @return this span
      */
-    @Override
     Span name(String name);
 
     /**
      * Sets an event on this span.
-     *
      * @param value event name to set on the span
-     * @return this
+     * @return this span
      */
-    @Override
     Span event(String value);
 
     /**
-     * Sets an event on this span.
-     *
-     * @param micros event timestamp in microseconds
-     * @param value event name to set on the span
-     * @return this
-     */
-    Span event(long micros, String value);
-
-    /**
      * Sets a tag on this span.
-     *
      * @param key tag key
      * @param value tag value
-     * @return this
+     * @return this span
      */
-    @Override
     Span tag(String key, String value);
 
     /**
      * Records an exception for this span.
-     *
      * @param throwable to record
-     * @return this
+     * @return this span
      */
     Span error(Throwable throwable);
 
@@ -114,34 +85,30 @@ public interface Span extends SpanCustomizer {
     void end();
 
     /**
-     * Ends the span with a given timestamp in microseconds. The span gets stopped and
-     * recorded if not noop.
-     *
-     * @param micros timestamp in microseconds
-     */
-    void end(long micros);
-
-    /**
      * Ends the span. The span gets stopped but does not get recorded.
      */
     void abandon();
 
     /**
      * Sets the remote service name for the span.
-     *
      * @param remoteServiceName remote service name
-     * @return this
+     * @return this span
+     * @since 3.0.3
      */
-    Span remoteServiceName(String remoteServiceName);
+    default Span remoteServiceName(String remoteServiceName) {
+        return this;
+    }
 
     /**
      * Sets the remote url on the span.
-     *
      * @param ip remote ip
      * @param port remote port
-     * @return this
+     * @return this span
+     * @since 3.1.0
      */
-    Span remoteIpAndPort(String ip, int port);
+    default Span remoteIpAndPort(String ip, int port) {
+        return this;
+    }
 
     /**
      * Type of span. Can be used to specify additional relationships between spans in
@@ -192,22 +159,19 @@ public interface Span extends SpanCustomizer {
 
         /**
          * Sets the parent of the built span.
-         *
          * @param context parent's context
          * @return this
          */
-        Builder setParent(TraceContext context);
+        Builder setParent(io.micrometer.tracing.TraceContext context);
 
         /**
          * Sets no parent of the built span.
-         *
          * @return this
          */
         Builder setNoParent();
 
         /**
          * Sets the name of the span.
-         *
          * @param name span name
          * @return this
          */
@@ -215,7 +179,6 @@ public interface Span extends SpanCustomizer {
 
         /**
          * Sets an event on the span.
-         *
          * @param value event value
          * @return this
          */
@@ -223,7 +186,6 @@ public interface Span extends SpanCustomizer {
 
         /**
          * Sets a tag on the span.
-         *
          * @param key tag key
          * @param value tag value
          * @return this
@@ -232,7 +194,6 @@ public interface Span extends SpanCustomizer {
 
         /**
          * Sets an error on the span.
-         *
          * @param throwable error to set
          * @return this
          */
@@ -240,15 +201,13 @@ public interface Span extends SpanCustomizer {
 
         /**
          * Sets the kind on the span.
-         *
          * @param spanKind kind of the span
          * @return this
          */
-        Builder kind(Kind spanKind);
+        Builder kind(Span.Kind spanKind);
 
         /**
          * Sets the remote service name for the span.
-         *
          * @param remoteServiceName remote service name
          * @return this
          */
@@ -256,27 +215,19 @@ public interface Span extends SpanCustomizer {
 
         /**
          * Sets the remote URL for the span.
-         *
          * @param ip remote service ip
          * @param port remote service port
          * @return this
          */
-        Builder remoteIpAndPort(String ip, int port);
+        default Builder remoteIpAndPort(String ip, int port) {
+            return this;
+        }
 
         /**
          * Builds and starts the span.
-         *
          * @return started span
          */
         Span start();
-
-        /**
-         * Builds and starts the span.
-         *
-         * @param micros span start time in micros
-         * @return started span
-         */
-        Span start(long micros);
 
     }
 

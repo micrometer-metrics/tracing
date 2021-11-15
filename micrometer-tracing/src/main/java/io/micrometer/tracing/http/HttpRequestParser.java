@@ -16,6 +16,7 @@
 
 package io.micrometer.tracing.http;
 
+import io.micrometer.core.instrument.transport.http.HttpRequest;
 import io.micrometer.tracing.SpanCustomizer;
 import io.micrometer.tracing.TraceContext;
 
@@ -26,14 +27,13 @@ import io.micrometer.tracing.TraceContext;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  */
 public interface HttpRequestParser {
 
     /**
      * Implement to choose what data from the http request are parsed into the span
      * representing it.
-     *
      * @param request current request
      * @param context corresponding trace context
      * @param span customizer for the current span

@@ -61,7 +61,7 @@ import io.micrometer.tracing.propagation.Propagator;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 6.0.0
+ * @since 3.0.0
  * @see Span
  * @see ScopedSpan
  * @see Propagator
@@ -71,7 +71,6 @@ public interface Tracer extends BaggageManager {
     /**
      * This creates a new span based on the current span in scope. If there's no such span
      * a new trace will be created.
-     *
      * @return a child span or a new trace if no span was present
      */
     Span nextSpan();
@@ -79,9 +78,8 @@ public interface Tracer extends BaggageManager {
     /**
      * This creates a new span whose parent is {@link Span}. If parent is {@code null}
      * then will create act as {@link #nextSpan()}.
-     *
      * @param parent parent span
-     * @return a child span for the given parent, {@code null} if context was empty
+     * @return a child span for the given parent, {@code null} if context was empty.
      */
     Span nextSpan(@Nullable Span parent);
 
@@ -99,11 +97,10 @@ public interface Tracer extends BaggageManager {
      * close on the result have no effect on the input. For example, calling close on the
      * result does not finish the span. Not only is it safe to call close, you must call
      * close to end the scope, or risk leaking resources associated with the scope.
-     *
      * @param span span to place into scope or null to clear the scope
      * @return scope with span in it
      */
-    SpanInScope withSpan(@Nullable Span span);
+    Tracer.SpanInScope withSpan(@Nullable Span span);
 
     /**
      * Returns a new child span if there's a {@link #currentSpan()} or a new trace if
@@ -122,7 +119,6 @@ public interface Tracer extends BaggageManager {
      *   span.end();
      * }
      * }</pre>
-     *
      * @param name of the span in scope
      * @return span in scope
      */
@@ -134,28 +130,28 @@ public interface Tracer extends BaggageManager {
      * that has not yet been started, yet it's heavily configurable (some options are not
      * possible to be set when a span has already been started). We can achieve that by
      * using a builder.
-     *
      * @return a span builder
      */
     Span.Builder spanBuilder();
 
     /**
      * Builder for {@link TraceContext}.
-     *
      * @return a trace context builder
      */
     TraceContext.Builder traceContextBuilder();
 
     /**
-     * Returns the current trace context.
-     *
+     * Returns the {@link CurrentTraceContext}. Can be {@code null} so that we don't break
+     * backward compatibility.
      * @return current trace context
      */
-    CurrentTraceContext currentTraceContext();
+    @Nullable
+    default CurrentTraceContext currentTraceContext() {
+        return null;
+    }
 
     /**
      * Allows to customize the current span in scope.
-     *
      * @return current span customizer
      */
     @Nullable
@@ -163,7 +159,6 @@ public interface Tracer extends BaggageManager {
 
     /**
      * Retrieves the current span in scope or {@code null} if one is not available.
-     *
      * @return current span in scope
      */
     @Nullable
