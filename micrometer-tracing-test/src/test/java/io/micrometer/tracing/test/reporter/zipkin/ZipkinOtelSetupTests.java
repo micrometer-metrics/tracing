@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.reporter.wavefront;
+package io.micrometer.tracing.test.reporter.zipkin;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -31,9 +31,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
-class WavefrontBraveSetupTests {
+class ZipkinOtelSetupTests {
 
-    private static InternalLogger log = InternalLoggerFactory.getInstance(WavefrontBraveSetupTests.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(ZipkinOtelSetupTests.class);
 
     SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
 
@@ -45,24 +45,21 @@ class WavefrontBraveSetupTests {
     }
 
     @Test
-    void should_register_a_span_in_wavefront() throws InterruptedException {
-        WavefrontBraveSetup setup = WavefrontBraveSetup.builder(this.server.url("/").toString(), "token")
-                .applicationName("app-name")
-                .serviceName("service-name")
-                .source("source")
-                .register(this.simpleMeterRegistry);
+    void should_register_a_span_in_zipkin() throws InterruptedException {
+        ZipkinOtelSetup setup = ZipkinOtelSetup.builder().zipkinUrl(this.server.url("/").toString()).register(this.simpleMeterRegistry);
 
-        WavefrontBraveSetup.run(setup, __ -> {
+        ZipkinOtelSetup.run(setup, __ -> {
             Timer.Sample sample = Timer.start(simpleMeterRegistry);
             log.info("New sample created");
             sample.stop(Timer.builder("the-name"));
         });
 
-        Awaitility.await().atMost(2, TimeUnit.SECONDS)
+        Awaitility.await().atMost(1, TimeUnit.SECONDS)
                 .untilAsserted(() -> then(this.server.getRequestCount()).isGreaterThan(0));
 
-        RecordedRequest request = this.server.takeRequest(2, TimeUnit.SECONDS);
+        RecordedRequest request = this.server.takeRequest(1, TimeUnit.SECONDS);
         then(request).isNotNull();
-        then(request.getPath()).isEqualTo("/report?f=trace");
+        then(request.getPath()).isEqualTo("/api/v2/spans");
     }
+
 }

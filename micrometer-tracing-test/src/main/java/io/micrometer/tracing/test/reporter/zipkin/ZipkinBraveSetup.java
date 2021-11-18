@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.reporter.zipkin;
+package io.micrometer.tracing.test.reporter.zipkin;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -37,10 +37,10 @@ import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
-import io.micrometer.tracing.reporter.zipkin.ZipkinBraveSetup.Builder.BraveBuildingBlocks;
 import zipkin2.Span;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.Reporter;
+import zipkin2.reporter.Sender;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
@@ -51,11 +51,11 @@ import zipkin2.reporter.urlconnection.URLConnectionSender;
  */
 public final class ZipkinBraveSetup implements AutoCloseable {
 
-    private final Consumer<BraveBuildingBlocks> closingFunction;
+    private final Consumer<Builder.BraveBuildingBlocks> closingFunction;
 
-    private final BraveBuildingBlocks braveBuildingBlocks;
+    private final Builder.BraveBuildingBlocks braveBuildingBlocks;
 
-    ZipkinBraveSetup(Consumer<BraveBuildingBlocks> closingFunction, BraveBuildingBlocks braveBuildingBlocks) {
+    ZipkinBraveSetup(Consumer<Builder.BraveBuildingBlocks> closingFunction, Builder.BraveBuildingBlocks braveBuildingBlocks) {
         this.closingFunction = closingFunction;
         this.braveBuildingBlocks = braveBuildingBlocks;
     }
@@ -68,7 +68,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
     /**
      * @return all the Brave building blocks required to communicate with Zipkin
      */
-    public BraveBuildingBlocks getBuildingBlocks() {
+    public Builder.BraveBuildingBlocks getBuildingBlocks() {
         return this.braveBuildingBlocks;
     }
 
@@ -84,7 +84,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
      */
     public static class Builder {
 
-        private Supplier<AsyncReporter<Span>> reporter;
+        private String zipkinUrl = "http://localhost:9411";
+
+        private Supplier<Sender> sender;
+
+        private Function<Sender, AsyncReporter<Span>> reporter;
 
         private Function<Reporter, Tracing> tracing;
 
@@ -104,14 +108,22 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          * All Brave building blocks required to communicate with Zipkin.
          */
         public static class BraveBuildingBlocks {
+            public final Sender sender;
+
             public final AsyncReporter<Span> reporter;
+
             public final Tracing tracing;
+
             public final Tracer tracer;
+
             public final HttpTracing httpTracing;
+
             public final HttpServerHandler httpServerHandler;
+
             public final HttpClientHandler httpClientHandler;
 
-            public BraveBuildingBlocks(AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler) {
+            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler) {
+                this.sender = sender;
                 this.reporter = reporter;
                 this.tracing = tracing;
                 this.tracer = tracer;
@@ -121,7 +133,17 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             }
         }
 
-        public Builder reporter(Supplier<AsyncReporter<Span>> reporter) {
+        public Builder zipkinUrl(String zipkinUrl) {
+            this.zipkinUrl = zipkinUrl;
+            return this;
+        }
+
+        public Builder sender(Supplier<Sender> sender) {
+            this.sender = sender;
+            return this;
+        }
+
+        public Builder reporter(Function<Sender, AsyncReporter<Span>> reporter) {
             this.reporter = reporter;
             return this;
         }
@@ -166,25 +188,30 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          * @return setup with all Brave building blocks
          */
         public ZipkinBraveSetup register(MeterRegistry meterRegistry) {
-            AsyncReporter<Span> reporter = this.reporter != null ? this.reporter.get() : reporter();
+            Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
+            AsyncReporter<Span> reporter = this.reporter != null ? this.reporter.apply(sender) : reporter(sender);
             Tracing tracing = this.tracing != null ? this.tracing.apply(reporter) : tracing(reporter);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(reporter, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler);
+            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             meterRegistry.config().timerRecordingListener(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new ZipkinBraveSetup(closingFunction, braveBuildingBlocks);
         }
 
-        private static AsyncReporter<Span> reporter() {
+        private static Sender sender(String zipkinUrl) {
+            return URLConnectionSender.newBuilder()
+                    .connectTimeout(1000)
+                    .readTimeout(1000)
+                    .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl) + "/api/v2/spans").build();
+        }
+
+        private static AsyncReporter<Span> reporter(Sender sender) {
             return AsyncReporter
-                    .builder(URLConnectionSender.newBuilder()
-                            .connectTimeout(1000)
-                            .readTimeout(1000)
-                            .endpoint("http://localhost:9411/api/v2/spans").build())
+                    .builder(sender)
                     .build();
         }
 
@@ -236,7 +263,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
      * @param meterRegistry meter registry to register the handlers against
      * @param consumer lambda to be executed with the building blocks
      */
-    public static void run(MeterRegistry meterRegistry, Consumer<BraveBuildingBlocks> consumer) {
+    public static void run(MeterRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
         run(ZipkinBraveSetup.builder().register(meterRegistry), consumer);
     }
 
@@ -244,7 +271,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
      * @param localZipkinBrave Brave setup with Zipkin
      * @param consumer runnable to run
      */
-    public static void run(ZipkinBraveSetup localZipkinBrave, Consumer<BraveBuildingBlocks> consumer) {
+    public static void run(ZipkinBraveSetup localZipkinBrave, Consumer<Builder.BraveBuildingBlocks> consumer) {
         try {
             consumer.accept(localZipkinBrave.getBuildingBlocks());
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.reporter.zipkin;
+package io.micrometer.tracing.test.reporter.wavefront;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -23,19 +23,18 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
-import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
+import io.micrometer.tracing.test.reporter.wavefront.WavefrontOtelSetup;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
-class ZipkinOtelSetupTests {
+class WavefrontOtelSetupTests {
 
-    private static InternalLogger log = InternalLoggerFactory.getInstance(ZipkinOtelSetupTests.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(WavefrontOtelSetupTests.class);
 
     SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
 
@@ -47,26 +46,24 @@ class ZipkinOtelSetupTests {
     }
 
     @Test
-    void should_register_a_span_in_zipkin() throws InterruptedException {
-        ZipkinOtelSetup setup = ZipkinOtelSetup.builder().zipkinSpanExporter(() ->
-                ZipkinSpanExporter.builder()
-                        .setSender(URLConnectionSender.newBuilder()
-                                .connectTimeout(1000)
-                                .readTimeout(1000)
-                                .endpoint(this.server.url("/") + "api/v2/spans").build())
-                        .build()).register(this.simpleMeterRegistry);
+    void should_register_a_span_in_wavefront() throws InterruptedException {
+        WavefrontOtelSetup setup = WavefrontOtelSetup.builder(this.server.url("/").toString(), "token")
+                .applicationName("app-name")
+                .serviceName("service-name")
+                .source("source")
+                .register(this.simpleMeterRegistry);
 
-        ZipkinOtelSetup.run(setup, __ -> {
+        WavefrontOtelSetup.run(setup, __ -> {
             Timer.Sample sample = Timer.start(simpleMeterRegistry);
             log.info("New sample created");
             sample.stop(Timer.builder("the-name"));
         });
 
-        Awaitility.await().atMost(1, TimeUnit.SECONDS)
+        Awaitility.await().atMost(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> then(this.server.getRequestCount()).isGreaterThan(0));
 
-        RecordedRequest request = this.server.takeRequest(1, TimeUnit.SECONDS);
+        RecordedRequest request = this.server.takeRequest(2, TimeUnit.SECONDS);
         then(request).isNotNull();
-        then(request.getPath()).isEqualTo("/api/v2/spans");
+        then(request.getPath()).isEqualTo("/report?f=trace");
     }
 }

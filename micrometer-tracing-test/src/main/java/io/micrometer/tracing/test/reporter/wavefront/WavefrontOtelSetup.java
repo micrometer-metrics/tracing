@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.reporter.wavefront;
+package io.micrometer.tracing.test.reporter.wavefront;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,6 +40,8 @@ import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
 import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.micrometer.tracing.reporter.wavefront.WavefrontOtelSpanHandler;
+import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;

@@ -24,6 +24,7 @@ dependencies {
 	optionalImplementation("io.opentelemetry:opentelemetry-extension-trace-propagators")
 	optionalImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
 
+	// Wavefront
 	implementation("com.wavefront:wavefront-sdk-java")
 	implementation("com.wavefront:wavefront-internal-reporter-java")
 

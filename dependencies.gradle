@@ -20,7 +20,9 @@ def VERSIONS = [
 		'org.junit.vintage:junit-vintage-engine:5.8.+',
 		'org.mockito:mockito-core:latest.release',
 		'org.mockito:mockito-inline:latest.release',
-		'com.squareup.okhttp3:mockwebserver:4.8.0'
+		'com.squareup.okhttp3:mockwebserver:4.8.0',
+		'org.testcontainers:testcontainers:latest.release',
+		'org.testcontainers:junit-jupiter:latest.release'
 ]
 
 subprojects {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.reporter.zipkin;
+package io.micrometer.tracing.test.reporter.zipkin;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,13 +38,15 @@ import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
 import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
-import io.micrometer.tracing.reporter.zipkin.ZipkinOtelSetup.Builder.OtelBuildingBlocks;
+import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup.Builder.OtelBuildingBlocks;
+import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import zipkin2.reporter.Sender;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 /**
@@ -87,7 +89,11 @@ public final class ZipkinOtelSetup implements AutoCloseable {
      */
     public static class Builder {
 
-        private Supplier<ZipkinSpanExporter> zipkinSpanExporter;
+        private String zipkinUrl = "http://localhost:9411";
+
+        private Supplier<Sender> sender;
+
+        private Function<Sender, ZipkinSpanExporter> zipkinSpanExporter;
 
         private Function<ZipkinSpanExporter, SdkTracerProvider> sdkTracerProvider;
 
@@ -110,6 +116,8 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          */
         public static class OtelBuildingBlocks {
 
+            public final Sender sender;
+
             public final ZipkinSpanExporter zipkinSpanExporter;
 
             public final SdkTracerProvider sdkTracerProvider;
@@ -124,7 +132,8 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public OtelBuildingBlocks(ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, io.opentelemetry.api.trace.Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler) {
+            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler) {
+                this.sender = sender;
                 this.zipkinSpanExporter = zipkinSpanExporter;
                 this.sdkTracerProvider = sdkTracerProvider;
                 this.openTelemetrySdk = openTelemetrySdk;
@@ -135,7 +144,17 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             }
         }
 
-        public Builder zipkinSpanExporter(Supplier<ZipkinSpanExporter> zipkinSpanExporter) {
+        public Builder zipkinUrl(String zipkinUrl) {
+            this.zipkinUrl = zipkinUrl;
+            return this;
+        }
+
+        public Builder zipkinSender(Supplier<Sender> sender) {
+            this.sender = sender;
+            return this;
+        }
+
+        public Builder zipkinSpanExporter(Function<Sender, ZipkinSpanExporter> zipkinSpanExporter) {
             this.zipkinSpanExporter = zipkinSpanExporter;
             return this;
         }
@@ -185,26 +204,31 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          * @return setup with all OTel building blocks
          */
         public ZipkinOtelSetup register(MeterRegistry meterRegistry) {
-            ZipkinSpanExporter zipkinSpanExporter = this.zipkinSpanExporter != null ? this.zipkinSpanExporter.get() : zipkinSpanExporter();
+            Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
+            ZipkinSpanExporter zipkinSpanExporter = this.zipkinSpanExporter != null ? this.zipkinSpanExporter.apply(sender) : zipkinSpanExporter(sender);
             SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(zipkinSpanExporter) : sdkTracerProvider(zipkinSpanExporter);
             OpenTelemetrySdk openTelemetrySdk = this.openTelemetrySdk != null ? this.openTelemetrySdk.apply(sdkTracerProvider) : openTelemetrySdk(sdkTracerProvider);
             io.opentelemetry.api.trace.Tracer tracer = this.tracer != null ? this.tracer.apply(openTelemetrySdk) : tracer(openTelemetrySdk);
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
-            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler);
+            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sender, zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
             meterRegistry.config().timerRecordingListener(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new ZipkinOtelSetup(closingFunction, otelBuildingBlocks);
         }
 
-        private static ZipkinSpanExporter zipkinSpanExporter() {
+        private static Sender sender(String zipkinUrl) {
+            return URLConnectionSender.newBuilder()
+                    .connectTimeout(1000)
+                    .readTimeout(1000)
+                    .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl) + "/api/v2/spans").build();
+        }
+
+        private static ZipkinSpanExporter zipkinSpanExporter(Sender sender) {
             return ZipkinSpanExporter.builder()
-                    .setSender(URLConnectionSender.newBuilder()
-                            .connectTimeout(1000)
-                            .readTimeout(1000)
-                            .endpoint("http://localhost:9411/api/v2/spans").build())
+                    .setSender(sender)
                     .build();
         }
 

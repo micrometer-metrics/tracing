@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.reporter.wavefront;
+package io.micrometer.tracing.test.reporter.wavefront;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -40,6 +40,8 @@ import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
+import io.micrometer.tracing.reporter.wavefront.WavefrontBraveSpanHandler;
+import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 
 /**
  * Work in progress. Requires HTTP instrumentation dependency to be on the classpath.
@@ -224,6 +226,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private static Tracing tracing(SpanHandler spanHandler) {
             return Tracing.newBuilder()
+                    .traceId128Bit(true)
                     .addSpanHandler(spanHandler)
                     .sampler(Sampler.ALWAYS_SAMPLE)
                     .build();
