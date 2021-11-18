@@ -101,6 +101,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
         while ((inputLine = in.readLine()) != null) {
             content.append(inputLine);
         }
+        BDDAssertions.then(content).isNotEmpty();
         in.close();
         con.disconnect();
     }
