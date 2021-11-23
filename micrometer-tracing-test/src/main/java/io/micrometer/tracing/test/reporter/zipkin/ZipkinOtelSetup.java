@@ -214,7 +214,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sender, zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
-            meterRegistry.config().timerRecordingListener(tracingHandlers);
+            meterRegistry.config().timerRecordingHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new ZipkinOtelSetup(closingFunction, otelBuildingBlocks);
         }

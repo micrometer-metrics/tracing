@@ -207,7 +207,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
-            meterRegistry.config().timerRecordingListener(tracingHandlers);
+            meterRegistry.config().timerRecordingHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new WavefrontBraveSetup(closingFunction, braveBuildingBlocks);
         }

@@ -22,7 +22,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.tracing.context.IntervalHttpEvent;
+import io.micrometer.core.instrument.tracing.context.HttpHandlerContext;
 import io.micrometer.core.instrument.transport.http.HttpRequest;
 import io.micrometer.core.instrument.transport.http.HttpResponse;
 import io.micrometer.tracing.CurrentTraceContext;
@@ -31,7 +31,7 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.lang.Nullable;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-abstract class HttpTracingRecordingHandler<CTX extends IntervalHttpEvent, REQ extends HttpRequest, RES extends HttpResponse>
+abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>
         implements TracingRecordingHandler<CTX> {
 
     private final Tracer tracer;
@@ -71,16 +71,8 @@ abstract class HttpTracingRecordingHandler<CTX extends IntervalHttpEvent, REQ ex
     }
 
     @Override
-    public void onRestore(Timer.Sample sample, CTX ctx) {
-        CurrentTraceContext.Scope scope = this.currentTraceContext
-                .maybeScope(getTracingContext(ctx).getSpan().context());
-        getTracingContext(ctx).setScope(scope);
-    }
-
-    @Override
     public boolean supportsContext(Timer.HandlerContext context) {
-        return context != null
-                && context.getClass().isAssignableFrom(IntervalHttpEvent.class);
+        return context instanceof HttpHandlerContext;
     }
 
     @Override
@@ -100,13 +92,7 @@ abstract class HttpTracingRecordingHandler<CTX extends IntervalHttpEvent, REQ ex
         RES response = getResponse(ctx);
         error(response, span);
         this.stopConsumer.accept(response, span);
-        cleanup(ctx);
     }
-
-    // @Override
-    // public void record(InstantRecording instantRecording) {
-    // // TODO: Throw an exception?
-    // }
 
     abstract String getSpanName(CTX event);
 

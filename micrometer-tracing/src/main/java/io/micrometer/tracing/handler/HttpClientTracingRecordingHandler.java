@@ -17,7 +17,7 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.tracing.context.IntervalHttpClientEvent;
+import io.micrometer.core.instrument.tracing.context.HttpClientHandlerContext;
 import io.micrometer.core.instrument.transport.http.HttpClientRequest;
 import io.micrometer.core.instrument.transport.http.HttpClientResponse;
 import io.micrometer.tracing.Tracer;
@@ -31,8 +31,8 @@ import io.micrometer.tracing.http.HttpClientHandler;
  * @since 1.0.0
  */
 public class HttpClientTracingRecordingHandler extends
-        HttpTracingRecordingHandler<IntervalHttpClientEvent, HttpClientRequest, HttpClientResponse>
-        implements TracingRecordingHandler<IntervalHttpClientEvent> {
+        HttpTracingRecordingHandler<HttpClientHandlerContext, HttpClientRequest, HttpClientResponse>
+        implements TracingRecordingHandler<HttpClientHandlerContext> {
 
     /**
      * Creates a new instance of {@link HttpClientTracingRecordingHandler}.
@@ -46,24 +46,22 @@ public class HttpClientTracingRecordingHandler extends
 
     @Override
     public boolean supportsContext(Timer.HandlerContext context) {
-        return context != null && IntervalHttpClientEvent.class.isAssignableFrom(context.getClass());
+        return context instanceof HttpClientHandlerContext;
     }
 
     @Override
-    HttpClientRequest getRequest(IntervalHttpClientEvent event) {
-        IntervalHttpClientEvent clientEvent = event;
-        return clientEvent.getRequest();
+    HttpClientRequest getRequest(HttpClientHandlerContext event) {
+        return event.getRequest();
     }
 
     @Override
-    String getSpanName(IntervalHttpClientEvent event) {
+    String getSpanName(HttpClientHandlerContext event) {
         return getRequest(event).method();
     }
 
     @Override
-    HttpClientResponse getResponse(IntervalHttpClientEvent event) {
-        IntervalHttpClientEvent clientEvent = event;
-        return clientEvent.getResponse();
+    HttpClientResponse getResponse(HttpClientHandlerContext event) {
+        return event.getResponse();
     }
 
 }

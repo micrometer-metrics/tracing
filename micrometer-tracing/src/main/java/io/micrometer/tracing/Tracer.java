@@ -141,14 +141,10 @@ public interface Tracer extends BaggageManager {
     TraceContext.Builder traceContextBuilder();
 
     /**
-     * Returns the {@link CurrentTraceContext}. Can be {@code null} so that we don't break
-     * backward compatibility.
+     * Returns the {@link CurrentTraceContext}.
      * @return current trace context
      */
-    @Nullable
-    default CurrentTraceContext currentTraceContext() {
-        return null;
-    }
+    CurrentTraceContext currentTraceContext();
 
     /**
      * Allows to customize the current span in scope.

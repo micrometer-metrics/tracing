@@ -19,7 +19,6 @@ package io.micrometer.tracing.handler;
 import java.time.Duration;
 
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
@@ -45,21 +44,13 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
     }
 
     @Override
-    public void onRestore(Timer.Sample sample, Timer.HandlerContext context) {
-        // TODO: check for nulls
-        CurrentTraceContext.Scope scope = this.tracer.currentTraceContext()
-                .maybeScope(getTracingContext(context).getSpan().context());
-        getTracingContext(context).setScope(scope);
-    }
-
-    @Override
     public void onStart(Timer.Sample sample, Timer.HandlerContext context) {
         Span parentSpan = getTracingContext(context).getSpan();
         Span childSpan = parentSpan != null ? getTracer().nextSpan(parentSpan)
                 : getTracer().nextSpan();
         // childSpan.name(sample.getHighCardinalityName())
         childSpan.start();
-        setSpanAndScope(context, childSpan);
+        getTracingContext(context).setSpan(childSpan);
     }
 
     @Override
@@ -68,7 +59,6 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
         Span span = getTracingContext(context).getSpan();
         span.name(SpanNameUtil.toLowerHyphen(timer.getId().getName()));
         tagSpan(context, span);
-        cleanup(context);
         span.end();
     }
 

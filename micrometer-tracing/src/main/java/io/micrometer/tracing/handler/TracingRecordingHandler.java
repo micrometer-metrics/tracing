@@ -21,7 +21,6 @@ import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.lang.Nullable;
 
 /**
  * Marker interface for tracing listeners.
@@ -34,13 +33,18 @@ import io.micrometer.tracing.lang.Nullable;
 public interface TracingRecordingHandler<T extends Timer.HandlerContext>
         extends TimerRecordingHandler<T> {
 
+    default void tagSpan(T context, Span span) {
+        context.getAllTags().forEach(tag -> span.tag(tag.getKey(), tag.getValue()));
+    }
+
     /**
-     * Sets span and a scope for that span in context.
+     * Puts the span in scope.
      *
-     * @param context recording with context to mutate
-     * @param span span to put in context
+     * @param context recording with context containing scope
      */
-    default void setSpanAndScope(T context, Span span) {
+    @Override
+    default void onScopeOpened(Timer.Sample sample, T context) {
+        Span span = getTracingContext(context).getSpan();
         if (span == null) {
             return;
         }
@@ -49,49 +53,26 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
         getTracingContext(context).setSpanAndScope(span, scope);
     }
 
-    // @Override
-    // default void onCreate(Timer.Sample sample) {
-    // Span span = getTracer().currentSpan();
-    // if (span != null) {
-    // setSpanAndScope(sample, span);
-    // }
-    // }
-
-    default void tagSpan(T context, Span span) {
-        context.getAllTags().forEach(tag -> span.tag(tag.getKey(), tag.getValue()));
-    }
-
     /**
      * Cleans the scope present in the context.
      *
      * @param context recording with context containing scope
      */
-    default void cleanup(T context) {
+    @Override
+    default void onScopeClosed(Timer.Sample sample, T context) {
         TracingContext tracingContext = getTracingContext(context);
         tracingContext.getScope().close();
     }
 
-    @Override
-    default void onRestore(Timer.Sample sample, T context) {
-        Span span = getTracingContext(context).getSpan();
-        setSpanAndScope(context, span);
-    }
-
-    @Nullable
     default TracingContext getTracingContext(T context) {
         // maybe consider returning a null ?
         return context.computeIfAbsent(TracingContext.class,
-                (clazz) -> new TracingContext());
-    }
-
-    @Nullable
-    default void setTracingContext(T context, TracingContext tracingContext) {
-        context.put(TracingContext.class, tracingContext);
+                clazz -> new TracingContext());
     }
 
     @Override
     default boolean supportsContext(Timer.HandlerContext context) {
-        return true;
+        return context != null;
     }
 
     /**
@@ -100,10 +81,6 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
      * @return tracer
      */
     Tracer getTracer();
-
-    class HandledContextAttribute {
-
-    }
 
     /**
      * Basic tracing context.

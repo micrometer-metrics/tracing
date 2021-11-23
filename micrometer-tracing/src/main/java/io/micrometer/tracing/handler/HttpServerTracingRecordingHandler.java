@@ -17,7 +17,7 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.tracing.context.IntervalHttpServerEvent;
+import io.micrometer.core.instrument.tracing.context.HttpServerHandlerContext;
 import io.micrometer.core.instrument.transport.http.HttpResponse;
 import io.micrometer.core.instrument.transport.http.HttpServerRequest;
 import io.micrometer.core.instrument.transport.http.HttpServerResponse;
@@ -32,8 +32,8 @@ import io.micrometer.tracing.http.HttpServerHandler;
  * @since 1.0.0
  */
 public class HttpServerTracingRecordingHandler extends
-        HttpTracingRecordingHandler<IntervalHttpServerEvent, HttpServerRequest, HttpServerResponse>
-        implements TracingRecordingHandler<IntervalHttpServerEvent> {
+        HttpTracingRecordingHandler<HttpServerHandlerContext, HttpServerRequest, HttpServerResponse>
+        implements TracingRecordingHandler<HttpServerHandlerContext> {
 
     /**
      * Creates a new instance of {@link HttpServerTracingRecordingHandler}.
@@ -46,23 +46,21 @@ public class HttpServerTracingRecordingHandler extends
     }
 
     @Override
-    HttpServerRequest getRequest(IntervalHttpServerEvent event) {
-        IntervalHttpServerEvent serverEvent = event;
-        return serverEvent.getRequest();
+    HttpServerRequest getRequest(HttpServerHandlerContext event) {
+        return event.getRequest();
     }
 
     @Override
-    String getSpanName(IntervalHttpServerEvent event) {
-        IntervalHttpServerEvent serverEvent = event;
-        if (serverEvent.getResponse() != null) {
-            return spanNameFromRoute(serverEvent.getResponse());
+    String getSpanName(HttpServerHandlerContext event) {
+        if (event.getResponse() != null) {
+            return spanNameFromRoute(event.getResponse());
         }
-        return serverEvent.getRequest().method();
+        return event.getRequest().method();
     }
 
     @Override
     public boolean supportsContext(Timer.HandlerContext context) {
-        return context != null && IntervalHttpServerEvent.class.isAssignableFrom(context.getClass());
+        return context instanceof HttpServerHandlerContext;
     }
 
     // taken from Brave
@@ -101,9 +99,8 @@ public class HttpServerTracingRecordingHandler extends
     }
 
     @Override
-    HttpServerResponse getResponse(IntervalHttpServerEvent event) {
-        IntervalHttpServerEvent serverEvent = event;
-        return serverEvent.getResponse();
+    HttpServerResponse getResponse(HttpServerHandlerContext event) {
+        return event.getResponse();
     }
 
 }

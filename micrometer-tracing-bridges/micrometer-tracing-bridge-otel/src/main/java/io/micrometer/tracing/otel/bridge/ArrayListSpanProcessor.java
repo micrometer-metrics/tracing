@@ -62,6 +62,7 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
 
     @Override
     public CompletableResultCode export(Collection<SpanData> spans) {
+        this.spans.addAll(spans);
         return CompletableResultCode.ofSuccess();
     }
 

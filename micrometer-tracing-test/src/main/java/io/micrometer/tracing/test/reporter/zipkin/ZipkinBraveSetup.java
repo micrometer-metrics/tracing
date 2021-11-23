@@ -197,7 +197,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
-            meterRegistry.config().timerRecordingListener(tracingHandlers);
+            meterRegistry.config().timerRecordingHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new ZipkinBraveSetup(closingFunction, braveBuildingBlocks);
         }
