@@ -68,7 +68,12 @@ public abstract class SampleTestRunner {
     @AfterEach
     void printMetrics() {
         StringBuilder stringBuilder = new StringBuilder();
-        this.meterRegistry.forEachMeter(meter -> stringBuilder.append("\tMeter with name <").append(meter.getId().getName()).append("> has the following tags ").append(meter.getId().getTags()).append("\n"));
+        this.meterRegistry.forEachMeter(meter -> stringBuilder.append("\tMeter with name <")
+                .append(meter.getId().getName()).append(">")
+                .append(" and type <").append(meter.getId().getType()).append(">")
+                .append(" has the following measurements \n\t\t<").append(meter.measure()).append(">")
+                .append(" \n\t\tand has the following tags <")
+                .append(meter.getId().getTags()).append(">\n"));
         log.info("Gathered the following metrics\n" + stringBuilder);
         this.meterRegistry.close();
     }
