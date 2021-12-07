@@ -84,6 +84,8 @@ public final class ZipkinBraveSetup implements AutoCloseable {
      */
     public static class Builder {
 
+        private String applicationName = "observability-test";
+
         private String zipkinUrl = "http://localhost:9411";
 
         private Supplier<Sender> sender;
@@ -131,6 +133,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
             }
+        }
+
+        public Builder applicationName(String applicationName) {
+            this.applicationName = applicationName;
+            return this;
         }
 
         public Builder zipkinUrl(String zipkinUrl) {
@@ -190,7 +197,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         public ZipkinBraveSetup register(MeterRegistry meterRegistry) {
             Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
             AsyncReporter<Span> reporter = this.reporter != null ? this.reporter.apply(sender) : reporter(sender);
-            Tracing tracing = this.tracing != null ? this.tracing.apply(reporter) : tracing(reporter);
+            Tracing tracing = this.tracing != null ? this.tracing.apply(reporter) : tracing(reporter, this.applicationName);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
@@ -219,8 +226,9 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             return new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()), new BraveBaggageManager());
         }
 
-        private static Tracing tracing(AsyncReporter<Span> reporter) {
+        private static Tracing tracing(AsyncReporter<Span> reporter, String applicationName) {
             return Tracing.newBuilder()
+                    .localServiceName(applicationName)
                     .addSpanHandler(ZipkinSpanHandler.newBuilder(reporter).build())
                     .sampler(Sampler.ALWAYS_SAMPLE)
                     .build();
