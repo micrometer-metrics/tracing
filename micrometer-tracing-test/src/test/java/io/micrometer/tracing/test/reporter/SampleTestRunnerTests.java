@@ -36,16 +36,14 @@ import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.api.BDDAssertions;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
+@Tag("docker")
 class SampleTestRunnerTests extends SampleTestRunner {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(SampleTestRunnerTests.class);

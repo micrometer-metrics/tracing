@@ -141,6 +141,15 @@ subprojects {
 			}
 		}
 
+		task dockerTest(type: Test) {
+			// set heap size for the test JVM(s)
+			maxHeapSize = "1500m"
+
+			useJUnitPlatform {
+				includeTags 'docker'
+			}
+		}
+
 		project.tasks.withType(Test) { Test testTask ->
 			testTask.testLogging.exceptionFormat = 'full'
 		}

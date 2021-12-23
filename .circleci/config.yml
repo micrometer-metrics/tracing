@@ -72,6 +72,12 @@ jobs:
     steps:
       - gradlew-build
 
+  docker-tests:
+    executor: machine-executor
+    steps:
+      - gradlew-build:
+          command: dockerTest
+
   deploy:
     executor: circle-jdk-executor
     steps:
@@ -89,11 +95,13 @@ workflows:
       - build
       - build-jdk8
       - build-jdk11
+      - docker-tests
       - deploy:
           requires:
             - build
             - build-jdk8
             - build-jdk11
+            - docker-tests
           filters:
             branches:
               only:
@@ -119,11 +127,18 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+(-(RC|M)\d+)?$/
+      - docker-tests:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+(-(RC|M)\d+)?$/
       - deploy:
           requires:
             - build
             - build-jdk8
             - build-jdk11
+            - docker-tests
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+(-(RC|M)\d+)?$/
