@@ -81,7 +81,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
             assertThatZipkinRegisteredATrace(lastTrace);
         }
         else {
-            Awaitility.await().atMost(2, TimeUnit.SECONDS)
+            Awaitility.await().atMost(4, TimeUnit.SECONDS)
                     .untilAsserted(() -> then(server.getRequestCount()).isGreaterThan(0));
             RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
             then(request).isNotNull();
