@@ -48,7 +48,6 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
         Span parentSpan = getTracingContext(context).getSpan();
         Span childSpan = parentSpan != null ? getTracer().nextSpan(parentSpan)
                 : getTracer().nextSpan();
-        // childSpan.name(sample.getHighCardinalityName())
         childSpan.start();
         getTracingContext(context).setSpan(childSpan);
     }

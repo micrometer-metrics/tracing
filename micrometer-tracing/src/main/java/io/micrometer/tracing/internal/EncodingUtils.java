@@ -32,8 +32,6 @@ public final class EncodingUtils {
 
     static final int LONG_BASE16 = BYTE_BASE16 * LONG_BYTES;
 
-    private static final ThreadLocal<char[]> charBuffer = new ThreadLocal<>();
-
     private static final String ALPHABET = "0123456789abcdef";
 
     private static final int ASCII_CHARACTERS = 128;
@@ -158,35 +156,6 @@ public final class EncodingUtils {
     }
 
     /**
-     * Converts long into string.
-     *
-     * @param id 64 bit
-     * @return string representation of the long
-     */
-    public static String fromLong(long id) {
-        return fromLongs(0, id);
-    }
-
-    /**
-     * Converts longs into string.
-     *
-     * @param idHigh - trace id high part
-     * @param idLow - trace id low part
-     * @return string representation of the long
-     */
-    public static String fromLongs(long idHigh, long idLow) {
-        if (idHigh == 0L) {
-            return HexCodec.toLowerHex(idLow);
-        }
-        else {
-            char[] chars = getTemporaryBuffer();
-            longToBase16String(idHigh, chars, 0);
-            longToBase16String(idLow, chars, 16);
-            return new String(chars);
-        }
-    }
-
-    /**
      * Converts the long to base16 string.
      *
      * @param value value to convert
@@ -217,15 +186,6 @@ public final class EncodingUtils {
         dest[destOffset + 1] = ENCODING[b | 256];
     }
 
-    private static char[] getTemporaryBuffer() {
-        char[] chars = charBuffer.get();
-        if (chars == null) {
-            chars = new char[32];
-            charBuffer.set(chars);
-        }
-        return chars;
-    }
-
     private static boolean isLowercaseHexCharacter(char b) {
         return 97 <= b && b <= 102;
     }
@@ -245,27 +205,8 @@ public final class EncodingUtils {
 
         /**
          * Parses a 16 character lower-hex string with no prefix into an unsigned long,
-         * starting at the specified index.
+         * starting at the specified index., but returns zero on invalid input.
          *
-         * This reads a trace context a sequence potentially larger than the format. The
-         * use-case is reducing garbage, by re-using the input {@code value} across multiple
-         * parse operations.
-         * @param value the sequence that contains a lower-hex encoded unsigned long.
-         * @param beginIndex the inclusive begin index: {@linkplain CharSequence#charAt(int)
-         * index} of the first lower-hex character representing the unsigned long.
-         */
-        static long lowerHexToUnsignedLong(CharSequence value, int beginIndex) {
-            int endIndex = Math.min(beginIndex + 16, value.length());
-            long result = lenientLowerHexToUnsignedLong(value, beginIndex, endIndex);
-            if (result == 0) {
-                throw isntLowerHexLong(value);
-            }
-            return result;
-        }
-
-        /**
-         * Like {@link #lowerHexToUnsignedLong(CharSequence, int)}, but returns zero on
-         * invalid input.
          * @param value the sequence that contains a lower-hex encoded unsigned long.
          * @param beginIndex the inclusive begin index: {@linkplain CharSequence#charAt(int)
          * index} of the first lower-hex character representing the unsigned long.
@@ -289,59 +230,6 @@ public final class EncodingUtils {
                 }
             }
             return result;
-        }
-
-        static NumberFormatException isntLowerHexLong(CharSequence lowerHex) {
-            throw new NumberFormatException(lowerHex + " should be a 1 to 32 character lower-hex string with no prefix");
-        }
-
-        /** Inspired by {@code okio.Buffer.writeLong}. */
-        static String toLowerHex(long v) {
-            char[] data = RecyclableBuffers.parseBuffer();
-            writeHexLong(data, 0, v);
-            return new String(data, 0, 16);
-        }
-
-        /** Inspired by {@code okio.Buffer.writeLong}. */
-        static void writeHexLong(char[] data, int pos, long v) {
-            writeHexByte(data, pos + 0, (byte) ((v >>> 56L) & 0xff));
-            writeHexByte(data, pos + 2, (byte) ((v >>> 48L) & 0xff));
-            writeHexByte(data, pos + 4, (byte) ((v >>> 40L) & 0xff));
-            writeHexByte(data, pos + 6, (byte) ((v >>> 32L) & 0xff));
-            writeHexByte(data, pos + 8, (byte) ((v >>> 24L) & 0xff));
-            writeHexByte(data, pos + 10, (byte) ((v >>> 16L) & 0xff));
-            writeHexByte(data, pos + 12, (byte) ((v >>> 8L) & 0xff));
-            writeHexByte(data, pos + 14, (byte) (v & 0xff));
-        }
-
-        static void writeHexByte(char[] data, int pos, byte b) {
-            data[pos + 0] = HEX_DIGITS[(b >> 4) & 0xf];
-            data[pos + 1] = HEX_DIGITS[b & 0xf];
-        }
-
-    }
-
-    // taken from brave
-    static final class RecyclableBuffers {
-
-        private static final ThreadLocal<char[]> PARSE_BUFFER = new ThreadLocal<>();
-
-        private RecyclableBuffers() {
-            throw new IllegalStateException("Can't instantiate a utility class");
-        }
-
-        /**
-         * Returns a {@link ThreadLocal} reused {@code char[]} for use when decoding bytes
-         * into an ID hex string. The buffer should be immediately copied into a
-         * {@link String} after decoding within the same method.
-         */
-        static char[] parseBuffer() {
-            char[] idBuffer = PARSE_BUFFER.get();
-            if (idBuffer == null) {
-                idBuffer = new char[32 + 1 + 16 + 3 + 16]; // traceid128-spanid-1-parentid
-                PARSE_BUFFER.set(idBuffer);
-            }
-            return idBuffer;
         }
 
     }
