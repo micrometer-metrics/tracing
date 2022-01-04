@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.brave;
+package io.micrometer.tracing.otel;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import brave.Tracing;
-import brave.handler.MutableSpan;
-import brave.propagation.StrictCurrentTraceContext;
-import brave.sampler.Sampler;
-import brave.test.TestSpanHandler;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
-import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
-import io.micrometer.tracing.brave.bridge.BraveTracer;
-import org.assertj.core.api.BDDAssertions;
+import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
+import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
+import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.extension.trace.propagation.B3Propagator;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
 import static org.assertj.core.api.BDDAssertions.then;
 
 /**
@@ -43,20 +46,20 @@ import static org.assertj.core.api.BDDAssertions.then;
  *
  * @author Marcin Grzejszczak
  */
-class DocTests {
+class BaseTests {
 
-    TestSpanHandler spans = new TestSpanHandler();
+    ArrayListSpanProcessor spans = new ArrayListSpanProcessor();
 
-    StrictCurrentTraceContext braveCurrentTraceContext = StrictCurrentTraceContext.create();
+    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder().setSampler(alwaysOn()).addSpanProcessor(spans).build();
 
-    BraveCurrentTraceContext bridgeContext = new BraveCurrentTraceContext(this.braveCurrentTraceContext);
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider).setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
 
-    Tracing tracing = Tracing.newBuilder().currentTraceContext(this.braveCurrentTraceContext)
-            .sampler(Sampler.ALWAYS_SAMPLE).addSpanHandler(this.spans).build();
+    io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracerProvider().get("io.micrometer.micrometer-tracing");
 
-    brave.Tracer braveTracer = this.tracing.tracer();
+    OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
 
-    Tracer tracer = new BraveTracer(this.braveTracer, this.bridgeContext, new BraveBaggageManager());
+    OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
+    }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
 
     @BeforeEach
     void setup() {
@@ -65,8 +68,7 @@ class DocTests {
 
     @AfterEach
     void close() {
-        this.tracing.close();
-        this.braveCurrentTraceContext.close();
+        this.sdkTracerProvider.close();
     }
 
     @Test
@@ -92,10 +94,11 @@ class DocTests {
         }
         // end::manual_span_creation[]
 
-        then(this.spans).hasSize(1);
-        then(this.spans.get(0).name()).isEqualTo("calculateTax");
-        then(this.spans.get(0).tags()).containsEntry("taxValue", "10");
-        then(this.spans.get(0).annotations()).hasSize(1);
+        then(this.spans.spans()).hasSize(1);
+        SpanData spanData = this.spans.takeLocalSpan();
+        then(spanData.getName()).isEqualTo("calculateTax");
+        then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
+        then(spanData.getEvents()).hasSize(1);
     }
 
     @Test
@@ -121,10 +124,11 @@ class DocTests {
         }
         // end::manual_span_continuation[]
 
-        BDDAssertions.then(spans).hasSize(1);
-        BDDAssertions.then(spans.get(0).name()).isEqualTo("calculateTax");
-        BDDAssertions.then(spans.get(0).tags()).containsEntry("taxValue", "10");
-        BDDAssertions.then(spans.get(0).annotations()).hasSize(1);
+        then(spans.spans()).hasSize(1);
+        SpanData spanData = this.spans.takeLocalSpan();
+        then(spanData.getName()).isEqualTo("calculateTax");
+        then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
+        then(spanData.getEvents()).hasSize(1);
         executorService.shutdown();
     }
 
@@ -159,12 +163,12 @@ class DocTests {
             }
             // end::manual_span_joining[]
         }).get();
-
-        Optional<MutableSpan> calculateTax = spans.spans().stream()
-                .filter(span -> span.name().equals("calculateCommission")).findFirst();
-        BDDAssertions.then(calculateTax).isPresent();
-        BDDAssertions.then(calculateTax.get().tags()).containsEntry("commissionValue", "10");
-        BDDAssertions.then(calculateTax.get().annotations()).hasSize(1);
+        ;
+        Optional<SpanData> calculateTax = spans.spans().stream()
+                .filter(span -> span.getName().equals("calculateCommission")).findFirst();
+        then(calculateTax).isPresent();
+        then(calculateTax.get().getAttributes().asMap()).containsEntry(AttributeKey.stringKey("commissionValue"), "10");
+        then(calculateTax.get().getEvents()).hasSize(1);
         executorService.shutdown();
     }
 
