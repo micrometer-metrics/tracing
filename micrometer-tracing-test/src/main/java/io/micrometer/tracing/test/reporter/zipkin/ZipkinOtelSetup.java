@@ -18,6 +18,7 @@ package io.micrometer.tracing.test.reporter.zipkin;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -39,13 +40,16 @@ import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
 import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup.Builder.OtelBuildingBlocks;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import zipkin2.reporter.Sender;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
@@ -88,6 +92,8 @@ public final class ZipkinOtelSetup implements AutoCloseable {
      * Builder for OTel with Zipkin.
      */
     public static class Builder {
+
+        private String applicationName = "observability-test";
 
         private String zipkinUrl = "http://localhost:9411";
 
@@ -142,6 +148,11 @@ public final class ZipkinOtelSetup implements AutoCloseable {
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
             }
+        }
+
+        public Builder applicationName(String applicationName) {
+            this.applicationName = applicationName;
+            return this;
         }
 
         public Builder zipkinUrl(String zipkinUrl) {
@@ -206,7 +217,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         public ZipkinOtelSetup register(MeterRegistry meterRegistry) {
             Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
             ZipkinSpanExporter zipkinSpanExporter = this.zipkinSpanExporter != null ? this.zipkinSpanExporter.apply(sender) : zipkinSpanExporter(sender);
-            SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(zipkinSpanExporter) : sdkTracerProvider(zipkinSpanExporter);
+            SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(zipkinSpanExporter) : sdkTracerProvider(zipkinSpanExporter, this.applicationName);
             OpenTelemetrySdk openTelemetrySdk = this.openTelemetrySdk != null ? this.openTelemetrySdk.apply(sdkTracerProvider) : openTelemetrySdk(sdkTracerProvider);
             io.opentelemetry.api.trace.Tracer tracer = this.tracer != null ? this.tracer.apply(openTelemetrySdk) : tracer(openTelemetrySdk);
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
@@ -232,9 +243,15 @@ public final class ZipkinOtelSetup implements AutoCloseable {
                     .build();
         }
 
-        private static SdkTracerProvider sdkTracerProvider(ZipkinSpanExporter zipkinSpanExporter) {
+        private static SdkTracerProvider sdkTracerProvider(ZipkinSpanExporter zipkinSpanExporter, String applicationName) {
             return SdkTracerProvider.builder().setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                    .addSpanProcessor(SimpleSpanProcessor.create(zipkinSpanExporter)).build();
+                    .addSpanProcessor(BatchSpanProcessor.builder(zipkinSpanExporter)
+                            .setScheduleDelay(100, TimeUnit.MILLISECONDS)
+                            .setExporterTimeout(300, TimeUnit.MILLISECONDS)
+                            .build())
+                    .setResource(Resource.getDefault()
+                            .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
+                    .build();
         }
 
         private static OpenTelemetrySdk openTelemetrySdk(SdkTracerProvider sdkTracerProvider) {
@@ -260,11 +277,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         }
 
         private static Consumer<OtelBuildingBlocks> closingFunction() {
-            return deps -> {
-                ZipkinSpanExporter reporter = deps.zipkinSpanExporter;
-                reporter.flush();
-                reporter.close();
-            };
+            return deps -> deps.sdkTracerProvider.close();
         }
 
         @SuppressWarnings("rawtypes")

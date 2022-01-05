@@ -3,45 +3,45 @@ plugins {
 }
 
 dependencies {
-	implementation project(':micrometer-tracing')
-	implementation project(':micrometer-tracing-reporter-wavefront')
+	api project(':micrometer-tracing')
+	api project(':micrometer-tracing-reporter-wavefront')
 
 	// Brave
-	implementation project(':micrometer-tracing-bridge-brave')
-	implementation("io.zipkin.brave:brave")
-	implementation("io.zipkin.brave:brave-context-slf4j")
-	implementation("io.zipkin.brave:brave-instrumentation-http")
-	implementation("io.zipkin.aws:brave-propagation-aws")
-	implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+	api project(':micrometer-tracing-bridge-brave')
+	api("io.zipkin.brave:brave")
+	api("io.zipkin.brave:brave-context-slf4j")
+	api("io.zipkin.brave:brave-instrumentation-http")
+	api("io.zipkin.aws:brave-propagation-aws")
+	api("io.zipkin.reporter2:zipkin-reporter-brave")
 
 	// OTel
-	implementation project(':micrometer-tracing-bridge-otel')
-	implementation("io.opentelemetry:opentelemetry-exporter-zipkin")
-	implementation("io.opentelemetry:opentelemetry-sdk-trace")
-	implementation("io.opentelemetry:opentelemetry-extension-trace-propagators")
-	implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+	api project(':micrometer-tracing-bridge-otel')
+	api("io.opentelemetry:opentelemetry-exporter-zipkin")
+	api("io.opentelemetry:opentelemetry-sdk-trace")
+	api("io.opentelemetry:opentelemetry-extension-trace-propagators")
+	api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
 
 	// Zipkin
-	implementation("io.zipkin.zipkin2:zipkin")
-	implementation("io.zipkin.reporter2:zipkin-reporter")
-	implementation("io.zipkin.reporter2:zipkin-sender-urlconnection")
-	implementation("io.zipkin.reporter2:zipkin-sender-kafka") {
+	api("io.zipkin.zipkin2:zipkin")
+	api("io.zipkin.reporter2:zipkin-reporter")
+	api("io.zipkin.reporter2:zipkin-sender-urlconnection")
+	api("io.zipkin.reporter2:zipkin-sender-kafka") {
 		exclude group: "org.apache.kafka", module: "kafka-clients"
 	}
-	implementation("io.zipkin.reporter2:zipkin-sender-activemq-client") {
+	api("io.zipkin.reporter2:zipkin-sender-activemq-client") {
 		exclude group: "org.apache.activemq", module: "activemq-client"
 	}
-	implementation("io.zipkin.reporter2:zipkin-sender-amqp-client") {
+	api("io.zipkin.reporter2:zipkin-sender-amqp-client") {
 		exclude group: "com.rabbitmq", module: "amqp-client"
 	}
 
 	// Wavefront
-	implementation("com.wavefront:wavefront-sdk-java")
-	implementation("com.wavefront:wavefront-internal-reporter-java")
+	api("com.wavefront:wavefront-sdk-java")
+	api("com.wavefront:wavefront-internal-reporter-java")
 
 	// Tests
-	implementation 'org.junit.jupiter:junit-jupiter'
-	implementation 'org.assertj:assertj-core'
+	api 'org.junit.jupiter:junit-jupiter'
+	api 'org.assertj:assertj-core'
 
 	// Tests for tests
 	testImplementation 'com.squareup.okhttp3:mockwebserver'

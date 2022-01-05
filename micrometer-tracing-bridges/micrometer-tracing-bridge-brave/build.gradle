@@ -7,13 +7,13 @@ dependencies {
 	api 'org.slf4j:slf4j-api'
 	api 'javax.servlet:javax.servlet-api'
 
-	implementation("io.zipkin.brave:brave") {
+	api("io.zipkin.brave:brave") {
 		exclude group: "io.zipkin.reporter2"
 		exclude group: "io.zipkin.zipkin2"
 	}
-	implementation("io.zipkin.brave:brave-context-slf4j")
-	implementation("io.zipkin.brave:brave-instrumentation-http")
-	implementation("io.zipkin.aws:brave-propagation-aws")
+	api("io.zipkin.brave:brave-context-slf4j")
+	api("io.zipkin.brave:brave-instrumentation-http")
+	api("io.zipkin.aws:brave-propagation-aws")
 
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
