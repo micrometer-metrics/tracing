@@ -4,30 +4,6 @@ plugins {
 
 description 'Micrometer Tracing BOM (Bill of Materials) for managing Micrometer Tracing artifact versions'
 
-// TODO: Duplication from dependencies.gradle
-def PLATFORM_VERSIONS = [
-		'io.micrometer:micrometer-bom:2.0.0-SNAPSHOT',
-		'io.zipkin.brave:brave-bom:5.13.2',
-		'io.opentelemetry:opentelemetry-bom:1.9.1',
-		'io.opentelemetry:opentelemetry-bom-alpha:1.9.1-alpha'
-]
-
-dependencies {
-	constraints {
-		rootProject.subprojects.findAll {
-			!it.name.contains('micrometer-tracing-bom')
-		}.each {
-			api(group: it.group,
-					name: it.name,
-					version: it.version.toString())
-		}
-	}
-	javaPlatform.allowDependencies()
-	PLATFORM_VERSIONS.each {
-		api platform(it)
-	}
-}
-
 publishing {
 	publications {
 		nebula(MavenPublication) {
