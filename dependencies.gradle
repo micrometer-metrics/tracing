@@ -50,4 +50,21 @@ subprojects {
 			}
 		}
 	}
+	plugins.withId('java-platform') {
+		dependencies {
+			constraints {
+				rootProject.subprojects.findAll {
+					!it.name.contains('micrometer-tracing-bom')
+				}.each {
+					api(group: it.group,
+							name: it.name,
+							version: it.version.toString())
+				}
+			}
+			javaPlatform.allowDependencies()
+			PLATFORM_VERSIONS.each {
+				api platform(it)
+			}
+		}
+	}
 }
