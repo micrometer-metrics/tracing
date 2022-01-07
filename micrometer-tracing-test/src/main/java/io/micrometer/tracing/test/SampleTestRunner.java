@@ -16,9 +16,13 @@
 
 package io.micrometer.tracing.test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.TestConfigAccessor;
+import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
@@ -37,7 +41,11 @@ import zipkin2.CheckResult;
 import zipkin2.reporter.Sender;
 
 /**
- *
+ * Prepares the required tracing setup and reporters / exporters. The user
+ * needs to just provide the code to test and that way all the combinations
+ * of tracers & exporters will be automatically applied. It also sets up the
+ * {@link MeterRegistry} in such a way that it consists all {@link io.micrometer.tracing.handler.TracingRecordingHandler}
+ * injected into {@link io.micrometer.core.instrument.MeterRegistry.Config}.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -50,11 +58,25 @@ public abstract class SampleTestRunner {
 
     protected final MeterRegistry meterRegistry;
 
+    private final List<TimerRecordingHandler<?>> timerRecordingHandlersCopy;
+
+    /**
+     * Creates a new instance of the {@link SampleTestRunner}.
+     *
+     * @param samplerRunnerConfig configuration for the SampleTestRunner
+     * @param meterRegistry provided {@link MeterRegistry} instance
+     */
     public SampleTestRunner(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry) {
         this.samplerRunnerConfig = samplerRunnerConfig;
         this.meterRegistry = meterRegistry;
+        this.timerRecordingHandlersCopy = new ArrayList<>(TestConfigAccessor.getHandlers(this.meterRegistry.config()));
     }
 
+    /**
+     * Creates a new instance of the {@link SampleTestRunner} with a default {@link MeterRegistry}.
+     *
+     * @param samplerRunnerConfig configuration for the SampleTestRunner
+     */
     public SampleTestRunner(SamplerRunnerConfig samplerRunnerConfig) {
         this(samplerRunnerConfig, new SimpleMeterRegistry());
     }
@@ -63,6 +85,13 @@ public abstract class SampleTestRunner {
     @EnumSource(TracingSetup.class)
     void run(TracingSetup tracingSetup) {
         tracingSetup.run(this.samplerRunnerConfig, this.meterRegistry, yourCode());
+    }
+
+    @AfterEach
+    void setUp() {
+        TestConfigAccessor.clearHandlers(this.meterRegistry.config());
+        this.timerRecordingHandlersCopy.forEach(handler -> this.meterRegistry.config().timerRecordingHandler(handler));
+        this.meterRegistry.clear();
     }
 
     @AfterEach
@@ -78,9 +107,20 @@ public abstract class SampleTestRunner {
         this.meterRegistry.close();
     }
 
+    /**
+     * Code that you want to measure and run.
+     *
+     * @return your code with access to the current tracing and measuring infrastructure
+     */
     public abstract BiConsumer<Tracer, MeterRegistry> yourCode();
 
+    /**
+     * Tracing setups. Contains various combinations of tracers and reporters.
+     */
     public enum TracingSetup {
+        /**
+         * Zipkin Exporter with OTel Tracer.
+         */
         ZIPKIN_OTEL {
             @Override
             void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
@@ -96,6 +136,9 @@ public abstract class SampleTestRunner {
             }
         },
 
+        /**
+         * Zipkin Reporter with Brave Tracer.
+         */
         ZIPKIN_BRAVE {
             @Override
             void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
@@ -111,6 +154,9 @@ public abstract class SampleTestRunner {
             }
         },
 
+        /**
+         * Wavefront Exporter with OTel Tracer.
+         */
         WAVEFRONT_OTEL {
             @Override
             void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
@@ -131,6 +177,9 @@ public abstract class SampleTestRunner {
             }
         },
 
+        /**
+         * Wavefront Exporter with Brave Tracer.
+         */
         WAVEFRONT_BRAVE {
             @Override
             void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
@@ -178,7 +227,11 @@ public abstract class SampleTestRunner {
         abstract void printTracingLink(SamplerRunnerConfig samplerRunnerConfig, String traceId);
     }
 
+    /**
+     * {@link SampleTestRunner} configuration.
+     */
     public static class SamplerRunnerConfig {
+
         public String wavefrontToken;
 
         public String wavefrontServerUrl;
@@ -200,10 +253,16 @@ public abstract class SampleTestRunner {
             this.zipkinUrl = zipkinUrl != null ? zipkinUrl : "http://localhost:9411";
         }
 
+        /**
+         * @return {@link SampleTestRunner} builder
+         */
         public static Builder builder() {
             return new Builder();
         }
 
+        /**
+         * Builder for {@link SamplerRunnerConfig}.
+         */
         public static class Builder {
             private String wavefrontToken;
 
@@ -217,36 +276,77 @@ public abstract class SampleTestRunner {
 
             private String zipkinUrl;
 
+            /**
+             * Token required to connect to Tanzu Observability by Wavefront.
+             *
+             * @param wavefrontToken wavefront token
+             * @return this
+             */
             public Builder wavefrontToken(String wavefrontToken) {
                 this.wavefrontToken = wavefrontToken;
                 return this;
             }
 
+            /**
+             * URL of your Tanzu Observability by Wavefront installation.
+             *
+             * @param wavefrontUrl wavefront URL.
+             * @return this
+             */
             public Builder wavefrontUrl(String wavefrontUrl) {
                 this.wavefrontUrl = wavefrontUrl;
                 return this;
             }
 
+            /**
+             * URL of your Zipkin installation.
+             *
+             * @param zipkinUrl zipkin URL
+             * @return this
+             */
             public Builder zipkinUrl(String zipkinUrl) {
                 this.zipkinUrl = zipkinUrl;
                 return this;
             }
 
+            /**
+             * Name of the application grouping in Tanzu Observability by Wavefront.
+             *
+             * @param wavefrontApplicationName wavefront application name
+             * @return this
+             */
             public Builder wavefrontApplicationName(String wavefrontApplicationName) {
                 this.wavefrontApplicationName = wavefrontApplicationName;
                 return this;
             }
 
+            /**
+             * Name of this service in Tanzu Observability by Wavefront.
+             *
+             * @param wavefrontServiceName wavefront service name
+             * @return this
+             */
             public Builder wavefrontServiceName(String wavefrontServiceName) {
                 this.wavefrontServiceName = wavefrontServiceName;
                 return this;
             }
 
+            /**
+             * Name of the source to be presented in Tanzu Observability by Wavefront.
+             *
+             * @param wavefrontSource wavefront source
+             * @return this
+             */
             public Builder wavefrontSource(String wavefrontSource) {
                 this.wavefrontSource = wavefrontSource;
                 return this;
             }
 
+            /**
+             * Builds the configuration.
+             *
+             * @return built configuration
+             */
             public SampleTestRunner.SamplerRunnerConfig build() {
                 return new SampleTestRunner.SamplerRunnerConfig(this.wavefrontToken, this.wavefrontUrl, this.wavefrontApplicationName, this.wavefrontServiceName, this.wavefrontSource, this.zipkinUrl);
             }
