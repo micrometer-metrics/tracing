@@ -300,12 +300,8 @@ subprojects {
 
 	repositories {
 		mavenCentral()
-		if (((String) project.version).matches(".*-(M|RC)[0-9][0-9]?")) {
-			maven { url "https://repo.spring.io/milestone" }
-		}
-		if (((String) project.version).endsWith("SNAPSHOT")) {
-			maven { url "https://repo.spring.io/snapshot" }
-		}
+		maven { url 'https://repo.spring.io/milestone' }
+		maven { url 'https://repo.spring.io/snapshot' }
 		mavenLocal()
 	}
 
