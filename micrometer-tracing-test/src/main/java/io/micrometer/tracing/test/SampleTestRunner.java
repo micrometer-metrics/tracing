@@ -16,10 +16,6 @@
 
 package io.micrometer.tracing.test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiConsumer;
-
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.TestConfigAccessor;
 import io.micrometer.core.instrument.TimerRecordingHandler;
@@ -28,6 +24,7 @@ import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.handler.TracingRecordingHandlerSpanCustomizer;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontBraveSetup;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontOtelSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinBraveSetup;
@@ -40,10 +37,15 @@ import org.junit.jupiter.params.provider.EnumSource;
 import zipkin2.CheckResult;
 import zipkin2.reporter.Sender;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiConsumer;
+
 /**
  * Prepares the required tracing setup and reporters / exporters. The user
  * needs to just provide the code to test and that way all the combinations
- * of tracers & exporters will be automatically applied. It also sets up the
+ * of tracers and exporters will be automatically applied. It also sets up the
  * {@link MeterRegistry} in such a way that it consists all {@link io.micrometer.tracing.handler.TracingRecordingHandler}
  * injected into {@link io.micrometer.core.instrument.MeterRegistry.Config}.
  *
@@ -64,7 +66,7 @@ public abstract class SampleTestRunner {
      * Creates a new instance of the {@link SampleTestRunner}.
      *
      * @param samplerRunnerConfig configuration for the SampleTestRunner
-     * @param meterRegistry provided {@link MeterRegistry} instance
+     * @param meterRegistry       provided {@link MeterRegistry} instance
      */
     public SampleTestRunner(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry) {
         this.samplerRunnerConfig = samplerRunnerConfig;
@@ -84,7 +86,7 @@ public abstract class SampleTestRunner {
     @ParameterizedTest
     @EnumSource(TracingSetup.class)
     void run(TracingSetup tracingSetup) {
-        tracingSetup.run(this.samplerRunnerConfig, this.meterRegistry, yourCode());
+        tracingSetup.run(this.samplerRunnerConfig, this.meterRegistry, this);
     }
 
     @AfterEach
@@ -115,6 +117,23 @@ public abstract class SampleTestRunner {
     public abstract BiConsumer<Tracer, MeterRegistry> yourCode();
 
     /**
+     * Override this to add additional span customizers.
+     *
+     * @return span customizers
+     */
+    public List<TracingRecordingHandlerSpanCustomizer> getTracingRecordingHandlerSpanCustomizers() {
+        return new ArrayList<>();
+    }
+
+    /**
+     * Override this to just run a subset of tracing setups to run.
+     * @return array of tracing setups to run
+     */
+    public TracingSetup[] getTracingSetup() {
+        return TracingSetup.values();
+    }
+
+    /**
      * Tracing setups. Contains various combinations of tracers and reporters.
      */
     public enum TracingSetup {
@@ -123,10 +142,12 @@ public abstract class SampleTestRunner {
          */
         ZIPKIN_OTEL {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
-                ZipkinOtelSetup setup = ZipkinOtelSetup.builder().zipkinUrl(samplerRunnerConfig.zipkinUrl).register(meterRegistry);
+            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+                checkTracingSetupAssumptions(ZIPKIN_OTEL, sampleTestRunner.getTracingSetup());
+                ZipkinOtelSetup setup = ZipkinOtelSetup.builder()
+                        .tracingRecordingHandlerSpanCustomizers(sampleTestRunner.getTracingRecordingHandlerSpanCustomizers()).zipkinUrl(samplerRunnerConfig.zipkinUrl).register(meterRegistry);
                 checkZipkinAssumptions(setup.getBuildingBlocks().sender);
-                ZipkinOtelSetup.run(setup, __ -> runTraced(samplerRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, runnable));
+                ZipkinOtelSetup.run(setup, __ -> runTraced(samplerRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.yourCode()));
             }
 
             @Override
@@ -141,10 +162,12 @@ public abstract class SampleTestRunner {
          */
         ZIPKIN_BRAVE {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
-                ZipkinBraveSetup setup = ZipkinBraveSetup.builder().zipkinUrl(samplerRunnerConfig.zipkinUrl).register(meterRegistry);
+            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+                checkTracingSetupAssumptions(ZIPKIN_BRAVE, sampleTestRunner.getTracingSetup());
+                ZipkinBraveSetup setup = ZipkinBraveSetup.builder()
+                        .tracingRecordingHandlerSpanCustomizers(sampleTestRunner.getTracingRecordingHandlerSpanCustomizers()).zipkinUrl(samplerRunnerConfig.zipkinUrl).register(meterRegistry);
                 checkZipkinAssumptions(setup.getBuildingBlocks().sender);
-                ZipkinBraveSetup.run(setup, __ -> runTraced(samplerRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, runnable));
+                ZipkinBraveSetup.run(setup, __ -> runTraced(samplerRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.yourCode()));
             }
 
             @Override
@@ -159,14 +182,16 @@ public abstract class SampleTestRunner {
          */
         WAVEFRONT_OTEL {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
+            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+                checkTracingSetupAssumptions(WAVEFRONT_OTEL, sampleTestRunner.getTracingSetup());
                 checkWavefrontAssumptions(samplerRunnerConfig);
                 WavefrontOtelSetup setup = WavefrontOtelSetup.builder(samplerRunnerConfig.wavefrontServerUrl, samplerRunnerConfig.wavefrontToken)
                         .applicationName(samplerRunnerConfig.wavefrontApplicationName)
                         .serviceName(samplerRunnerConfig.wavefrontServiceName)
                         .source(samplerRunnerConfig.wavefrontSource)
+                        .tracingRecordingHandlerSpanCustomizers(sampleTestRunner.getTracingRecordingHandlerSpanCustomizers())
                         .register(meterRegistry);
-                WavefrontOtelSetup.run(setup, __ -> runTraced(samplerRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, runnable));
+                WavefrontOtelSetup.run(setup, __ -> runTraced(samplerRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.yourCode()));
             }
 
             @Override
@@ -182,14 +207,16 @@ public abstract class SampleTestRunner {
          */
         WAVEFRONT_BRAVE {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
+            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+                checkTracingSetupAssumptions(WAVEFRONT_BRAVE, sampleTestRunner.getTracingSetup());
                 checkWavefrontAssumptions(samplerRunnerConfig);
                 WavefrontBraveSetup setup = WavefrontBraveSetup.builder(samplerRunnerConfig.wavefrontServerUrl, samplerRunnerConfig.wavefrontToken)
                         .applicationName(samplerRunnerConfig.wavefrontApplicationName)
                         .serviceName(samplerRunnerConfig.wavefrontServiceName)
                         .source(samplerRunnerConfig.wavefrontSource)
+                        .tracingRecordingHandlerSpanCustomizers(sampleTestRunner.getTracingRecordingHandlerSpanCustomizers())
                         .register(meterRegistry);
-                WavefrontBraveSetup.run(setup, __ -> runTraced(samplerRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, runnable));
+                WavefrontBraveSetup.run(setup, __ -> runTraced(samplerRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.yourCode()));
             }
 
             @Override
@@ -205,11 +232,14 @@ public abstract class SampleTestRunner {
             String traceId = span.context().traceId();
             try (Tracer.SpanInScope ws = tracer.withSpan(span.start())) {
                 runnable.accept(tracer, meterRegistry);
-            }
-            finally {
+            } finally {
                 tracingSetup.printTracingLink(samplerRunnerConfig, traceId);
                 span.end();
             }
+        }
+
+        private static void checkTracingSetupAssumptions(TracingSetup tracingSetup, TracingSetup[] chosenSetups) {
+            Assumptions.assumeTrue(Arrays.asList(chosenSetups).contains(tracingSetup), tracingSetup.name() + " not found in the list of tracing setups to run " + Arrays.toString(chosenSetups));
         }
 
         private static void checkZipkinAssumptions(Sender sender) {
@@ -222,7 +252,7 @@ public abstract class SampleTestRunner {
             Assumptions.assumeTrue(StringUtils.isNotBlank(samplerRunnerConfig.wavefrontToken), "To run tests against Tanzu Observability by Wavefront you need to set the Wavefront token");
         }
 
-        abstract void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable);
+        abstract void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner);
 
         abstract void printTracingLink(SamplerRunnerConfig samplerRunnerConfig, String traceId);
     }

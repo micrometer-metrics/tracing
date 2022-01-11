@@ -17,10 +17,6 @@
 package io.micrometer.tracing.handler;
 
 
-import java.time.Duration;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.tracing.context.HttpHandlerContext;
 import io.micrometer.core.instrument.transport.http.HttpRequest;
@@ -30,6 +26,11 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.lang.Nullable;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
 @SuppressWarnings({"rawtypes", "unchecked"})
 abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>
         implements TracingRecordingHandler<CTX> {
@@ -38,18 +39,24 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
 
     private final CurrentTraceContext currentTraceContext;
 
+    private final List<TracingRecordingHandlerSpanCustomizer> customizers;
+
     private final Function<REQ, Span> startFunction;
 
     private final BiConsumer<RES, Span> stopConsumer;
 
-    // private final TracingTagFilter tracingTagFilter = new TracingTagFilter();
-
-    HttpTracingRecordingHandler(Tracer tracer, Function<REQ, Span> startFunction,
-            BiConsumer<RES, Span> stopConsumer) {
+    HttpTracingRecordingHandler(Tracer tracer, List<TracingRecordingHandlerSpanCustomizer> customizers, Function<REQ, Span> startFunction,
+                                BiConsumer<RES, Span> stopConsumer) {
         this.tracer = tracer;
         this.currentTraceContext = tracer.currentTraceContext();
+        this.customizers = customizers;
         this.startFunction = startFunction;
         this.stopConsumer = stopConsumer;
+    }
+
+    @Override
+    public List<TracingRecordingHandlerSpanCustomizer> getTracingRecordingHandlerSpanCustomizers() {
+        return this.customizers;
     }
 
     @Override
@@ -90,7 +97,8 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
         span.name(getSpanName(ctx));
         tagSpan(ctx, span);
         RES response = getResponse(ctx);
-        error(response, span);
+        error(response, span, sample, ctx);
+        getMatchingCustomizers(ctx).forEach(c -> c.customizeSpanOnStop(span, sample, ctx, timer, duration));
         this.stopConsumer.accept(response, span);
     }
 
@@ -98,13 +106,14 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
 
     abstract RES getResponse(CTX event);
 
-    private void error(@Nullable HttpResponse response, Span span) {
+    private void error(@Nullable HttpResponse response, Span span, Timer.Sample sample, CTX ctx) {
         if (response == null) {
             return;
         }
         int httpStatus = response.statusCode();
         Throwable error = response.error();
         if (error != null) {
+            getMatchingCustomizers(ctx).forEach(c -> c.customizeSpanOnError(span, sample, ctx, response.error()));
             return;
         }
         if (httpStatus == 0) {

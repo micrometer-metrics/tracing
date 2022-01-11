@@ -16,11 +16,6 @@
 
 package io.micrometer.tracing.test.reporter.wavefront;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import brave.Tracing;
 import brave.handler.SpanHandler;
 import brave.http.HttpTracing;
@@ -30,18 +25,22 @@ import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
-import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
-import io.micrometer.tracing.brave.bridge.BraveHttpClientHandler;
-import io.micrometer.tracing.brave.bridge.BraveHttpServerHandler;
-import io.micrometer.tracing.brave.bridge.BraveTracer;
+import io.micrometer.tracing.brave.bridge.*;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
+import io.micrometer.tracing.handler.TracingRecordingHandlerSpanCustomizer;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontBraveSpanHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Work in progress. Requires HTTP instrumentation dependency to be on the classpath.
@@ -109,6 +108,8 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private Function<BraveBuildingBlocks, TimerRecordingHandler> handlers;
 
+        private List<TracingRecordingHandlerSpanCustomizer> customizers;
+
         private Consumer<BraveBuildingBlocks> closingFunction;
 
         public Builder(String server, String token) {
@@ -119,6 +120,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
         /**
          * All Brave building blocks required to communicate with Zipkin.
          */
+        @SuppressWarnings("rawtypes")
         public static class BraveBuildingBlocks {
             public final WavefrontSpanHandler wavefrontSpanHandler;
             public final Tracing tracing;
@@ -126,17 +128,18 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             public final HttpTracing httpTracing;
             public final HttpServerHandler httpServerHandler;
             public final HttpClientHandler httpClientHandler;
+            public final List<TracingRecordingHandlerSpanCustomizer> customizers;
 
-            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler) {
+            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, List<TracingRecordingHandlerSpanCustomizer> customizers) {
                 this.wavefrontSpanHandler = wavefrontSpanHandler;
                 this.tracing = tracing;
                 this.tracer = tracer;
                 this.httpTracing = httpTracing;
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
+                this.customizers = customizers;
             }
         }
-
 
         public Builder source(String source) {
             this.source = source;
@@ -173,6 +176,11 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             return this;
         }
 
+        public Builder tracingRecordingHandlerSpanCustomizers(List<TracingRecordingHandlerSpanCustomizer> customizers) {
+            this.customizers = customizers;
+            return this;
+        }
+
         public Builder httpServerHandler(Function<HttpTracing, HttpServerHandler> httpServerHandler) {
             this.httpServerHandler = httpServerHandler;
             return this;
@@ -205,7 +213,8 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler);
+            List<TracingRecordingHandlerSpanCustomizer> customizers = this.customizers != null ? this.customizers : new ArrayList<>();
+            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler, customizers);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             meterRegistry.config().timerRecordingHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
@@ -258,7 +267,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             Tracer tracer = braveBuildingBlocks.tracer;
             HttpServerHandler httpServerHandler = braveBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = braveBuildingBlocks.httpClientHandler;
-            return new TimerRecordingHandler.FirstMatchingCompositeTimerRecordingHandler(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, httpClientHandler), new DefaultTracingRecordingHandler(tracer)));
+            return new TimerRecordingHandler.FirstMatchingCompositeTimerRecordingHandler(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, braveBuildingBlocks.customizers, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, braveBuildingBlocks.customizers, httpClientHandler), new DefaultTracingRecordingHandler(tracer, braveBuildingBlocks.customizers)));
         }
 
     }

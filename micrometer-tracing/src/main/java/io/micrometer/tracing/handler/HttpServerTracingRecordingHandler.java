@@ -24,6 +24,8 @@ import io.micrometer.core.instrument.transport.http.HttpServerResponse;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpServerHandler;
 
+import java.util.List;
+
 /**
  * TracingRecordingListener that uses the Tracing API to record events for HTTP server
  * side.
@@ -41,8 +43,8 @@ public class HttpServerTracingRecordingHandler extends
      * @param tracer tracer
      * @param handler http server handler
      */
-    public HttpServerTracingRecordingHandler(Tracer tracer, HttpServerHandler handler) {
-        super(tracer, handler::handleReceive, handler::handleSend);
+    public HttpServerTracingRecordingHandler(Tracer tracer, List<TracingRecordingHandlerSpanCustomizer> customizers, HttpServerHandler handler) {
+        super(tracer, customizers, handler::handleReceive, handler::handleSend);
     }
 
     @Override

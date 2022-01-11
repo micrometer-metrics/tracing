@@ -47,7 +47,7 @@ class DefaultTracingRecordingHandlerBraveTests {
 
     Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()), new BraveBaggageManager());
 
-    DefaultTracingRecordingHandler handler = new DefaultTracingRecordingHandler(tracer);
+    DefaultTracingRecordingHandler handler = new DefaultTracingRecordingHandler(tracer, customizers);
 
     @Test
     void should_be_applicable_for_non_null_context() {

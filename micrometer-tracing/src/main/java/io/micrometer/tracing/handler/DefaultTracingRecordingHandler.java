@@ -16,12 +16,14 @@
 
 package io.micrometer.tracing.handler;
 
-import java.time.Duration;
-
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * TracingRecordingListener that uses the Tracing API to record events.
@@ -34,13 +36,17 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
 
     private final Tracer tracer;
 
+    private final List<TracingRecordingHandlerSpanCustomizer> customizers;
+
     /**
      * Creates a new instance of {@link DefaultTracingRecordingHandler}.
      *
      * @param tracer the tracer to use to record events
+     * @param customizers
      */
-    public DefaultTracingRecordingHandler(Tracer tracer) {
+    public DefaultTracingRecordingHandler(Tracer tracer, List<TracingRecordingHandlerSpanCustomizer> customizers) {
         this.tracer = tracer;
+        this.customizers = customizers;
     }
 
     @Override
@@ -58,7 +64,13 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
         Span span = getTracingContext(context).getSpan();
         span.name(SpanNameUtil.toLowerHyphen(timer.getId().getName()));
         tagSpan(context, span);
+        customizeSpan(context, customizer -> customizer.customizeSpanOnStop(span, sample, context, timer, duration));
         span.end();
+    }
+
+    private void customizeSpan(Timer.HandlerContext context, Consumer<TracingRecordingHandlerSpanCustomizer> consumer) {
+        List<TracingRecordingHandlerSpanCustomizer> matchingCustomizers = getMatchingCustomizers(context);
+        matchingCustomizers.forEach(consumer);
     }
 
     @Override
@@ -66,6 +78,12 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
             Throwable throwable) {
         Span span = getTracingContext(context).getSpan();
         span.error(throwable);
+        customizeSpan(context, customizer -> customizer.customizeSpanOnError(span, sample, context, throwable));
+    }
+
+    @Override
+    public List<TracingRecordingHandlerSpanCustomizer> getTracingRecordingHandlerSpanCustomizers() {
+        return this.customizers;
     }
 
     @Override

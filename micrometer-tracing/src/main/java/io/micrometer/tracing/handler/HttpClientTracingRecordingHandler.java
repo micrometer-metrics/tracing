@@ -23,6 +23,8 @@ import io.micrometer.core.instrument.transport.http.HttpClientResponse;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpClientHandler;
 
+import java.util.List;
+
 /**
  * TracingRecordingListener that uses the Tracing API to record events for HTTP client
  * side.
@@ -40,8 +42,8 @@ public class HttpClientTracingRecordingHandler extends
      * @param tracer tracer
      * @param handler http client handler
      */
-    public HttpClientTracingRecordingHandler(Tracer tracer, HttpClientHandler handler) {
-        super(tracer, handler::handleSend, handler::handleReceive);
+    public HttpClientTracingRecordingHandler(Tracer tracer, List<TracingRecordingHandlerSpanCustomizer> customizers, HttpClientHandler handler) {
+        super(tracer, customizers, handler::handleSend, handler::handleReceive);
     }
 
     @Override

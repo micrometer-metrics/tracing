@@ -22,11 +22,14 @@ import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Marker interface for tracing listeners.
  *
  * @author Marcin Grzejszczak
- * @param <T> type of event
+ * @param <T> type of handler context
  * @since 1.0.0
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -64,6 +67,12 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
         tracingContext.getScope().close();
     }
 
+    /**
+     * Get the current tracing context.
+     *
+     * @param context a {@link io.micrometer.core.instrument.Timer.HandlerContext}
+     * @return tracing context
+     */
     default TracingContext getTracingContext(T context) {
         // maybe consider returning a null ?
         return context.computeIfAbsent(TracingContext.class,
@@ -74,6 +83,17 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
     default boolean supportsContext(Timer.HandlerContext context) {
         return context != null;
     }
+
+    /**
+     * @param context handler context
+     * @return all matching customizers
+     */
+    default List<TracingRecordingHandlerSpanCustomizer> getMatchingCustomizers(Timer.HandlerContext context) {
+        return getTracingRecordingHandlerSpanCustomizers().stream().filter(customizer -> customizer.supportsContext(context)).collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("rawtypes")
+    List<TracingRecordingHandlerSpanCustomizer> getTracingRecordingHandlerSpanCustomizers();
 
     /**
      * Returns the {@link Tracer}.
@@ -99,7 +119,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @return span
          */
-        Span getSpan() {
+        public Span getSpan() {
             return this.span;
         }
 
@@ -108,7 +128,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @param span span to set
          */
-        void setSpan(Span span) {
+        public void setSpan(Span span) {
             this.span = span;
         }
 
@@ -117,7 +137,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @return scope of the span
          */
-        CurrentTraceContext.Scope getScope() {
+        public CurrentTraceContext.Scope getScope() {
             return this.scope;
         }
 
@@ -126,7 +146,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @param scope scope to set
          */
-        void setScope(CurrentTraceContext.Scope scope) {
+        public void setScope(CurrentTraceContext.Scope scope) {
             this.scope = scope;
         }
 
@@ -136,7 +156,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          * @param span span to set
          * @param scope scope to set
          */
-        void setSpanAndScope(Span span, CurrentTraceContext.Scope scope) {
+        public void setSpanAndScope(Span span, CurrentTraceContext.Scope scope) {
             setSpan(span);
             setScope(scope);
         }
