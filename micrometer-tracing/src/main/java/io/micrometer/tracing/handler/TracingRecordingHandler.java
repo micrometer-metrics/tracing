@@ -16,14 +16,14 @@
 
 package io.micrometer.tracing.handler;
 
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import io.micrometer.tracing.internal.SpanNameUtil;
 
 /**
  * Marker interface for tracing listeners.
@@ -36,8 +36,33 @@ import java.util.stream.Collectors;
 public interface TracingRecordingHandler<T extends Timer.HandlerContext>
         extends TimerRecordingHandler<T> {
 
-    default void tagSpan(T context, Span span) {
-        context.getAllTags().forEach(tag -> span.tag(tag.getKey(), tag.getValue()));
+    /**
+     * Tags the span.
+     *
+     * @param context handler context
+     * @param id metric id
+     * @param span span to tag
+     */
+    default void tagSpan(T context, Meter.Id id, Span span) {
+        for (Tag tag : context.getAllTags()) {
+            if (!tag.getKey().equalsIgnoreCase("ERROR")) {
+                span.tag(tag.getKey(), tag.getValue());
+            } else {
+                // TODO: Does this make sense?
+                span.error(new RuntimeException(tag.getValue()));
+            }
+        }
+    }
+
+    /**
+     * Get the span name.
+     *
+     * @param context handler context
+     * @param id metric id
+     * @return name for the span
+     */
+    default String getSpanName(T context, Meter.Id id) {
+        return SpanNameUtil.toLowerHyphen(id.getName());
     }
 
     /**
@@ -83,17 +108,6 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
     default boolean supportsContext(Timer.HandlerContext context) {
         return context != null;
     }
-
-    /**
-     * @param context handler context
-     * @return all matching customizers
-     */
-    default List<TracingRecordingHandlerSpanCustomizer> getMatchingCustomizers(Timer.HandlerContext context) {
-        return getTracingRecordingHandlerSpanCustomizers().stream().filter(customizer -> customizer.supportsContext(context)).collect(Collectors.toList());
-    }
-
-    @SuppressWarnings("rawtypes")
-    List<TracingRecordingHandlerSpanCustomizer> getTracingRecordingHandlerSpanCustomizers();
 
     /**
      * Returns the {@link Tracer}.

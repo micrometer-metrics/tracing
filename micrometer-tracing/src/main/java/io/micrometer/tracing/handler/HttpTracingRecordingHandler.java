@@ -27,7 +27,6 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.lang.Nullable;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -39,24 +38,16 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
 
     private final CurrentTraceContext currentTraceContext;
 
-    private final List<TracingRecordingHandlerSpanCustomizer> customizers;
-
     private final Function<REQ, Span> startFunction;
 
     private final BiConsumer<RES, Span> stopConsumer;
 
-    HttpTracingRecordingHandler(Tracer tracer, List<TracingRecordingHandlerSpanCustomizer> customizers, Function<REQ, Span> startFunction,
+    HttpTracingRecordingHandler(Tracer tracer, Function<REQ, Span> startFunction,
                                 BiConsumer<RES, Span> stopConsumer) {
         this.tracer = tracer;
         this.currentTraceContext = tracer.currentTraceContext();
-        this.customizers = customizers;
         this.startFunction = startFunction;
         this.stopConsumer = stopConsumer;
-    }
-
-    @Override
-    public List<TracingRecordingHandlerSpanCustomizer> getTracingRecordingHandlerSpanCustomizers() {
-        return this.customizers;
     }
 
     @Override
@@ -65,16 +56,21 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
     }
 
     @Override
-    public void onStart(Timer.Sample sample, CTX event) {
-        Span parentSpan = getTracingContext(event).getSpan();
+    public void onStart(Timer.Sample sample, CTX ctx) {
+        Span parentSpan = getTracingContext(ctx).getSpan();
         CurrentTraceContext.Scope scope = null;
         if (parentSpan != null) {
             scope = this.currentTraceContext.maybeScope(parentSpan.context());
         }
-        REQ request = getRequest(event);
-        Span span = this.startFunction.apply(request);
-        scope = this.currentTraceContext.newScope(span.context());
-        getTracingContext(event).setSpanAndScope(span, scope);
+        REQ request = getRequest(ctx);
+        try {
+            Span span = this.startFunction.apply(request);
+            getTracingContext(ctx).setSpan(span);
+        } finally {
+            if (scope!= null) {
+                scope.close();
+            }
+        }
     }
 
     @Override
@@ -87,33 +83,28 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
         return this.tracer;
     }
 
-    abstract REQ getRequest(CTX event);
+    abstract REQ getRequest(CTX ctx);
 
     @Override
     public void onStop(Timer.Sample sample, CTX ctx, Timer timer,
-            Duration duration) {
+                       Duration duration) {
         Span span = getTracingContext(ctx).getSpan();
-        // this.tracingTagFilter.tagSpan(span, sample.getTags());
-        span.name(getSpanName(ctx));
-        tagSpan(ctx, span);
+        span.name(getSpanName(ctx, timer.getId()));
+        tagSpan(ctx, timer.getId(), span);
         RES response = getResponse(ctx);
-        error(response, span, sample, ctx);
-        getMatchingCustomizers(ctx).forEach(c -> c.customizeSpanOnStop(span, sample, ctx, timer, duration));
+        error(response, span);
         this.stopConsumer.accept(response, span);
     }
 
-    abstract String getSpanName(CTX event);
+    abstract RES getResponse(CTX ctx);
 
-    abstract RES getResponse(CTX event);
-
-    private void error(@Nullable HttpResponse response, Span span, Timer.Sample sample, CTX ctx) {
+    private void error(@Nullable HttpResponse response, Span span) {
         if (response == null) {
             return;
         }
         int httpStatus = response.statusCode();
         Throwable error = response.error();
         if (error != null) {
-            getMatchingCustomizers(ctx).forEach(c -> c.customizeSpanOnError(span, sample, ctx, response.error()));
             return;
         }
         if (httpStatus == 0) {

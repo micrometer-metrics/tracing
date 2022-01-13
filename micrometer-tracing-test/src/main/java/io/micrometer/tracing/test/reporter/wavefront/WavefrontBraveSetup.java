@@ -29,22 +29,22 @@ import io.micrometer.tracing.brave.bridge.*;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
-import io.micrometer.tracing.handler.TracingRecordingHandlerSpanCustomizer;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontBraveSpanHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
+import io.micrometer.tracing.test.reporter.BuildingBlocks;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * Work in progress. Requires HTTP instrumentation dependency to be on the classpath.
- *
+ * <p>
  * Provides Wavefront setup with Brave.
  */
 public final class WavefrontBraveSetup implements AutoCloseable {
@@ -72,7 +72,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
     /**
      * @param server Wavefront server URL
-     * @param token Wavefront token
+     * @param token  Wavefront token
      * @return builder for the {@link WavefrontBraveSetup}
      */
     public static WavefrontBraveSetup.Builder builder(String server, String token) {
@@ -108,7 +108,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private Function<BraveBuildingBlocks, TimerRecordingHandler> handlers;
 
-        private List<TracingRecordingHandlerSpanCustomizer> customizers;
+        private BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
 
         private Consumer<BraveBuildingBlocks> closingFunction;
 
@@ -121,16 +121,16 @@ public final class WavefrontBraveSetup implements AutoCloseable {
          * All Brave building blocks required to communicate with Zipkin.
          */
         @SuppressWarnings("rawtypes")
-        public static class BraveBuildingBlocks {
+        public static class BraveBuildingBlocks implements BuildingBlocks {
             public final WavefrontSpanHandler wavefrontSpanHandler;
             public final Tracing tracing;
             public final Tracer tracer;
             public final HttpTracing httpTracing;
             public final HttpServerHandler httpServerHandler;
             public final HttpClientHandler httpClientHandler;
-            public final List<TracingRecordingHandlerSpanCustomizer> customizers;
+            public final BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
 
-            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, List<TracingRecordingHandlerSpanCustomizer> customizers) {
+            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
                 this.wavefrontSpanHandler = wavefrontSpanHandler;
                 this.tracing = tracing;
                 this.tracer = tracer;
@@ -138,6 +138,26 @@ public final class WavefrontBraveSetup implements AutoCloseable {
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
+            }
+
+            @Override
+            public Tracer getTracer() {
+                return this.tracer;
+            }
+
+            @Override
+            public HttpServerHandler getHttpServerHandler() {
+                return this.httpServerHandler;
+            }
+
+            @Override
+            public HttpClientHandler getHttpClientHandler() {
+                return this.httpClientHandler;
+            }
+
+            @Override
+            public BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> getCustomizers() {
+                return this.customizers;
             }
         }
 
@@ -176,7 +196,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder tracingRecordingHandlerSpanCustomizers(List<TracingRecordingHandlerSpanCustomizer> customizers) {
+        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -213,7 +233,8 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            List<TracingRecordingHandlerSpanCustomizer> customizers = this.customizers != null ? this.customizers : new ArrayList<>();
+            BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler, customizers);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             meterRegistry.config().timerRecordingHandler(tracingHandlers);
@@ -267,31 +288,33 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             Tracer tracer = braveBuildingBlocks.tracer;
             HttpServerHandler httpServerHandler = braveBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = braveBuildingBlocks.httpClientHandler;
-            return new TimerRecordingHandler.FirstMatchingCompositeTimerRecordingHandler(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, braveBuildingBlocks.customizers, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, braveBuildingBlocks.customizers, httpClientHandler), new DefaultTracingRecordingHandler(tracer, braveBuildingBlocks.customizers)));
+            LinkedList<TimerRecordingHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, httpClientHandler), new DefaultTracingRecordingHandler(tracer)));
+            braveBuildingBlocks.customizers.accept(braveBuildingBlocks, handlers);
+            return new TimerRecordingHandler.FirstMatchingCompositeTimerRecordingHandler(handlers);
         }
 
     }
 
     /**
      * Runs the given lambda with Zipkin setup.
-     * @param server Wavefront's server URL
-     * @param token Wavefront's token
+     *
+     * @param server        Wavefront's server URL
+     * @param token         Wavefront's token
      * @param meterRegistry meter registry to register the handlers against
-     * @param consumer lambda to be executed with the building blocks
+     * @param consumer      lambda to be executed with the building blocks
      */
     public static void run(String server, String token, MeterRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
         run(WavefrontBraveSetup.builder(server, token).register(meterRegistry), consumer);
     }
 
     /**
-     * @param setup Brave setup with Wavefront
+     * @param setup    Brave setup with Wavefront
      * @param consumer runnable to run
      */
     public static void run(WavefrontBraveSetup setup, Consumer<Builder.BraveBuildingBlocks> consumer) {
         try {
             consumer.accept(setup.getBuildingBlocks());
-        }
-        finally {
+        } finally {
             setup.close();
         }
     }
