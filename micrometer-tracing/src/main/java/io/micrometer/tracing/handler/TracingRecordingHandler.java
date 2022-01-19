@@ -16,25 +16,53 @@
 
 package io.micrometer.tracing.handler;
 
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.internal.SpanNameUtil;
 
 /**
  * Marker interface for tracing listeners.
  *
  * @author Marcin Grzejszczak
- * @param <T> type of event
+ * @param <T> type of handler context
  * @since 1.0.0
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public interface TracingRecordingHandler<T extends Timer.HandlerContext>
         extends TimerRecordingHandler<T> {
 
-    default void tagSpan(T context, Span span) {
-        context.getAllTags().forEach(tag -> span.tag(tag.getKey(), tag.getValue()));
+    /**
+     * Tags the span.
+     *
+     * @param context handler context
+     * @param id metric id
+     * @param span span to tag
+     */
+    default void tagSpan(T context, Meter.Id id, Span span) {
+        for (Tag tag : context.getAllTags()) {
+            if (!tag.getKey().equalsIgnoreCase("ERROR")) {
+                span.tag(tag.getKey(), tag.getValue());
+            } else {
+                // TODO: Does this make sense?
+                span.error(new RuntimeException(tag.getValue()));
+            }
+        }
+    }
+
+    /**
+     * Get the span name.
+     *
+     * @param context handler context
+     * @param id metric id
+     * @return name for the span
+     */
+    default String getSpanName(T context, Meter.Id id) {
+        return SpanNameUtil.toLowerHyphen(id.getName());
     }
 
     /**
@@ -64,6 +92,12 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
         tracingContext.getScope().close();
     }
 
+    /**
+     * Get the current tracing context.
+     *
+     * @param context a {@link io.micrometer.core.instrument.Timer.HandlerContext}
+     * @return tracing context
+     */
     default TracingContext getTracingContext(T context) {
         // maybe consider returning a null ?
         return context.computeIfAbsent(TracingContext.class,
@@ -99,7 +133,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @return span
          */
-        Span getSpan() {
+        public Span getSpan() {
             return this.span;
         }
 
@@ -108,7 +142,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @param span span to set
          */
-        void setSpan(Span span) {
+        public void setSpan(Span span) {
             this.span = span;
         }
 
@@ -117,7 +151,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @return scope of the span
          */
-        CurrentTraceContext.Scope getScope() {
+        public CurrentTraceContext.Scope getScope() {
             return this.scope;
         }
 
@@ -126,7 +160,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          *
          * @param scope scope to set
          */
-        void setScope(CurrentTraceContext.Scope scope) {
+        public void setScope(CurrentTraceContext.Scope scope) {
             this.scope = scope;
         }
 
@@ -136,7 +170,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
          * @param span span to set
          * @param scope scope to set
          */
-        void setSpanAndScope(Span span, CurrentTraceContext.Scope scope) {
+        public void setSpanAndScope(Span span, CurrentTraceContext.Scope scope) {
             setSpan(span);
             setScope(scope);
         }

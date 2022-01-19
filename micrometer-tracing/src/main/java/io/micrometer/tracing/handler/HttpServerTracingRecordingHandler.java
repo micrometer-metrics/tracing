@@ -16,13 +16,16 @@
 
 package io.micrometer.tracing.handler;
 
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.tracing.context.HttpServerHandlerContext;
-import io.micrometer.core.instrument.transport.http.HttpResponse;
-import io.micrometer.core.instrument.transport.http.HttpServerRequest;
-import io.micrometer.core.instrument.transport.http.HttpServerResponse;
+import io.micrometer.core.instrument.transport.http.*;
+import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpServerHandler;
+
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * TracingRecordingListener that uses the Tracing API to record events for HTTP server
@@ -44,18 +47,30 @@ public class HttpServerTracingRecordingHandler extends
     public HttpServerTracingRecordingHandler(Tracer tracer, HttpServerHandler handler) {
         super(tracer, handler::handleReceive, handler::handleSend);
     }
-
-    @Override
-    HttpServerRequest getRequest(HttpServerHandlerContext event) {
-        return event.getRequest();
+    /**
+     *
+     * Creates a new instance of {@link HttpServerTracingRecordingHandler}.
+     *
+     * @param tracer tracer
+     * @param startFunction  function that creates a span
+     * @param stopConsumer lambda to be applied on the span upon receiving the response
+     */
+    public HttpServerTracingRecordingHandler(Tracer tracer, Function<HttpServerRequest, Span> startFunction,
+                                             BiConsumer<HttpServerResponse, Span> stopConsumer) {
+        super(tracer, startFunction, stopConsumer);
     }
 
     @Override
-    String getSpanName(HttpServerHandlerContext event) {
-        if (event.getResponse() != null) {
-            return spanNameFromRoute(event.getResponse());
+    HttpServerRequest getRequest(HttpServerHandlerContext ctx) {
+        return ctx.getRequest();
+    }
+
+    @Override
+    public String getSpanName(HttpServerHandlerContext ctx, Meter.Id id) {
+        if (ctx.getResponse() != null) {
+            return spanNameFromRoute(ctx.getResponse());
         }
-        return event.getRequest().method();
+        return ctx.getRequest().method();
     }
 
     @Override
@@ -99,8 +114,8 @@ public class HttpServerTracingRecordingHandler extends
     }
 
     @Override
-    HttpServerResponse getResponse(HttpServerHandlerContext event) {
-        return event.getResponse();
+    HttpServerResponse getResponse(HttpServerHandlerContext ctx) {
+        return ctx.getResponse();
     }
 
 }

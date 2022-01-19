@@ -16,12 +16,11 @@
 
 package io.micrometer.tracing.handler;
 
-import java.time.Duration;
-
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.internal.SpanNameUtil;
+
+import java.time.Duration;
 
 /**
  * TracingRecordingListener that uses the Tracing API to record events.
@@ -54,16 +53,16 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
 
     @Override
     public void onStop(Timer.Sample sample, Timer.HandlerContext context, Timer timer,
-            Duration duration) {
+                       Duration duration) {
         Span span = getTracingContext(context).getSpan();
-        span.name(SpanNameUtil.toLowerHyphen(timer.getId().getName()));
-        tagSpan(context, span);
+        span.name(getSpanName(context, timer.getId()));
+        tagSpan(context, timer.getId(), span);
         span.end();
     }
 
     @Override
     public void onError(Timer.Sample sample, Timer.HandlerContext context,
-            Throwable throwable) {
+                        Throwable throwable) {
         Span span = getTracingContext(context).getSpan();
         span.error(throwable);
     }

@@ -42,8 +42,6 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
 
     private final BiConsumer<RES, Span> stopConsumer;
 
-    // private final TracingTagFilter tracingTagFilter = new TracingTagFilter();
-
     HttpTracingRecordingHandler(Tracer tracer, Function<REQ, Span> startFunction,
             BiConsumer<RES, Span> stopConsumer) {
         this.tracer = tracer;
@@ -58,16 +56,22 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
     }
 
     @Override
-    public void onStart(Timer.Sample sample, CTX event) {
-        Span parentSpan = getTracingContext(event).getSpan();
+    public void onStart(Timer.Sample sample, CTX ctx) {
+        Span parentSpan = getTracingContext(ctx).getSpan();
         CurrentTraceContext.Scope scope = null;
         if (parentSpan != null) {
             scope = this.currentTraceContext.maybeScope(parentSpan.context());
         }
-        REQ request = getRequest(event);
-        Span span = this.startFunction.apply(request);
-        scope = this.currentTraceContext.newScope(span.context());
-        getTracingContext(event).setSpanAndScope(span, scope);
+        REQ request = getRequest(ctx);
+        try {
+            Span span = this.startFunction.apply(request);
+            getTracingContext(ctx).setSpan(span);
+        }
+        finally {
+            if (scope != null) {
+                scope.close();
+            }
+        }
     }
 
     @Override
@@ -80,23 +84,20 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
         return this.tracer;
     }
 
-    abstract REQ getRequest(CTX event);
+    abstract REQ getRequest(CTX ctx);
 
     @Override
     public void onStop(Timer.Sample sample, CTX ctx, Timer timer,
             Duration duration) {
         Span span = getTracingContext(ctx).getSpan();
-        // this.tracingTagFilter.tagSpan(span, sample.getTags());
-        span.name(getSpanName(ctx));
-        tagSpan(ctx, span);
+        span.name(getSpanName(ctx, timer.getId()));
+        tagSpan(ctx, timer.getId(), span);
         RES response = getResponse(ctx);
         error(response, span);
         this.stopConsumer.accept(response, span);
     }
 
-    abstract String getSpanName(CTX event);
-
-    abstract RES getResponse(CTX event);
+    abstract RES getResponse(CTX ctx);
 
     private void error(@Nullable HttpResponse response, Span span) {
         if (response == null) {

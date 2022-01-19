@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Duration;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
@@ -28,15 +30,21 @@ import java.util.function.BiConsumer;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.test.SampleTestRunner;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.api.BDDAssertions;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInfo;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
@@ -61,6 +69,16 @@ class SampleTestRunnerTests extends SampleTestRunner {
                 .wavefrontUrl(server.url("/").toString()).zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort()).wavefrontToken("foo").build());
     }
 
+    Deque<TimerRecordingHandler> handlers;
+
+    @Override
+    public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizeTimerRecordingHandlers() {
+        return (buildingBlocks, timerRecordingHandlers) -> {
+            timerRecordingHandlers.addFirst(new MyRecordingHandler());
+            this.handlers = timerRecordingHandlers;
+        };
+    }
+
     @BeforeAll
     static void setup() throws IOException {
         zipkin.start();
@@ -81,12 +99,14 @@ class SampleTestRunnerTests extends SampleTestRunner {
             assertThatZipkinRegisteredATrace(lastTrace);
         }
         else {
-            Awaitility.await().atMost(4, TimeUnit.SECONDS)
+            Awaitility.await().atMost(10, TimeUnit.SECONDS)
                     .untilAsserted(() -> then(server.getRequestCount()).isGreaterThan(0));
             RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
             then(request).isNotNull();
             then(request.getPath()).isEqualTo("/report?f=trace");
         }
+        then(handlers.getFirst()).isInstanceOf(MyRecordingHandler.class);
+        then(handlers.getLast()).isInstanceOf(DefaultTracingRecordingHandler.class);
     }
 
     private void assertThatZipkinRegisteredATrace(String lastTrace) throws IOException {
@@ -114,5 +134,37 @@ class SampleTestRunnerTests extends SampleTestRunner {
             log.info("Hello");
             start.stop(Timer.builder("name"));
         };
+    }
+
+    static class MyRecordingHandler implements TimerRecordingHandler {
+        @Override
+        public void onScopeOpened(Timer.Sample sample, Timer.HandlerContext context) {
+
+        }
+
+        @Override
+        public void onScopeClosed(Timer.Sample sample, Timer.HandlerContext context) {
+
+        }
+
+        @Override
+        public void onStart(Timer.Sample sample, Timer.HandlerContext context) {
+
+        }
+
+        @Override
+        public void onError(Timer.Sample sample, Timer.HandlerContext context, Throwable throwable) {
+
+        }
+
+        @Override
+        public void onStop(Timer.Sample sample, Timer.HandlerContext context, Timer timer, Duration duration) {
+
+        }
+
+        @Override
+        public boolean supportsContext(Timer.HandlerContext handlerContext) {
+            return false;
+        }
     }
 }
