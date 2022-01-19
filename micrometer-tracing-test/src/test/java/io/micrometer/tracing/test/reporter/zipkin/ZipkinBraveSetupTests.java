@@ -16,37 +16,30 @@
 
 package io.micrometer.tracing.test.reporter.zipkin;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.BDDAssertions.then;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
+@WireMockTest
 class ZipkinBraveSetupTests {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(ZipkinBraveSetupTests.class);
 
     SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
 
-    MockWebServer server = new MockWebServer();
-
-    @BeforeEach
-    void setup() throws IOException {
-        server.start();
-    }
-
     @Test
-    void should_register_a_span_in_zipkin() throws InterruptedException {
-        ZipkinBraveSetup setup = ZipkinBraveSetup.builder().zipkinUrl(this.server.url("/").toString()).register(this.simpleMeterRegistry);
+    void should_register_a_span_in_zipkin(WireMockRuntimeInfo wmri) throws InterruptedException {
+        ZipkinBraveSetup setup = ZipkinBraveSetup.builder().zipkinUrl(wmri.getHttpBaseUrl()).register(this.simpleMeterRegistry);
 
         ZipkinBraveSetup.run(setup, __ -> {
             Timer.Sample sample = Timer.start(simpleMeterRegistry);
@@ -54,11 +47,8 @@ class ZipkinBraveSetupTests {
             sample.stop(Timer.builder("the-name"));
         });
 
-        Awaitility.await().atMost(1, TimeUnit.SECONDS)
-                .untilAsserted(() -> then(this.server.getRequestCount()).isGreaterThan(0));
-
-        RecordedRequest request = this.server.takeRequest(1, TimeUnit.SECONDS);
-        then(request).isNotNull();
-        then(request.getPath()).isEqualTo("/api/v2/spans");
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
+                wmri.getWireMock().verifyThat(anyRequestedFor(urlPathEqualTo("/api/v2/spans")))
+        );
     }
 }

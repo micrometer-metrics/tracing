@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -36,6 +37,7 @@ import io.micrometer.tracing.test.reporter.wavefront.WavefrontOtelSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinBraveSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup;
 import io.micrometer.tracing.util.StringUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,6 +52,12 @@ import zipkin2.reporter.Sender;
  * {@link MeterRegistry} in such a way that it consists all {@link io.micrometer.tracing.handler.TracingRecordingHandler}
  * injected into {@link io.micrometer.core.instrument.MeterRegistry.Config}.
  *
+ * When extending this class you can either eagerly pass the {@link MeterRegistry} and
+ * {@link SampleRunnerConfig} by calling this class' constructors. Another option is to lazilly
+ * load those objects. To do it use the default constructor but override {@link SampleTestRunner#getMeterRegistry()}
+ * and {@link SampleTestRunner#getSampleRunnerConfig()} methods and provide your own ways of retrieving
+ * {@link MeterRegistry} and {@link SampleRunnerConfig}.
+ *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
@@ -57,56 +65,94 @@ public abstract class SampleTestRunner {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(SampleTestRunner.class);
 
-    protected final SamplerRunnerConfig samplerRunnerConfig;
+    private static final List<MeterRegistry> meterRegistries = new CopyOnWriteArrayList<>();
 
-    protected final MeterRegistry meterRegistry;
+    private SampleRunnerConfig sampleRunnerConfig;
+
+    private MeterRegistry meterRegistry;
 
     private final List<TimerRecordingHandler<?>> timerRecordingHandlersCopy;
 
     /**
-     * Creates a new instance of the {@link SampleTestRunner}.
+     * Creates a new instance of the {@link SampleTestRunner} with a pre-created configuration and {@link MeterRegistry}.
      *
-     * @param samplerRunnerConfig configuration for the SampleTestRunner
+     * @param sampleRunnerConfig configuration for the SampleTestRunner
      * @param meterRegistry       provided {@link MeterRegistry} instance
      */
-    public SampleTestRunner(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry) {
-        this.samplerRunnerConfig = samplerRunnerConfig;
+    public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry) {
+        this.sampleRunnerConfig = sampleRunnerConfig;
         this.meterRegistry = meterRegistry;
         this.timerRecordingHandlersCopy = new ArrayList<>(TestConfigAccessor.getHandlers(this.meterRegistry.config()));
     }
 
     /**
-     * Creates a new instance of the {@link SampleTestRunner} with a default {@link MeterRegistry}.
+     * Creates a new instance of the {@link SampleTestRunner} with a pre-created configuration and a default {@link MeterRegistry}.
      *
-     * @param samplerRunnerConfig configuration for the SampleTestRunner
+     * @param sampleRunnerConfig configuration for the SampleTestRunner
      */
-    public SampleTestRunner(SamplerRunnerConfig samplerRunnerConfig) {
-        this(samplerRunnerConfig, new SimpleMeterRegistry());
+    public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig) {
+        this(sampleRunnerConfig, new SimpleMeterRegistry());
+    }
+
+    /**
+     * Creates a new instance of the {@link SampleTestRunner} that will have configuration and {@link MeterRegistry}
+     * resolved lazilly at runtime. Remember that if you don't override the {@link SampleTestRunner#getMeterRegistry()} and
+     * {@link SampleTestRunner#getSampleRunnerConfig()} methods you will get NPEs.
+     */
+    public SampleTestRunner() {
+        this.sampleRunnerConfig = null;
+        this.meterRegistry = null;
+        this.timerRecordingHandlersCopy = new ArrayList<>();
+    }
+
+    /**
+     * Override this to resolve the {@link MeterRegistry} at runtime. If not overridden
+     * will return the passed {@link MeterRegistry} from the constructor.
+     *
+     * @return meter registry to be used in tests
+     */
+    protected MeterRegistry getMeterRegistry() {
+        return this.meterRegistry;
+    }
+
+    /**
+     * Override this to resolve the {@link SampleRunnerConfig} at runtime. If not overridden
+     *      * will return the passed {@link MeterRegistry} from the constructor.
+     *
+     * @return sampler config to be used in tests
+     */
+    protected SampleRunnerConfig getSampleRunnerConfig() {
+        return this.sampleRunnerConfig;
     }
 
     @ParameterizedTest
     @EnumSource(TracingSetup.class)
     void run(TracingSetup tracingSetup) {
-        tracingSetup.run(this.samplerRunnerConfig, this.meterRegistry, this);
+        tracingSetup.run(getSampleRunnerConfig(), getMeterRegistry(), this);
     }
 
     @AfterEach
     void setUp() {
-        TestConfigAccessor.clearHandlers(this.meterRegistry.config());
-        this.timerRecordingHandlersCopy.forEach(handler -> this.meterRegistry.config().timerRecordingHandler(handler));
-        this.meterRegistry.clear();
+        TestConfigAccessor.clearHandlers(getMeterRegistry().config());
+        this.timerRecordingHandlersCopy.forEach(handler -> getMeterRegistry().config().timerRecordingHandler(handler));
+        getMeterRegistry().clear();
+        meterRegistries.add(getMeterRegistry());
     }
 
     private void printMetrics() {
         StringBuilder stringBuilder = new StringBuilder();
-        this.meterRegistry.forEachMeter(meter -> stringBuilder.append("\tMeter with name <")
+        getMeterRegistry().forEachMeter(meter -> stringBuilder.append("\tMeter with name <")
                 .append(meter.getId().getName()).append(">")
                 .append(" and type <").append(meter.getId().getType()).append(">")
                 .append(" has the following measurements \n\t\t<").append(meter.measure()).append(">")
                 .append(" \n\t\tand has the following tags <")
                 .append(meter.getId().getTags()).append(">\n"));
         log.info("Gathered the following metrics\n" + stringBuilder);
-        this.meterRegistry.close();
+    }
+
+    @AfterAll
+    static void closeAll() {
+        meterRegistries.forEach(MeterRegistry::close);
     }
 
     /**
@@ -117,9 +163,9 @@ public abstract class SampleTestRunner {
     public abstract BiConsumer<Tracer, MeterRegistry> yourCode();
 
     private BiConsumer<Tracer, MeterRegistry> runWithMetricsPrinting() {
-        return (tracer, meterRegistry) -> {
+        return (tracer, registry) -> {
             try {
-                yourCode().accept(tracer, meterRegistry);
+                yourCode().accept(tracer, registry);
             } finally {
                 printMetrics();
             }
@@ -155,18 +201,19 @@ public abstract class SampleTestRunner {
          */
         ZIPKIN_OTEL {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+            void run(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(ZIPKIN_OTEL, sampleTestRunner.getTracingSetup());
                 ZipkinOtelSetup setup = ZipkinOtelSetup.builder()
-                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers()).zipkinUrl(samplerRunnerConfig.zipkinUrl).register(meterRegistry);
+                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers()).zipkinUrl(
+                                sampleRunnerConfig.zipkinUrl).register(meterRegistry);
                 checkZipkinAssumptions(setup.getBuildingBlocks().sender);
-                ZipkinOtelSetup.run(setup, __ -> runTraced(samplerRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                ZipkinOtelSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
 
             @Override
-            void printTracingLink(SamplerRunnerConfig samplerRunnerConfig, String traceId) {
+            void printTracingLink(SampleRunnerConfig sampleRunnerConfig, String traceId) {
                 log.info("Below you can find the link to the trace in Zipkin with id <{}>", traceId);
-                log.info("{}/zipkin/traces/{}", samplerRunnerConfig.zipkinUrl, traceId);
+                log.info("{}/zipkin/traces/{}", sampleRunnerConfig.zipkinUrl, traceId);
             }
         },
 
@@ -175,18 +222,19 @@ public abstract class SampleTestRunner {
          */
         ZIPKIN_BRAVE {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+            void run(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(ZIPKIN_BRAVE, sampleTestRunner.getTracingSetup());
                 ZipkinBraveSetup setup = ZipkinBraveSetup.builder()
-                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers()).zipkinUrl(samplerRunnerConfig.zipkinUrl).register(meterRegistry);
+                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers()).zipkinUrl(
+                                sampleRunnerConfig.zipkinUrl).register(meterRegistry);
                 checkZipkinAssumptions(setup.getBuildingBlocks().sender);
-                ZipkinBraveSetup.run(setup, __ -> runTraced(samplerRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                ZipkinBraveSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
 
             @Override
-            void printTracingLink(SamplerRunnerConfig samplerRunnerConfig, String traceId) {
+            void printTracingLink(SampleRunnerConfig sampleRunnerConfig, String traceId) {
                 log.info("Below you can find the link to the trace in Zipkin with id <{}>", traceId);
-                log.info("{}/zipkin/traces/{}", samplerRunnerConfig.zipkinUrl, traceId);
+                log.info("{}/zipkin/traces/{}", sampleRunnerConfig.zipkinUrl, traceId);
             }
         },
 
@@ -195,22 +243,22 @@ public abstract class SampleTestRunner {
          */
         WAVEFRONT_OTEL {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+            void run(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(WAVEFRONT_OTEL, sampleTestRunner.getTracingSetup());
-                checkWavefrontAssumptions(samplerRunnerConfig);
-                WavefrontOtelSetup setup = WavefrontOtelSetup.builder(samplerRunnerConfig.wavefrontServerUrl, samplerRunnerConfig.wavefrontToken)
-                        .applicationName(samplerRunnerConfig.wavefrontApplicationName)
-                        .serviceName(samplerRunnerConfig.wavefrontServiceName)
-                        .source(samplerRunnerConfig.wavefrontSource)
+                checkWavefrontAssumptions(sampleRunnerConfig);
+                WavefrontOtelSetup setup = WavefrontOtelSetup.builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
+                        .applicationName(sampleRunnerConfig.wavefrontApplicationName)
+                        .serviceName(sampleRunnerConfig.wavefrontServiceName)
+                        .source(sampleRunnerConfig.wavefrontSource)
                         .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers())
                         .register(meterRegistry);
-                WavefrontOtelSetup.run(setup, __ -> runTraced(samplerRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                WavefrontOtelSetup.run(setup, __ -> runTraced(sampleRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
 
             @Override
-            void printTracingLink(SamplerRunnerConfig samplerRunnerConfig, String traceId) {
+            void printTracingLink(SampleRunnerConfig sampleRunnerConfig, String traceId) {
                 log.info("Below you can find the link to the trace in Wavefront with id <{}>", traceId);
-                String wavefrontUrl = samplerRunnerConfig.wavefrontServerUrl.endsWith("/") ? samplerRunnerConfig.wavefrontServerUrl.substring(0, samplerRunnerConfig.wavefrontServerUrl.length() - 1) : samplerRunnerConfig.wavefrontServerUrl;
+                String wavefrontUrl = sampleRunnerConfig.wavefrontServerUrl.endsWith("/") ? sampleRunnerConfig.wavefrontServerUrl.substring(0, sampleRunnerConfig.wavefrontServerUrl.length() - 1) : sampleRunnerConfig.wavefrontServerUrl;
                 log.info("{}/tracing/search?sortBy=MOST_RECENT&traceID={}", wavefrontUrl, traceId);
             }
         },
@@ -220,33 +268,33 @@ public abstract class SampleTestRunner {
          */
         WAVEFRONT_BRAVE {
             @Override
-            void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
+            void run(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(WAVEFRONT_BRAVE, sampleTestRunner.getTracingSetup());
-                checkWavefrontAssumptions(samplerRunnerConfig);
-                WavefrontBraveSetup setup = WavefrontBraveSetup.builder(samplerRunnerConfig.wavefrontServerUrl, samplerRunnerConfig.wavefrontToken)
-                        .applicationName(samplerRunnerConfig.wavefrontApplicationName)
-                        .serviceName(samplerRunnerConfig.wavefrontServiceName)
-                        .source(samplerRunnerConfig.wavefrontSource)
+                checkWavefrontAssumptions(sampleRunnerConfig);
+                WavefrontBraveSetup setup = WavefrontBraveSetup.builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
+                        .applicationName(sampleRunnerConfig.wavefrontApplicationName)
+                        .serviceName(sampleRunnerConfig.wavefrontServiceName)
+                        .source(sampleRunnerConfig.wavefrontSource)
                         .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers())
                         .register(meterRegistry);
-                WavefrontBraveSetup.run(setup, __ -> runTraced(samplerRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                WavefrontBraveSetup.run(setup, __ -> runTraced(sampleRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
 
             @Override
-            void printTracingLink(SamplerRunnerConfig samplerRunnerConfig, String traceId) {
+            void printTracingLink(SampleRunnerConfig sampleRunnerConfig, String traceId) {
                 log.info("Below you can find the link to the trace in Wavefront with id <{}>", traceId);
-                String wavefrontUrl = samplerRunnerConfig.wavefrontServerUrl.endsWith("/") ? samplerRunnerConfig.wavefrontServerUrl.substring(0, samplerRunnerConfig.wavefrontServerUrl.length() - 1) : samplerRunnerConfig.wavefrontServerUrl;
+                String wavefrontUrl = sampleRunnerConfig.wavefrontServerUrl.endsWith("/") ? sampleRunnerConfig.wavefrontServerUrl.substring(0, sampleRunnerConfig.wavefrontServerUrl.length() - 1) : sampleRunnerConfig.wavefrontServerUrl;
                 log.info("{}/tracing/search?sortBy=MOST_RECENT&traceID={}", wavefrontUrl, traceId);
             }
         };
 
-        private static void runTraced(SamplerRunnerConfig samplerRunnerConfig, TracingSetup tracingSetup, Tracer tracer, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
+        private static void runTraced(SampleRunnerConfig sampleRunnerConfig, TracingSetup tracingSetup, Tracer tracer, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
             Span span = tracer.nextSpan().name(tracingSetup.name());
             String traceId = span.context().traceId();
             try (Tracer.SpanInScope ws = tracer.withSpan(span.start())) {
                 runnable.accept(tracer, meterRegistry);
             } finally {
-                tracingSetup.printTracingLink(samplerRunnerConfig, traceId);
+                tracingSetup.printTracingLink(sampleRunnerConfig, traceId);
                 span.end();
             }
         }
@@ -260,20 +308,20 @@ public abstract class SampleTestRunner {
             Assumptions.assumeTrue(checkResult.ok(), "There was a problem with connecting to Zipkin. Will NOT run any tests");
         }
 
-        private static void checkWavefrontAssumptions(SamplerRunnerConfig samplerRunnerConfig) {
-            Assumptions.assumeTrue(StringUtils.isNotBlank(samplerRunnerConfig.wavefrontServerUrl), "To run tests against Tanzu Observability by Wavefront you need to set the Wavefront server url");
-            Assumptions.assumeTrue(StringUtils.isNotBlank(samplerRunnerConfig.wavefrontToken), "To run tests against Tanzu Observability by Wavefront you need to set the Wavefront token");
+        private static void checkWavefrontAssumptions(SampleRunnerConfig sampleRunnerConfig) {
+            Assumptions.assumeTrue(StringUtils.isNotBlank(sampleRunnerConfig.wavefrontServerUrl), "To run tests against Tanzu Observability by Wavefront you need to set the Wavefront server url");
+            Assumptions.assumeTrue(StringUtils.isNotBlank(sampleRunnerConfig.wavefrontToken), "To run tests against Tanzu Observability by Wavefront you need to set the Wavefront token");
         }
 
-        abstract void run(SamplerRunnerConfig samplerRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner);
+        abstract void run(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner);
 
-        abstract void printTracingLink(SamplerRunnerConfig samplerRunnerConfig, String traceId);
+        abstract void printTracingLink(SampleRunnerConfig sampleRunnerConfig, String traceId);
     }
 
     /**
      * {@link SampleTestRunner} configuration.
      */
-    public static class SamplerRunnerConfig {
+    public static class SampleRunnerConfig {
 
         public String wavefrontToken;
 
@@ -287,7 +335,7 @@ public abstract class SampleTestRunner {
 
         public String wavefrontSource;
 
-        SamplerRunnerConfig(String wavefrontToken, String wavefrontServerUrl, String wavefrontApplicationName, String wavefrontServiceName, String wavefrontSource, String zipkinUrl) {
+        SampleRunnerConfig(String wavefrontToken, String wavefrontServerUrl, String wavefrontApplicationName, String wavefrontServiceName, String wavefrontSource, String zipkinUrl) {
             this.wavefrontToken = wavefrontToken;
             this.wavefrontServerUrl = wavefrontServerUrl != null ? wavefrontServerUrl : "https://vmware.wavefront.com";
             this.wavefrontApplicationName = wavefrontApplicationName != null ? wavefrontApplicationName : "test-application";
@@ -304,7 +352,7 @@ public abstract class SampleTestRunner {
         }
 
         /**
-         * Builder for {@link SamplerRunnerConfig}.
+         * Builder for {@link SampleRunnerConfig}.
          */
         public static class Builder {
             private String wavefrontToken;
@@ -390,8 +438,8 @@ public abstract class SampleTestRunner {
              *
              * @return built configuration
              */
-            public SampleTestRunner.SamplerRunnerConfig build() {
-                return new SampleTestRunner.SamplerRunnerConfig(this.wavefrontToken, this.wavefrontUrl, this.wavefrontApplicationName, this.wavefrontServiceName, this.wavefrontSource, this.zipkinUrl);
+            public SampleRunnerConfig build() {
+                return new SampleRunnerConfig(this.wavefrontToken, this.wavefrontUrl, this.wavefrontApplicationName, this.wavefrontServiceName, this.wavefrontSource, this.zipkinUrl);
             }
         }
     }

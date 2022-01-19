@@ -25,7 +25,7 @@ import io.micrometer.tracing.test.SampleTestRunner;
 class SampleTestRunnerTraceSetupTests extends SampleTestRunner {
 
     SampleTestRunnerTraceSetupTests() {
-        super(SamplerRunnerConfig.builder()
+        super(SampleRunnerConfig.builder()
                 .wavefrontUrl("foo")
                 .wavefrontToken("bar").build());
     }

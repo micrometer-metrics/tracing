@@ -28,30 +28,40 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.TimerRecordingHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.test.SampleTestRunner;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.api.BDDAssertions;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.BDDAssertions.then;
 
 @Tag("docker")
+@WireMockTest
 class SampleTestRunnerTests extends SampleTestRunner {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(SampleTestRunnerTests.class);
@@ -60,13 +70,19 @@ class SampleTestRunnerTests extends SampleTestRunner {
     private static final GenericContainer zipkin = new GenericContainer(DockerImageName.parse("openzipkin/zipkin"))
             .withExposedPorts(9411);
 
-    private static final MockWebServer server = new MockWebServer();
+    @RegisterExtension
+    WireMockExtension wireMock = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort()).build();
 
     private static final Queue<String> traces = new LinkedList<>();
 
-    SampleTestRunnerTests() {
-        super(SampleTestRunner.SamplerRunnerConfig.builder()
-                .wavefrontUrl(server.url("/").toString()).zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort()).wavefrontToken("foo").build());
+    @Override protected SampleRunnerConfig getSampleRunnerConfig() {
+        return SampleRunnerConfig.builder()
+                .wavefrontUrl(wireMock.baseUrl()).zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort()).wavefrontToken("foo").build();
+    }
+
+    @Override protected MeterRegistry getMeterRegistry() {
+        return new SimpleMeterRegistry();
     }
 
     Deque<TimerRecordingHandler> handlers;
@@ -79,16 +95,19 @@ class SampleTestRunnerTests extends SampleTestRunner {
         };
     }
 
+    @BeforeEach
+    void start() throws IOException {
+        wireMock.stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
+    }
+
     @BeforeAll
-    static void setup() throws IOException {
+    static void setup() {
         zipkin.start();
-        server.start();
     }
 
     @AfterAll
-    static void cleanup() throws IOException {
+    static void cleanup() {
         zipkin.stop();
-        server.shutdown();
     }
 
     @AfterEach
@@ -99,18 +118,16 @@ class SampleTestRunnerTests extends SampleTestRunner {
             assertThatZipkinRegisteredATrace(lastTrace);
         }
         else {
-            Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                    .untilAsserted(() -> then(server.getRequestCount()).isGreaterThan(0));
-            RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
-            then(request).isNotNull();
-            then(request.getPath()).isEqualTo("/report?f=trace");
+            Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
+                wireMock.verify(anyRequestedFor(urlMatching(".*/report\\?f=trace.*")))
+            );
         }
         then(handlers.getFirst()).isInstanceOf(MyRecordingHandler.class);
         then(handlers.getLast()).isInstanceOf(DefaultTracingRecordingHandler.class);
     }
 
     private void assertThatZipkinRegisteredATrace(String lastTrace) throws IOException {
-        URL url = new URL(this.samplerRunnerConfig.zipkinUrl + "/api/v2/trace/" + lastTrace);
+        URL url = new URL(getSampleRunnerConfig().zipkinUrl + "/api/v2/trace/" + lastTrace);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));

@@ -25,7 +25,7 @@ import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 
 /**
- * Building blocks for reporters & tracers.
+ * Building blocks for reporters and tracers.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
