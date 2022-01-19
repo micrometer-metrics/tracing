@@ -16,13 +16,25 @@
 
 package io.micrometer.tracing.test.reporter.zipkin;
 
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 import brave.Tracing;
 import brave.http.HttpTracing;
 import brave.sampler.Sampler;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.brave.bridge.*;
+import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
+import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
+import io.micrometer.tracing.brave.bridge.BraveHttpClientHandler;
+import io.micrometer.tracing.brave.bridge.BraveHttpServerHandler;
+import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
@@ -36,17 +48,11 @@ import zipkin2.reporter.Sender;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 /**
- * Work in progress. Requires HTTP instrumentation dependency to be on the classpath.
- * <p>
  * Provides Zipkin setup with Brave.
+ *
+ * @author Marcin Grzejszczak
+ * @since 1.0.0
  */
 public final class ZipkinBraveSetup implements AutoCloseable {
 
@@ -103,7 +109,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private Function<BraveBuildingBlocks, TimerRecordingHandler> handlers;
 
-        private BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
 
         private Consumer<BraveBuildingBlocks> closingFunction;
 
@@ -125,9 +131,9 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
 
-            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
+            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
                 this.sender = sender;
                 this.reporter = reporter;
                 this.tracing = tracing;
@@ -154,7 +160,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> getCustomizers() {
                 return this.customizers;
             }
         }
@@ -194,7 +200,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
+        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -220,6 +226,8 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         }
 
         /**
+         * Registers setup.
+         *
          * @param meterRegistry meter registry to which the {@link TimerRecordingHandler} should be attached
          * @return setup with all Brave building blocks
          */
@@ -231,7 +239,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler, customizers);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);

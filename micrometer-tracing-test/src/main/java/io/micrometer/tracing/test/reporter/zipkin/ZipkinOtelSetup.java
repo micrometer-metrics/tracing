@@ -16,6 +16,17 @@
 
 package io.micrometer.tracing.test.reporter.zipkin;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.SamplerFunction;
@@ -24,7 +35,13 @@ import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
-import io.micrometer.tracing.otel.bridge.*;
+import io.micrometer.tracing.otel.bridge.DefaultHttpClientAttributesExtractor;
+import io.micrometer.tracing.otel.bridge.DefaultHttpServerAttributesExtractor;
+import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
+import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
+import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
+import io.micrometer.tracing.otel.bridge.OtelTracer;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup.Builder.OtelBuildingBlocks;
 import io.opentelemetry.api.common.Attributes;
@@ -40,20 +57,11 @@ import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import zipkin2.reporter.Sender;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-
 /**
- * Work in progress. Requires HTTP instrumentation dependendency to be on the classpath.
- * <p>
  * Provides Zipkin setup with OTel.
+ *
+ * @author Marcin Grzejszczak
+ * @since 1.0.0
  */
 public final class ZipkinOtelSetup implements AutoCloseable {
 
@@ -106,7 +114,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer;
 
-        private BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
 
         private Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler;
 
@@ -137,9 +145,9 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
 
-            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
+            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
                 this.sender = sender;
                 this.zipkinSpanExporter = zipkinSpanExporter;
                 this.sdkTracerProvider = sdkTracerProvider;
@@ -167,7 +175,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> getCustomizers() {
                 return this.customizers;
             }
         }
@@ -212,7 +220,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
+        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -238,6 +246,8 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         }
 
         /**
+         * Registers setup.
+         *
          * @param meterRegistry meter registry to which the {@link TimerRecordingHandler} should be attached
          * @return setup with all OTel building blocks
          */
@@ -250,7 +260,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
-            BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sender, zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler, customizers);
             TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);

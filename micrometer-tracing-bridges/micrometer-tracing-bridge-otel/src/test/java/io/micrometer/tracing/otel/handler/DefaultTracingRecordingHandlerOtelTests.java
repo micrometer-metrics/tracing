@@ -56,7 +56,7 @@ class DefaultTracingRecordingHandlerOtelTests {
 
     Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> { }, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
 
-    DefaultTracingRecordingHandler handler = new DefaultTracingRecordingHandler(tracer, customizers);
+    DefaultTracingRecordingHandler handler = new DefaultTracingRecordingHandler(tracer);
 
     @Test
     void should_be_applicable_for_non_null_context() {

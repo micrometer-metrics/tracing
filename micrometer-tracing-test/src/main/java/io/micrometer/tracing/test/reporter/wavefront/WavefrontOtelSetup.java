@@ -16,6 +16,16 @@
 
 package io.micrometer.tracing.test.reporter.wavefront;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -26,7 +36,13 @@ import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
-import io.micrometer.tracing.otel.bridge.*;
+import io.micrometer.tracing.otel.bridge.DefaultHttpClientAttributesExtractor;
+import io.micrometer.tracing.otel.bridge.DefaultHttpServerAttributesExtractor;
+import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
+import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
+import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
+import io.micrometer.tracing.otel.bridge.OtelTracer;
 import io.micrometer.tracing.reporter.wavefront.WavefrontOtelSpanHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
@@ -37,19 +53,11 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-
 /**
- * Work in progress.
- * <p>
  * Provides Wavefront setup with OTel.
+ *
+ * @author Marcin Grzejszczak
+ * @since 1.0.0
  */
 public final class WavefrontOtelSetup implements AutoCloseable {
 
@@ -108,7 +116,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
         private Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer;
 
-        private BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
 
         private Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler;
 
@@ -142,9 +150,9 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
 
-            public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
+            public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
                 this.wavefrontOTelSpanHandler = wavefrontOTelSpanHandler;
                 this.sdkTracerProvider = sdkTracerProvider;
                 this.openTelemetrySdk = openTelemetrySdk;
@@ -171,7 +179,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> getCustomizers() {
                 return this.customizers;
             }
         }
@@ -217,7 +225,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers) {
+        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -244,6 +252,8 @@ public final class WavefrontOtelSetup implements AutoCloseable {
         }
 
         /**
+         * Registers setup.
+         *
          * @param meterRegistry meter registry to which the {@link TimerRecordingHandler} should be attached
          * @return setup with all OTel building blocks
          */
@@ -254,7 +264,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             OpenTelemetrySdk openTelemetrySdk = this.openTelemetrySdk != null ? this.openTelemetrySdk.apply(sdkTracerProvider) : openTelemetrySdk(sdkTracerProvider);
             io.opentelemetry.api.trace.Tracer tracer = this.tracer != null ? this.tracer.apply(openTelemetrySdk) : tracer(openTelemetrySdk);
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
-            BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (b, t) -> {
+            BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (b, t) -> {
             };
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);

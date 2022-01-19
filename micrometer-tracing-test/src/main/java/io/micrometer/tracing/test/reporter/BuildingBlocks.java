@@ -16,13 +16,13 @@
 
 package io.micrometer.tracing.test.reporter;
 
+import java.util.Deque;
+import java.util.function.BiConsumer;
+
 import io.micrometer.core.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
-
-import java.util.LinkedList;
-import java.util.function.BiConsumer;
 
 /**
  * Building blocks for reporters & tracers.
@@ -34,22 +34,30 @@ import java.util.function.BiConsumer;
 public interface BuildingBlocks {
 
     /**
+     * Returns a {@link Tracer}.
+     *
      * @return tracer
      */
     Tracer getTracer();
 
     /**
+     * Returns an {@link HttpServerHandler}.
+     *
      * @return http server handler
      */
     HttpServerHandler getHttpServerHandler();
 
     /**
+     * Returns an {@link HttpClientHandler}.
+     *
      * @return http client handler
      */
     HttpClientHandler getHttpClientHandler();
 
     /**
+     * Returns a collection of default {@link TimerRecordingHandler} customizers.
+     *
      * @return customizers
      */
-    BiConsumer<BuildingBlocks, LinkedList<TimerRecordingHandler>> getCustomizers();
+    BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> getCustomizers();
 }

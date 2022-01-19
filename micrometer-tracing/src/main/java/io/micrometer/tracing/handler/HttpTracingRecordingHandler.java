@@ -17,6 +17,10 @@
 package io.micrometer.tracing.handler;
 
 
+import java.time.Duration;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.tracing.context.HttpHandlerContext;
 import io.micrometer.core.instrument.transport.http.HttpRequest;
@@ -25,10 +29,6 @@ import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.lang.Nullable;
-
-import java.time.Duration;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>
@@ -43,7 +43,7 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
     private final BiConsumer<RES, Span> stopConsumer;
 
     HttpTracingRecordingHandler(Tracer tracer, Function<REQ, Span> startFunction,
-                                BiConsumer<RES, Span> stopConsumer) {
+            BiConsumer<RES, Span> stopConsumer) {
         this.tracer = tracer;
         this.currentTraceContext = tracer.currentTraceContext();
         this.startFunction = startFunction;
@@ -66,8 +66,9 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
         try {
             Span span = this.startFunction.apply(request);
             getTracingContext(ctx).setSpan(span);
-        } finally {
-            if (scope!= null) {
+        }
+        finally {
+            if (scope != null) {
                 scope.close();
             }
         }
@@ -87,7 +88,7 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
 
     @Override
     public void onStop(Timer.Sample sample, CTX ctx, Timer timer,
-                       Duration duration) {
+            Duration duration) {
         Span span = getTracingContext(ctx).getSpan();
         span.name(getSpanName(ctx, timer.getId()));
         tagSpan(ctx, timer.getId(), span);
