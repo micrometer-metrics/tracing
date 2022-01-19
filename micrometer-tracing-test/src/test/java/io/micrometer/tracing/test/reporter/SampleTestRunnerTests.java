@@ -75,7 +75,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
     public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizeTimerRecordingHandlers() {
         return (buildingBlocks, timerRecordingHandlers) -> {
             timerRecordingHandlers.addFirst(new MyRecordingHandler());
-            handlers = timerRecordingHandlers;
+            this.handlers = timerRecordingHandlers;
         };
     }
 
@@ -99,7 +99,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
             assertThatZipkinRegisteredATrace(lastTrace);
         }
         else {
-            Awaitility.await().atMost(4, TimeUnit.SECONDS)
+            Awaitility.await().atMost(10, TimeUnit.SECONDS)
                     .untilAsserted(() -> then(server.getRequestCount()).isGreaterThan(0));
             RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
             then(request).isNotNull();
