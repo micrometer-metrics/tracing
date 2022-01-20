@@ -28,7 +28,7 @@ import io.micrometer.core.instrument.transport.http.HttpResponse;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>

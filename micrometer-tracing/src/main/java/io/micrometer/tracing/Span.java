@@ -16,6 +16,8 @@
 
 package io.micrometer.tracing;
 
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.tracing.propagation.Propagator;
 
 /**
@@ -28,7 +30,7 @@ import io.micrometer.tracing.propagation.Propagator;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public interface Span extends io.micrometer.tracing.SpanCustomizer {
 
@@ -42,7 +44,7 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
     /**
      * @return {@link TraceContext} corresponding to this span.
      */
-    io.micrometer.tracing.TraceContext context();
+    TraceContext context();
 
     /**
      * Starts this span.
@@ -65,6 +67,15 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
     Span event(String value);
 
     /**
+     * Sets an event on this span.
+     * @param value event name to set on the span
+     * @param time timestamp of the event
+     * @param timeUnit timestamp's time unit
+     * @return this span
+     */
+    Span event(String value, long time, TimeUnit timeUnit);
+
+    /**
      * Sets a tag on this span.
      * @param key tag key
      * @param value tag value
@@ -85,6 +96,13 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
     void end();
 
     /**
+     * Ends the span. The span gets stopped and recorded if not noop.
+     * @param time timestamp
+     * @param timeUnit time unit of the timestamp
+     */
+    void end(long time, TimeUnit timeUnit);
+
+    /**
      * Ends the span. The span gets stopped but does not get recorded.
      */
     void abandon();
@@ -93,11 +111,8 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
      * Sets the remote service name for the span.
      * @param remoteServiceName remote service name
      * @return this span
-     * @since 3.0.3
      */
-    default Span remoteServiceName(String remoteServiceName) {
-        return this;
-    }
+    Span remoteServiceName(String remoteServiceName);
 
     /**
      * Sets the remote url on the span.
@@ -106,9 +121,7 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
      * @return this span
      * @since 3.1.0
      */
-    default Span remoteIpAndPort(String ip, int port) {
-        return this;
-    }
+    Span remoteIpAndPort(String ip, int port);
 
     /**
      * Type of span. Can be used to specify additional relationships between spans in
@@ -162,7 +175,7 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
          * @param context parent's context
          * @return this
          */
-        Builder setParent(io.micrometer.tracing.TraceContext context);
+        Builder setParent(TraceContext context);
 
         /**
          * Sets no parent of the built span.
@@ -219,9 +232,15 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
          * @param port remote service port
          * @return this
          */
-        default Builder remoteIpAndPort(String ip, int port) {
-            return this;
-        }
+        Builder remoteIpAndPort(String ip, int port);
+
+        /**
+         * Sets start timestamp.
+         * @param startTimestamp start timestamp
+         * @param unit start time unit
+         * @return this
+         */
+        Builder startTimestamp(long startTimestamp, TimeUnit unit);
 
         /**
          * Builds and starts the span.

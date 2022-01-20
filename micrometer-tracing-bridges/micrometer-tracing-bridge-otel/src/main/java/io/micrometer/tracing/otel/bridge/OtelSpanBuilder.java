@@ -18,6 +18,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
@@ -122,6 +123,12 @@ class OtelSpanBuilder implements Span.Builder {
     public Span.Builder remoteIpAndPort(String ip, int port) {
         this.delegate.setAttribute("net.peer.ip", ip);
         this.delegate.setAttribute("net.peer.port", port);
+        return this;
+    }
+
+    @Override
+    public Span.Builder startTimestamp(long startTimestamp, TimeUnit unit) {
+        this.delegate.setStartTimestamp(startTimestamp, unit);
         return this;
     }
 

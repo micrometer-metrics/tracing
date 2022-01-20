@@ -18,7 +18,7 @@ package io.micrometer.tracing;
 
 import java.io.Closeable;
 
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 import io.micrometer.tracing.propagation.Propagator;
 
 /**
@@ -61,7 +61,7 @@ import io.micrometer.tracing.propagation.Propagator;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  * @see Span
  * @see ScopedSpan
  * @see Propagator

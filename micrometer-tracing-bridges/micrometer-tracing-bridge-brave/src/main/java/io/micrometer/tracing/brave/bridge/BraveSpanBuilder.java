@@ -16,6 +16,8 @@
 
 package io.micrometer.tracing.brave.bridge;
 
+import java.util.concurrent.TimeUnit;
+
 import brave.Tracer;
 import brave.propagation.TraceContextOrSamplingFlags;
 import io.micrometer.tracing.Span;
@@ -113,6 +115,12 @@ class BraveSpanBuilder implements Span.Builder {
     @Override
     public Span.Builder remoteIpAndPort(String ip, int port) {
         span().remoteIpAndPort(ip, port);
+        return this;
+    }
+
+    @Override
+    public Span.Builder startTimestamp(long startTimestamp, TimeUnit unit) {
+        this.startTimestamp = unit.toMicros(startTimestamp);
         return this;
     }
 

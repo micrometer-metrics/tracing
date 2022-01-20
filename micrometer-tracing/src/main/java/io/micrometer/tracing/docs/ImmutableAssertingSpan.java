@@ -17,6 +17,7 @@
 package io.micrometer.tracing.docs;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import io.micrometer.tracing.Span;
 
@@ -73,6 +74,12 @@ class ImmutableAssertingSpan implements AssertingSpan {
     public AssertingSpan start() {
         this.isStarted = true;
         return AssertingSpan.super.start();
+    }
+
+    @Override
+    public Span event(String value, long time, TimeUnit unit) {
+        this.delegate.event(value, time, unit);
+        return this;
     }
 
     @Override

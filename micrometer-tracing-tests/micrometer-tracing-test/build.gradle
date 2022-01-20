@@ -1,0 +1,11 @@
+plugins {
+	id 'idea'
+}
+
+dependencies {
+	api project(':micrometer-tracing')
+
+	// Tests for tests
+	testImplementation 'ch.qos.logback:logback-classic'
+}
+

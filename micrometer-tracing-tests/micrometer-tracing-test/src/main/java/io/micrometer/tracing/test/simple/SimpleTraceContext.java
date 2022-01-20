@@ -14,30 +14,36 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.http;
+package io.micrometer.tracing.test.simple;
 
-import io.micrometer.core.instrument.transport.http.HttpResponse;
-import io.micrometer.tracing.SpanCustomizer;
 import io.micrometer.tracing.TraceContext;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * A test implementation of a trace context.
  *
- * Use this to control the response data recorded.
- *
- * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public interface HttpResponseParser {
+public class SimpleTraceContext implements TraceContext {
 
-    /**
-     * Implement to choose what data from the http response are parsed into the span
-     * representing it.
-     * @param response current response
-     * @param context corresponding trace context
-     * @param span customizer for the current span
-     */
-    void parse(HttpResponse response, TraceContext context, SpanCustomizer span);
+    @Override
+    public String traceId() {
+        return "";
+    }
+
+    @Override
+    public String parentId() {
+        return "";
+    }
+
+    @Override
+    public String spanId() {
+        return "";
+    }
+
+    @Override
+    public Boolean sampled() {
+        return false;
+    }
 
 }

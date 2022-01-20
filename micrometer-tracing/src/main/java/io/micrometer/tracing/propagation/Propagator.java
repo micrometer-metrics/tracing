@@ -20,7 +20,7 @@ import java.util.List;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 
 /**
  * Inspired by OpenZipkin Brave and OpenTelemetry. Most of the documentation is taken
@@ -33,7 +33,7 @@ import io.micrometer.tracing.lang.Nullable;
  * @author OpenZipkin Brave Authors
  * @author OpenTelemetry Authors
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public interface Propagator {
 

@@ -16,7 +16,7 @@
 
 package io.micrometer.tracing;
 
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken
@@ -27,7 +27,7 @@ import io.micrometer.tracing.lang.Nullable;
  * @param <T> type of the input, for example a request or method
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public interface SamplerFunction<T> {
 

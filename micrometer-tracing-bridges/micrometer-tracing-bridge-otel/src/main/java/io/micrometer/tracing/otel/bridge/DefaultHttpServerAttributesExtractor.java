@@ -22,7 +22,7 @@ import java.util.List;
 
 import io.micrometer.core.instrument.transport.http.HttpServerRequest;
 import io.micrometer.core.instrument.transport.http.HttpServerResponse;
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesExtractor;
 
 /**

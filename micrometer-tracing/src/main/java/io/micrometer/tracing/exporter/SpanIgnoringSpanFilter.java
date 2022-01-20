@@ -31,7 +31,7 @@ import io.micrometer.tracing.util.StringUtils;
  * {@link SpanFilter} that ignores spans via names.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public class SpanIgnoringSpanFilter implements SpanFilter {
 

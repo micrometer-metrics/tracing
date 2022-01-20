@@ -16,13 +16,13 @@
 
 package io.micrometer.tracing;
 
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 
 /**
  * Contains trace and span data.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public interface TraceContext {
 

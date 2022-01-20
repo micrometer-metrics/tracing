@@ -16,6 +16,8 @@
 
 package io.micrometer.tracing.docs;
 
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 
@@ -119,6 +121,12 @@ public interface AssertingSpan extends Span {
     }
 
     @Override
+    default Span event(String value, long time, TimeUnit timeUnit) {
+        getDelegate().event(value, time, timeUnit);
+        return this;
+    }
+
+    @Override
     default AssertingSpan name(String name) {
         DocumentedSpanAssertions.assertThatNameIsValid(name, getDocumentedSpan());
         getDelegate().name(name);
@@ -151,6 +159,12 @@ public interface AssertingSpan extends Span {
     default void end() {
         DocumentedSpanAssertions.assertThatSpanStartedBeforeEnd(this);
         getDelegate().end();
+    }
+
+    @Override
+    default void end(long time, TimeUnit timeUnit) {
+        DocumentedSpanAssertions.assertThatSpanStartedBeforeEnd(this);
+        getDelegate().end(time, timeUnit);
     }
 
     @Override

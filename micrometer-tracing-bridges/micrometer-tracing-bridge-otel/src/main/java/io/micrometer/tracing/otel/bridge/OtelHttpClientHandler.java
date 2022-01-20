@@ -27,7 +27,7 @@ import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpRequestParser;
 import io.micrometer.tracing.http.HttpResponseParser;
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;

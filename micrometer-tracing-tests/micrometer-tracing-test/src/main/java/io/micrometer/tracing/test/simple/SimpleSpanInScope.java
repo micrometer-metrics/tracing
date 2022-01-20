@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.http;
+package io.micrometer.tracing.test.simple;
 
-import io.micrometer.core.instrument.transport.http.HttpResponse;
-import io.micrometer.tracing.SpanCustomizer;
-import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * A test implementation of a span in scope.
  *
- * Use this to control the response data recorded.
- *
- * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public interface HttpResponseParser {
+public class SimpleSpanInScope implements Tracer.SpanInScope {
+
+    private boolean closed;
+
+    @Override
+    public void close() {
+        this.closed = true;
+    }
 
     /**
-     * Implement to choose what data from the http response are parsed into the span
-     * representing it.
-     * @param response current response
-     * @param context corresponding trace context
-     * @param span customizer for the current span
+     * @return was scoped closed?
      */
-    void parse(HttpResponse response, TraceContext context, SpanCustomizer span);
+    public boolean isClosed() {
+        return closed;
+    }
 
 }

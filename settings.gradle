@@ -22,7 +22,7 @@ gradleEnterprise {
 	server = 'https://ge.micrometer.io'
 }
 
-include 'micrometer-tracing', 'micrometer-tracing-bom', "micrometer-tracing-test"
+include 'micrometer-tracing', 'micrometer-tracing-bom'
 
 ['brave', 'otel'].each { bridge ->
 	include "micrometer-tracing-bridge-$bridge"
@@ -32,4 +32,9 @@ include 'micrometer-tracing', 'micrometer-tracing-bom', "micrometer-tracing-test
 ['wavefront'].each { reporter ->
 	include "micrometer-tracing-reporter-$reporter"
 	project(":micrometer-tracing-reporter-$reporter").projectDir = new File(rootProject.projectDir, "micrometer-tracing-reporters/micrometer-tracing-reporter-$reporter")
+}
+
+['test', 'integration-test'].each { testProject ->
+	include "micrometer-tracing-$testProject"
+	project(":micrometer-tracing-$testProject").projectDir = new File(rootProject.projectDir, "micrometer-tracing-tests/micrometer-tracing-$testProject")
 }

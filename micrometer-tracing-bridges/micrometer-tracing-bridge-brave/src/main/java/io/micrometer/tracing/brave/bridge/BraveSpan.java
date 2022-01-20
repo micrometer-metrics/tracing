@@ -17,6 +17,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
@@ -37,7 +38,7 @@ public class BraveSpan implements Span {
     }
 
     public static brave.Span toBrave(Span span) {
-        BraveSpan unwrap = (BraveSpan) AssertingSpan.unwrap(span);
+        BraveSpan unwrap = AssertingSpan.unwrap(span);
         if (unwrap == null) {
             return null;
         }
@@ -80,6 +81,12 @@ public class BraveSpan implements Span {
     }
 
     @Override
+    public Span event(String value, long time, TimeUnit timeUnit) {
+        this.delegate.annotate(timeUnit.toMicros(time), value);
+        return this;
+    }
+
+    @Override
     public Span tag(String key, String value) {
         this.delegate.tag(key, value);
         return this;
@@ -96,6 +103,11 @@ public class BraveSpan implements Span {
     @Override
     public void end() {
         this.delegate.finish();
+    }
+
+    @Override
+    public void end(long time, TimeUnit timeUnit) {
+        this.delegate.finish(timeUnit.toMicros(time));
     }
 
     @Override

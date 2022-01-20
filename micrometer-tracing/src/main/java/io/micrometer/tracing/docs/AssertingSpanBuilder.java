@@ -16,6 +16,8 @@
 
 package io.micrometer.tracing.docs;
 
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 
@@ -129,6 +131,12 @@ public interface AssertingSpanBuilder extends Span.Builder {
     @Override
     default AssertingSpanBuilder kind(Span.Kind spanKind) {
         getDelegate().kind(spanKind);
+        return this;
+    }
+
+    @Override
+    default AssertingSpanBuilder startTimestamp(long startTimestamp, TimeUnit unit) {
+        getDelegate().startTimestamp(startTimestamp, unit);
         return this;
     }
 

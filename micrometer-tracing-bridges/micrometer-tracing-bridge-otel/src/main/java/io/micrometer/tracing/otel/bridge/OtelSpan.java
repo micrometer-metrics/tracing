@@ -17,6 +17,7 @@
 package io.micrometer.tracing.otel.bridge;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.micrometer.tracing.Span;
@@ -96,9 +97,27 @@ class OtelSpan implements Span {
     }
 
     @Override
+    public Span event(String value, long time, TimeUnit timeUnit) {
+        this.delegate.addEvent(value, time, timeUnit);
+        return null;
+    }
+
+    @Override
     public Span tag(String key, String value) {
         this.delegate.setAttribute(key, value);
         return new OtelSpan(this.delegate);
+    }
+
+    @Override
+    public void end(long time, TimeUnit timeUnit) {
+        this.delegate.end(time, timeUnit);
+    }
+
+    @Override
+    public Span remoteIpAndPort(String ip, int port) {
+        this.delegate.setAttribute("net.peer.ip", ip);
+        this.delegate.setAttribute("net.peer.port", port);
+        return this;
     }
 
     @Override

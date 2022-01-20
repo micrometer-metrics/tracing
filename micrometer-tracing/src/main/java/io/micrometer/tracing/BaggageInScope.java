@@ -18,7 +18,7 @@ package io.micrometer.tracing;
 
 import java.io.Closeable;
 
-import io.micrometer.tracing.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 
 /**
  * Inspired by OpenZipkin Brave's {@code BaggageField}. Since some tracer implementations
@@ -30,7 +30,7 @@ import io.micrometer.tracing.lang.Nullable;
  * Represents a single baggage entry.
  *
  * @author Marcin Grzejszczak
- * @since 3.0.0
+ * @since 1.0.0
  */
 public interface BaggageInScope extends Closeable {
 
