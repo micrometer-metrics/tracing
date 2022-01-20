@@ -61,6 +61,9 @@ import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
  */
 public final class WavefrontOtelSetup implements AutoCloseable {
 
+    // To be used in tests ONLY
+    static WavefrontSpanHandler mockHandler;
+
     private final Consumer<Builder.OtelBuildingBlocks> closingFunction;
 
     private final Builder.OtelBuildingBlocks otelBuildingBlocks;
@@ -258,7 +261,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
          * @return setup with all OTel building blocks
          */
         public WavefrontOtelSetup register(MeterRegistry meterRegistry) {
-            WavefrontSpanHandler wavefrontSpanHandler = this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(meterRegistry) : wavefrontSpanHandler(meterRegistry);
+            WavefrontSpanHandler wavefrontSpanHandler = wavefrontSpanHandlerOrMock(meterRegistry);
             WavefrontOtelSpanHandler wavefrontOTelSpanHandler = wavefrontOtelSpanHandler(wavefrontSpanHandler);
             SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(wavefrontOTelSpanHandler) : sdkTracerProvider(wavefrontOTelSpanHandler);
             OpenTelemetrySdk openTelemetrySdk = this.openTelemetrySdk != null ? this.openTelemetrySdk.apply(sdkTracerProvider) : openTelemetrySdk(sdkTracerProvider);
@@ -273,6 +276,13 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             meterRegistry.config().timerRecordingHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new WavefrontOtelSetup(closingFunction, otelBuildingBlocks);
+        }
+
+        private WavefrontSpanHandler wavefrontSpanHandlerOrMock(MeterRegistry meterRegistry) {
+            if (mockHandler == null) {
+                return this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(meterRegistry) : wavefrontSpanHandler(meterRegistry);
+            }
+            return mockHandler;
         }
 
         private WavefrontSpanHandler wavefrontSpanHandler(MeterRegistry meterRegistry) {

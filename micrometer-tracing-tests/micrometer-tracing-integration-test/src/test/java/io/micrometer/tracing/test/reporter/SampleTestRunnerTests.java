@@ -19,12 +19,11 @@ package io.micrometer.tracing.test.reporter;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.TimerRecordingHandler;
@@ -35,31 +34,25 @@ import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
+import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.SampleTestRunner;
+import io.micrometer.tracing.test.reporter.wavefront.WavefrontAccessor;
 import org.assertj.core.api.BDDAssertions;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.BDDMockito;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.BDDAssertions.then;
 
 @Tag("docker")
-@WireMockTest
 class SampleTestRunnerTests extends SampleTestRunner {
 
     private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(SampleTestRunnerTests.class);
@@ -69,21 +62,20 @@ class SampleTestRunnerTests extends SampleTestRunner {
             .withExposedPorts(9411)
             .waitingFor(Wait.forHttp("/").forStatusCode(200));
 
-    @RegisterExtension
-    WireMockExtension wireMock = WireMockExtension.newInstance()
-            .options(wireMockConfig().dynamicPort())
-            .build();
-
     private static final Queue<String> traces = new LinkedList<>();
 
     @Override
     protected SampleRunnerConfig getSampleRunnerConfig() {
         return SampleRunnerConfig.builder()
-                .wavefrontUrl(wireMock.baseUrl())
+                .wavefrontUrl("http://localhost:1234")
                 .zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort())
                 .wavefrontToken("foo")
                 .build();
     }
+
+    WavefrontSpanHandler braveSpanHandler = WavefrontAccessor.setMockForBrave();
+
+    WavefrontSpanHandler otelSpanHandler = WavefrontAccessor.setMockForOTel();
 
     @Override
     protected MeterRegistry getMeterRegistry() {
@@ -98,11 +90,6 @@ class SampleTestRunnerTests extends SampleTestRunner {
             timerRecordingHandlers.addFirst(new MyRecordingHandler());
             this.handlers = timerRecordingHandlers;
         };
-    }
-
-    @BeforeEach
-    void start() {
-        wireMock.stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
     }
 
     @BeforeAll
@@ -123,12 +110,18 @@ class SampleTestRunnerTests extends SampleTestRunner {
             assertThatZipkinRegisteredATrace(lastTrace);
         }
         else {
+            WavefrontSpanHandler handler = testName.toLowerCase(Locale.ROOT).contains("brave") ? braveSpanHandler : otelSpanHandler;
             Awaitility.await()
-                    .atMost(10, TimeUnit.SECONDS)
-                    .untilAsserted(() -> wireMock.verify(anyRequestedFor(urlMatching(".*/report\\?f=trace.*"))));
+                    .atMost(1, TimeUnit.SECONDS)
+                    .untilAsserted(() -> BDDMockito.then(handler).should(BDDMockito.atLeastOnce()).end(BDDMockito.any(), BDDMockito.any()));
         }
         then(handlers.getFirst()).isInstanceOf(MyRecordingHandler.class);
         then(handlers.getLast()).isInstanceOf(DefaultTracingRecordingHandler.class);
+    }
+
+    @AfterEach
+    void clean() {
+        WavefrontAccessor.resetMocks();
     }
 
     private void assertThatZipkinRegisteredATrace(String lastTrace) throws Throwable {

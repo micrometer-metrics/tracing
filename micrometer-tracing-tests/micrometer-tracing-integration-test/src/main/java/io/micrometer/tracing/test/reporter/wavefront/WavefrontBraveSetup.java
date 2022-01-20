@@ -54,6 +54,9 @@ import io.micrometer.tracing.test.reporter.BuildingBlocks;
  * @since 1.0.0
  */
 public final class WavefrontBraveSetup implements AutoCloseable {
+    
+    // To be used in tests ONLY
+    static WavefrontSpanHandler mockHandler;
 
     private final Consumer<Builder.BraveBuildingBlocks> closingFunction;
 
@@ -234,7 +237,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
          * @return setup with all Brave building blocks
          */
         public WavefrontBraveSetup register(MeterRegistry meterRegistry) {
-            WavefrontSpanHandler wavefrontSpanHandler = this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(meterRegistry) : wavefrontSpanHandler(meterRegistry);
+            WavefrontSpanHandler wavefrontSpanHandler = wavefrontSpanHandlerOrMock(meterRegistry);
             WavefrontBraveSpanHandler wavefrontBraveSpanHandler = wavefrontBraveSpanHandler(wavefrontSpanHandler);
             Tracing tracing = this.tracing != null ? this.tracing.apply(wavefrontBraveSpanHandler) : tracing(wavefrontBraveSpanHandler);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
@@ -248,6 +251,13 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             meterRegistry.config().timerRecordingHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new WavefrontBraveSetup(closingFunction, braveBuildingBlocks);
+        }
+
+        private WavefrontSpanHandler wavefrontSpanHandlerOrMock(MeterRegistry meterRegistry) {
+            if (mockHandler == null) {
+                return this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(meterRegistry) : wavefrontSpanHandler(meterRegistry);
+            }
+            return mockHandler;
         }
 
         private WavefrontSpanHandler wavefrontSpanHandler(MeterRegistry meterRegistry) {

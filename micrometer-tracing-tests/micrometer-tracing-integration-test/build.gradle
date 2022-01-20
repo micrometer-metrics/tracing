@@ -44,6 +44,7 @@ dependencies {
 	api 'org.assertj:assertj-core'
 
 	// Tests for tests
+	testImplementation 'org.mockito:mockito-core'
 	testImplementation 'com.github.tomakehurst:wiremock-jre8-standalone'
 	testImplementation 'org.awaitility:awaitility'
 	testImplementation 'ch.qos.logback:logback-classic'
