@@ -68,7 +68,7 @@ public class SimpleSpan implements Span {
 
     @Override
     public boolean isNoop() {
-        return this.isNoOp();
+        return this.noOp;
     }
 
     @Override
@@ -154,7 +154,7 @@ public class SimpleSpan implements Span {
                 + ", abandoned=" + this.isAbandoned() + ", startMicros=" + this.getStartMicros() + ", endMicros="
                 + this.getEndMicros() + ", throwable=" + this.getThrowable() + ", remoteServiceName='" + this.getRemoteServiceName()
                 + '\'' + ", spanKind=" + this.getSpanKind() + ", events=" + this.getEvents() + ", name='" + this.getName() + '\''
-                + ", ip='" + this.getIp() + '\'' + ", port=" + this.getPort() + ", noOp=" + this.isNoOp() + '}';
+                + ", ip='" + this.getIp() + '\'' + ", port=" + this.getPort() + ", noOp=" + this.isNoop() + '}';
     }
 
     /**
@@ -279,15 +279,6 @@ public class SimpleSpan implements Span {
      */
     public int getPort() {
         return this.port;
-    }
-
-    /**
-     * Is span no op?
-     *
-     * @return {@code true} when span no op
-     */
-    public boolean isNoOp() {
-        return this.noOp;
     }
 
     /**
