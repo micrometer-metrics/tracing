@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.api.lang.Nullable;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken

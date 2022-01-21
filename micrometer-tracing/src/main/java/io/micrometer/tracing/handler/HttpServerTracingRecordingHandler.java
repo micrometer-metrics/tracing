@@ -16,10 +16,12 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.tracing.context.HttpServerHandlerContext;
-import io.micrometer.core.instrument.transport.http.*;
+import io.micrometer.api.instrument.Meter;
+import io.micrometer.api.instrument.Timer;
+import io.micrometer.api.instrument.transport.http.HttpResponse;
+import io.micrometer.api.instrument.transport.http.HttpServerRequest;
+import io.micrometer.api.instrument.transport.http.HttpServerResponse;
+import io.micrometer.api.instrument.transport.http.context.HttpServerHandlerContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpServerHandler;

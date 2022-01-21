@@ -16,19 +16,18 @@
 
 package io.micrometer.tracing.handler;
 
-
 import java.time.Duration;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.tracing.context.HttpHandlerContext;
-import io.micrometer.core.instrument.transport.http.HttpRequest;
-import io.micrometer.core.instrument.transport.http.HttpResponse;
+import io.micrometer.api.instrument.Timer;
+import io.micrometer.api.instrument.transport.http.HttpRequest;
+import io.micrometer.api.instrument.transport.http.HttpResponse;
+import io.micrometer.api.instrument.transport.http.context.HttpHandlerContext;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.api.lang.Nullable;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>

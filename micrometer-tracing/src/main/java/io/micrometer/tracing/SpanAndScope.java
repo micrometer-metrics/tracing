@@ -18,8 +18,8 @@ package io.micrometer.tracing;
 
 import java.io.Closeable;
 
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
+import io.micrometer.api.internal.logging.InternalLogger;
+import io.micrometer.api.internal.logging.InternalLoggerFactory;
 
 /**
  * Container object for {@link Span} and its corresponding {@link Tracer.SpanInScope}.

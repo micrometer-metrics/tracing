@@ -20,9 +20,9 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
-import io.micrometer.core.instrument.transport.http.HttpServerRequest;
-import io.micrometer.core.instrument.transport.http.HttpServerResponse;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.api.instrument.transport.http.HttpServerRequest;
+import io.micrometer.api.instrument.transport.http.HttpServerResponse;
+import io.micrometer.api.lang.Nullable;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesExtractor;
 
 /**

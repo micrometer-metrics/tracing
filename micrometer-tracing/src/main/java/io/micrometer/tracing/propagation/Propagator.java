@@ -20,7 +20,7 @@ import java.util.List;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.api.lang.Nullable;
 
 /**
  * Inspired by OpenZipkin Brave and OpenTelemetry. Most of the documentation is taken

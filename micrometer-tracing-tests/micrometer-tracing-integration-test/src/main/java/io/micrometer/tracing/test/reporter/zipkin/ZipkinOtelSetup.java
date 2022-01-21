@@ -27,8 +27,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.MeterRegistry;
+import io.micrometer.api.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;

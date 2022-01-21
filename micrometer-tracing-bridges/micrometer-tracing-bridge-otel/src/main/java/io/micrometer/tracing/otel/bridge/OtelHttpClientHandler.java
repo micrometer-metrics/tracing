@@ -16,18 +16,18 @@
 
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.core.instrument.transport.http.HttpClientRequest;
-import io.micrometer.core.instrument.transport.http.HttpClientResponse;
-import io.micrometer.core.instrument.transport.http.HttpRequest;
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
+import io.micrometer.api.instrument.transport.http.HttpClientRequest;
+import io.micrometer.api.instrument.transport.http.HttpClientResponse;
+import io.micrometer.api.instrument.transport.http.HttpRequest;
+import io.micrometer.api.internal.logging.InternalLogger;
+import io.micrometer.api.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpRequestParser;
 import io.micrometer.tracing.http.HttpResponseParser;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.api.lang.Nullable;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;

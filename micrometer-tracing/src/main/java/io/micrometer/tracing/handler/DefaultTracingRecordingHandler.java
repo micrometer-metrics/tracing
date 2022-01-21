@@ -16,7 +16,7 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.core.instrument.Timer;
+import io.micrometer.api.instrument.Timer;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 

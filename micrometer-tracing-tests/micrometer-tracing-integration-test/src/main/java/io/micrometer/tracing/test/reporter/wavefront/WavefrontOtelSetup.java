@@ -28,8 +28,8 @@ import java.util.regex.Pattern;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.MeterRegistry;
+import io.micrometer.api.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;

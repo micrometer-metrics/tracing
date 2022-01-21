@@ -19,7 +19,7 @@ package io.micrometer.tracing.test.reporter;
 import java.util.Deque;
 import java.util.function.BiConsumer;
 
-import io.micrometer.core.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;

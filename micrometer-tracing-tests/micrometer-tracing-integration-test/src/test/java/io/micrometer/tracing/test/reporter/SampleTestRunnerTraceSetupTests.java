@@ -18,7 +18,7 @@ package io.micrometer.tracing.test.reporter;
 
 import java.util.function.BiConsumer;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.api.instrument.MeterRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.test.SampleTestRunner;
 

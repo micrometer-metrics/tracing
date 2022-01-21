@@ -21,9 +21,8 @@ import java.util.Collections;
 
 import javax.servlet.ServletRequest;
 
-import io.micrometer.core.instrument.transport.Kind;
-import io.micrometer.core.instrument.transport.http.HttpServerRequest;
-
+import io.micrometer.api.instrument.transport.Kind;
+import io.micrometer.api.instrument.transport.http.HttpServerRequest;
 
 /**
  * Brave implementation of a {@link HttpServerRequest}.

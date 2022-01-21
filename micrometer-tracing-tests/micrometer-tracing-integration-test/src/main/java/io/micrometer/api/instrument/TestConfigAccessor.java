@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.core.instrument;
+package io.micrometer.api.instrument;
 
 import java.util.Collection;
 

@@ -17,7 +17,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.sampler.SamplerFunctions;
-import io.micrometer.core.instrument.transport.http.HttpRequest;
+import io.micrometer.api.instrument.transport.http.HttpRequest;
 import io.micrometer.tracing.SamplerFunction;
 
 /**
@@ -46,7 +46,7 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
 
     public static brave.sampler.SamplerFunction<brave.http.HttpRequest> toHttpBrave(
             SamplerFunction<HttpRequest> samplerFunction) {
-        return arg -> samplerFunction.trySample(BraveHttpRequest.fromBrave((brave.http.HttpRequest) arg));
+        return arg -> samplerFunction.trySample(BraveHttpRequest.fromBrave(arg));
     }
 
     @Override

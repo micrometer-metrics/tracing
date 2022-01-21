@@ -16,10 +16,10 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.Meter;
+import io.micrometer.api.instrument.Tag;
+import io.micrometer.api.instrument.Timer;
+import io.micrometer.api.instrument.TimerRecordingHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -95,7 +95,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
     /**
      * Get the current tracing context.
      *
-     * @param context a {@link io.micrometer.core.instrument.Timer.HandlerContext}
+     * @param context a {@link io.micrometer.api.instrument.Timer.HandlerContext}
      * @return tracing context
      */
     default TracingContext getTracingContext(T context) {
