@@ -26,7 +26,7 @@ import io.micrometer.api.internal.logging.InternalLoggerFactory;
  *
  * @author Marcin Grzejszczak
  * @author Arthur Gavlyukovskiy
- * @since 3.1.0
+ * @since 1.0.0
  */
 public class SpanAndScope implements Closeable {
 

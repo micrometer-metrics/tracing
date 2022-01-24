@@ -54,7 +54,7 @@ public interface TraceContext {
     /**
      * Builder for {@link TraceContext}.
      *
-     * @since 3.1.0
+     * @since 1.0.0
      */
     interface Builder {
 

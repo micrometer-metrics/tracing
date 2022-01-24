@@ -88,7 +88,7 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  * words, don't call {@link UUID#timestamp()} on UUIDs converted here, or in other
  * Wavefront code, as it might throw an exception.
  *
- * @since 3.1.0
+ * @since 1.0.0
  */
 public class WavefrontSpanHandler implements Runnable, Closeable {
 

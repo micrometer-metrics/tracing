@@ -20,7 +20,7 @@ package io.micrometer.tracing.exporter;
  * An interface that allows to process spans after they got finished.
  *
  * @author Marcin Grzejszczak
- * @since 3.1.0
+ * @since 1.0.0
  */
 public interface SpanReporter {
 

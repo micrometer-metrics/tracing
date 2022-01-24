@@ -22,7 +22,7 @@ import java.util.Arrays;
  * Represents a tag key.
  *
  * @author Marcin Grzejszczak
- * @since 3.1.0
+ * @since 1.0.0
  */
 public interface TagKey {
 

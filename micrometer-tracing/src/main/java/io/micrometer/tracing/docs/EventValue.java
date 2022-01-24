@@ -20,7 +20,7 @@ package io.micrometer.tracing.docs;
  * Event value representing a notable event in time.
  *
  * @author Marcin Grzejszczak
- * @since 3.1.0
+ * @since 1.0.0
  */
 public interface EventValue {
 
