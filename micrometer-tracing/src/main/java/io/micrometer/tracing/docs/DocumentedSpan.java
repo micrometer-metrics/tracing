@@ -16,9 +16,6 @@
 
 package io.micrometer.tracing.docs;
 
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanCustomizer;
-
 /**
  * In order to describe your spans via e.g. enums instead of Strings you can use this
  * interface that returns all the characteristics of a span. In Spring Cloud Sleuth we
@@ -66,51 +63,6 @@ public interface DocumentedSpan {
      */
     default String prefix() {
         return "";
-    }
-
-    /**
-     * Asserts on tags, names and allowed events.
-     * @param span to wrap
-     * @return wrapped span
-     */
-    default AssertingSpan wrap(Span span) {
-        if (span == null) {
-            return null;
-        }
-        else if (span instanceof AssertingSpan) {
-            return (AssertingSpan) span;
-        }
-        return AssertingSpan.of(this, span);
-    }
-
-    /**
-     * Asserts on tags, names and allowed events.
-     * @param span to wrap
-     * @return wrapped span
-     */
-    default AssertingSpanCustomizer wrap(SpanCustomizer span) {
-        if (span == null) {
-            return null;
-        }
-        else if (span instanceof AssertingSpanCustomizer) {
-            return (AssertingSpanCustomizer) span;
-        }
-        return AssertingSpanCustomizer.of(this, span);
-    }
-
-    /**
-     * Asserts on tags, names and allowed events.
-     * @param span builder to wrap
-     * @return wrapped span
-     */
-    default AssertingSpanBuilder wrap(Span.Builder span) {
-        if (span == null) {
-            return null;
-        }
-        else if (span instanceof AssertingSpanBuilder) {
-            return (AssertingSpanBuilder) span;
-        }
-        return AssertingSpanBuilder.of(this, span);
     }
 
 }

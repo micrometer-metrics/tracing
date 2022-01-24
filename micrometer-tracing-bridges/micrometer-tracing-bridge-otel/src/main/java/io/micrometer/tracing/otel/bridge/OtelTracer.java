@@ -26,7 +26,6 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.SpanCustomizer;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.docs.AssertingSpan;
 
 /**
  * OpenTelemetry implementation of a {@link Tracer}.
@@ -64,7 +63,7 @@ public class OtelTracer implements Tracer {
     @Override
     public Tracer.SpanInScope withSpan(Span span) {
         io.opentelemetry.api.trace.Span delegate = delegate(span);
-        return new OtelSpanInScope(AssertingSpan.unwrap(span), delegate);
+        return new OtelSpanInScope((OtelSpan) span, delegate);
     }
 
     private io.opentelemetry.api.trace.Span delegate(Span span) {
@@ -74,7 +73,7 @@ public class OtelTracer implements Tracer {
             this.publisher.publishEvent(new EventPublishingContextWrapper.ScopeClosedEvent());
             return io.opentelemetry.api.trace.Span.getInvalid();
         }
-        return ((OtelSpan) AssertingSpan.unwrap(span)).delegate;
+        return ((OtelSpan) span).delegate;
     }
 
     @Override

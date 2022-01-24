@@ -17,7 +17,6 @@
 package io.micrometer.tracing.brave.bridge;
 
 import io.micrometer.tracing.SpanCustomizer;
-import io.micrometer.tracing.docs.AssertingSpanCustomizer;
 
 /**
  * Brave implementation of a {@link SpanCustomizer}.
@@ -34,7 +33,7 @@ public class BraveSpanCustomizer implements SpanCustomizer {
     }
 
     static brave.SpanCustomizer toBrave(SpanCustomizer spanCustomizer) {
-        return ((BraveSpanCustomizer) AssertingSpanCustomizer.unwrap(spanCustomizer)).spanCustomizer;
+        return ((BraveSpanCustomizer) spanCustomizer).spanCustomizer;
     }
 
     static SpanCustomizer fromBrave(brave.SpanCustomizer spanCustomizer) {
