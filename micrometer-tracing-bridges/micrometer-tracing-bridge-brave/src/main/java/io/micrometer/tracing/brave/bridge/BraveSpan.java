@@ -37,7 +37,7 @@ public class BraveSpan implements Span {
     }
 
     public static brave.Span toBrave(Span span) {
-        BraveSpan unwrap = (BraveSpan) span;
+        BraveSpan braveSpan = (BraveSpan) span;
         if (unwrap == null) {
             return null;
         }
