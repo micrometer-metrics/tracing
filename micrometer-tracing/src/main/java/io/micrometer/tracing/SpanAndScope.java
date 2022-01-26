@@ -26,7 +26,7 @@ import io.micrometer.api.internal.logging.InternalLoggerFactory;
  *
  * @author Marcin Grzejszczak
  * @author Arthur Gavlyukovskiy
- * @since 3.1.0
+ * @since 1.0.0
  */
 public class SpanAndScope implements Closeable {
 
@@ -41,10 +41,20 @@ public class SpanAndScope implements Closeable {
         this.scope = scope;
     }
 
+    /**
+     * Attached span.
+     *
+     * @return span
+     */
     public Span getSpan() {
         return this.span;
     }
 
+    /**
+     * Attached scope.
+     *
+     * @return scope
+     */
     public Tracer.SpanInScope getScope() {
         return this.scope;
     }

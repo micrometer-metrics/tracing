@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.micrometer.tracing.Span;
-import io.micrometer.tracing.docs.AssertingSpan;
 import io.opentelemetry.context.Context;
 
 
@@ -54,7 +53,7 @@ class OtelSpan implements Span {
     }
 
     static io.opentelemetry.api.trace.Span toOtel(Span span) {
-        return ((OtelSpan) AssertingSpan.unwrap(span)).delegate;
+        return ((OtelSpan) span).delegate;
     }
 
     static Span fromOtel(io.opentelemetry.api.trace.Span span) {
@@ -152,14 +151,10 @@ class OtelSpan implements Span {
         if (this == o) {
             return true;
         }
-        Object unwrapped = o;
-        if (o instanceof AssertingSpan) {
-            unwrapped = ((AssertingSpan) o).getDelegate();
-        }
-        if (unwrapped == null || getClass() != unwrapped.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        OtelSpan otelSpan = (OtelSpan) unwrapped;
+        OtelSpan otelSpan = (OtelSpan) o;
         return Objects.equals(this.delegate, otelSpan.delegate);
     }
 

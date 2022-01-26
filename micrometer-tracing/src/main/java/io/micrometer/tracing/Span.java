@@ -119,7 +119,7 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
      * @param ip remote ip
      * @param port remote port
      * @return this span
-     * @since 3.1.0
+     * @since 1.0.0
      */
     Span remoteIpAndPort(String ip, int port);
 

@@ -16,101 +16,97 @@
 
 package io.micrometer.tracing.docs;
 
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanCustomizer;
+import io.micrometer.api.instrument.docs.DocumentedSample;
+import io.micrometer.api.instrument.docs.TagKey;
+import io.micrometer.tracing.handler.TracingRecordingHandler;
 
 /**
  * In order to describe your spans via e.g. enums instead of Strings you can use this
- * interface that returns all the characteristics of a span. In Spring Cloud Sleuth we
+ * interface that returns all the characteristics of a span. In Micrometer Tracing we
  * analyze the sources and reuse this information to build a table of known spans, their
  * names, tags and events.
  *
  * We can generate documentation for all created spans but certain requirements need to be
  * met
  *
- * - spans are grouped within an enum - the enum implements the {@link DocumentedSpan}
- * interface - if the span contains {@link TagKey} or {@link EventValue} then those need
- * to be declared as nested enums - the {@link DocumentedSpan#getTagKeys()} and
- * {@link DocumentedSpan#getEvents()} need to call the nested enum's {@code values()}
- * method to retrieve the array of allowed keys / events
+ * <ul>
+ *     <li>Metrics are grouped within an enum - the enum implements the {@link DocumentedSpan} interface</li>
+ *     <li>If the span contains {@link TagKey} then those need to be declared as nested enums</li>
+ *     <li>If the span contains {@link EventValue} then those need to be declared as nested enums</li>
+ *     <li>The {@link DocumentedSpan#getTagKeys()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
+ *     <li>The {@link DocumentedSpan#getEvents()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
+ *     <li>Javadocs around enums will be used as description</li>
+ * </ul>
  *
  * @author Marcin Grzejszczak
- * @since 3.1.0
+ * @since 1.0.0
  */
 public interface DocumentedSpan {
+    /**
+     * Empty tag keys.
+     */
+    TagKey[] EMPTY_TAGS = new TagKey[0];
 
     /**
-     * @return span name
+     * Empty values.
+     */
+    EventValue[] EMPTY_VALUES = new EventValue[0];
+
+    /**
+     * Span name.
+     *
+     * @return metric name
      */
     String getName();
 
     /**
-     * @return allowed tag keys
+     * Builds a name from provided vars. Follows the {@link String#format(String, Object...)} patterns.
+     *
+     * @param vars variables to pass to {@link String#format(String, Object...)}
+     * @return constructed name
      */
-    default TagKey[] getTagKeys() {
-        return new TagKey[0];
+    default String getName(String... vars) {
+        if (getName().contains("%s")) {
+            return String.format(getName(), (Object[]) vars);
+        }
+        return getName();
     }
 
     /**
+     * Allowed events.
+     *
      * @return allowed events
      */
     default EventValue[] getEvents() {
-        return new EventValue[0];
+        return EMPTY_VALUES;
     }
 
     /**
-     * Returns required prefix to be there for events and tags. Example {@code foo.} would
-     * require the tags and events to have a {code foo} prefix like this for tags:
-     * {@code foo.bar=true} and {@code foo.started} for events.
-     * @return required prefix
+     * Allowed tag keys.
+     *
+     * @return allowed tag keys - if set will override any tag keys coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
      */
-    default String prefix() {
-        return "";
+    default TagKey[] getTagKeys() {
+        return EMPTY_TAGS;
     }
 
     /**
-     * Asserts on tags, names and allowed events.
-     * @param span to wrap
-     * @return wrapped span
+     * Additional tag keys.
+     *
+     * @return additional tag keys - if set will append any tag keys coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
      */
-    default AssertingSpan wrap(Span span) {
-        if (span == null) {
-            return null;
-        }
-        else if (span instanceof AssertingSpan) {
-            return (AssertingSpan) span;
-        }
-        return AssertingSpan.of(this, span);
+    default TagKey[] getAdditionalTagKeys() {
+        return EMPTY_TAGS;
     }
 
     /**
-     * Asserts on tags, names and allowed events.
-     * @param span to wrap
-     * @return wrapped span
+     * Provide a {@link DocumentedSample} class whose default
+     * span creation should be ignored and will be overridden by this implementation. This should be overridden when
+     * you have a custom {@link TracingRecordingHandler} that sets up spans in a custom fashion.
+     *
+     * @return {@link DocumentedSample} class
      */
-    default AssertingSpanCustomizer wrap(SpanCustomizer span) {
-        if (span == null) {
-            return null;
-        }
-        else if (span instanceof AssertingSpanCustomizer) {
-            return (AssertingSpanCustomizer) span;
-        }
-        return AssertingSpanCustomizer.of(this, span);
+    default DocumentedSample overridesDefaultSpanFrom() {
+        return null;
     }
-
-    /**
-     * Asserts on tags, names and allowed events.
-     * @param span builder to wrap
-     * @return wrapped span
-     */
-    default AssertingSpanBuilder wrap(Span.Builder span) {
-        if (span == null) {
-            return null;
-        }
-        else if (span instanceof AssertingSpanBuilder) {
-            return (AssertingSpanBuilder) span;
-        }
-        return AssertingSpanBuilder.of(this, span);
-    }
-
 }

@@ -27,7 +27,7 @@ import io.micrometer.api.internal.logging.InternalLoggerFactory;
  * Represents a {@link Span} stored in thread local.
  *
  * @author Marcin Grzejszczak
- * @since 3.1.0
+ * @since 1.0.0
  */
 public class ThreadLocalSpan {
 
@@ -39,6 +39,11 @@ public class ThreadLocalSpan {
 
     private final Tracer tracer;
 
+    /**
+     * Creates a new instance of {@link ThreadLocalSpan}.
+     *
+     * @param tracer tracer
+     */
     public ThreadLocalSpan(Tracer tracer) {
         this.tracer = tracer;
     }

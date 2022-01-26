@@ -26,7 +26,6 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.SpanCustomizer;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.docs.AssertingSpan;
 
 /**
  * Brave implementation of a {@link Tracer}.
@@ -63,7 +62,7 @@ public class BraveTracer implements Tracer {
     @Override
     public SpanInScope withSpan(Span span) {
         return new BraveSpanInScope(
-                tracer.withSpanInScope(span == null ? null : ((BraveSpan) AssertingSpan.unwrap(span)).delegate));
+                tracer.withSpanInScope(span == null ? null : ((BraveSpan) span).delegate));
     }
 
     @Override

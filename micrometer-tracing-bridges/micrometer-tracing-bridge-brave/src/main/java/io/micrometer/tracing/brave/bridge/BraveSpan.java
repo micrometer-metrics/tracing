@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.docs.AssertingSpan;
 
 /**
  * Brave implementation of a {@link Span}.
@@ -38,11 +37,11 @@ public class BraveSpan implements Span {
     }
 
     public static brave.Span toBrave(Span span) {
-        BraveSpan unwrap = AssertingSpan.unwrap(span);
-        if (unwrap == null) {
+        BraveSpan braveSpan = (BraveSpan) span;
+        if (braveSpan == null) {
             return null;
         }
-        return unwrap.delegate;
+        return braveSpan.delegate;
     }
 
     public static Span fromBrave(brave.Span span) {
@@ -137,14 +136,10 @@ public class BraveSpan implements Span {
         if (this == o) {
             return true;
         }
-        Object unwrapped = o;
-        if (o instanceof AssertingSpan) {
-            unwrapped = ((AssertingSpan) o).getDelegate();
-        }
-        if (unwrapped == null || getClass() != unwrapped.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        BraveSpan braveSpan = (BraveSpan) unwrapped;
+        BraveSpan braveSpan = (BraveSpan) o;
         return Objects.equals(this.delegate, braveSpan.delegate);
     }
 
