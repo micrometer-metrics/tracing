@@ -41,10 +41,20 @@ public class SpanAndScope implements Closeable {
         this.scope = scope;
     }
 
+    /**
+     * Attached span.
+     *
+     * @return span
+     */
     public Span getSpan() {
         return this.span;
     }
 
+    /**
+     * Attached scope.
+     *
+     * @return scope
+     */
     public Tracer.SpanInScope getScope() {
         return this.scope;
     }

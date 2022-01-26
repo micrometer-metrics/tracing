@@ -38,10 +38,10 @@ public class BraveSpan implements Span {
 
     public static brave.Span toBrave(Span span) {
         BraveSpan braveSpan = (BraveSpan) span;
-        if (unwrap == null) {
+        if (braveSpan == null) {
             return null;
         }
-        return unwrap.delegate;
+        return braveSpan.delegate;
     }
 
     public static Span fromBrave(brave.Span span) {

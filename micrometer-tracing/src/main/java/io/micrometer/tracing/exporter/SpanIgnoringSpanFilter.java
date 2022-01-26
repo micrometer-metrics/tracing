@@ -43,6 +43,12 @@ public class SpanIgnoringSpanFilter implements SpanFilter {
 
     private final List<String> additionalSpanNamePatternsToIgnore;
 
+    /**
+     * Creates a new instance of {@link SpanIgnoringSpanFilter}.
+     *
+     * @param spanNamePatternsToSkip - name patterns to skip
+     * @param additionalSpanNamePatternsToIgnore - additional span names to ignore
+     */
     public SpanIgnoringSpanFilter(List<String> spanNamePatternsToSkip,
             List<String> additionalSpanNamePatternsToIgnore) {
         this.spanNamePatternsToSkip = spanNamePatternsToSkip;

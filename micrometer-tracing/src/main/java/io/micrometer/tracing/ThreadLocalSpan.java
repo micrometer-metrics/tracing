@@ -39,6 +39,11 @@ public class ThreadLocalSpan {
 
     private final Tracer tracer;
 
+    /**
+     * Creates a new instance of {@link ThreadLocalSpan}.
+     *
+     * @param tracer tracer
+     */
     public ThreadLocalSpan(Tracer tracer) {
         this.tracer = tracer;
     }
