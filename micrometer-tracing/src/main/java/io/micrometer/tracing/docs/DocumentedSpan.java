@@ -30,11 +30,11 @@ import io.micrometer.tracing.handler.TracingRecordingHandler;
  * met
  *
  * <ul>
- *     <li>metrics are grouped within an enum - the enum implements the {@link DocumentedSpan} interface</li>
- *     <li>if the span contains {@link TagKey} then those need to be declared as nested enums</li>
- *     <li>if the span contains {@link EventValue} then those need to be declared as nested enums</li>
- *     <li>the {@link DocumentedSpan#getTagKeys()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
- *     <li>the {@link DocumentedSpan#getEvents()} ()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
+ *     <li>Metrics are grouped within an enum - the enum implements the {@link DocumentedSpan} interface</li>
+ *     <li>If the span contains {@link TagKey} then those need to be declared as nested enums</li>
+ *     <li>If the span contains {@link EventValue} then those need to be declared as nested enums</li>
+ *     <li>The {@link DocumentedSpan#getTagKeys()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
+ *     <li>The {@link DocumentedSpan#getEvents()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
  *     <li>Javadocs around enums will be used as description</li>
  * </ul>
  *
@@ -42,14 +42,26 @@ import io.micrometer.tracing.handler.TracingRecordingHandler;
  * @since 1.0.0
  */
 public interface DocumentedSpan {
+    /**
+     * Empty tag keys.
+     */
+    TagKey[] EMPTY_TAGS = new TagKey[0];
 
     /**
-     * @return span name
+     * Empty values.
+     */
+    EventValue[] EMPTY_VALUES = new EventValue[0];
+
+    /**
+     * Span name.
+     *
+     * @return metric name
      */
     String getName();
 
     /**
      * Builds a name from provided vars. Follows the {@link String#format(String, Object...)} patterns.
+     *
      * @param vars variables to pass to {@link String#format(String, Object...)}
      * @return constructed name
      */
@@ -61,24 +73,30 @@ public interface DocumentedSpan {
     }
 
     /**
+     * Allowed events.
+     *
      * @return allowed events
      */
     default EventValue[] getEvents() {
-        return new EventValue[0];
+        return EMPTY_VALUES;
     }
 
     /**
+     * Allowed tag keys.
+     *
      * @return allowed tag keys - if set will override any tag keys coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
      */
     default TagKey[] getTagKeys() {
-        return new TagKey[0];
+        return EMPTY_TAGS;
     }
 
     /**
+     * Additional tag keys.
+     *
      * @return additional tag keys - if set will append any tag keys coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
      */
     default TagKey[] getAdditionalTagKeys() {
-        return new TagKey[0];
+        return EMPTY_TAGS;
     }
 
     /**
