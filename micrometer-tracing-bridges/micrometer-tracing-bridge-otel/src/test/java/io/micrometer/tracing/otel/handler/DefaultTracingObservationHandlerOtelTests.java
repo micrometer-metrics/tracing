@@ -21,7 +21,7 @@ import java.util.Queue;
 
 import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.BDDAssertions.then;
 
 @SuppressWarnings("unchecked")
-class DefaultTracingRecordingHandlerOtelTests {
+class DefaultTracingObservationHandlerOtelTests {
 
     ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
 
@@ -53,7 +53,7 @@ class DefaultTracingRecordingHandlerOtelTests {
     Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> {
     }, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
 
-    DefaultTracingRecordingHandler handler = new DefaultTracingRecordingHandler(tracer);
+    DefaultTracingObservationHandler handler = new DefaultTracingObservationHandler(tracer);
 
     @Test
     void should_be_applicable_for_non_null_context() {

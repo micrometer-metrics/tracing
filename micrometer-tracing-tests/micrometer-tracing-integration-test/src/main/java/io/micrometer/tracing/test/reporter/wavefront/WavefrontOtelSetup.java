@@ -31,9 +31,9 @@ import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.api.instrument.MeterRegistry;
 import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.SamplerFunction;
-import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
-import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
-import io.micrometer.tracing.handler.HttpServerTracingRecordingHandler;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
+import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.otel.bridge.DefaultHttpClientAttributesExtractor;
@@ -333,7 +333,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             OtelTracer tracer = otelBuildingBlocks.otelTracer;
             HttpServerHandler httpServerHandler = otelBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = otelBuildingBlocks.httpClientHandler;
-            LinkedList<ObservationHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, httpClientHandler), new DefaultTracingRecordingHandler(tracer)));
+            LinkedList<ObservationHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingObservationHandler(tracer, httpServerHandler), new HttpClientTracingObservationHandler(tracer, httpClientHandler), new DefaultTracingObservationHandler(tracer)));
             otelBuildingBlocks.customizers.accept(otelBuildingBlocks, handlers);
             return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
         }

@@ -26,13 +26,13 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
-import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
 @SuppressWarnings("unchecked")
-class DefaultTracingRecordingHandlerBraveTests {
+class DefaultTracingObservationHandlerBraveTests {
 
     TestSpanHandler testSpanHandler = new TestSpanHandler();
 
@@ -42,7 +42,7 @@ class DefaultTracingRecordingHandlerBraveTests {
 
     Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()), new BraveBaggageManager());
 
-    DefaultTracingRecordingHandler handler = new DefaultTracingRecordingHandler(tracer);
+    DefaultTracingObservationHandler handler = new DefaultTracingObservationHandler(tracer);
 
     @Test
     void should_be_applicable_for_non_null_context() {

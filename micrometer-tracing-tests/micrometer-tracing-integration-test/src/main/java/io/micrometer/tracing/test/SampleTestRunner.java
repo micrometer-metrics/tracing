@@ -31,6 +31,7 @@ import io.micrometer.api.internal.logging.InternalLogger;
 import io.micrometer.api.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.handler.TracingObservationHandler;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontBraveSetup;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontOtelSetup;
@@ -49,7 +50,7 @@ import zipkin2.reporter.Sender;
  * Prepares the required tracing setup and reporters / exporters. The user
  * needs to just provide the code to test and that way all the combinations
  * of tracers and exporters will be automatically applied. It also sets up the
- * {@link MeterRegistry} in such a way that it consists all {@link io.micrometer.tracing.handler.TracingRecordingHandler}
+ * {@link MeterRegistry} in such a way that it consists all {@link TracingObservationHandler}
  * injected into {@link io.micrometer.api.instrument.MeterRegistry.Config}.
  *
  * When extending this class you can either eagerly pass the {@link MeterRegistry} and

@@ -27,16 +27,16 @@ import io.micrometer.tracing.Tracer;
  * @since 1.0.0
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
+public class DefaultTracingObservationHandler implements TracingObservationHandler {
 
     private final Tracer tracer;
 
     /**
-     * Creates a new instance of {@link DefaultTracingRecordingHandler}.
+     * Creates a new instance of {@link DefaultTracingObservationHandler}.
      *
      * @param tracer the tracer to use to record events
      */
-    public DefaultTracingRecordingHandler(Tracer tracer) {
+    public DefaultTracingObservationHandler(Tracer tracer) {
         this.tracer = tracer;
     }
 

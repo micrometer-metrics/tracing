@@ -32,7 +32,7 @@ import io.micrometer.api.internal.logging.InternalLoggerFactory;
 import io.micrometer.api.ipc.http.HttpSender;
 import io.micrometer.api.ipc.http.HttpUrlConnectionSender;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontAccessor;
@@ -115,7 +115,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
                     .untilAsserted(() -> BDDMockito.then(handler).should(BDDMockito.atLeastOnce()).end(BDDMockito.any(), BDDMockito.any()));
         }
         then(handlers.getFirst()).isInstanceOf(MyRecordingHandler.class);
-        then(handlers.getLast()).isInstanceOf(DefaultTracingRecordingHandler.class);
+        then(handlers.getLast()).isInstanceOf(DefaultTracingObservationHandler.class);
     }
 
     @AfterEach

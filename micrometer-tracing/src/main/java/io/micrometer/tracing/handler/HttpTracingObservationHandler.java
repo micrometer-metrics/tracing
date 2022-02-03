@@ -29,8 +29,8 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>
-        implements TracingRecordingHandler<CTX> {
+abstract class HttpTracingObservationHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>
+        implements TracingObservationHandler<CTX> {
 
     private final Tracer tracer;
 
@@ -40,7 +40,7 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
 
     private final BiConsumer<RES, Span> stopConsumer;
 
-    HttpTracingRecordingHandler(Tracer tracer, Function<REQ, Span> startFunction,
+    HttpTracingObservationHandler(Tracer tracer, Function<REQ, Span> startFunction,
             BiConsumer<RES, Span> stopConsumer) {
         this.tracer = tracer;
         this.currentTraceContext = tracer.currentTraceContext();

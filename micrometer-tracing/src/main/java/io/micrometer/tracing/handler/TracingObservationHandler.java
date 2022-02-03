@@ -32,7 +32,7 @@ import io.micrometer.tracing.internal.SpanNameUtil;
  * @since 1.0.0
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public interface TracingRecordingHandler<T extends Observation.Context>
+public interface TracingObservationHandler<T extends Observation.Context>
         extends ObservationHandler<T> {
 
     /**

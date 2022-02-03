@@ -35,29 +35,29 @@ import io.micrometer.tracing.http.HttpServerHandler;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class HttpServerTracingRecordingHandler extends
-        HttpTracingRecordingHandler<HttpServerHandlerContext, HttpServerRequest, HttpServerResponse>
-        implements TracingRecordingHandler<HttpServerHandlerContext> {
+public class HttpServerTracingObservationHandler extends
+        HttpTracingObservationHandler<HttpServerHandlerContext, HttpServerRequest, HttpServerResponse>
+        implements TracingObservationHandler<HttpServerHandlerContext> {
 
     /**
-     * Creates a new instance of {@link HttpServerTracingRecordingHandler}.
+     * Creates a new instance of {@link HttpServerTracingObservationHandler}.
      *
      * @param tracer tracer
      * @param handler http server handler
      */
-    public HttpServerTracingRecordingHandler(Tracer tracer, HttpServerHandler handler) {
+    public HttpServerTracingObservationHandler(Tracer tracer, HttpServerHandler handler) {
         super(tracer, handler::handleReceive, handler::handleSend);
     }
 
     /**
      *
-     * Creates a new instance of {@link HttpServerTracingRecordingHandler}.
+     * Creates a new instance of {@link HttpServerTracingObservationHandler}.
      *
      * @param tracer tracer
      * @param startFunction  function that creates a span
      * @param stopConsumer lambda to be applied on the span upon receiving the response
      */
-    public HttpServerTracingRecordingHandler(Tracer tracer, Function<HttpServerRequest, Span> startFunction,
+    public HttpServerTracingObservationHandler(Tracer tracer, Function<HttpServerRequest, Span> startFunction,
             BiConsumer<HttpServerResponse, Span> stopConsumer) {
         super(tracer, startFunction, stopConsumer);
     }
