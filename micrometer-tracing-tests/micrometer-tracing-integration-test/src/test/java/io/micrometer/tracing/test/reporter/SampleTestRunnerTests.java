@@ -16,7 +16,6 @@
 
 package io.micrometer.tracing.test.reporter;
 
-import java.time.Duration;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -25,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.Timer;
-import io.micrometer.api.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.observation.Observation;
+import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.api.internal.logging.InternalLogger;
 import io.micrometer.api.internal.logging.InternalLoggerFactory;
@@ -82,13 +81,13 @@ class SampleTestRunnerTests extends SampleTestRunner {
         return new SimpleMeterRegistry();
     }
 
-    Deque<TimerRecordingHandler> handlers;
+    Deque<ObservationHandler> handlers;
 
     @Override
-    public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizeTimerRecordingHandlers() {
-        return (buildingBlocks, timerRecordingHandlers) -> {
-            timerRecordingHandlers.addFirst(new MyRecordingHandler());
-            this.handlers = timerRecordingHandlers;
+    public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizeObservationHandlers() {
+        return (buildingBlocks, ObservationHandlers) -> {
+            ObservationHandlers.addFirst(new MyRecordingHandler());
+            this.handlers = ObservationHandlers;
         };
     }
 
@@ -138,28 +137,30 @@ class SampleTestRunnerTests extends SampleTestRunner {
             BDDAssertions.then(tracer.currentSpan()).isNotNull();
             traces.add(tracer.currentSpan().context().traceId());
 
-            Timer.Sample start = Timer.start(meterRegistry);
-            LOGGER.info("Hello");
-            start.stop(Timer.builder("name"));
+            Observation start = Observation.start("name", meterRegistry);
+            try (Observation.Scope scope = start.openScope()) {
+                LOGGER.info("Hello");
+            }
+            start.stop();
         };
     }
 
-    static class MyRecordingHandler implements TimerRecordingHandler {
+    static class MyRecordingHandler implements ObservationHandler {
 
         @Override
-        public void onStart(Timer.Sample sample, Timer.HandlerContext context) {
+        public void onStart(Observation.Context context) {
         }
 
         @Override
-        public void onError(Timer.Sample sample, Timer.HandlerContext context, Throwable throwable) {
+        public void onError(Observation.Context context) {
         }
 
         @Override
-        public void onStop(Timer.Sample sample, Timer.HandlerContext context, Timer timer, Duration duration) {
+        public void onStop(Observation.Context context) {
         }
 
         @Override
-        public boolean supportsContext(Timer.HandlerContext handlerContext) {
+        public boolean supportsContext(Observation.Context handlerContext) {
             return false;
         }
     }

@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.handler.HttpClientTracingRecordingHandler;
@@ -114,13 +114,13 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer;
 
-        private BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
         private Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler;
 
         private Function<OpenTelemetrySdk, HttpClientHandler> httpClientHandler;
 
-        private Function<OtelBuildingBlocks, TimerRecordingHandler> handlers;
+        private Function<OtelBuildingBlocks, ObservationHandler> handlers;
 
         private Consumer<OtelBuildingBlocks> closingFunction;
 
@@ -145,9 +145,9 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
-            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
+            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
                 this.sender = sender;
                 this.zipkinSpanExporter = zipkinSpanExporter;
                 this.sdkTracerProvider = sdkTracerProvider;
@@ -175,7 +175,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers() {
                 return this.customizers;
             }
         }
@@ -220,7 +220,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
+        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -235,7 +235,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder handlers(Function<OtelBuildingBlocks, TimerRecordingHandler> tracingHandlers) {
+        public Builder handlers(Function<OtelBuildingBlocks, ObservationHandler> tracingHandlers) {
             this.handlers = tracingHandlers;
             return this;
         }
@@ -248,7 +248,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
-         * @param meterRegistry meter registry to which the {@link TimerRecordingHandler} should be attached
+         * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
          * @return setup with all OTel building blocks
          */
         public ZipkinOtelSetup register(MeterRegistry meterRegistry) {
@@ -260,11 +260,11 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
-            BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sender, zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler, customizers);
-            TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
-            meterRegistry.config().timerRecordingHandler(tracingHandlers);
+            ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
+            meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new ZipkinOtelSetup(closingFunction, otelBuildingBlocks);
         }
@@ -320,13 +320,13 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         }
 
         @SuppressWarnings("rawtypes")
-        private static TimerRecordingHandler tracingHandlers(OtelBuildingBlocks otelBuildingBlocks) {
+        private static ObservationHandler tracingHandlers(OtelBuildingBlocks otelBuildingBlocks) {
             OtelTracer tracer = otelBuildingBlocks.otelTracer;
             HttpServerHandler httpServerHandler = otelBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = otelBuildingBlocks.httpClientHandler;
-            LinkedList<TimerRecordingHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, httpClientHandler), new DefaultTracingRecordingHandler(tracer)));
+            LinkedList<ObservationHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, httpClientHandler), new DefaultTracingRecordingHandler(tracer)));
             otelBuildingBlocks.customizers.accept(otelBuildingBlocks, handlers);
-            return new TimerRecordingHandler.FirstMatchingCompositeTimerRecordingHandler(handlers);
+            return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
         }
 
     }
@@ -348,7 +348,8 @@ public final class ZipkinOtelSetup implements AutoCloseable {
     public static void run(ZipkinOtelSetup localZipkinBrave, Consumer<OtelBuildingBlocks> consumer) {
         try {
             consumer.accept(localZipkinBrave.getBuildingBlocks());
-        } finally {
+        }
+        finally {
             localZipkinBrave.close();
         }
     }

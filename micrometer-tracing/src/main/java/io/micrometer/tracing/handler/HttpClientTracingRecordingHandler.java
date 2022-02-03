@@ -16,17 +16,16 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.api.instrument.Meter;
-import io.micrometer.api.instrument.Timer;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.transport.http.HttpClientRequest;
 import io.micrometer.api.instrument.transport.http.HttpClientResponse;
 import io.micrometer.api.instrument.transport.http.context.HttpClientHandlerContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpClientHandler;
-
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * TracingRecordingListener that uses the Tracing API to record events for HTTP client
@@ -58,12 +57,12 @@ public class HttpClientTracingRecordingHandler extends
      * @param stopConsumer lambda to be applied on the span upon receiving the response
      */
     public HttpClientTracingRecordingHandler(Tracer tracer, Function<HttpClientRequest, Span> startFunction,
-                                             BiConsumer<HttpClientResponse, Span> stopConsumer) {
+            BiConsumer<HttpClientResponse, Span> stopConsumer) {
         super(tracer, startFunction, stopConsumer);
     }
 
     @Override
-    public boolean supportsContext(Timer.HandlerContext context) {
+    public boolean supportsContext(Observation.Context context) {
         return context instanceof HttpClientHandlerContext;
     }
 
@@ -73,7 +72,7 @@ public class HttpClientTracingRecordingHandler extends
     }
 
     @Override
-    public String getSpanName(HttpClientHandlerContext ctx, Meter.Id id) {
+    public String getSpanName(HttpClientHandlerContext ctx) {
         return getRequest(ctx).method();
     }
 

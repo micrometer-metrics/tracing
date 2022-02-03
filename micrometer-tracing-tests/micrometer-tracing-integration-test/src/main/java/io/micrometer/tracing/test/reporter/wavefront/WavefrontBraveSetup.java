@@ -31,7 +31,7 @@ import brave.sampler.Sampler;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
@@ -54,7 +54,7 @@ import io.micrometer.tracing.test.reporter.BuildingBlocks;
  * @since 1.0.0
  */
 public final class WavefrontBraveSetup implements AutoCloseable {
-    
+
     // To be used in tests ONLY
     static WavefrontSpanHandler mockHandler;
 
@@ -115,9 +115,9 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private Function<HttpTracing, HttpClientHandler> httpClientHandler;
 
-        private Function<BraveBuildingBlocks, TimerRecordingHandler> handlers;
+        private Function<BraveBuildingBlocks, ObservationHandler> handlers;
 
-        private BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
         private Consumer<BraveBuildingBlocks> closingFunction;
 
@@ -137,9 +137,9 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             public final HttpTracing httpTracing;
             public final HttpServerHandler httpServerHandler;
             public final HttpClientHandler httpClientHandler;
-            public final BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
-            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
+            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
                 this.wavefrontSpanHandler = wavefrontSpanHandler;
                 this.tracing = tracing;
                 this.tracer = tracer;
@@ -165,7 +165,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers() {
                 return this.customizers;
             }
         }
@@ -205,7 +205,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder timerRecordingHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers) {
+        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -220,7 +220,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder handlers(Function<BraveBuildingBlocks, TimerRecordingHandler> tracingHandlers) {
+        public Builder handlers(Function<BraveBuildingBlocks, ObservationHandler> tracingHandlers) {
             this.handlers = tracingHandlers;
             return this;
         }
@@ -233,7 +233,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
-         * @param meterRegistry meter registry to which the {@link TimerRecordingHandler} should be attached
+         * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
          * @return setup with all Brave building blocks
          */
         public WavefrontBraveSetup register(MeterRegistry meterRegistry) {
@@ -244,11 +244,11 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler, customizers);
-            TimerRecordingHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
-            meterRegistry.config().timerRecordingHandler(tracingHandlers);
+            ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
+            meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new WavefrontBraveSetup(closingFunction, braveBuildingBlocks);
         }
@@ -302,13 +302,13 @@ public final class WavefrontBraveSetup implements AutoCloseable {
         }
 
         @SuppressWarnings("rawtypes")
-        private static TimerRecordingHandler tracingHandlers(BraveBuildingBlocks braveBuildingBlocks) {
+        private static ObservationHandler tracingHandlers(BraveBuildingBlocks braveBuildingBlocks) {
             Tracer tracer = braveBuildingBlocks.tracer;
             HttpServerHandler httpServerHandler = braveBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = braveBuildingBlocks.httpClientHandler;
-            LinkedList<TimerRecordingHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, httpClientHandler), new DefaultTracingRecordingHandler(tracer)));
+            LinkedList<ObservationHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingRecordingHandler(tracer, httpServerHandler), new HttpClientTracingRecordingHandler(tracer, httpClientHandler), new DefaultTracingRecordingHandler(tracer)));
             braveBuildingBlocks.customizers.accept(braveBuildingBlocks, handlers);
-            return new TimerRecordingHandler.FirstMatchingCompositeTimerRecordingHandler(handlers);
+            return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
         }
 
     }
@@ -332,7 +332,8 @@ public final class WavefrontBraveSetup implements AutoCloseable {
     public static void run(WavefrontBraveSetup setup, Consumer<Builder.BraveBuildingBlocks> consumer) {
         try {
             consumer.accept(setup.getBuildingBlocks());
-        } finally {
+        }
+        finally {
             setup.close();
         }
     }

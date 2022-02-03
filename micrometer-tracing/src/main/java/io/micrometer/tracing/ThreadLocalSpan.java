@@ -16,12 +16,7 @@
 
 package io.micrometer.tracing;
 
-import java.util.Deque;
-import java.util.NoSuchElementException;
-import java.util.concurrent.LinkedBlockingDeque;
-
-import io.micrometer.api.internal.logging.InternalLogger;
-import io.micrometer.api.internal.logging.InternalLoggerFactory;
+import java.util.ArrayDeque;
 
 /**
  * Represents a {@link Span} stored in thread local.
@@ -31,11 +26,7 @@ import io.micrometer.api.internal.logging.InternalLoggerFactory;
  */
 public class ThreadLocalSpan {
 
-    private static final InternalLogger log = InternalLoggerFactory.getInstance(ThreadLocalSpan.class);
-
-    private final ThreadLocal<SpanAndScope> threadLocalSpan = new ThreadLocal<>();
-
-    private final Deque<SpanAndScope> spans = new LinkedBlockingDeque<>();
+    private final ThreadLocal<ArrayDeque<SpanAndScope>> currentSpanInScopeStack = new ThreadLocal<>();
 
     private final Tracer tracer;
 
@@ -55,41 +46,42 @@ public class ThreadLocalSpan {
     public void set(Span span) {
         Tracer.SpanInScope spanInScope = this.tracer.withSpan(span);
         SpanAndScope newSpanAndScope = new SpanAndScope(span, spanInScope);
-        SpanAndScope scope = this.threadLocalSpan.get();
-        if (scope != null) {
-            this.spans.addFirst(scope);
-        }
-        this.threadLocalSpan.set(newSpanAndScope);
+        getCurrentSpanInScopeStack().addFirst(newSpanAndScope);
     }
 
     /**
-     * @return currently stored span and scope
+     * Returns the currently stored span and scope.
+     *
+     * @return span and scope
      */
     public SpanAndScope get() {
-        return this.threadLocalSpan.get();
+        return getCurrentSpanInScopeStack().peekFirst();
     }
 
     /**
      * Removes the current span from thread local and brings back the previous span to the
      * current thread local.
+     *
+     * @return removed span of {@code null} if there was none
      */
-    public void remove() {
-        this.threadLocalSpan.remove();
-        if (this.spans.isEmpty()) {
-            return;
+    public SpanAndScope remove() {
+        SpanAndScope spanAndScope = getCurrentSpanInScopeStack().pollFirst();
+        if (spanAndScope == null) {
+            return null;
         }
-        try {
-            SpanAndScope span = this.spans.removeFirst();
-            if (log.isDebugEnabled()) {
-                log.debug("Took span [" + span + "] from thread local");
-            }
-            this.threadLocalSpan.set(span);
+        if (spanAndScope.getScope() != null) {
+            spanAndScope.getScope().close();
         }
-        catch (NoSuchElementException ex) {
-            if (log.isTraceEnabled()) {
-                log.trace("Failed to remove a span from the queue", ex);
-            }
+        return spanAndScope;
+    }
+
+    private ArrayDeque<SpanAndScope> getCurrentSpanInScopeStack() {
+        ArrayDeque<SpanAndScope> stack = this.currentSpanInScopeStack.get();
+        if (stack == null) {
+            stack = new ArrayDeque<>();
+            this.currentSpanInScopeStack.set(stack);
         }
+        return stack;
     }
 
 }

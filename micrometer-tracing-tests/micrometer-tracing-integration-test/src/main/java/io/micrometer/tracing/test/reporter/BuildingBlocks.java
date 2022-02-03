@@ -19,7 +19,7 @@ package io.micrometer.tracing.test.reporter;
 import java.util.Deque;
 import java.util.function.BiConsumer;
 
-import io.micrometer.api.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
@@ -55,9 +55,9 @@ public interface BuildingBlocks {
     HttpClientHandler getHttpClientHandler();
 
     /**
-     * Returns a collection of default {@link TimerRecordingHandler} customizers.
+     * Returns a collection of default {@link ObservationHandler} customizers.
      *
      * @return customizers
      */
-    BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> getCustomizers();
+    BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers();
 }

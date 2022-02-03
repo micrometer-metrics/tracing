@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import io.micrometer.api.instrument.Timer;
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.api.internal.logging.InternalLogger;
 import io.micrometer.api.internal.logging.InternalLoggerFactory;
@@ -29,7 +29,6 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-
 
 @WireMockTest
 class ZipkinOtelSetupTests {
@@ -43,9 +42,11 @@ class ZipkinOtelSetupTests {
         ZipkinOtelSetup setup = ZipkinOtelSetup.builder().zipkinUrl(wmri.getHttpBaseUrl()).register(this.simpleMeterRegistry);
 
         ZipkinOtelSetup.run(setup, __ -> {
-            Timer.Sample sample = Timer.start(simpleMeterRegistry);
-            log.info("New sample created");
-            sample.stop(Timer.builder("the-name"));
+            Observation sample = Observation.start("the-name", simpleMeterRegistry);
+            try (Observation.Scope scope = sample.openScope()) {
+                log.info("New sample created");
+            }
+            sample.stop();
         });
 
         Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->

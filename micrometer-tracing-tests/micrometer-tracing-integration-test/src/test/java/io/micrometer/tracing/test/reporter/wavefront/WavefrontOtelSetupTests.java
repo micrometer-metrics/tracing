@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import io.micrometer.api.instrument.Timer;
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.api.internal.logging.InternalLogger;
 import io.micrometer.api.internal.logging.InternalLoggerFactory;
@@ -46,9 +46,11 @@ class WavefrontOtelSetupTests {
                 .register(this.simpleMeterRegistry);
 
         WavefrontOtelSetup.run(setup, __ -> {
-            Timer.Sample sample = Timer.start(simpleMeterRegistry);
-            log.info("New sample created");
-            sample.stop(Timer.builder("the-name"));
+            Observation sample = Observation.start("the-name", simpleMeterRegistry);
+            try (Observation.Scope scope = sample.openScope()) {
+                log.info("New observation created");
+            }
+            sample.stop();
         });
 
         Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->

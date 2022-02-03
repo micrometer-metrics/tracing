@@ -16,38 +16,37 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.api.instrument.Meter;
 import io.micrometer.api.instrument.Tag;
-import io.micrometer.api.instrument.Timer;
-import io.micrometer.api.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.observation.Observation;
+import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
 
 /**
- * Marker interface for tracing listeners.
+ * Marker interface for tracing handlers.
  *
  * @author Marcin Grzejszczak
  * @param <T> type of handler context
  * @since 1.0.0
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public interface TracingRecordingHandler<T extends Timer.HandlerContext>
-        extends TimerRecordingHandler<T> {
+public interface TracingRecordingHandler<T extends Observation.Context>
+        extends ObservationHandler<T> {
 
     /**
      * Tags the span.
      *
      * @param context handler context
-     * @param id metric id
      * @param span span to tag
      */
-    default void tagSpan(T context, Meter.Id id, Span span) {
+    default void tagSpan(T context, Span span) {
         for (Tag tag : context.getAllTags()) {
             if (!tag.getKey().equalsIgnoreCase("ERROR")) {
                 span.tag(tag.getKey(), tag.getValue());
-            } else {
+            }
+            else {
                 // TODO: Does this make sense?
                 span.error(new RuntimeException(tag.getValue()));
             }
@@ -58,11 +57,10 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
      * Get the span name.
      *
      * @param context handler context
-     * @param id metric id
      * @return name for the span
      */
-    default String getSpanName(T context, Meter.Id id) {
-        return SpanNameUtil.toLowerHyphen(id.getName());
+    default String getSpanName(T context) {
+        return SpanNameUtil.toLowerHyphen(context.getName());
     }
 
     /**
@@ -71,7 +69,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
      * @param context recording with context containing scope
      */
     @Override
-    default void onScopeOpened(Timer.Sample sample, T context) {
+    default void onScopeOpened(T context) {
         Span span = getTracingContext(context).getSpan();
         if (span == null) {
             return;
@@ -87,7 +85,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
      * @param context recording with context containing scope
      */
     @Override
-    default void onScopeClosed(Timer.Sample sample, T context) {
+    default void onScopeClosed(T context) {
         TracingContext tracingContext = getTracingContext(context);
         tracingContext.getScope().close();
     }
@@ -95,7 +93,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
     /**
      * Get the current tracing context.
      *
-     * @param context a {@link io.micrometer.api.instrument.Timer.HandlerContext}
+     * @param context a {@link Observation.Context}
      * @return tracing context
      */
     default TracingContext getTracingContext(T context) {
@@ -105,7 +103,7 @@ public interface TracingRecordingHandler<T extends Timer.HandlerContext>
     }
 
     @Override
-    default boolean supportsContext(Timer.HandlerContext context) {
+    default boolean supportsContext(Observation.Context context) {
         return context != null;
     }
 

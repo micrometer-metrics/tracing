@@ -16,18 +16,17 @@
 
 package io.micrometer.tracing.handler;
 
-import java.time.Duration;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import io.micrometer.api.instrument.Timer;
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.transport.http.HttpRequest;
 import io.micrometer.api.instrument.transport.http.HttpResponse;
 import io.micrometer.api.instrument.transport.http.context.HttpHandlerContext;
+import io.micrometer.api.lang.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.api.lang.Nullable;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>
@@ -50,12 +49,7 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
     }
 
     @Override
-    public void onError(Timer.Sample sample, CTX ctx, Throwable throwable) {
-
-    }
-
-    @Override
-    public void onStart(Timer.Sample sample, CTX ctx) {
+    public void onStart(CTX ctx) {
         Span parentSpan = getTracingContext(ctx).getSpan();
         CurrentTraceContext.Scope scope = null;
         if (parentSpan != null) {
@@ -74,7 +68,7 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
     }
 
     @Override
-    public boolean supportsContext(Timer.HandlerContext context) {
+    public boolean supportsContext(Observation.Context context) {
         return context instanceof HttpHandlerContext;
     }
 
@@ -86,11 +80,10 @@ abstract class HttpTracingRecordingHandler<CTX extends HttpHandlerContext, REQ e
     abstract REQ getRequest(CTX ctx);
 
     @Override
-    public void onStop(Timer.Sample sample, CTX ctx, Timer timer,
-            Duration duration) {
+    public void onStop(CTX ctx) {
         Span span = getTracingContext(ctx).getSpan();
-        span.name(getSpanName(ctx, timer.getId()));
-        tagSpan(ctx, timer.getId(), span);
+        span.name(getSpanName(ctx));
+        tagSpan(ctx, span);
         RES response = getResponse(ctx);
         error(response, span);
         this.stopConsumer.accept(response, span);

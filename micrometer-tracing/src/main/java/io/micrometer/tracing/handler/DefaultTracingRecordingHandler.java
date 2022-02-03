@@ -16,11 +16,9 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.api.instrument.Timer;
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-
-import java.time.Duration;
 
 /**
  * TracingRecordingListener that uses the Tracing API to record events.
@@ -43,7 +41,7 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
     }
 
     @Override
-    public void onStart(Timer.Sample sample, Timer.HandlerContext context) {
+    public void onStart(Observation.Context context) {
         Span parentSpan = getTracingContext(context).getSpan();
         Span childSpan = parentSpan != null ? getTracer().nextSpan(parentSpan)
                 : getTracer().nextSpan();
@@ -52,19 +50,17 @@ public class DefaultTracingRecordingHandler implements TracingRecordingHandler {
     }
 
     @Override
-    public void onStop(Timer.Sample sample, Timer.HandlerContext context, Timer timer,
-                       Duration duration) {
+    public void onStop(Observation.Context context) {
         Span span = getTracingContext(context).getSpan();
-        span.name(getSpanName(context, timer.getId()));
-        tagSpan(context, timer.getId(), span);
+        span.name(getSpanName(context));
+        tagSpan(context, span);
         span.end();
     }
 
     @Override
-    public void onError(Timer.Sample sample, Timer.HandlerContext context,
-                        Throwable throwable) {
+    public void onError(Observation.Context context) {
         Span span = getTracingContext(context).getSpan();
-        span.error(throwable);
+        context.getError().ifPresent(span::error);
     }
 
     @Override

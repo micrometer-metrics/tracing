@@ -16,13 +16,10 @@
 
 package io.micrometer.tracing.otel.handler;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Queue;
 
-import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.Timer;
-import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.DefaultTracingRecordingHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
@@ -42,25 +39,25 @@ import static org.assertj.core.api.BDDAssertions.then;
 @SuppressWarnings("unchecked")
 class DefaultTracingRecordingHandlerOtelTests {
 
-    MeterRegistry meterRegistry = new SimpleMeterRegistry();
-
     ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
             .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
             .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider).setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
+            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
-    Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> { }, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
+    Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> {
+    }, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
 
     DefaultTracingRecordingHandler handler = new DefaultTracingRecordingHandler(tracer);
 
     @Test
     void should_be_applicable_for_non_null_context() {
-        then(handler.supportsContext(new Timer.HandlerContext())).isTrue();
+        then(handler.supportsContext(new Observation.Context())).isTrue();
     }
 
     @Test
@@ -70,23 +67,22 @@ class DefaultTracingRecordingHandlerOtelTests {
 
     @Test
     void should_put_and_remove_trace_from_thread_local_on_scope_change() {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        Timer.HandlerContext context = new Timer.HandlerContext();
+        Observation.Context context = new Observation.Context().setName("foo");
         long currentNanos = System.nanoTime();
 
-        handler.onStart(sample, context);
+        handler.onStart(context);
 
         then(tracer.currentSpan()).as("Span NOT put in scope").isNull();
 
-        handler.onScopeOpened(sample, context);
+        handler.onScopeOpened(context);
 
         then(tracer.currentSpan()).as("Span put in scope").isNotNull();
 
-        handler.onScopeClosed(sample, context);
+        handler.onScopeClosed(context);
 
         then(tracer.currentSpan()).as("Span removed from scope").isNull();
 
-        handler.onStop(sample, context, Timer.builder("name").register(meterRegistry), Duration.ZERO);
+        handler.onStop(context);
 
         then(tracer.currentSpan()).as("Span still not in scope").isNull();
         thenSpanStartedAndStopped(currentNanos);

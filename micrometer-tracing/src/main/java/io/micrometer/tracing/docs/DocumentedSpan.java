@@ -16,9 +16,8 @@
 
 package io.micrometer.tracing.docs;
 
-import io.micrometer.api.instrument.docs.DocumentedSample;
+import io.micrometer.api.instrument.docs.DocumentedObservation;
 import io.micrometer.api.instrument.docs.TagKey;
-import io.micrometer.tracing.handler.TracingRecordingHandler;
 
 /**
  * In order to describe your spans via e.g. enums instead of Strings you can use this
@@ -100,13 +99,12 @@ public interface DocumentedSpan {
     }
 
     /**
-     * Provide a {@link DocumentedSample} class whose default
-     * span creation should be ignored and will be overridden by this implementation. This should be overridden when
-     * you have a custom {@link TracingRecordingHandler} that sets up spans in a custom fashion.
+     * Override this when custom span should be documented instead of the default one.
      *
-     * @return {@link DocumentedSample} class
+     * @return {@link DocumentedObservation} for which you don't want to create a default span documentation
      */
-    default DocumentedSample overridesDefaultSpanFrom() {
+    default DocumentedObservation overridesDefaultSpanFrom() {
         return null;
     }
+
 }

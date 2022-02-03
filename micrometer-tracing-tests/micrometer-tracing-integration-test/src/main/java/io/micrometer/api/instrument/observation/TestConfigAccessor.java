@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package io.micrometer.api.instrument;
+package io.micrometer.api.instrument.observation;
 
 import java.util.Collection;
+
+import io.micrometer.api.instrument.observation.ObservationHandler;
+import io.micrometer.api.instrument.observation.ObservationRegistry;
 
 /**
  * Internal, test class - do not use.
@@ -35,8 +38,8 @@ public final class TestConfigAccessor {
      * @param config meter registry config
      * @return stored handlers
      */
-    public static Collection<TimerRecordingHandler<?>> getHandlers(MeterRegistry.Config config) {
-        return config.getTimerRecordingHandlers();
+    public static Collection<ObservationHandler<?>> getHandlers(ObservationRegistry.ObservationConfig config) {
+        return config.getObservationHandlers();
     }
 
     /**
@@ -44,7 +47,7 @@ public final class TestConfigAccessor {
      *
      * @param config meter registry config
      */
-    public static void clearHandlers(MeterRegistry.Config config) {
-        config.getTimerRecordingHandlers().clear();
+    public static void clearHandlers(ObservationRegistry.ObservationConfig config) {
+        config.getObservationHandlers().clear();
     }
 }

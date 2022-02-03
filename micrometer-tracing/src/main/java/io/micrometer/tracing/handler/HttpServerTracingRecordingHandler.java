@@ -16,8 +16,10 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.api.instrument.Meter;
-import io.micrometer.api.instrument.Timer;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.transport.http.HttpResponse;
 import io.micrometer.api.instrument.transport.http.HttpServerRequest;
 import io.micrometer.api.instrument.transport.http.HttpServerResponse;
@@ -25,9 +27,6 @@ import io.micrometer.api.instrument.transport.http.context.HttpServerHandlerCont
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpServerHandler;
-
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * TracingRecordingListener that uses the Tracing API to record events for HTTP server
@@ -49,6 +48,7 @@ public class HttpServerTracingRecordingHandler extends
     public HttpServerTracingRecordingHandler(Tracer tracer, HttpServerHandler handler) {
         super(tracer, handler::handleReceive, handler::handleSend);
     }
+
     /**
      *
      * Creates a new instance of {@link HttpServerTracingRecordingHandler}.
@@ -58,7 +58,7 @@ public class HttpServerTracingRecordingHandler extends
      * @param stopConsumer lambda to be applied on the span upon receiving the response
      */
     public HttpServerTracingRecordingHandler(Tracer tracer, Function<HttpServerRequest, Span> startFunction,
-                                             BiConsumer<HttpServerResponse, Span> stopConsumer) {
+            BiConsumer<HttpServerResponse, Span> stopConsumer) {
         super(tracer, startFunction, stopConsumer);
     }
 
@@ -68,7 +68,7 @@ public class HttpServerTracingRecordingHandler extends
     }
 
     @Override
-    public String getSpanName(HttpServerHandlerContext ctx, Meter.Id id) {
+    public String getSpanName(HttpServerHandlerContext ctx) {
         if (ctx.getResponse() != null) {
             return spanNameFromRoute(ctx.getResponse());
         }
@@ -76,7 +76,7 @@ public class HttpServerTracingRecordingHandler extends
     }
 
     @Override
-    public boolean supportsContext(Timer.HandlerContext context) {
+    public boolean supportsContext(Observation.Context context) {
         return context instanceof HttpServerHandlerContext;
     }
 
@@ -100,18 +100,18 @@ public class HttpServerTracingRecordingHandler extends
     // taken from Brave
     private String catchAllName(String method, int statusCode) {
         switch (statusCode) {
-            // from https://tools.ietf.org/html/rfc7231#section-6.4
-            case 301:
-            case 302:
-            case 303:
-            case 305:
-            case 306:
-            case 307:
-                return method + " redirected";
-            case 404:
-                return method + " not_found";
-            default:
-                return null;
+        // from https://tools.ietf.org/html/rfc7231#section-6.4
+        case 301:
+        case 302:
+        case 303:
+        case 305:
+        case 306:
+        case 307:
+            return method + " redirected";
+        case 404:
+            return method + " not_found";
+        default:
+            return null;
         }
     }
 

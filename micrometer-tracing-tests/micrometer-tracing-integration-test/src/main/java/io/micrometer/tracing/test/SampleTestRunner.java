@@ -24,11 +24,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.TimerRecordingHandler;
+import io.micrometer.api.instrument.observation.TestConfigAccessor;
+import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.api.internal.logging.InternalLogger;
 import io.micrometer.api.internal.logging.InternalLoggerFactory;
-import io.micrometer.api.instrument.TestConfigAccessor;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
@@ -71,7 +71,7 @@ public abstract class SampleTestRunner {
 
     private MeterRegistry meterRegistry;
 
-    private final List<TimerRecordingHandler<?>> timerRecordingHandlersCopy;
+    private final List<ObservationHandler<?>> ObservationHandlersCopy;
 
     /**
      * Creates a new instance of the {@link SampleTestRunner} with a pre-created configuration and {@link MeterRegistry}.
@@ -82,7 +82,7 @@ public abstract class SampleTestRunner {
     public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry) {
         this.sampleRunnerConfig = sampleRunnerConfig;
         this.meterRegistry = meterRegistry;
-        this.timerRecordingHandlersCopy = new ArrayList<>(TestConfigAccessor.getHandlers(this.meterRegistry.config()));
+        this.ObservationHandlersCopy = new ArrayList<>(TestConfigAccessor.getHandlers(this.meterRegistry.observationConfig()));
     }
 
     /**
@@ -102,7 +102,7 @@ public abstract class SampleTestRunner {
     public SampleTestRunner() {
         this.sampleRunnerConfig = null;
         this.meterRegistry = null;
-        this.timerRecordingHandlersCopy = new ArrayList<>();
+        this.ObservationHandlersCopy = new ArrayList<>();
     }
 
     /**
@@ -133,8 +133,8 @@ public abstract class SampleTestRunner {
 
     @AfterEach
     void setUp() {
-        TestConfigAccessor.clearHandlers(getMeterRegistry().config());
-        this.timerRecordingHandlersCopy.forEach(handler -> getMeterRegistry().config().timerRecordingHandler(handler));
+        TestConfigAccessor.clearHandlers(getMeterRegistry().observationConfig());
+        this.ObservationHandlersCopy.forEach(handler -> getMeterRegistry().observationConfig().observationHandler(handler));
         getMeterRegistry().clear();
         meterRegistries.add(getMeterRegistry());
     }
@@ -166,7 +166,8 @@ public abstract class SampleTestRunner {
         return (tracer, registry) -> {
             try {
                 yourCode().accept(tracer, registry);
-            } finally {
+            }
+            finally {
                 printMetrics();
             }
         };
@@ -178,8 +179,8 @@ public abstract class SampleTestRunner {
      * @return timer recording handler customizing function
      */
     @SuppressWarnings("rawtypes")
-    public BiConsumer<BuildingBlocks, Deque<TimerRecordingHandler>> customizeTimerRecordingHandlers() {
-        return (tracer, timerRecordingHandlers) -> {
+    public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizeObservationHandlers() {
+        return (tracer, ObservationHandlers) -> {
 
         };
     }
@@ -204,7 +205,7 @@ public abstract class SampleTestRunner {
             void run(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(ZIPKIN_OTEL, sampleTestRunner.getTracingSetup());
                 ZipkinOtelSetup setup = ZipkinOtelSetup.builder()
-                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers()).zipkinUrl(
+                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers()).zipkinUrl(
                                 sampleRunnerConfig.zipkinUrl).register(meterRegistry);
                 checkZipkinAssumptions(setup.getBuildingBlocks().sender);
                 ZipkinOtelSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
@@ -225,7 +226,7 @@ public abstract class SampleTestRunner {
             void run(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(ZIPKIN_BRAVE, sampleTestRunner.getTracingSetup());
                 ZipkinBraveSetup setup = ZipkinBraveSetup.builder()
-                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers()).zipkinUrl(
+                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers()).zipkinUrl(
                                 sampleRunnerConfig.zipkinUrl).register(meterRegistry);
                 checkZipkinAssumptions(setup.getBuildingBlocks().sender);
                 ZipkinBraveSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
@@ -250,7 +251,7 @@ public abstract class SampleTestRunner {
                         .applicationName(sampleRunnerConfig.wavefrontApplicationName)
                         .serviceName(sampleRunnerConfig.wavefrontServiceName)
                         .source(sampleRunnerConfig.wavefrontSource)
-                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers())
+                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
                         .register(meterRegistry);
                 WavefrontOtelSetup.run(setup, __ -> runTraced(sampleRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks().otelTracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
@@ -275,7 +276,7 @@ public abstract class SampleTestRunner {
                         .applicationName(sampleRunnerConfig.wavefrontApplicationName)
                         .serviceName(sampleRunnerConfig.wavefrontServiceName)
                         .source(sampleRunnerConfig.wavefrontSource)
-                        .timerRecordingHandlerCustomizer(sampleTestRunner.customizeTimerRecordingHandlers())
+                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
                         .register(meterRegistry);
                 WavefrontBraveSetup.run(setup, __ -> runTraced(sampleRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks().tracer, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
@@ -293,14 +294,16 @@ public abstract class SampleTestRunner {
             String traceId = span.context().traceId();
             try (Tracer.SpanInScope ws = tracer.withSpan(span.start())) {
                 runnable.accept(tracer, meterRegistry);
-            } finally {
+            }
+            finally {
                 tracingSetup.printTracingLink(sampleRunnerConfig, traceId);
                 span.end();
             }
         }
 
         private static void checkTracingSetupAssumptions(TracingSetup tracingSetup, TracingSetup[] chosenSetups) {
-            Assumptions.assumeTrue(Arrays.asList(chosenSetups).contains(tracingSetup), tracingSetup.name() + " not found in the list of tracing setups to run " + Arrays.toString(chosenSetups));
+            Assumptions.assumeTrue(Arrays.asList(chosenSetups)
+                    .contains(tracingSetup), tracingSetup.name() + " not found in the list of tracing setups to run " + Arrays.toString(chosenSetups));
         }
 
         private static void checkZipkinAssumptions(Sender sender) {

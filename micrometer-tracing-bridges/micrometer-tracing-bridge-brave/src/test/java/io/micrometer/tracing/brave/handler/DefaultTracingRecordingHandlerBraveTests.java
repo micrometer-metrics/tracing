@@ -16,15 +16,12 @@
 
 package io.micrometer.tracing.brave.handler;
 
-import java.time.Duration;
 import java.util.List;
 
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
-import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.Timer;
-import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
@@ -36,8 +33,6 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 @SuppressWarnings("unchecked")
 class DefaultTracingRecordingHandlerBraveTests {
-
-    MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
     TestSpanHandler testSpanHandler = new TestSpanHandler();
 
@@ -51,7 +46,7 @@ class DefaultTracingRecordingHandlerBraveTests {
 
     @Test
     void should_be_applicable_for_non_null_context() {
-        then(handler.supportsContext(new Timer.HandlerContext())).isTrue();
+        then(handler.supportsContext(new Observation.Context())).isTrue();
     }
 
     @Test
@@ -61,23 +56,22 @@ class DefaultTracingRecordingHandlerBraveTests {
 
     @Test
     void should_put_and_remove_trace_from_thread_local_on_scope_change() {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        Timer.HandlerContext context = new Timer.HandlerContext();
+        Observation.Context context = new Observation.Context().setName("foo");
         long currentMillis = System.currentTimeMillis();
 
-        handler.onStart(sample, context);
+        handler.onStart(context);
 
         then(tracer.currentSpan()).as("Span NOT put in scope").isNull();
 
-        handler.onScopeOpened(sample, context);
+        handler.onScopeOpened(context);
 
         then(tracer.currentSpan()).as("Span put in scope").isNotNull();
 
-        handler.onScopeClosed(sample, context);
+        handler.onScopeClosed(context);
 
         then(tracer.currentSpan()).as("Span removed from scope").isNull();
 
-        handler.onStop(sample, context, Timer.builder("name").register(meterRegistry), Duration.ZERO);
+        handler.onStop(context);
 
         then(tracer.currentSpan()).as("Span still not in scope").isNull();
         thenSpanStartedAndStopped(currentMillis);
