@@ -108,6 +108,20 @@ public interface TracingObservationHandler<T extends Observation.Context>
     }
 
     /**
+     * Returns the span from the context or throws an exception if it's not there.
+     *
+     * @param context contextd
+     * @return span or exception
+     */
+    default Span getRequiredSpan(T context) {
+        Span span = getTracingContext(context).getSpan();
+        if (span == null) {
+            throw new IllegalStateException("Span wasn't started - an observation must be started (not only created)");
+        }
+        return span;
+    }
+
+    /**
      * Returns the {@link Tracer}.
      *
      * @return tracer
