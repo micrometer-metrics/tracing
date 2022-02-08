@@ -161,12 +161,14 @@ public abstract class SampleTestRunner {
      *
      * @return your code with access to the current tracing and measuring infrastructure
      */
-    public abstract BiConsumer<Tracer, MeterRegistry> yourCode();
+    public abstract BiConsumer<Tracer, MeterRegistry> yourCode() throws Exception;
 
     private BiConsumer<Tracer, MeterRegistry> runWithMetricsPrinting() {
         return (tracer, registry) -> {
             try {
                 yourCode().accept(tracer, registry);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
             finally {
                 printMetrics();

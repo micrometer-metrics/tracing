@@ -37,6 +37,7 @@ import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveHttpClientHandler;
 import io.micrometer.tracing.brave.bridge.BraveHttpServerHandler;
+import io.micrometer.tracing.brave.bridge.BravePropagator;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
@@ -134,15 +135,17 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             public final WavefrontSpanHandler wavefrontSpanHandler;
             public final Tracing tracing;
             public final Tracer tracer;
+            public final BravePropagator propagator;
             public final HttpTracing httpTracing;
             public final HttpServerHandler httpServerHandler;
             public final HttpClientHandler httpClientHandler;
             public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
-            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
+            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
                 this.wavefrontSpanHandler = wavefrontSpanHandler;
                 this.tracing = tracing;
                 this.tracer = tracer;
+                this.propagator = propagator;
                 this.httpTracing = httpTracing;
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
@@ -152,6 +155,11 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             @Override
             public Tracer getTracer() {
                 return this.tracer;
+            }
+
+            @Override
+            public BravePropagator getPropagator() {
+                return this.propagator;
             }
 
             @Override
@@ -246,7 +254,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
             BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler, customizers);
+            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();

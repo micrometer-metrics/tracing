@@ -77,7 +77,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
     WavefrontSpanHandler otelSpanHandler = WavefrontAccessor.setMockForOTel();
 
     @Override
-    protected MeterRegistry getMeterRegistry() {
+    protected SimpleMeterRegistry getMeterRegistry() {
         return new SimpleMeterRegistry();
     }
 
@@ -132,7 +132,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
     }
 
     @Override
-    public BiConsumer<Tracer, MeterRegistry> yourCode() {
+    public BiConsumer<Tracer, SimpleMeterRegistry> yourCode() {
         return (tracer, meterRegistry) -> {
             BDDAssertions.then(tracer.currentSpan()).isNotNull();
             traces.add(tracer.currentSpan().context().traceId());

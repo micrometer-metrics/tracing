@@ -34,12 +34,14 @@ import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveHttpClientHandler;
 import io.micrometer.tracing.brave.bridge.BraveHttpServerHandler;
+import io.micrometer.tracing.brave.bridge.BravePropagator;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
+import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import zipkin2.Span;
 import zipkin2.reporter.AsyncReporter;
@@ -125,6 +127,8 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             public final Tracer tracer;
 
+            public final BravePropagator propagator;
+
             public final HttpTracing httpTracing;
 
             public final HttpServerHandler httpServerHandler;
@@ -133,11 +137,12 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
-            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
+            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
                 this.sender = sender;
                 this.reporter = reporter;
                 this.tracing = tracing;
                 this.tracer = tracer;
+                this.propagator = propagator;
                 this.httpTracing = httpTracing;
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
@@ -147,6 +152,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             @Override
             public Tracer getTracer() {
                 return this.tracer;
+            }
+
+            @Override
+            public Propagator getPropagator() {
+                return this.propagator;
             }
 
             @Override
@@ -241,7 +251,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
             BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, httpTracing, httpServerHandler, httpClientHandler, customizers);
+            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();

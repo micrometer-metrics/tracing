@@ -23,6 +23,7 @@ import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
+import io.micrometer.tracing.propagation.Propagator;
 
 /**
  * Building blocks for reporters and tracers.
@@ -39,6 +40,13 @@ public interface BuildingBlocks {
      * @return tracer
      */
     Tracer getTracer();
+
+    /**
+     * Returns a {@link Propagator}.
+     *
+     * @return propagator
+     */
+    Propagator getPropagator();
 
     /**
      * Returns an {@link HttpServerHandler}.

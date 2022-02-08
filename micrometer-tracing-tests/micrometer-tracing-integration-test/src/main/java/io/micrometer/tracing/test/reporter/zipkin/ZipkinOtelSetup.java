@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -41,12 +42,14 @@ import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
 import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
+import io.micrometer.tracing.otel.bridge.OtelPropagator;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup.Builder.OtelBuildingBlocks;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -141,19 +144,22 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             public final OtelTracer otelTracer;
 
+            public final OtelPropagator propagator;
+
             public final HttpServerHandler httpServerHandler;
 
             public final HttpClientHandler httpClientHandler;
 
             public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
-            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
+            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
                 this.sender = sender;
                 this.zipkinSpanExporter = zipkinSpanExporter;
                 this.sdkTracerProvider = sdkTracerProvider;
                 this.openTelemetrySdk = openTelemetrySdk;
                 this.tracer = tracer;
                 this.otelTracer = otelTracer;
+                this.propagator = propagator;
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
@@ -177,6 +183,11 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             @Override
             public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers() {
                 return this.customizers;
+            }
+
+            @Override
+            public OtelPropagator getPropagator() {
+                return this.propagator;
             }
         }
 
@@ -262,7 +273,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
             BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
-            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sender, zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, httpServerHandler, httpClientHandler, customizers);
+            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sender, zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
             meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
@@ -305,6 +316,13 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
             return new OtelTracer(tracer, otelCurrentTraceContext, event -> {
             }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
+        }
+
+        private static ContextPropagators propagators(List<TextMapPropagator> propagators) {
+            if (propagators.isEmpty()) {
+                return ContextPropagators.noop();
+            }
+            return ContextPropagators.create(TextMapPropagator.composite(propagators));
         }
 
         private static HttpServerHandler httpServerHandler(OpenTelemetrySdk openTelemetrySdk) {
