@@ -132,7 +132,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
     }
 
     @Override
-    public BiConsumer<Tracer, SimpleMeterRegistry> yourCode() {
+    public BiConsumer<Tracer, MeterRegistry> yourCode() {
         return (tracer, meterRegistry) -> {
             BDDAssertions.then(tracer.currentSpan()).isNotNull();
             traces.add(tracer.currentSpan().context().traceId());
