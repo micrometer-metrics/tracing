@@ -26,6 +26,8 @@ import java.util.Arrays;
  */
 public final class EncodingUtils {
 
+    private static final ThreadLocal<char[]> charBuffer = new ThreadLocal();
+
     static final int LONG_BYTES = Long.SIZE / Byte.SIZE;
 
     static final int BYTE_BASE16 = 2;
@@ -78,6 +80,42 @@ public final class EncodingUtils {
             return new long[] {high, low};
         }
         return new long[] {HexCodec.lenientLowerHexToUnsignedLong(chars, 0, 16)};
+    }
+
+    /**
+     * Converts long into string.
+     * @param id 64 bit
+     * @return string representation of the long
+     */
+    public static String fromLong(long id) {
+        return fromLongs(0, id);
+    }
+
+    /**
+     * Converts longs into string.
+     * @param idHigh - trace id high part
+     * @param idLow - trace id low part
+     * @return string representation of the long
+     */
+    public static String fromLongs(long idHigh, long idLow) {
+        if (idHigh == 0L) {
+            return HexCodec.toLowerHex(idLow);
+        }
+        else {
+            char[] chars = getTemporaryBuffer();
+            longToBase16String(idHigh, chars, 0);
+            longToBase16String(idLow, chars, 16);
+            return new String(chars);
+        }
+    }
+
+    private static char[] getTemporaryBuffer() {
+        char[] chars = charBuffer.get();
+        if (chars == null) {
+            chars = new char[32];
+            charBuffer.set(chars);
+        }
+        return chars;
     }
 
     /**
@@ -203,6 +241,31 @@ public final class EncodingUtils {
             throw new IllegalStateException("Can't instantiate a utility class");
         }
 
+        /** Inspired by {@code okio.Buffer.writeLong}. */
+        static String toLowerHex(long v) {
+            char[] data = RecyclableBuffers.parseBuffer();
+            writeHexLong(data, 0, v);
+            return new String(data, 0, 16);
+        }
+
+
+        /** Inspired by {@code okio.Buffer.writeLong}. */
+        static void writeHexLong(char[] data, int pos, long v) {
+            writeHexByte(data, pos + 0, (byte) ((v >>> 56L) & 0xff));
+            writeHexByte(data, pos + 2, (byte) ((v >>> 48L) & 0xff));
+            writeHexByte(data, pos + 4, (byte) ((v >>> 40L) & 0xff));
+            writeHexByte(data, pos + 6, (byte) ((v >>> 32L) & 0xff));
+            writeHexByte(data, pos + 8, (byte) ((v >>> 24L) & 0xff));
+            writeHexByte(data, pos + 10, (byte) ((v >>> 16L) & 0xff));
+            writeHexByte(data, pos + 12, (byte) ((v >>> 8L) & 0xff));
+            writeHexByte(data, pos + 14, (byte) (v & 0xff));
+        }
+
+        static void writeHexByte(char[] data, int pos, byte b) {
+            data[pos + 0] = HEX_DIGITS[(b >> 4) & 0xf];
+            data[pos + 1] = HEX_DIGITS[b & 0xf];
+        }
+
         /**
          * Parses a 16 character lower-hex string with no prefix into an unsigned long,
          * starting at the specified index., but returns zero on invalid input.
@@ -230,6 +293,31 @@ public final class EncodingUtils {
                 }
             }
             return result;
+        }
+
+    }
+
+    // taken from brave
+    static final class RecyclableBuffers {
+
+        private RecyclableBuffers() {
+            throw new IllegalStateException("Can't instantiate a utility class");
+        }
+
+        private static final ThreadLocal<char[]> PARSE_BUFFER = new ThreadLocal<>();
+
+        /**
+         * Returns a {@link ThreadLocal} reused {@code char[]} for use when decoding bytes
+         * into an ID hex string. The buffer should be immediately copied into a
+         * {@link String} after decoding within the same method.
+         */
+        static char[] parseBuffer() {
+            char[] idBuffer = PARSE_BUFFER.get();
+            if (idBuffer == null) {
+                idBuffer = new char[32 + 1 + 16 + 3 + 16]; // traceid128-spanid-1-parentid
+                PARSE_BUFFER.set(idBuffer);
+            }
+            return idBuffer;
         }
 
     }
