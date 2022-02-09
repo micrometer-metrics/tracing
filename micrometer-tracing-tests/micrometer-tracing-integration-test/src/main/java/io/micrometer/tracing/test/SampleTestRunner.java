@@ -26,12 +26,11 @@ import java.util.function.BiConsumer;
 
 import io.micrometer.api.instrument.MeterRegistry;
 import io.micrometer.api.instrument.observation.Observation;
-import io.micrometer.api.instrument.observation.TestConfigAccessor;
 import io.micrometer.api.instrument.observation.ObservationHandler;
+import io.micrometer.api.instrument.observation.TestConfigAccessor;
 import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.api.internal.logging.InternalLogger;
 import io.micrometer.api.internal.logging.InternalLoggerFactory;
-import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
@@ -169,7 +168,8 @@ public abstract class SampleTestRunner {
         return (tracer, registry) -> {
             try {
                 yourCode().accept(tracer, registry);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 throw new RuntimeException(e);
             }
             finally {
