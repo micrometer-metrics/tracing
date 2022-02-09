@@ -20,10 +20,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 import io.micrometer.api.instrument.MeterRegistry;
+import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.observation.TestConfigAccessor;
 import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
@@ -293,14 +295,15 @@ public abstract class SampleTestRunner {
         };
 
         private static void runTraced(SampleRunnerConfig sampleRunnerConfig, TracingSetup tracingSetup, Tracer tracer, MeterRegistry meterRegistry, BiConsumer<Tracer, MeterRegistry> runnable) {
-            Span span = tracer.nextSpan().name(tracingSetup.name());
-            String traceId = span.context().traceId();
-            try (Tracer.SpanInScope ws = tracer.withSpan(span.start())) {
+            Observation observation = Observation.start(tracingSetup.name().toLowerCase(Locale.ROOT), meterRegistry);
+            String traceId = "";
+            try (Observation.Scope ws = observation.openScope()) {
+                traceId = tracer.currentSpan().context().traceId();
                 runnable.accept(tracer, meterRegistry);
             }
             finally {
                 tracingSetup.printTracingLink(sampleRunnerConfig, traceId);
-                span.end();
+                observation.stop();
             }
         }
 
