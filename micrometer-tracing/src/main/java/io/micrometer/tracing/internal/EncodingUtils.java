@@ -26,6 +26,7 @@ import java.util.Arrays;
  */
 public final class EncodingUtils {
 
+    @SuppressWarnings("unchecked")
     private static final ThreadLocal<char[]> charBuffer = new ThreadLocal();
 
     static final int LONG_BYTES = Long.SIZE / Byte.SIZE;

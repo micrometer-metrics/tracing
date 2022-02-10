@@ -22,14 +22,14 @@ import java.util.function.Function;
 import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.transport.http.HttpRequest;
 import io.micrometer.api.instrument.transport.http.HttpResponse;
-import io.micrometer.api.instrument.transport.http.context.HttpHandlerContext;
+import io.micrometer.api.instrument.transport.http.context.HttpContext;
 import io.micrometer.api.lang.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-abstract class HttpTracingObservationHandler<CTX extends HttpHandlerContext, REQ extends HttpRequest, RES extends HttpResponse>
+abstract class HttpTracingObservationHandler<CTX extends HttpContext, REQ extends HttpRequest, RES extends HttpResponse>
         implements TracingObservationHandler<CTX> {
 
     private final Tracer tracer;
@@ -69,7 +69,7 @@ abstract class HttpTracingObservationHandler<CTX extends HttpHandlerContext, REQ
 
     @Override
     public boolean supportsContext(Observation.Context context) {
-        return context instanceof HttpHandlerContext;
+        return context instanceof HttpContext;
     }
 
     @Override

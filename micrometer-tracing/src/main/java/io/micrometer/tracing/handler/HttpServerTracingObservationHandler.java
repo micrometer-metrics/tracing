@@ -23,7 +23,7 @@ import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.transport.http.HttpResponse;
 import io.micrometer.api.instrument.transport.http.HttpServerRequest;
 import io.micrometer.api.instrument.transport.http.HttpServerResponse;
-import io.micrometer.api.instrument.transport.http.context.HttpServerHandlerContext;
+import io.micrometer.api.instrument.transport.http.context.HttpServerContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpServerHandler;
@@ -36,8 +36,8 @@ import io.micrometer.tracing.http.HttpServerHandler;
  * @since 1.0.0
  */
 public class HttpServerTracingObservationHandler extends
-        HttpTracingObservationHandler<HttpServerHandlerContext, HttpServerRequest, HttpServerResponse>
-        implements TracingObservationHandler<HttpServerHandlerContext> {
+        HttpTracingObservationHandler<HttpServerContext, HttpServerRequest, HttpServerResponse>
+        implements TracingObservationHandler<HttpServerContext> {
 
     /**
      * Creates a new instance of {@link HttpServerTracingObservationHandler}.
@@ -63,12 +63,12 @@ public class HttpServerTracingObservationHandler extends
     }
 
     @Override
-    HttpServerRequest getRequest(HttpServerHandlerContext ctx) {
+    HttpServerRequest getRequest(HttpServerContext ctx) {
         return ctx.getRequest();
     }
 
     @Override
-    public String getSpanName(HttpServerHandlerContext ctx) {
+    public String getSpanName(HttpServerContext ctx) {
         if (ctx.getResponse() != null) {
             return spanNameFromRoute(ctx.getResponse());
         }
@@ -77,7 +77,7 @@ public class HttpServerTracingObservationHandler extends
 
     @Override
     public boolean supportsContext(Observation.Context context) {
-        return context instanceof HttpServerHandlerContext;
+        return context instanceof HttpServerContext;
     }
 
     // taken from Brave
@@ -116,7 +116,7 @@ public class HttpServerTracingObservationHandler extends
     }
 
     @Override
-    HttpServerResponse getResponse(HttpServerHandlerContext ctx) {
+    HttpServerResponse getResponse(HttpServerContext ctx) {
         return ctx.getResponse();
     }
 

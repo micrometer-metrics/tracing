@@ -22,7 +22,7 @@ import java.util.function.Function;
 import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.transport.http.HttpClientRequest;
 import io.micrometer.api.instrument.transport.http.HttpClientResponse;
-import io.micrometer.api.instrument.transport.http.context.HttpClientHandlerContext;
+import io.micrometer.api.instrument.transport.http.context.HttpClientContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.http.HttpClientHandler;
@@ -35,8 +35,8 @@ import io.micrometer.tracing.http.HttpClientHandler;
  * @since 1.0.0
  */
 public class HttpClientTracingObservationHandler extends
-        HttpTracingObservationHandler<HttpClientHandlerContext, HttpClientRequest, HttpClientResponse>
-        implements TracingObservationHandler<HttpClientHandlerContext> {
+        HttpTracingObservationHandler<HttpClientContext, HttpClientRequest, HttpClientResponse>
+        implements TracingObservationHandler<HttpClientContext> {
 
     /**
      * Creates a new instance of {@link HttpClientTracingObservationHandler}.
@@ -63,21 +63,21 @@ public class HttpClientTracingObservationHandler extends
 
     @Override
     public boolean supportsContext(Observation.Context context) {
-        return context instanceof HttpClientHandlerContext;
+        return context instanceof HttpClientContext;
     }
 
     @Override
-    HttpClientRequest getRequest(HttpClientHandlerContext ctx) {
+    HttpClientRequest getRequest(HttpClientContext ctx) {
         return ctx.getRequest();
     }
 
     @Override
-    public String getSpanName(HttpClientHandlerContext ctx) {
+    public String getSpanName(HttpClientContext ctx) {
         return getRequest(ctx).method();
     }
 
     @Override
-    HttpClientResponse getResponse(HttpClientHandlerContext ctx) {
+    HttpClientResponse getResponse(HttpClientContext ctx) {
         return ctx.getResponse();
     }
 
