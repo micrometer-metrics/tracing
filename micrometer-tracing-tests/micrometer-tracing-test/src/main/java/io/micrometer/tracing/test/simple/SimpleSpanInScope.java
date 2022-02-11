@@ -16,6 +16,10 @@
 
 package io.micrometer.tracing.test.simple;
 
+import java.util.Deque;
+
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.SpanAndScope;
 import io.micrometer.tracing.Tracer;
 
 /**
@@ -28,9 +32,27 @@ public class SimpleSpanInScope implements Tracer.SpanInScope {
 
     private boolean closed;
 
+    private final Deque<SpanAndScope> scopedSpans;
+
+    private final Span span;
+
+    private final SpanAndScope spanAndScope;
+
+    public SimpleSpanInScope(Span span, Deque<SpanAndScope> scopedSpans) {
+        this.span = span;
+        this.scopedSpans = scopedSpans;
+        this.spanAndScope = new SpanAndScope(span, this);
+        this.scopedSpans.addFirst(this.spanAndScope);
+    }
+
     @Override
     public void close() {
         this.closed = true;
+        SpanAndScope first = this.scopedSpans.peekFirst();
+        if (first != this.spanAndScope) {
+            throw new IllegalStateException("Trying to close scope for span [" + span + "] but current span in scope is [" + (first != null ? first.getSpan() : null) + "]");
+        }
+        this.scopedSpans.remove(this.spanAndScope);
     }
 
     /**

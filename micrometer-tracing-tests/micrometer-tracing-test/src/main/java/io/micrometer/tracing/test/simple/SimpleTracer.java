@@ -23,6 +23,7 @@ import java.util.Map;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.ScopedSpan;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.SpanAndScope;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
 
@@ -40,11 +41,13 @@ public class SimpleTracer implements Tracer {
 
     private final Deque<SimpleSpan> spans = new LinkedList<>();
 
+    private final Deque<SpanAndScope> scopedSpans = new LinkedList<>();
+
     /**
      * Creates a new instance.
      */
     public SimpleTracer() {
-        this.currentTraceContext = SimpleCurrentTraceContext.withTracer(this);
+        this.currentTraceContext = new SimpleCurrentTraceContext(this);
     }
 
     @Override
@@ -81,7 +84,7 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpanInScope withSpan(Span span) {
-        return new SimpleSpanInScope();
+        return new SimpleSpanInScope(span, scopedSpans);
     }
 
     @Override
@@ -91,10 +94,11 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpan currentSpan() {
-        if (this.spans.isEmpty()) {
+        SpanAndScope first = this.scopedSpans.peekFirst();
+        if (first == null) {
             return null;
         }
-        return this.spans.getLast();
+        return (SimpleSpan) first.getSpan();
     }
 
     @Override

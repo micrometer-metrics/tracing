@@ -66,6 +66,12 @@ public class SimpleSpan implements Span {
 
     private Clock clock = Clock.SYSTEM;
 
+    private TraceContext context = new SimpleTraceContext();
+
+    public SimpleSpan() {
+        SimpleSpanAndScope.traceContextsToSpans.put(context(), this);
+    }
+
     @Override
     public boolean isNoop() {
         return this.noOp;
@@ -73,7 +79,7 @@ public class SimpleSpan implements Span {
 
     @Override
     public TraceContext context() {
-        return new SimpleTraceContext();
+        return this.context;
     }
 
     @Override
