@@ -80,6 +80,11 @@ abstract class HttpTracingObservationHandler<CTX extends HttpContext, REQ extend
     abstract REQ getRequest(CTX ctx);
 
     @Override
+    public void onError(CTX context) {
+
+    }
+
+    @Override
     public void onStop(CTX ctx) {
         Span span = getRequiredSpan(ctx);
         span.name(getSpanName(ctx));

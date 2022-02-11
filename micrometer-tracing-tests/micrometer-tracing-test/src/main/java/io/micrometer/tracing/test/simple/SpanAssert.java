@@ -177,7 +177,7 @@ public class SpanAssert extends AbstractAssert<SpanAssert, SimpleSpan> {
         return this;
     }
 
-    public SpanAssert hasSpanWithKindEqualTo(Span.Kind kind) {
+    public SpanAssert hasKindEqualTo(Span.Kind kind) {
         isNotNull();
         if (!kind.equals(this.actual.getSpanKind())) {
             failWithMessage("Span should have span kind equal to <%s> but has <%s>", kind, this.actual.getSpanKind());
@@ -185,7 +185,7 @@ public class SpanAssert extends AbstractAssert<SpanAssert, SimpleSpan> {
         return this;
     }
 
-    public SpanAssert doesNotHaveSpanWithKindEqualTo(Span.Kind kind) {
+    public SpanAssert doesNotHaveKindEqualTo(Span.Kind kind) {
         isNotNull();
         if (kind.equals(this.actual.getSpanKind())) {
             failWithMessage("Span should not have span kind equal to <%s>", kind);
@@ -255,6 +255,22 @@ public class SpanAssert extends AbstractAssert<SpanAssert, SimpleSpan> {
         isNotNull();
         if (StringUtils.isNotBlank(this.actual.getIp())) {
             failWithMessage("Span should have ip that is blank");
+        }
+        return this;
+    }
+
+    public SpanAssert hasPortEqualTo(int port) {
+        isNotNull();
+        if (this.actual.getPort() != port) {
+            failWithMessage("Span should have port equal to <%s> but has <%s>", port, this.actual.getPort());
+        }
+        return this;
+    }
+
+    public SpanAssert doesNotHavePortEqualTo(int port) {
+        isNotNull();
+        if (this.actual.getPort() == port) {
+            failWithMessage("Span should not have port equal to <%s>", port, this.actual.getPort());
         }
         return this;
     }

@@ -79,6 +79,11 @@ public interface TracingObservationHandler<T extends Observation.Context>
         getTracingContext(context).setSpanAndScope(span, scope);
     }
 
+    @Override
+    default void onError(T context) {
+        context.getError().ifPresent(throwable -> getRequiredSpan(context).error(throwable));
+    }
+
     /**
      * Cleans the scope present in the context.
      *
