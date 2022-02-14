@@ -57,7 +57,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
         return new SpansAssert(actual);
     }
 
-    public SpansAssert allSpansHaveSameTraceId() {
+    public SpansAssert haveSameTraceId() {
         isNotEmpty();
         List<String> traceIds = this.actual.stream().map(FinishedSpan::getTraceId).distinct().collect(Collectors.toList());
         if (traceIds.size() != 1) {
