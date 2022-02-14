@@ -136,7 +136,7 @@ public abstract class SampleTestRunner {
 
     @BeforeEach
     void setupRegistry() {
-        this.observationHandlersCopy.addAll(TestConfigAccessor.getHandlers(this.meterRegistry.observationConfig()));
+        this.observationHandlersCopy.addAll(TestConfigAccessor.getHandlers(getMeterRegistry().observationConfig()));
     }
 
     @AfterEach
