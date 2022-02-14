@@ -16,17 +16,18 @@
 
 package io.micrometer.tracing.test.simple;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import io.micrometer.api.instrument.Clock;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.exporter.FinishedSpan;
 
 /**
  * A test implementation of a span.
@@ -34,13 +35,9 @@ import io.micrometer.tracing.TraceContext;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class SimpleSpan implements Span {
+public class SimpleSpan implements Span, FinishedSpan {
 
     private Map<String, String> tags = new HashMap<>();
-
-    private boolean started;
-
-    private boolean ended;
 
     private boolean abandoned;
 
@@ -54,7 +51,7 @@ public class SimpleSpan implements Span {
 
     private Span.Kind spanKind;
 
-    private List<Event> events = new ArrayList<>();
+    private List<Map.Entry<Long, String>> events = new ArrayList<>();
 
     private String name;
 
@@ -84,7 +81,7 @@ public class SimpleSpan implements Span {
 
     @Override
     public SimpleSpan start() {
-        this.started = true;
+        this.startMicros = this.clock.wallTime();
         return this;
     }
 
@@ -96,13 +93,13 @@ public class SimpleSpan implements Span {
 
     @Override
     public SimpleSpan event(String value) {
-        this.events.add(new Event(value, this.getClock().wallTime()));
+        this.events.add(new AbstractMap.SimpleEntry<>(this.clock.wallTime(), value));
         return this;
     }
 
     @Override
     public Span event(String value, long time, TimeUnit timeUnit) {
-        this.events.add(new Event(value, timeUnit.toMicros(time)));
+        this.events.add(new AbstractMap.SimpleEntry<>(timeUnit.toMicros(time), value));
         return this;
     }
 
@@ -127,12 +124,11 @@ public class SimpleSpan implements Span {
 
     @Override
     public void end() {
-        this.ended = true;
+        this.endMicros = this.clock.wallTime();
     }
 
     @Override
     public void end(long time, TimeUnit timeUnit) {
-        end();
         this.endMicros = timeUnit.toMicros(time);
     }
 
@@ -148,64 +144,18 @@ public class SimpleSpan implements Span {
     }
 
     /**
-     * @return list of event names
-     */
-    public List<String> getEventNames() {
-        return this.getEvents().stream().map(event -> event.name).collect(Collectors.toList());
-    }
-
-    @Override
-    public String toString() {
-        return "SimpleSpan{" + "tags=" + this.getTags() + ", started=" + this.isStarted() + ", ended=" + this.isEnded()
-                + ", abandoned=" + this.isAbandoned() + ", startMicros=" + this.getStartMicros() + ", endMicros="
-                + this.getEndMicros() + ", throwable=" + this.getThrowable() + ", remoteServiceName='" + this.getRemoteServiceName()
-                + '\'' + ", spanKind=" + this.getSpanKind() + ", events=" + this.getEvents() + ", name='" + this.getName() + '\''
-                + ", ip='" + this.getIp() + '\'' + ", port=" + this.getPort() + ", noOp=" + this.isNoop() + '}';
-    }
-
-    /**
      * Map of tags.
      *
      * @return tags
      */
+    @Override
     public Map<String, String> getTags() {
         return this.tags;
     }
 
-    /**
-     * Span started.
-     *
-     * @return {@code true} when span started
-     */
-    public boolean isStarted() {
-        return this.started;
-    }
-
-    /**
-     * Span ended.
-     *
-     * @return {@code true} when span ended
-     */
-    public boolean isEnded() {
-        return this.ended;
-    }
-
-    /**
-     * Span abandoned.
-     *
-     * @return {@code true} when span abandoned
-     */
-    public boolean isAbandoned() {
-        return this.abandoned;
-    }
-
-    /**
-     * Span start timestamp in micros.
-     *
-     * @return start time in micro seconds
-     */
-    public long getStartMicros() {
-        return this.startMicros;
+    @Override
+    public Collection<Map.Entry<Long, String>> getEvents() {
+        return this.events;
     }
 
     void setStartMicros(long startMicros) {
@@ -213,35 +163,12 @@ public class SimpleSpan implements Span {
     }
 
     /**
-     * Span end timestamp in micros.
-     * @return end time in micros
-     */
-    public long getEndMicros() {
-        return this.endMicros;
-    }
-
-    /**
-     * Throwable corresponding to the span.
-     * @return throwable
-     */
-    public Throwable getThrowable() {
-        return this.throwable;
-    }
-
-    /**
      * Remote service name of the span.
      * @return remote service name
      */
+    @Override
     public String getRemoteServiceName() {
         return this.remoteServiceName;
-    }
-
-    /**
-     * Span kind.
-     * @return span kind
-     */
-    public Kind getSpanKind() {
-        return this.spanKind;
     }
 
     /**
@@ -251,13 +178,44 @@ public class SimpleSpan implements Span {
         this.spanKind = kind;
     }
 
-    /**
-     * List of events.
-     *
-     * @return events
-     */
-    public List<Event> getEvents() {
-        return this.events;
+    @Override
+    public String getSpanId() {
+        return this.context.spanId();
+    }
+
+    @Override
+    public String getParentId() {
+        return this.context.parentId();
+    }
+
+    @Override
+    public String getRemoteIp() {
+        return this.ip;
+    }
+
+    @Override
+    public String getLocalIp() {
+        return this.ip;
+    }
+
+    @Override
+    public int getRemotePort() {
+        return this.port;
+    }
+
+    @Override
+    public String getTraceId() {
+        return this.context.traceId();
+    }
+
+    @Override
+    public Throwable getError() {
+        return this.throwable;
+    }
+
+    @Override
+    public Kind getKind() {
+        return this.spanKind;
     }
 
     /**
@@ -269,22 +227,14 @@ public class SimpleSpan implements Span {
         return this.name;
     }
 
-    /**
-     * Remote service ip.
-     *
-     * @return ip
-     */
-    public String getIp() {
-        return this.ip;
+    @Override
+    public long getStartTimestamp() {
+        return this.startMicros;
     }
 
-    /**
-     * Remote service port.
-     *
-     * @return port
-     */
-    public int getPort() {
-        return this.port;
+    @Override
+    public long getEndTimestamp() {
+        return this.endMicros;
     }
 
     /**
@@ -296,66 +246,23 @@ public class SimpleSpan implements Span {
         return this.clock;
     }
 
-    /**
-     * Event annotated on a span.
-     */
-    public static class Event {
-
-        /**
-         * Name of the event.
-         */
-        private final String name;
-
-        /**
-         * Timestamp of the event.
-         */
-        private final long timestamp;
-
-        /**
-         * Creates a new instance of an event.
-         *
-         * @param name event name
-         * @param timestamp event timestamp
-         */
-        public Event(String name, long timestamp) {
-            this.name = name;
-            this.timestamp = timestamp;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            Event event = (Event) o;
-            return this.timestamp == event.timestamp && Objects.equals(this.name, event.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(this.name, this.timestamp);
-        }
-
-        /**
-         * Event name.
-         *
-         * @return name
-         */
-        public String getName() {
-            return this.name;
-        }
-
-        /**
-         * Event timestamp.
-         *
-         * @return timestamp
-         */
-        public long getTimestamp() {
-            return this.timestamp;
-        }
+    @Override
+    public String toString() {
+        return "SimpleSpan{" +
+                "tags=" + tags +
+                ", abandoned=" + abandoned +
+                ", startMicros=" + startMicros +
+                ", endMicros=" + endMicros +
+                ", throwable=" + throwable +
+                ", remoteServiceName='" + remoteServiceName + '\'' +
+                ", spanKind=" + spanKind +
+                ", events=" + events +
+                ", name='" + name + '\'' +
+                ", ip='" + ip + '\'' +
+                ", port=" + port +
+                ", noOp=" + noOp +
+                ", clock=" + clock +
+                ", context=" + context +
+                '}';
     }
-
 }

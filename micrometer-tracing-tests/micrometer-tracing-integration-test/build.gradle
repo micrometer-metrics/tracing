@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
 	api project(':micrometer-tracing')
+	api project(':micrometer-tracing-test')
 	api project(':micrometer-tracing-reporter-wavefront')
 
 	// Brave
@@ -11,6 +12,7 @@ dependencies {
 	api("io.zipkin.brave:brave")
 	api("io.zipkin.brave:brave-context-slf4j")
 	api("io.zipkin.brave:brave-instrumentation-http")
+	api("io.zipkin.brave:brave-tests")
 	api("io.zipkin.aws:brave-propagation-aws")
 	api("io.zipkin.reporter2:zipkin-reporter-brave")
 

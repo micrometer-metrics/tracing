@@ -61,8 +61,8 @@ public class SimpleTracer implements Tracer {
     public SimpleSpan onlySpan() {
         assertTrue(this.spans.size() == 1, "There must be only one span");
         SimpleSpan span = this.spans.getFirst();
-        assertTrue(span.isStarted(), "Span must be started");
-        assertTrue(span.isEnded(), "Span must be finished");
+        assertTrue(span.getStartTimestamp() > 0, "Span must be started");
+        assertTrue(span.getEndTimestamp() > 0, "Span must be finished");
         return span;
     }
 
@@ -78,7 +78,7 @@ public class SimpleTracer implements Tracer {
     public SimpleSpan lastSpan() {
         assertTrue(!this.spans.isEmpty(), "There must be at least one span");
         SimpleSpan span = this.spans.getLast();
-        assertTrue(span.isStarted(), "Span must be started");
+        assertTrue(span.getStartTimestamp() > 0, "Span must be started");
         return span;
     }
 

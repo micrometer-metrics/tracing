@@ -26,21 +26,25 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.api.instrument.MeterRegistry;
 import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.SamplerFunction;
+import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
+import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
 import io.micrometer.tracing.otel.bridge.DefaultHttpClientAttributesExtractor;
 import io.micrometer.tracing.otel.bridge.DefaultHttpServerAttributesExtractor;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelFinishedSpan;
 import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
 import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
 import io.micrometer.tracing.otel.bridge.OtelPropagator;
@@ -161,7 +165,9 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
-            public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, OtelPropagator otelPropagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
+            private final ArrayListSpanProcessor arrayListSpanProcessor;
+
+            public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, OtelPropagator otelPropagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
                 this.wavefrontOTelSpanHandler = wavefrontOTelSpanHandler;
                 this.sdkTracerProvider = sdkTracerProvider;
                 this.openTelemetrySdk = openTelemetrySdk;
@@ -171,6 +177,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
+                this.arrayListSpanProcessor = arrayListSpanProcessor;
             }
 
             @Override
@@ -196,6 +203,11 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             @Override
             public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers() {
                 return this.customizers;
+            }
+
+            @Override
+            public List<FinishedSpan> getFinishedSpans() {
+                return this.arrayListSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel).collect(Collectors.toList());
             }
         }
 
@@ -275,7 +287,8 @@ public final class WavefrontOtelSetup implements AutoCloseable {
         public WavefrontOtelSetup register(MeterRegistry meterRegistry) {
             WavefrontSpanHandler wavefrontSpanHandler = wavefrontSpanHandlerOrMock(meterRegistry);
             WavefrontOtelSpanHandler wavefrontOTelSpanHandler = wavefrontOtelSpanHandler(wavefrontSpanHandler);
-            SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(wavefrontOTelSpanHandler) : sdkTracerProvider(wavefrontOTelSpanHandler);
+            ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
+            SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(wavefrontOTelSpanHandler) : sdkTracerProvider(wavefrontOTelSpanHandler, arrayListSpanProcessor);
             OpenTelemetrySdk openTelemetrySdk = this.openTelemetrySdk != null ? this.openTelemetrySdk.apply(sdkTracerProvider) : openTelemetrySdk(sdkTracerProvider);
             io.opentelemetry.api.trace.Tracer tracer = this.tracer != null ? this.tracer.apply(openTelemetrySdk) : tracer(openTelemetrySdk);
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
@@ -283,7 +296,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             };
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
-            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(wavefrontOTelSpanHandler, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers);
+            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(wavefrontOTelSpanHandler, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers, arrayListSpanProcessor);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
             meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
@@ -312,8 +325,9 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             return new WavefrontOtelSpanHandler(handler);
         }
 
-        private static SdkTracerProvider sdkTracerProvider(WavefrontOtelSpanHandler spanHandler) {
+        private static SdkTracerProvider sdkTracerProvider(WavefrontOtelSpanHandler spanHandler, ArrayListSpanProcessor arrayListSpanProcessor) {
             return SdkTracerProvider.builder().setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+                    .addSpanProcessor(arrayListSpanProcessor)
                     .addSpanProcessor(SimpleSpanProcessor.create(spanHandler)).build();
         }
 

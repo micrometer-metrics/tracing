@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.test.reporter.wavefront;
+package io.micrometer.tracing.test.reporter.inmemory;
 
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import brave.Tracing;
-import brave.handler.SpanHandler;
 import brave.http.HttpTracing;
 import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
-import com.wavefront.sdk.common.application.ApplicationTags;
-import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.api.instrument.MeterRegistry;
 import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
@@ -49,26 +46,26 @@ import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
-import io.micrometer.tracing.reporter.wavefront.WavefrontBraveSpanHandler;
-import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
+import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
+import zipkin2.Span;
+import zipkin2.reporter.AsyncReporter;
+import zipkin2.reporter.Sender;
+import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 /**
- * Provides Wavefront setup with Brave.
+ * Provides Zipkin setup with Brave.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public final class WavefrontBraveSetup implements AutoCloseable {
-
-    // To be used in tests ONLY
-    static WavefrontSpanHandler mockHandler;
+public final class InMemoryBraveSetup implements AutoCloseable {
 
     private final Consumer<Builder.BraveBuildingBlocks> closingFunction;
 
     private final Builder.BraveBuildingBlocks braveBuildingBlocks;
 
-    WavefrontBraveSetup(Consumer<Builder.BraveBuildingBlocks> closingFunction, Builder.BraveBuildingBlocks braveBuildingBlocks) {
+    InMemoryBraveSetup(Consumer<Builder.BraveBuildingBlocks> closingFunction, Builder.BraveBuildingBlocks braveBuildingBlocks) {
         this.closingFunction = closingFunction;
         this.braveBuildingBlocks = braveBuildingBlocks;
     }
@@ -86,32 +83,24 @@ public final class WavefrontBraveSetup implements AutoCloseable {
     }
 
     /**
-     * @param server Wavefront server URL
-     * @param token  Wavefront token
-     * @return builder for the {@link WavefrontBraveSetup}
+     * @return builder for the {@link InMemoryBraveSetup}
      */
-    public static WavefrontBraveSetup.Builder builder(String server, String token) {
-        return new WavefrontBraveSetup.Builder(server, token);
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
-     * Builder for Brave with Wavefront.
+     * Builder for Brave with Zipkin.
      */
     public static class Builder {
 
-        private final String server;
+        private String applicationName = "observability-test";
 
-        private final String token;
+        private Supplier<Sender> sender;
 
-        private String source;
+        private Function<Sender, AsyncReporter<Span>> reporter;
 
-        private String applicationName;
-
-        private String serviceName;
-
-        private Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler;
-
-        private Function<WavefrontBraveSpanHandler, Tracing> tracing;
+        private Function<TestSpanHandler, Tracing> tracing;
 
         private Function<Tracing, Tracer> tracer;
 
@@ -127,28 +116,28 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private Consumer<BraveBuildingBlocks> closingFunction;
 
-        public Builder(String server, String token) {
-            this.server = server;
-            this.token = token;
-        }
-
         /**
-         * All Brave building blocks required to communicate with Zipkin.
+         * All Brave building blocks.
          */
-        @SuppressWarnings("rawtypes")
         public static class BraveBuildingBlocks implements BuildingBlocks {
-            public final WavefrontSpanHandler wavefrontSpanHandler;
+
             public final Tracing tracing;
+
             public final Tracer tracer;
+
             public final BravePropagator propagator;
+
             public final HttpTracing httpTracing;
+
             public final HttpServerHandler httpServerHandler;
+
             public final HttpClientHandler httpClientHandler;
+
             public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
+
             private final TestSpanHandler testSpanHandler;
 
-            public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers, TestSpanHandler testSpanHandler) {
-                this.wavefrontSpanHandler = wavefrontSpanHandler;
+            public BraveBuildingBlocks(Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers, TestSpanHandler testSpanHandler) {
                 this.tracing = tracing;
                 this.tracer = tracer;
                 this.propagator = propagator;
@@ -165,7 +154,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             }
 
             @Override
-            public BravePropagator getPropagator() {
+            public Propagator getPropagator() {
                 return this.propagator;
             }
 
@@ -190,27 +179,22 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             }
         }
 
-        public Builder source(String source) {
-            this.source = source;
-            return this;
-        }
-
         public Builder applicationName(String applicationName) {
             this.applicationName = applicationName;
             return this;
         }
 
-        public Builder serviceName(String serviceName) {
-            this.serviceName = serviceName;
+        public Builder sender(Supplier<Sender> sender) {
+            this.sender = sender;
             return this;
         }
 
-        public Builder wavefrontSpanHandler(Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler) {
-            this.wavefrontSpanHandler = wavefrontSpanHandler;
+        public Builder reporter(Function<Sender, AsyncReporter<Span>> reporter) {
+            this.reporter = reporter;
             return this;
         }
 
-        public Builder tracing(Function<WavefrontBraveSpanHandler, Tracing> tracing) {
+        public Builder tracing(Function<TestSpanHandler, Tracing> tracing) {
             this.tracing = tracing;
             return this;
         }
@@ -256,47 +240,42 @@ public final class WavefrontBraveSetup implements AutoCloseable {
          * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
          * @return setup with all Brave building blocks
          */
-        public WavefrontBraveSetup register(MeterRegistry meterRegistry) {
-            WavefrontSpanHandler wavefrontSpanHandler = wavefrontSpanHandlerOrMock(meterRegistry);
-            WavefrontBraveSpanHandler wavefrontBraveSpanHandler = wavefrontBraveSpanHandler(wavefrontSpanHandler);
+        public InMemoryBraveSetup register(MeterRegistry meterRegistry) {
             TestSpanHandler testSpanHandler = new TestSpanHandler();
-            Tracing tracing = this.tracing != null ? this.tracing.apply(wavefrontBraveSpanHandler) : tracing(wavefrontBraveSpanHandler, testSpanHandler);
+            Tracing tracing = this.tracing != null ? this.tracing.apply(testSpanHandler) : tracing(testSpanHandler, this.applicationName);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
             BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
+            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
-            return new WavefrontBraveSetup(closingFunction, braveBuildingBlocks);
+            return new InMemoryBraveSetup(closingFunction, braveBuildingBlocks);
         }
 
-        private WavefrontSpanHandler wavefrontSpanHandlerOrMock(MeterRegistry meterRegistry) {
-            if (mockHandler == null) {
-                return this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(meterRegistry) : wavefrontSpanHandler(meterRegistry);
-            }
-            return mockHandler;
+        private static Sender sender(String zipkinUrl) {
+            return URLConnectionSender.newBuilder()
+                    .connectTimeout(1000)
+                    .readTimeout(1000)
+                    .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl) + "/api/v2/spans").build();
         }
 
-        private WavefrontSpanHandler wavefrontSpanHandler(MeterRegistry meterRegistry) {
-            return new WavefrontSpanHandler(50000, new WavefrontClient.Builder(this.server, this.token).build(), meterRegistry, this.source, new ApplicationTags.Builder(this.applicationName, this.serviceName).build(), new HashSet<>());
-        }
-
-        private static WavefrontBraveSpanHandler wavefrontBraveSpanHandler(WavefrontSpanHandler handler) {
-            return new WavefrontBraveSpanHandler(handler);
+        private static AsyncReporter<Span> reporter(Sender sender) {
+            return AsyncReporter
+                    .builder(sender)
+                    .build();
         }
 
         private static Tracer tracer(Tracing tracing) {
             return new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()), new BraveBaggageManager());
         }
 
-        private static Tracing tracing(SpanHandler spanHandler, TestSpanHandler testSpanHandler) {
+        private static Tracing tracing(TestSpanHandler testSpanHandler, String applicationName) {
             return Tracing.newBuilder()
-                    .traceId128Bit(true)
-                    .addSpanHandler(spanHandler)
+                    .localServiceName(applicationName)
                     .addSpanHandler(testSpanHandler)
                     .sampler(Sampler.ALWAYS_SAMPLE)
                     .build();
@@ -318,8 +297,6 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             return deps -> {
                 deps.httpTracing.close();
                 deps.tracing.close();
-                WavefrontSpanHandler reporter = deps.wavefrontSpanHandler;
-                reporter.close();
             };
         }
 
@@ -338,25 +315,23 @@ public final class WavefrontBraveSetup implements AutoCloseable {
     /**
      * Runs the given lambda with Zipkin setup.
      *
-     * @param server        Wavefront's server URL
-     * @param token         Wavefront's token
      * @param meterRegistry meter registry to register the handlers against
      * @param consumer      lambda to be executed with the building blocks
      */
-    public static void run(String server, String token, MeterRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
-        run(WavefrontBraveSetup.builder(server, token).register(meterRegistry), consumer);
+    public static void run(MeterRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
+        run(InMemoryBraveSetup.builder().register(meterRegistry), consumer);
     }
 
     /**
-     * @param setup    Brave setup with Wavefront
-     * @param consumer runnable to run
+     * @param localZipkinBrave Brave setup with Zipkin
+     * @param consumer         runnable to run
      */
-    public static void run(WavefrontBraveSetup setup, Consumer<Builder.BraveBuildingBlocks> consumer) {
+    public static void run(InMemoryBraveSetup localZipkinBrave, Consumer<Builder.BraveBuildingBlocks> consumer) {
         try {
-            consumer.accept(setup.getBuildingBlocks());
+            consumer.accept(localZipkinBrave.getBuildingBlocks());
         }
         finally {
-            setup.close();
+            localZipkinBrave.close();
         }
     }
 }

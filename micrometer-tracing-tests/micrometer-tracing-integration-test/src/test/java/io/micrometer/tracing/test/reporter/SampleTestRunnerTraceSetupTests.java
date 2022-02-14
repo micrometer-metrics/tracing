@@ -16,10 +16,6 @@
 
 package io.micrometer.tracing.test.reporter;
 
-import java.util.function.BiConsumer;
-
-import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.test.SampleTestRunner;
 
 class SampleTestRunnerTraceSetupTests extends SampleTestRunner {
@@ -32,11 +28,11 @@ class SampleTestRunnerTraceSetupTests extends SampleTestRunner {
 
     @Override
     public TracingSetup[] getTracingSetup() {
-        return new TracingSetup[] { };
+        return new TracingSetup[] {};
     }
 
     @Override
-    public BiConsumer<Tracer, MeterRegistry> yourCode() {
+    public SampleTestRunnerConsumer yourCode() {
         throw new AssertionError("This code should not be ran!");
     }
 }

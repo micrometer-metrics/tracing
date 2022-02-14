@@ -17,10 +17,12 @@
 package io.micrometer.tracing.test.reporter;
 
 import java.util.Deque;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;
@@ -68,4 +70,11 @@ public interface BuildingBlocks {
      * @return customizers
      */
     BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers();
+
+    /**
+     * Returns a list of finished spans.
+     *
+     * @return finished spans
+     */
+    List<FinishedSpan> getFinishedSpans();
 }

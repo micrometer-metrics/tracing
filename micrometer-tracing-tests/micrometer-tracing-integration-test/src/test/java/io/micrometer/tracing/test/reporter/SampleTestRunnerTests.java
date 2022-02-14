@@ -23,7 +23,6 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import io.micrometer.api.instrument.MeterRegistry;
 import io.micrometer.api.instrument.observation.Observation;
 import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.api.instrument.simple.SimpleMeterRegistry;
@@ -132,8 +131,10 @@ class SampleTestRunnerTests extends SampleTestRunner {
     }
 
     @Override
-    public BiConsumer<Tracer, MeterRegistry> yourCode() {
-        return (tracer, meterRegistry) -> {
+    public SampleTestRunnerConsumer yourCode() {
+        return (bb, meterRegistry) -> {
+            Tracer tracer = bb.getTracer();
+
             BDDAssertions.then(tracer.currentSpan()).isNotNull();
             traces.add(tracer.currentSpan().context().traceId());
 

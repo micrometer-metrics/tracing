@@ -19,23 +19,28 @@ package io.micrometer.tracing.test.reporter.zipkin;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import brave.Tracing;
 import brave.http.HttpTracing;
 import brave.sampler.Sampler;
+import brave.test.TestSpanHandler;
 import io.micrometer.api.instrument.MeterRegistry;
 import io.micrometer.api.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
+import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
 import io.micrometer.tracing.brave.bridge.BraveHttpClientHandler;
 import io.micrometer.tracing.brave.bridge.BraveHttpServerHandler;
 import io.micrometer.tracing.brave.bridge.BravePropagator;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
+import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
 import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
@@ -137,7 +142,9 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
 
-            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
+            private final TestSpanHandler testSpanHandler;
+
+            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers, TestSpanHandler testSpanHandler) {
                 this.sender = sender;
                 this.reporter = reporter;
                 this.tracing = tracing;
@@ -147,6 +154,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
+                this.testSpanHandler = testSpanHandler;
             }
 
             @Override
@@ -172,6 +180,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             @Override
             public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers() {
                 return this.customizers;
+            }
+
+            @Override
+            public List<FinishedSpan> getFinishedSpans() {
+                return this.testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave).collect(Collectors.toList());
             }
         }
 
@@ -244,14 +257,15 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         public ZipkinBraveSetup register(MeterRegistry meterRegistry) {
             Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
             AsyncReporter<Span> reporter = this.reporter != null ? this.reporter.apply(sender) : reporter(sender);
-            Tracing tracing = this.tracing != null ? this.tracing.apply(reporter) : tracing(reporter, this.applicationName);
+            TestSpanHandler testSpanHandler = new TestSpanHandler();
+            Tracing tracing = this.tracing != null ? this.tracing.apply(reporter) : tracing(reporter, testSpanHandler, this.applicationName);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
             BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers);
+            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             meterRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
@@ -275,10 +289,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             return new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()), new BraveBaggageManager());
         }
 
-        private static Tracing tracing(AsyncReporter<Span> reporter, String applicationName) {
+        private static Tracing tracing(AsyncReporter<Span> reporter, TestSpanHandler testSpanHandler, String applicationName) {
             return Tracing.newBuilder()
                     .localServiceName(applicationName)
                     .addSpanHandler(ZipkinSpanHandler.newBuilder(reporter).build())
+                    .addSpanHandler(testSpanHandler)
                     .sampler(Sampler.ALWAYS_SAMPLE)
                     .build();
         }
