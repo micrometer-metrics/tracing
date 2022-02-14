@@ -77,12 +77,29 @@ class DefaultTracingObservationHandlerBraveTests {
         thenSpanStartedAndStopped(currentMillis);
     }
 
+    @Test
+    void should_use_contextual_name() {
+        Observation.Context context = new Observation.Context().setName("foo").setContextualName("bar");
+
+        handler.onStart(context);
+        handler.onStop(context);
+
+        MutableSpan data = takeOnlySpan();
+        then(data.name()).isEqualTo("bar");
+    }
+
     private void thenSpanStartedAndStopped(long currentMillis) {
+        MutableSpan mutableSpan = takeOnlySpan();
+        long startTimestamp = mutableSpan.startTimestamp();
+        then(startTimestamp).isGreaterThan(currentMillis);
+        then(mutableSpan.finishTimestamp()).as("Span has to have a duration").isGreaterThan(startTimestamp);
+    }
+
+    private MutableSpan takeOnlySpan() {
         List<MutableSpan> spans = testSpanHandler.spans();
         then(spans).hasSize(1);
-        long startTimestamp = spans.get(0).startTimestamp();
-        then(startTimestamp).isGreaterThan(currentMillis);
-        then(spans.get(0).finishTimestamp()).as("Span has to have a duration").isGreaterThan(startTimestamp);
+        MutableSpan mutableSpan = spans.get(0);
+        return mutableSpan;
     }
 
 }

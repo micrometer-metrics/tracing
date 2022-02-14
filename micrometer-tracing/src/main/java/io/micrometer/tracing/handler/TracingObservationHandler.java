@@ -23,6 +23,7 @@ import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
+import io.micrometer.tracing.util.StringUtils;
 
 /**
  * Marker interface for tracing handlers.
@@ -60,7 +61,11 @@ public interface TracingObservationHandler<T extends Observation.Context>
      * @return name for the span
      */
     default String getSpanName(T context) {
-        return SpanNameUtil.toLowerHyphen(context.getName());
+        String name = context.getName();
+        if (StringUtils.isNotBlank(context.getContextualName())) {
+            name = context.getContextualName();
+        }
+        return SpanNameUtil.toLowerHyphen(name);
     }
 
     /**

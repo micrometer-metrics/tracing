@@ -88,10 +88,25 @@ class DefaultTracingObservationHandlerOtelTests {
         thenSpanStartedAndStopped(currentNanos);
     }
 
-    private void thenSpanStartedAndStopped(long currentNanos) {
+    @Test
+    void should_use_contextual_name() {
+        Observation.Context context = new Observation.Context().setName("foo").setContextualName("bar");
+
+        handler.onStart(context);
+        handler.onStop(context);
+
+        SpanData data = takeOnlySpan();
+        then(data.getName()).isEqualTo("bar");
+    }
+
+    private SpanData takeOnlySpan() {
         Queue<SpanData> spans = testSpanProcessor.spans();
         then(spans).hasSize(1);
-        SpanData data = testSpanProcessor.takeLocalSpan();
+        return testSpanProcessor.takeLocalSpan();
+    }
+
+    private void thenSpanStartedAndStopped(long currentNanos) {
+        SpanData data = takeOnlySpan();
         long startTimestamp = data.getStartEpochNanos();
         then(startTimestamp).isGreaterThan(currentNanos);
         then(data.getEndEpochNanos()).as("Span has to have a duration").isGreaterThan(startTimestamp);
