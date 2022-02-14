@@ -68,7 +68,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
 
     public SpansAssert hasASpanWithName(String name) {
         isNotEmpty();
-        this.actual.stream().filter(f -> f.getName().equals(name)).findFirst().orElseThrow(() -> {
+        this.actual.stream().filter(f -> name.equals(f.getName())).findFirst().orElseThrow(() -> {
             failWithMessage("There should be at least one span with name <{}> but found none. Found following spans {}", name, this.actual);
             return new AssertionError();
         });
@@ -77,7 +77,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
 
     public SpansAssert hasASpanWithRemoteServiceName(String remoteServiceName) {
         isNotEmpty();
-        this.actual.stream().filter(f -> f.getRemoteServiceName().equals(remoteServiceName)).findFirst().orElseThrow(() -> {
+        this.actual.stream().filter(f -> remoteServiceName.equals(f.getRemoteServiceName())).findFirst().orElseThrow(() -> {
             failWithMessage("There should be at least one span with remote service name <{}> but found none. Found following spans {}", remoteServiceName, this.actual);
             return new AssertionError();
         });
@@ -88,7 +88,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
         isNotEmpty();
         this.actual.stream().filter(f -> {
             String tag = f.getTags().get(key);
-            return tag != null && tag.equals(value);
+            return value.equals(tag);
         }).findFirst().orElseThrow(() -> {
             failWithMessage("There should be at least one span with tag key <{}> and value <{}> but found none. Found following spans {}", key, value, this.actual);
             return new AssertionError();
