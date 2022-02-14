@@ -42,6 +42,7 @@ import io.micrometer.tracing.util.StringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import zipkin2.CheckResult;
@@ -73,7 +74,7 @@ public abstract class SampleTestRunner {
 
     private MeterRegistry meterRegistry;
 
-    private final List<ObservationHandler<?>> ObservationHandlersCopy;
+    private final List<ObservationHandler<?>> observationHandlersCopy;
 
     /**
      * Creates a new instance of the {@link SampleTestRunner} with a pre-created configuration and {@link MeterRegistry}.
@@ -84,7 +85,7 @@ public abstract class SampleTestRunner {
     public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig, MeterRegistry meterRegistry) {
         this.sampleRunnerConfig = sampleRunnerConfig;
         this.meterRegistry = meterRegistry;
-        this.ObservationHandlersCopy = new ArrayList<>(TestConfigAccessor.getHandlers(this.meterRegistry.observationConfig()));
+        this.observationHandlersCopy = new ArrayList<>();
     }
 
     /**
@@ -104,7 +105,7 @@ public abstract class SampleTestRunner {
     public SampleTestRunner() {
         this.sampleRunnerConfig = null;
         this.meterRegistry = null;
-        this.ObservationHandlersCopy = new ArrayList<>();
+        this.observationHandlersCopy = new ArrayList<>();
     }
 
     /**
@@ -133,10 +134,15 @@ public abstract class SampleTestRunner {
         tracingSetup.run(getSampleRunnerConfig(), getMeterRegistry(), this);
     }
 
+    @BeforeEach
+    void setupRegistry() {
+        this.observationHandlersCopy.addAll(TestConfigAccessor.getHandlers(this.meterRegistry.observationConfig()));
+    }
+
     @AfterEach
-    void setUp() {
+    void clearMeterRegistry() {
         TestConfigAccessor.clearHandlers(getMeterRegistry().observationConfig());
-        this.ObservationHandlersCopy.forEach(handler -> getMeterRegistry().observationConfig().observationHandler(handler));
+        this.observationHandlersCopy.forEach(handler -> getMeterRegistry().observationConfig().observationHandler(handler));
         getMeterRegistry().clear();
         meterRegistries.add(getMeterRegistry());
     }
