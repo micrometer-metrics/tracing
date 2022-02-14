@@ -103,7 +103,7 @@ public abstract class SampleTestRunner {
      * {@link SampleTestRunner#getSampleRunnerConfig()} methods you will get NPEs.
      */
     public SampleTestRunner() {
-        this.sampleRunnerConfig = null;
+        this.sampleRunnerConfig = SampleRunnerConfig.builder().build();
         this.meterRegistry = null;
         this.observationHandlersCopy = new ArrayList<>();
     }
