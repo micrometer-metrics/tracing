@@ -107,7 +107,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
         if (testName.contains("zipkin")) {
             assertThatZipkinRegisteredATrace(lastTrace);
         }
-        else {
+        else if (testName.contains("wavefront")) {
             WavefrontSpanHandler handler = testName.toLowerCase(Locale.ROOT).contains("brave") ? braveSpanHandler : otelSpanHandler;
             Awaitility.await()
                     .atMost(1, TimeUnit.SECONDS)
