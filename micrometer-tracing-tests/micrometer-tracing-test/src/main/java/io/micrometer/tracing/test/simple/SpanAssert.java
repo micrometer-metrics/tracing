@@ -37,7 +37,7 @@ import org.assertj.core.api.AbstractThrowableAssert;
 public class SpanAssert extends AbstractAssert<SpanAssert, FinishedSpan> {
 
     protected SpanAssert(FinishedSpan actual) {
-        super(actual, FinishedSpan.class);
+        super(actual, SpanAssert.class);
     }
 
     /**
