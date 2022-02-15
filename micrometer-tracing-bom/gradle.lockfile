@@ -1,8 +1,0 @@
-# This is a Gradle generated file for dependency locking.
-# Manual edits can break the build and are not advised.
-# This file is expected to be part of source control.
-io.micrometer:micrometer-bom:2.0.0-M2=classpath
-io.opentelemetry:opentelemetry-bom-alpha:1.10.1-alpha=classpath
-io.opentelemetry:opentelemetry-bom:1.10.1=classpath
-io.zipkin.brave:brave-bom:5.13.2=classpath
-empty=archives,default,signatures
