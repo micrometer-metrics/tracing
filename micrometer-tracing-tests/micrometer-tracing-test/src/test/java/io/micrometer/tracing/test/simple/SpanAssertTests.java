@@ -36,4 +36,17 @@ class SpanAssertTests {
 
         thenThrownBy(() -> assertThat(span).hasNameEqualTo("bar")).isInstanceOf(AssertionError.class);
     }
+
+    @Test
+    void should_jump_to_and_back_from_throwable_assert() {
+        SimpleSpan span = new SimpleSpan().name("foo").error(new RuntimeException("bar"));
+
+        thenNoException().isThrownBy(() -> assertThat(span)
+                .hasNameEqualTo("foo")
+                .thenThrowable()
+                .hasMessage("bar")
+                .backToSpan()
+                .hasNameEqualTo("foo"));
+    }
+
 }

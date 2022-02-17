@@ -34,7 +34,7 @@ import org.assertj.core.api.AbstractThrowableAssert;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class SpanAssert extends AbstractAssert<SpanAssert, FinishedSpan> {
+public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SELF, FinishedSpan> {
 
     protected SpanAssert(FinishedSpan actual) {
         super(actual, SpanAssert.class);
@@ -60,24 +60,24 @@ public class SpanAssert extends AbstractAssert<SpanAssert, FinishedSpan> {
         return new SpanAssert(actual);
     }
 
-    public SpanAssert hasNoTags() {
+    public SELF hasNoTags() {
         isNotNull();
         Map<String, String> tags = this.actual.getTags();
         if (!tags.isEmpty()) {
             failWithMessage("Span should have no tags but has <%s>", tags);
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasTagWithKey(String key) {
+    public SELF hasTagWithKey(String key) {
         isNotNull();
         if (!this.actual.getTags().containsKey(key)) {
             failWithMessage("Span should have a tag with key <%s> but it's not there. List of all keys <%s>", key, this.actual.getTags().keySet());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasTag(String key, String value) {
+    public SELF hasTag(String key, String value) {
         isNotNull();
         hasTagWithKey(key);
         Map<String, String> tags = this.actual.getTags();
@@ -85,18 +85,18 @@ public class SpanAssert extends AbstractAssert<SpanAssert, FinishedSpan> {
         if (!tagValue.equals(value)) {
             failWithMessage("Span should have a tag with key <%s> and value <%s>. The key is correct but the value is <%s>", key, value, tagValue);
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert doesNotHaveTagWithKey(String key) {
+    public SELF doesNotHaveTagWithKey(String key) {
         isNotNull();
         if (this.actual.getTags().containsKey(key)) {
             failWithMessage("Span should not have a tag with key <%s>", key, this.actual.getTags().keySet());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert doesNotHaveTag(String key, String value) {
+    public SELF doesNotHaveTag(String key, String value) {
         isNotNull();
         doesNotHaveTagWithKey(key);
         Map<String, String> tags = this.actual.getTags();
@@ -104,39 +104,39 @@ public class SpanAssert extends AbstractAssert<SpanAssert, FinishedSpan> {
         if (tagValue.equals(value)) {
             failWithMessage("Span should not have a tag with key <%s> and value <%s>", key, value);
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert isStarted() {
+    public SELF isStarted() {
         isNotNull();
         if (this.actual.getStartTimestamp() == 0) {
             failWithMessage("Span should be started");
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert isNotStarted() {
+    public SELF isNotStarted() {
         isNotNull();
         if (this.actual.getStartTimestamp() != 0) {
             failWithMessage("Span should not be started");
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert isEnded() {
+    public SELF isEnded() {
         isNotNull();
         if (this.actual.getEndTimestamp() == 0) {
             failWithMessage("Span should be ended");
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert isNotEnded() {
+    public SELF isNotEnded() {
         isNotNull();
         if (this.actual.getEndTimestamp() != 0) {
             failWithMessage("Span should not be ended");
         }
-        return this;
+        return (SELF) this;
     }
 
     public SpanAssertReturningAssert assertThatThrowable() {
@@ -147,138 +147,138 @@ public class SpanAssert extends AbstractAssert<SpanAssert, FinishedSpan> {
         return assertThatThrowable();
     }
 
-    public SpanAssert hasRemoteServiceNameEqualTo(String remoteServiceName) {
+    public SELF hasRemoteServiceNameEqualTo(String remoteServiceName) {
         isNotNull();
         if (!remoteServiceName.equals(this.actual.getRemoteServiceName())) {
             failWithMessage("Span should have remote service name equal to <%s> but has <%s>", remoteServiceName, this.actual.getRemoteServiceName());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert doesNotHaveRemoteServiceNameEqualTo(String remoteServiceName) {
+    public SELF doesNotHaveRemoteServiceNameEqualTo(String remoteServiceName) {
         isNotNull();
         if (remoteServiceName.equals(this.actual.getRemoteServiceName())) {
             failWithMessage("Span should not have remote service name equal to <%s>", remoteServiceName);
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasKindEqualTo(Span.Kind kind) {
+    public SELF hasKindEqualTo(Span.Kind kind) {
         isNotNull();
         if (!kind.equals(this.actual.getKind())) {
             failWithMessage("Span should have span kind equal to <%s> but has <%s>", kind, this.actual.getKind());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert doesNotHaveKindEqualTo(Span.Kind kind) {
+    public SELF doesNotHaveKindEqualTo(Span.Kind kind) {
         isNotNull();
         if (kind.equals(this.actual.getKind())) {
             failWithMessage("Span should not have span kind equal to <%s>", kind);
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasEventWithNameEqualTo(String eventName) {
+    public SELF hasEventWithNameEqualTo(String eventName) {
         isNotNull();
         List<String> eventNames = eventNames();
         if (!eventNames.contains(eventName)) {
             failWithMessage("Span should have an event with name <%s> but has <%s>", eventName, eventNames);
         }
-        return this;
+        return (SELF) this;
     }
 
     private List<String> eventNames() {
         return this.actual.getEvents().stream().map(Map.Entry::getValue).collect(Collectors.toList());
     }
 
-    public SpanAssert doesNotHaveEventWithNameEqualTo(String eventName) {
+    public SELF doesNotHaveEventWithNameEqualTo(String eventName) {
         isNotNull();
         List<String> eventNames = eventNames();
         if (eventNames.contains(eventName)) {
             failWithMessage("Span should not have an event with name <%s>", eventName);
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasNameEqualTo(String spanName) {
+    public SELF hasNameEqualTo(String spanName) {
         isNotNull();
         if (!this.actual.getName().equals(spanName)) {
             failWithMessage("Span should have a name <%s> but has <%s>", spanName, this.actual.getName());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert doesNotHaveNameEqualTo(String spanName) {
+    public SELF doesNotHaveNameEqualTo(String spanName) {
         isNotNull();
         if (!this.actual.getName().equals(spanName)) {
             failWithMessage("Span should not have a name <%s>", spanName, this.actual.getName());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasIpEqualTo(String ip) {
+    public SELF hasIpEqualTo(String ip) {
         isNotNull();
         if (!this.actual.getRemoteIp().equals(ip)) {
             failWithMessage("Span should have ip equal to <%s> but has <%s>", ip, this.actual.getRemoteIp());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert doesNotHaveIpEqualTo(String ip) {
+    public SELF doesNotHaveIpEqualTo(String ip) {
         isNotNull();
         if (this.actual.getRemoteIp().equals(ip)) {
             failWithMessage("Span should not have ip equal to <%s>", ip, this.actual.getRemoteIp());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasIpThatIsNotBlank() {
+    public SELF hasIpThatIsNotBlank() {
         isNotNull();
         if (StringUtils.isBlank(this.actual.getRemoteIp())) {
             failWithMessage("Span should have ip that is not blank");
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasIpThatIsBlank() {
+    public SELF hasIpThatIsBlank() {
         isNotNull();
         if (StringUtils.isNotBlank(this.actual.getRemoteIp())) {
             failWithMessage("Span should have ip that is blank");
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasPortEqualTo(int port) {
+    public SELF hasPortEqualTo(int port) {
         isNotNull();
         if (this.actual.getRemotePort() != port) {
             failWithMessage("Span should have port equal to <%s> but has <%s>", port, this.actual.getRemotePort());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert doesNotHavePortEqualTo(int port) {
+    public SELF doesNotHavePortEqualTo(int port) {
         isNotNull();
         if (this.actual.getRemotePort() == port) {
             failWithMessage("Span should not have port equal to <%s>", port, this.actual.getRemotePort());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasPortThatIsNotSet() {
+    public SELF hasPortThatIsNotSet() {
         isNotNull();
         if (this.actual.getRemotePort() != 0) {
             failWithMessage("Span should have port that is not set but was set to <%s>", this.actual.getRemotePort());
         }
-        return this;
+        return (SELF) this;
     }
 
-    public SpanAssert hasPortThatIsSet() {
+    public SELF hasPortThatIsSet() {
         isNotNull();
         if (this.actual.getRemotePort() == 0) {
             failWithMessage("Span should have port that is set but wasn't");
         }
-        return this;
+        return (SELF) this;
     }
 
     public static class SpanAssertReturningAssert extends AbstractThrowableAssert<SpanAssertReturningAssert, Throwable> {

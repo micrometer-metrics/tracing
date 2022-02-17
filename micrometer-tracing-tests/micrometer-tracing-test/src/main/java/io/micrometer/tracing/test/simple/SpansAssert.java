@@ -17,6 +17,7 @@ package io.micrometer.tracing.test.simple;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import io.micrometer.tracing.exporter.FinishedSpan;
@@ -61,24 +62,108 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
         isNotEmpty();
         List<String> traceIds = this.actual.stream().map(FinishedSpan::getTraceId).distinct().collect(Collectors.toList());
         if (traceIds.size() != 1) {
-            failWithMessage("Spans should have same trace ids but found %s trace ids. Found following spans %s", traceIds, this.actual);
+            failWithMessage("Spans should have same trace ids but found %s trace ids. Found following spans \n%s", traceIds, spansAsString());
         }
         return this;
     }
 
+    private String spansAsString() {
+        return this.actual.stream().map(Object::toString).collect(Collectors.joining("\n"));
+    }
+
     public SpansAssert hasASpanWithName(String name) {
         isNotEmpty();
-        this.actual.stream().filter(f -> name.equals(f.getName())).findFirst().orElseThrow(() -> {
-            failWithMessage("There should be at least one span with name <%s> but found none. Found following spans %s", name, this.actual);
+        extractSpanWithName(name);
+        return this;
+    }
+
+    private FinishedSpan extractSpanWithName(String name) {
+        return this.actual.stream().filter(f -> name.equals(f.getName())).findFirst().orElseThrow(() -> {
+            failWithMessage("There should be at least one span with name <%s> but found none. Found following spans \n%s", name, spansAsString());
             return new AssertionError();
         });
+    }
+
+    private FinishedSpan extractSpanWithNameIgnoreCase(String name) {
+        return this.actual.stream().filter(f -> name.equalsIgnoreCase(f.getName())).findFirst().orElseThrow(() -> {
+            failWithMessage("There should be at least one span with name (ignore case) <%s> but found none. Found following spans \n%s", name, spansAsString());
+            return new AssertionError();
+        });
+    }
+
+    public SpansAssert hasASpanWithNameIgnoreCase(String name) {
+        isNotEmpty();
+        this.actual.stream().filter(f -> name.equalsIgnoreCase(f.getName())).findFirst().orElseThrow(() -> {
+            failWithMessage("There should be at least one span with name (ignoring case) <%s> but found none. Found following spans \n%s", name, spansAsString());
+            return new AssertionError();
+        });
+        return this;
+    }
+
+    public SpansAssert forAllSpansWithNameEqualTo(String name, Consumer<SpanAssert> spanConsumer) {
+        isNotEmpty();
+        hasASpanWithName(name);
+        this.actual.stream().filter(f -> name.equals(f.getName())).forEach(f -> spanConsumer.accept(SpanAssert.then(f)));
+        return this;
+    }
+
+    public SpansAssert forAllSpansWithNameEqualToIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
+        isNotEmpty();
+        hasASpanWithNameIgnoreCase(name);
+        this.actual.stream().filter(f -> name.equalsIgnoreCase(f.getName())).forEach(f -> spanConsumer.accept(SpanAssert.then(f)));
+        return this;
+    }
+
+    public SpansAssertReturningAssert assertThatASpanWithNameEqualTo(String name) {
+        isNotEmpty();
+        FinishedSpan span = extractSpanWithName(name);
+        return new SpansAssertReturningAssert(this, span);
+    }
+
+    public SpansAssertReturningAssert thenASpanWithNameEqualTo(String name) {
+        return assertThatASpanWithNameEqualTo(name);
+    }
+
+    public SpansAssertReturningAssert assertThatASpanWithNameEqualToIgnoreCase(String name) {
+        isNotEmpty();
+        FinishedSpan span = extractSpanWithNameIgnoreCase(name);
+        return new SpansAssertReturningAssert(this, span);
+    }
+
+    public SpansAssertReturningAssert thenASpanWithNameEqualToIgnoreCase(String name) {
+        return assertThatASpanWithNameEqualToIgnoreCase(name);
+    }
+
+    public SpansAssert hasNumberOfSpansEqualTo(int expectedNumberOfSpans) {
+        isNotEmpty();
+        if (this.actual.size() != expectedNumberOfSpans) {
+            failWithMessage("There should be <%s> spans but there were <%s>. Found following spans \n%s", expectedNumberOfSpans, this.actual.size(), spansAsString());
+        }
+        return this;
+    }
+
+    public SpansAssert hasNumberOfSpansWithNameEqualTo(String spanName, int expectedNumberOfSpans) {
+        isNotEmpty();
+        long spansWithNameSize = this.actual.stream().filter(f -> spanName.equals(f.getName())).count();
+        if (spansWithNameSize != expectedNumberOfSpans) {
+            failWithMessage("There should be <%s> spans with name <%s> but there were <%s>. Found following spans \n%s", expectedNumberOfSpans, spanName, spansWithNameSize, spansAsString());
+        }
+        return this;
+    }
+
+    public SpansAssert hasNumberOfSpansWithNameEqualToIgnoreCase(String spanName, int expectedNumberOfSpans) {
+        isNotEmpty();
+        long spansWithNameSize = this.actual.stream().filter(f -> spanName.equalsIgnoreCase(f.getName())).count();
+        if (spansWithNameSize != expectedNumberOfSpans) {
+            failWithMessage("There should be <%s> spans with name (ignoring case) <%s> but there were <%s>. Found following spans \n%s", expectedNumberOfSpans, spanName, spansWithNameSize, spansAsString());
+        }
         return this;
     }
 
     public SpansAssert hasASpanWithRemoteServiceName(String remoteServiceName) {
         isNotEmpty();
         this.actual.stream().filter(f -> remoteServiceName.equals(f.getRemoteServiceName())).findFirst().orElseThrow(() -> {
-            failWithMessage("There should be at least one span with remote service name <%s> but found none. Found following spans %s", remoteServiceName, this.actual);
+            failWithMessage("There should be at least one span with remote service name <%s> but found none. Found following spans \n%s", remoteServiceName, spansAsString());
             return new AssertionError();
         });
         return this;
@@ -90,7 +175,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
             String tag = f.getTags().get(key);
             return value.equals(tag);
         }).findFirst().orElseThrow(() -> {
-            failWithMessage("There should be at least one span with tag key <%s> and value <%s> but found none. Found following spans %s", key, value, this.actual);
+            failWithMessage("There should be at least one span with tag key <%s> and value <%s> but found none. Found following spans \n%s", key, value, spansAsString());
             return new AssertionError();
         });
         return this;
@@ -99,10 +184,23 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
     public SpansAssert hasASpanWithATagKey(String key) {
         isNotEmpty();
         this.actual.stream().filter(f -> f.getTags().containsKey(key)).findFirst().orElseThrow(() -> {
-            failWithMessage("There should be at least one span with tag key <%s> but found none. Found following spans %s", key, this.actual);
+            failWithMessage("There should be at least one span with tag key <%s> but found none. Found following spans \n%s", key, spansAsString());
             return new AssertionError();
         });
         return this;
     }
 
+    public static class SpansAssertReturningAssert extends SpanAssert<SpansAssert.SpansAssertReturningAssert> {
+
+        private final SpansAssert spansAssert;
+
+        public SpansAssertReturningAssert(SpansAssert spansAssert, FinishedSpan span) {
+            super(span);
+            this.spansAssert = spansAssert;
+        }
+
+        public SpansAssert backToSpans() {
+            return this.spansAssert;
+        }
+    }
 }

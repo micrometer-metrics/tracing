@@ -33,9 +33,22 @@ class SpansAssertTests {
     }
 
     @Test
-    void should_not_throw_exception_when_name_incorrect() {
+    void should_throw_exception_when_name_incorrect() {
         SimpleSpan span = new SimpleSpan().name("foo");
 
         thenThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithName("bar")).isInstanceOf(AssertionError.class);
     }
+
+    @Test
+    void should_jump_to_and_back_from_span_assert() {
+        SimpleSpan span = new SimpleSpan().name("foo");
+
+        thenNoException().isThrownBy(() -> assertThat(Collections.singletonList(span))
+                .hasASpanWithName("foo")
+                .thenASpanWithNameEqualTo("foo")
+                    .hasNameEqualTo("foo")
+                .backToSpans()
+                    .hasASpanWithNameIgnoreCase("foo"));
+    }
+
 }
