@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	api project(':micrometer-tracing')
+	api project(':micrometer-tracing-api')
 	api 'org.assertj:assertj-core'
 	
 	// Tests for tests

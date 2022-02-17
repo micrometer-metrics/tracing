@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	api project(':micrometer-tracing')
+	api project(':micrometer-tracing-api')
 	api project(':micrometer-tracing-test')
 	api project(':micrometer-tracing-reporter-wavefront')
 
