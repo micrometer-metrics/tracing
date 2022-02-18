@@ -6,6 +6,7 @@ dependencies {
 	api project(':micrometer-tracing-api')
 	api project(':micrometer-tracing-test')
 	api project(':micrometer-tracing-reporter-wavefront')
+	api 'io.micrometer:micrometer-test'
 
 	// Brave
 	api project(':micrometer-tracing-bridge-brave')
