@@ -18,7 +18,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import java.util.Collection;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -38,7 +38,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
 
-    Queue<SpanData> spans = new LinkedBlockingQueue<>(50);
+    Queue<SpanData> spans = new ConcurrentLinkedQueue<>();
 
     @Override
     public void onStart(Context parent, ReadWriteSpan span) {
