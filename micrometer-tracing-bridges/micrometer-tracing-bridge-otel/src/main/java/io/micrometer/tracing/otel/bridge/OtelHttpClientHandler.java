@@ -65,6 +65,7 @@ public class OtelHttpClientHandler implements HttpClientHandler {
         this.httpClientRequestParser = httpClientRequestParser;
         this.httpClientResponseParser = httpClientResponseParser;
         this.samplerFunction = samplerFunction;
+        // TODO: This builder should have a customizer of some sort that provides some defaults but can be changed
         this.instrumenter = Instrumenter
                 .<HttpClientRequest, HttpClientResponse>builder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))

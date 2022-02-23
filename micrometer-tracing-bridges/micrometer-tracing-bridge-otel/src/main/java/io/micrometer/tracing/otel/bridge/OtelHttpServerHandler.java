@@ -64,6 +64,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
         this.httpServerRequestParser = httpServerRequestParser;
         this.httpServerResponseParser = httpServerResponseParser;
         this.pattern = skipPattern;
+        // TODO: This builder should have a customizer of some sort that provides some defaults but can be changed
         this.instrumenter = Instrumenter
                 .<HttpServerRequest, HttpServerResponse>builder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))
