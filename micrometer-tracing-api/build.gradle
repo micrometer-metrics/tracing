@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	api 'io.micrometer:micrometer-api'
+	api 'io.micrometer:micrometer-core'
 	api 'aopalliance:aopalliance'
 
 	testImplementation 'org.junit.jupiter:junit-jupiter'

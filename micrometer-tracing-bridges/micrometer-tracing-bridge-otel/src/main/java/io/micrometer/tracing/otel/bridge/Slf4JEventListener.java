@@ -16,8 +16,8 @@
 
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.api.internal.logging.InternalLogger;
-import io.micrometer.api.internal.logging.InternalLoggerFactory;
+import io.micrometer.core.util.internal.logging.InternalLogger;
+import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.opentelemetry.api.trace.Span;
 import org.slf4j.MDC;
 

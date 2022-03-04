@@ -16,9 +16,9 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.api.instrument.Tag;
-import io.micrometer.api.instrument.observation.Observation;
-import io.micrometer.api.instrument.observation.ObservationHandler;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.observation.Observation;
+import io.micrometer.core.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;

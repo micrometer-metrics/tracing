@@ -19,7 +19,7 @@ package io.micrometer.tracing.otel.handler;
 import java.util.Collections;
 import java.util.Queue;
 
-import io.micrometer.api.instrument.observation.Observation;
+import io.micrometer.core.instrument.observation.Observation;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;

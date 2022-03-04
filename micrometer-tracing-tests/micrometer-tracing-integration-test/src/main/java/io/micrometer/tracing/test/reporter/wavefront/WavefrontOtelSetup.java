@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
-import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.observation.ObservationHandler;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;

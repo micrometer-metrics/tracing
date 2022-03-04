@@ -16,7 +16,7 @@
 
 package io.micrometer.tracing;
 
-import io.micrometer.api.lang.Nullable;
+import io.micrometer.core.lang.Nullable;
 
 /**
  * Contains trace and span data.

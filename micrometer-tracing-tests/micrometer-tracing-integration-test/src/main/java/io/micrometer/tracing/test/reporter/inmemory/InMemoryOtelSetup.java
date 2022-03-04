@@ -27,8 +27,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import io.micrometer.api.instrument.MeterRegistry;
-import io.micrometer.api.instrument.observation.ObservationHandler;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;

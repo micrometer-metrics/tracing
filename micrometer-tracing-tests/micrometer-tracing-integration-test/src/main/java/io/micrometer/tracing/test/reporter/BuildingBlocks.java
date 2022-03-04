@@ -20,7 +20,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import io.micrometer.api.instrument.observation.ObservationHandler;
+import io.micrometer.core.instrument.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.http.HttpClientHandler;

@@ -17,7 +17,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.sampler.SamplerFunctions;
-import io.micrometer.api.instrument.transport.http.HttpRequest;
+import io.micrometer.core.instrument.transport.http.HttpRequest;
 import io.micrometer.tracing.SamplerFunction;
 
 /**

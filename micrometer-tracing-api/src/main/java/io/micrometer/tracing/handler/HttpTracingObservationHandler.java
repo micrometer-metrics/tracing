@@ -19,11 +19,11 @@ package io.micrometer.tracing.handler;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import io.micrometer.api.instrument.observation.Observation;
-import io.micrometer.api.instrument.transport.http.HttpRequest;
-import io.micrometer.api.instrument.transport.http.HttpResponse;
-import io.micrometer.api.instrument.transport.http.context.HttpContext;
-import io.micrometer.api.lang.Nullable;
+import io.micrometer.core.instrument.observation.Observation;
+import io.micrometer.core.instrument.transport.http.HttpRequest;
+import io.micrometer.core.instrument.transport.http.HttpResponse;
+import io.micrometer.core.instrument.transport.http.context.HttpContext;
+import io.micrometer.core.lang.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
