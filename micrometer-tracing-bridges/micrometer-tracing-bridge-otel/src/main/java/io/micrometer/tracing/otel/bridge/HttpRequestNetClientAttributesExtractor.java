@@ -19,14 +19,14 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.core.instrument.transport.http.HttpRequest;
 import io.micrometer.core.instrument.transport.http.HttpResponse;
 import io.micrometer.core.lang.Nullable;
-import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesGetter;
 
 /**
  * Extracts OpenTelemetry network semantic attributes value for client http spans.
  *
  * @author Nikita Salnikov-Tarnovski
  */
-class HttpRequestNetClientAttributesExtractor extends NetClientAttributesExtractor<HttpRequest, HttpResponse> {
+class HttpRequestNetClientAttributesExtractor implements NetClientAttributesGetter<HttpRequest, HttpResponse> {
 
     @Nullable
     @Override

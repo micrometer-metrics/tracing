@@ -19,6 +19,7 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.core.instrument.transport.http.HttpClientRequest;
 import io.micrometer.core.instrument.transport.http.HttpClientResponse;
 import io.micrometer.core.instrument.transport.http.HttpRequest;
+import io.micrometer.core.lang.Nullable;
 import io.micrometer.core.util.internal.logging.InternalLogger;
 import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.SamplerFunction;
@@ -27,14 +28,15 @@ import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpRequestParser;
 import io.micrometer.tracing.http.HttpResponseParser;
-import io.micrometer.core.lang.Nullable;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesExtractor;
 
 
 /**
@@ -61,7 +63,7 @@ public class OtelHttpClientHandler implements HttpClientHandler {
 
     public OtelHttpClientHandler(OpenTelemetry openTelemetry, @Nullable HttpRequestParser httpClientRequestParser,
             @Nullable HttpResponseParser httpClientResponseParser, SamplerFunction<HttpRequest> samplerFunction,
-            HttpClientAttributesExtractor<HttpClientRequest, HttpClientResponse> httpAttributesExtractor) {
+            HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> httpAttributesExtractor) {
         this.httpClientRequestParser = httpClientRequestParser;
         this.httpClientResponseParser = httpClientResponseParser;
         this.samplerFunction = samplerFunction;
@@ -70,8 +72,9 @@ public class OtelHttpClientHandler implements HttpClientHandler {
                 .<HttpClientRequest, HttpClientResponse>builder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))
                 .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
-                .addAttributesExtractor(new HttpRequestNetClientAttributesExtractor())
-                .addAttributesExtractor(httpAttributesExtractor).addAttributesExtractor(new PathAttributeExtractor())
+                .addAttributesExtractor(NetClientAttributesExtractor.create(new HttpRequestNetClientAttributesExtractor()))
+                .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesExtractor))
+                .addAttributesExtractor(new PathAttributeExtractor())
                 .newClientInstrumenter(HttpClientRequest::header);
     }
 

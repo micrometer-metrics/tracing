@@ -23,7 +23,7 @@ import java.util.List;
 import io.micrometer.core.instrument.transport.http.HttpServerRequest;
 import io.micrometer.core.instrument.transport.http.HttpServerResponse;
 import io.micrometer.core.lang.Nullable;
-import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesGetter;
 
 /**
  * Extracts OpenTelemetry http semantic attributes value for server http spans.
@@ -31,17 +31,17 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttribut
  * @author Nikita Salnikov-Tarnovski
  */
 public class DefaultHttpServerAttributesExtractor
-        extends HttpServerAttributesExtractor<HttpServerRequest, HttpServerResponse> {
+        implements HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> {
 
     @Nullable
     @Override
-    protected String flavor(HttpServerRequest httpServerRequest) {
+    public String flavor(HttpServerRequest httpServerRequest) {
         return null;
     }
 
     @Nullable
     @Override
-    protected String target(HttpServerRequest httpServerRequest) {
+    public String target(HttpServerRequest httpServerRequest) {
         URI uri = toUri(httpServerRequest);
         if (uri == null) {
             return null;
@@ -61,13 +61,13 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    protected String route(HttpServerRequest httpServerRequest) {
+    public String route(HttpServerRequest httpServerRequest) {
         return httpServerRequest.route();
     }
 
     @Nullable
     @Override
-    protected String scheme(HttpServerRequest httpServerRequest) {
+    public String scheme(HttpServerRequest httpServerRequest) {
         String url = httpServerRequest.url();
         if (url == null) {
             return null;
@@ -83,57 +83,57 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    protected String serverName(HttpServerRequest httpServerRequest, @Nullable HttpServerResponse httpServerResponse) {
+    public String serverName(HttpServerRequest httpServerRequest, @Nullable HttpServerResponse httpServerResponse) {
         return null;
     }
 
     @Nullable
     @Override
-    protected String method(HttpServerRequest httpServerRequest) {
+    public String method(HttpServerRequest httpServerRequest) {
         return httpServerRequest.method();
     }
 
     @Override
-    protected List<String> requestHeader(HttpServerRequest httpServerRequest, String name) {
+    public List<String> requestHeader(HttpServerRequest httpServerRequest, String name) {
         String value = httpServerRequest.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
 
     @Nullable
     @Override
-    protected Long requestContentLength(HttpServerRequest httpServerRequest,
+    public Long requestContentLength(HttpServerRequest httpServerRequest,
             @Nullable HttpServerResponse httpServerResponse) {
         return null;
     }
 
     @Nullable
     @Override
-    protected Long requestContentLengthUncompressed(HttpServerRequest httpServerRequest,
+    public Long requestContentLengthUncompressed(HttpServerRequest httpServerRequest,
             @Nullable HttpServerResponse httpServerResponse) {
         return null;
     }
 
     @Nullable
     @Override
-    protected Integer statusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
+    public Integer statusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
         return httpServerResponse.statusCode();
     }
 
     @Nullable
     @Override
-    protected Long responseContentLength(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
+    public Long responseContentLength(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
         return null;
     }
 
     @Nullable
     @Override
-    protected Long responseContentLengthUncompressed(HttpServerRequest httpServerRequest,
+    public Long responseContentLengthUncompressed(HttpServerRequest httpServerRequest,
             HttpServerResponse httpServerResponse) {
         return null;
     }
 
     @Override
-    protected List<String> responseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+    public List<String> responseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
             String name) {
         String value = httpServerResponse.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);

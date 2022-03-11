@@ -22,73 +22,73 @@ import java.util.List;
 import io.micrometer.core.instrument.transport.http.HttpClientRequest;
 import io.micrometer.core.instrument.transport.http.HttpClientResponse;
 import io.micrometer.core.lang.Nullable;
-import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
 
 /**
  * Extracts OpenTelemetry http semantic attributes value for client http spans.
  *
  * @author Nikita Salnikov-Tarnovski
  */
-public class DefaultHttpClientAttributesExtractor
-        extends HttpClientAttributesExtractor<HttpClientRequest, HttpClientResponse> {
+public class DefaultHttpClientAttributesGetter
+        implements HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> {
 
     @Nullable
     @Override
-    protected String url(HttpClientRequest httpClientRequest) {
+    public String url(HttpClientRequest httpClientRequest) {
         return httpClientRequest.url();
     }
 
     @Nullable
     @Override
-    protected String flavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
+    public String flavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
         return null;
     }
 
     @Override
-    protected String method(HttpClientRequest httpClientRequest) {
+    public String method(HttpClientRequest httpClientRequest) {
         return httpClientRequest.method();
     }
 
     @Override
-    protected List<String> requestHeader(HttpClientRequest httpClientRequest, String name) {
+    public List<String> requestHeader(HttpClientRequest httpClientRequest, String name) {
         String value = httpClientRequest.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
 
     @Nullable
     @Override
-    protected Long requestContentLength(HttpClientRequest httpClientRequest,
+    public Long requestContentLength(HttpClientRequest httpClientRequest,
             @Nullable HttpClientResponse httpClientResponse) {
         return null;
     }
 
     @Nullable
     @Override
-    protected Long requestContentLengthUncompressed(HttpClientRequest httpClientRequest,
+    public Long requestContentLengthUncompressed(HttpClientRequest httpClientRequest,
             @Nullable HttpClientResponse httpClientResponse) {
         return null;
     }
 
     @Override
-    protected Integer statusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
+    public Integer statusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
         return httpClientResponse.statusCode();
     }
 
     @Nullable
     @Override
-    protected Long responseContentLength(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
+    public Long responseContentLength(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
         return null;
     }
 
     @Nullable
     @Override
-    protected Long responseContentLengthUncompressed(HttpClientRequest httpClientRequest,
+    public Long responseContentLengthUncompressed(HttpClientRequest httpClientRequest,
             HttpClientResponse httpClientResponse) {
         return null;
     }
 
     @Override
-    protected List<String> responseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+    public List<String> responseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
             String name) {
         String value = httpClientResponse.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);

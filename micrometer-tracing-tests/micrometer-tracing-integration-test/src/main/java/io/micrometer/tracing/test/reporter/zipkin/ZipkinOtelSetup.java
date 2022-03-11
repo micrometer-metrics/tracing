@@ -39,7 +39,7 @@ import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
-import io.micrometer.tracing.otel.bridge.DefaultHttpClientAttributesExtractor;
+import io.micrometer.tracing.otel.bridge.DefaultHttpClientAttributesGetter;
 import io.micrometer.tracing.otel.bridge.DefaultHttpServerAttributesExtractor;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
@@ -344,7 +344,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         }
 
         private static HttpClientHandler httpClientHandler(OpenTelemetrySdk openTelemetrySdk) {
-            return new OtelHttpClientHandler(openTelemetrySdk, null, null, SamplerFunction.alwaysSample(), new DefaultHttpClientAttributesExtractor());
+            return new OtelHttpClientHandler(openTelemetrySdk, null, null, SamplerFunction.alwaysSample(), new DefaultHttpClientAttributesGetter());
         }
 
         private static Consumer<OtelBuildingBlocks> closingFunction() {

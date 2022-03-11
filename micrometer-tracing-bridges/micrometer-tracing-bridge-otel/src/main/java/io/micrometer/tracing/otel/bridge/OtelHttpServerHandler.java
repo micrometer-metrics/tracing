@@ -33,8 +33,10 @@ import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesGetter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.net.NetServerAttributesExtractor;
 
 /**
  * OpenTelemetry implementation of a {@link HttpServerHandler}.
@@ -60,7 +62,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
 
     public OtelHttpServerHandler(OpenTelemetry openTelemetry, HttpRequestParser httpServerRequestParser,
             HttpResponseParser httpServerResponseParser, Pattern skipPattern,
-            HttpServerAttributesExtractor<HttpServerRequest, HttpServerResponse> httpAttributesExtractor) {
+            HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> httpAttributesExtractor) {
         this.httpServerRequestParser = httpServerRequestParser;
         this.httpServerResponseParser = httpServerResponseParser;
         this.pattern = skipPattern;
@@ -69,8 +71,9 @@ public class OtelHttpServerHandler implements HttpServerHandler {
                 .<HttpServerRequest, HttpServerResponse>builder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))
                 .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
-                .addAttributesExtractor(new HttpRequestNetServerAttributesExtractor())
-                .addAttributesExtractor(httpAttributesExtractor).addAttributesExtractor(new PathAttributeExtractor())
+                .addAttributesExtractor(NetServerAttributesExtractor.create(new HttpRequestNetServerAttributesExtractor()))
+                .addAttributesExtractor(HttpServerAttributesExtractor.create(httpAttributesExtractor))
+                .addAttributesExtractor(new PathAttributeExtractor())
                 .newServerInstrumenter(getGetter());
     }
 
