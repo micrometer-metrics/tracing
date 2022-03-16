@@ -282,7 +282,8 @@ public final class WavefrontOtelSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
-         * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
+         * @param observationRegistry registry to register the handlers against
+         * @param meterRegistry meter registry
          * @return setup with all OTel building blocks
          */
         public WavefrontOtelSetup register(ObservationRegistry observationRegistry, MeterRegistry meterRegistry) {

@@ -86,6 +86,7 @@ public abstract class SampleTestRunner {
      * Creates a new instance of the {@link SampleTestRunner} with a pre-created configuration and {@link MeterRegistry}.
      *
      * @param sampleRunnerConfig configuration for the SampleTestRunner
+     * @param observationRegistry provided {@link ObservationRegistry} instance
      * @param meterRegistry       provided {@link MeterRegistry} instance
      */
     public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry, MeterRegistry meterRegistry) {

@@ -315,11 +315,11 @@ public final class InMemoryBraveSetup implements AutoCloseable {
     /**
      * Runs the given lambda with Zipkin setup.
      *
-     * @param meterRegistry registry to register the handlers against
+     * @param registry registry to register the handlers against
      * @param consumer      lambda to be executed with the building blocks
      */
-    public static void run(ObservationRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
-        run(InMemoryBraveSetup.builder().register(meterRegistry), consumer);
+    public static void run(ObservationRegistry registry, Consumer<Builder.BraveBuildingBlocks> consumer) {
+        run(InMemoryBraveSetup.builder().register(registry), consumer);
     }
 
     /**
