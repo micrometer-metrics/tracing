@@ -16,8 +16,8 @@
 
 package io.micrometer.tracing.docs;
 
-import io.micrometer.core.instrument.docs.DocumentedObservation;
-import io.micrometer.core.instrument.docs.TagKey;
+import io.micrometer.observation.docs.DocumentedObservation;
+import io.micrometer.observation.docs.TagKey;
 
 /**
  * In order to describe your spans via e.g. enums instead of Strings you can use this

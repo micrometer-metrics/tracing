@@ -19,9 +19,9 @@ package io.micrometer.tracing.brave.bridge;
 import java.util.Collection;
 import java.util.Collections;
 
-import io.micrometer.core.instrument.transport.Kind;
-import io.micrometer.core.instrument.transport.http.HttpServerRequest;
-import io.micrometer.core.instrument.transport.http.HttpServerResponse;
+import io.micrometer.observation.transport.Kind;
+import io.micrometer.observation.transport.http.HttpServerRequest;
+import io.micrometer.observation.transport.http.HttpServerResponse;
 
 /**
  * Brave implementation of a {@link HttpServerResponse}.

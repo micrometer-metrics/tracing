@@ -16,11 +16,11 @@
 
 package io.micrometer.tracing.http;
 
-import io.micrometer.core.instrument.transport.http.HttpClientRequest;
-import io.micrometer.core.instrument.transport.http.HttpClientResponse;
+import io.micrometer.observation.transport.http.HttpClientRequest;
+import io.micrometer.observation.transport.http.HttpClientResponse;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.observation.lang.Nullable;
 
 /**
  * This API is taken from OpenZipkin Brave.

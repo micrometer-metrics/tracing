@@ -21,7 +21,7 @@ import java.util.List;
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
-import io.micrometer.core.instrument.observation.Observation;
+import io.micrometer.observation.Observation;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;

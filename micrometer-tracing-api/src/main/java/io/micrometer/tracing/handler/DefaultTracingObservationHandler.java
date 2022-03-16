@@ -16,7 +16,7 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.core.instrument.observation.Observation;
+import io.micrometer.observation.Observation;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 

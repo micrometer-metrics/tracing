@@ -43,11 +43,11 @@ import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.util.StringUtils;
+import io.micrometer.tracing.util.logging.InternalLogger;
+import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 
 import static com.wavefront.internal.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
 import static com.wavefront.internal.SpanDerivedMetricsUtils.reportHeartbeats;

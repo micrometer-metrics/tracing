@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.observation.ObservationHandler;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
@@ -284,7 +285,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
          * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
          * @return setup with all OTel building blocks
          */
-        public WavefrontOtelSetup register(MeterRegistry meterRegistry) {
+        public WavefrontOtelSetup register(ObservationRegistry observationRegistry, MeterRegistry meterRegistry) {
             WavefrontSpanHandler wavefrontSpanHandler = wavefrontSpanHandlerOrMock(meterRegistry);
             WavefrontOtelSpanHandler wavefrontOTelSpanHandler = wavefrontOtelSpanHandler(wavefrontSpanHandler);
             ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
@@ -298,7 +299,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(wavefrontOTelSpanHandler, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers, arrayListSpanProcessor);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
-            meterRegistry.observationConfig().observationHandler(tracingHandlers);
+            observationRegistry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new WavefrontOtelSetup(closingFunction, otelBuildingBlocks);
         }
@@ -378,11 +379,12 @@ public final class WavefrontOtelSetup implements AutoCloseable {
      *
      * @param server        Wavefront's server URL
      * @param token         Wavefront's token
-     * @param meterRegistry meter registry to register the handlers against
+     * @param observationRegistry registry to register the handlers against
+     * @param meterRegistry meter registry
      * @param consumer      lambda to be executed with the building blocks
      */
-    public static void run(String server, String token, MeterRegistry meterRegistry, Consumer<Builder.OtelBuildingBlocks> consumer) {
-        run(WavefrontOtelSetup.builder(server, token).register(meterRegistry), consumer);
+    public static void run(String server, String token, ObservationRegistry observationRegistry, MeterRegistry meterRegistry, Consumer<Builder.OtelBuildingBlocks> consumer) {
+        run(WavefrontOtelSetup.builder(server, token).register(observationRegistry, meterRegistry), consumer);
     }
 
     /**

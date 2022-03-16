@@ -16,10 +16,10 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import io.micrometer.core.instrument.transport.http.HttpClientRequest;
-import io.micrometer.core.instrument.transport.http.HttpClientResponse;
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
+import io.micrometer.observation.transport.http.HttpClientRequest;
+import io.micrometer.observation.transport.http.HttpClientResponse;
+import io.micrometer.tracing.util.logging.InternalLogger;
+import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.http.HttpClientHandler;

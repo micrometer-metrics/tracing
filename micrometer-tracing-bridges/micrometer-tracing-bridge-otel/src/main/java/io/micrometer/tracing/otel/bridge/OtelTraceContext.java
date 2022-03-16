@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.observation.lang.Nullable;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;

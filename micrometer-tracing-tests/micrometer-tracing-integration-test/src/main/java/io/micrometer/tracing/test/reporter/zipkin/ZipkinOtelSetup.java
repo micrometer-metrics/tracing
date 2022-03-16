@@ -29,8 +29,8 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.observation.ObservationHandler;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
@@ -271,10 +271,10 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
-         * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
+         * @param registry observation registry to which the {@link ObservationHandler} should be attached
          * @return setup with all OTel building blocks
          */
-        public ZipkinOtelSetup register(MeterRegistry meterRegistry) {
+        public ZipkinOtelSetup register(ObservationRegistry registry) {
             Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
             ZipkinSpanExporter zipkinSpanExporter = this.zipkinSpanExporter != null ? this.zipkinSpanExporter.apply(sender) : zipkinSpanExporter(sender);
             ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
@@ -288,7 +288,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             };
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sender, zipkinSpanExporter, sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers, arrayListSpanProcessor);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
-            meterRegistry.observationConfig().observationHandler(tracingHandlers);
+            registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new ZipkinOtelSetup(closingFunction, otelBuildingBlocks);
         }
@@ -366,11 +366,11 @@ public final class ZipkinOtelSetup implements AutoCloseable {
     /**
      * Runs the given lambda with Zipkin setup.
      *
-     * @param meterRegistry meter registry to register the handlers against
+     * @param registry registry to register the handlers against
      * @param consumer      lambda to be executed with the building blocks
      */
-    public static void run(MeterRegistry meterRegistry, Consumer<OtelBuildingBlocks> consumer) {
-        run(ZipkinOtelSetup.builder().register(meterRegistry), consumer);
+    public static void run(ObservationRegistry registry, Consumer<OtelBuildingBlocks> consumer) {
+        run(ZipkinOtelSetup.builder().register(registry), consumer);
     }
 
     /**

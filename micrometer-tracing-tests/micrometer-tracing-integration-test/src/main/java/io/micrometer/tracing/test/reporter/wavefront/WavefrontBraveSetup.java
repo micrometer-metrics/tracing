@@ -34,7 +34,8 @@ import brave.test.TestSpanHandler;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.observation.ObservationHandler;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
@@ -253,10 +254,10 @@ public final class WavefrontBraveSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
-         * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
+         * @param registry observation registry to which the {@link ObservationHandler} should be attached
          * @return setup with all Brave building blocks
          */
-        public WavefrontBraveSetup register(MeterRegistry meterRegistry) {
+        public WavefrontBraveSetup register(MeterRegistry meterRegistry, ObservationRegistry registry) {
             WavefrontSpanHandler wavefrontSpanHandler = wavefrontSpanHandlerOrMock(meterRegistry);
             WavefrontBraveSpanHandler wavefrontBraveSpanHandler = wavefrontBraveSpanHandler(wavefrontSpanHandler);
             TestSpanHandler testSpanHandler = new TestSpanHandler();
@@ -269,14 +270,14 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(wavefrontSpanHandler, tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
-            meterRegistry.observationConfig().observationHandler(tracingHandlers);
+            registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new WavefrontBraveSetup(closingFunction, braveBuildingBlocks);
         }
 
-        private WavefrontSpanHandler wavefrontSpanHandlerOrMock(MeterRegistry meterRegistry) {
+        private WavefrontSpanHandler wavefrontSpanHandlerOrMock(MeterRegistry registry) {
             if (mockHandler == null) {
-                return this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(meterRegistry) : wavefrontSpanHandler(meterRegistry);
+                return this.wavefrontSpanHandler != null ? this.wavefrontSpanHandler.apply(registry) : wavefrontSpanHandler(registry);
             }
             return mockHandler;
         }
@@ -340,11 +341,12 @@ public final class WavefrontBraveSetup implements AutoCloseable {
      *
      * @param server        Wavefront's server URL
      * @param token         Wavefront's token
-     * @param meterRegistry meter registry to register the handlers against
+     * @param observationRegistry observation registry to register the handlers against
+     * @param meterRegistry meter registry
      * @param consumer      lambda to be executed with the building blocks
      */
-    public static void run(String server, String token, MeterRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
-        run(WavefrontBraveSetup.builder(server, token).register(meterRegistry), consumer);
+    public static void run(String server, String token, ObservationRegistry observationRegistry, MeterRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
+        run(WavefrontBraveSetup.builder(server, token).register(meterRegistry, observationRegistry), consumer);
     }
 
     /**

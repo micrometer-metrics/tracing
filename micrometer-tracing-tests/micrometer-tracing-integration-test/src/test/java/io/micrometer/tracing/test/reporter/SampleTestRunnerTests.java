@@ -23,18 +23,19 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import io.micrometer.core.instrument.observation.Observation;
-import io.micrometer.core.instrument.observation.ObservationHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.core.ipc.http.HttpSender;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontAccessor;
+import io.micrometer.tracing.util.logging.InternalLogger;
+import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 import org.assertj.core.api.BDDAssertions;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
@@ -78,6 +79,13 @@ class SampleTestRunnerTests extends SampleTestRunner {
     @Override
     protected SimpleMeterRegistry getMeterRegistry() {
         return new SimpleMeterRegistry();
+    }
+
+    ObservationRegistry registry = ObservationRegistry.create();
+
+    @Override
+    protected ObservationRegistry getObservationRegistry() {
+        return registry;
     }
 
     Deque<ObservationHandler> handlers;
@@ -138,7 +146,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
             BDDAssertions.then(tracer.currentSpan()).isNotNull();
             traces.add(tracer.currentSpan().context().traceId());
 
-            Observation start = Observation.start("name", meterRegistry);
+            Observation start = Observation.start("name", registry);
             try (Observation.Scope scope = start.openScope()) {
                 LOGGER.info("Hello");
             }

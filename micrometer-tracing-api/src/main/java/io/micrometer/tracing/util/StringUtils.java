@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.util;
 
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.observation.lang.Nullable;
 
 /**
  * Utilities for {@link String}.

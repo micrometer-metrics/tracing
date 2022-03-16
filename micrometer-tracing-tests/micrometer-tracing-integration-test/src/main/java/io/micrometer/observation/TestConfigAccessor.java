@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package io.micrometer.core.instrument.observation;
+package io.micrometer.observation;
 
 import java.util.Collection;
-
-import io.micrometer.core.instrument.observation.ObservationHandler;
-import io.micrometer.core.instrument.observation.ObservationRegistry;
 
 /**
  * Internal, test class - do not use.
