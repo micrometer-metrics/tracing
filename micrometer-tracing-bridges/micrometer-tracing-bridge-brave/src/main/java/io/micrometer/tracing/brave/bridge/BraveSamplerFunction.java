@@ -36,9 +36,9 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
         this.samplerFunction = samplerFunction;
     }
 
-    static <T, V> brave.sampler.SamplerFunction<V> toBrave(SamplerFunction<T> samplerFunction, Class<T> sleuthInput,
+    static <T, V> brave.sampler.SamplerFunction<V> toBrave(SamplerFunction<T> samplerFunction, Class<T> input,
             Class<V> braveInput) {
-        if (sleuthInput.equals(HttpRequest.class) && braveInput.equals(brave.http.HttpRequest.class)) {
+        if (input.equals(HttpRequest.class) && braveInput.equals(brave.http.HttpRequest.class)) {
             return arg -> samplerFunction.trySample((T) BraveHttpRequest.fromBrave((brave.http.HttpRequest) arg));
         }
         return SamplerFunctions.deferDecision();

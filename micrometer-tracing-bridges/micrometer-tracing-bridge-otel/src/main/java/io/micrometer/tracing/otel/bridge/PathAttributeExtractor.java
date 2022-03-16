@@ -38,7 +38,7 @@ class PathAttributeExtractor implements AttributesExtractor<HttpRequest, HttpRes
             // Otel semantic conventions
             // should fix tests
             set(attributes, SemanticAttributes.HTTP_ROUTE, path);
-            // some tests from Sleuth expect http.route attribute and some http.path
+            // some tests expect http.route attribute and some http.path
             set(attributes, HTTP_PATH, path);
         }
     }

@@ -36,7 +36,7 @@ public class BraveHttpRequestParser implements HttpRequestParser {
     }
 
     /**
-     * @param parser Sleuth's API parser
+     * @param parser API parser
      * @return Brave version of the parser
      */
     public static brave.http.HttpRequestParser toBrave(HttpRequestParser parser) {

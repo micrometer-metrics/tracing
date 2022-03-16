@@ -33,7 +33,7 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 
 /**
- * {@link TextMapPropagator} that adds Sleuth compatible baggage entries (name of the
+ * {@link TextMapPropagator} that adds compatible baggage entries (name of the
  * field means an HTTP header entry).
  *
  * @author Marcin Grzejszczak

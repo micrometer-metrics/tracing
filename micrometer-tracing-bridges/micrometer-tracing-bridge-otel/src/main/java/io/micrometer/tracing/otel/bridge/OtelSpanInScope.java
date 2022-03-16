@@ -28,14 +28,14 @@ class OtelSpanInScope implements Tracer.SpanInScope {
 
     final Scope delegate;
 
-    final OtelSpan sleuthSpan;
+    final OtelSpan span;
 
     final io.opentelemetry.api.trace.Span otelSpan;
 
     final SpanContext spanContext;
 
-    OtelSpanInScope(OtelSpan sleuthSpan, io.opentelemetry.api.trace.Span otelSpan) {
-        this.sleuthSpan = sleuthSpan;
+    OtelSpanInScope(OtelSpan span, io.opentelemetry.api.trace.Span otelSpan) {
+        this.span = span;
         this.otelSpan = otelSpan;
         this.delegate = otelSpan.makeCurrent();
         this.spanContext = otelSpan.getSpanContext();
