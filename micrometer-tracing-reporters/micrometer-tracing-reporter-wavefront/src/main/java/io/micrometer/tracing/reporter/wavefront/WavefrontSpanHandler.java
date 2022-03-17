@@ -41,13 +41,11 @@ import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.util.StringUtils;
+import io.micrometer.tracing.util.logging.InternalLogger;
+import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 
 import static com.wavefront.internal.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
 import static com.wavefront.internal.SpanDerivedMetricsUtils.reportHeartbeats;
@@ -123,12 +121,6 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private final Set<String> traceDerivedCustomTagKeys;
 
-    private final Counter spansDropped;
-
-    private final Counter spansReceived;
-
-    private final Counter reportErrors;
-
     private final Thread sendingThread;
 
     private final Set<Pair<Map<String, String>, String>> discoveredHeartbeatMetrics;
@@ -143,21 +135,23 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private final ApplicationTags applicationTags;
 
+    private final SpanMetrics spanMetrics;
+
     private volatile boolean stop = false;
 
     /**
      * @param maxQueueSize maximal span queue size
      * @param wavefrontSender wavefront server
-     * @param meterRegistry meter registry
      * @param source source of metrics and spans
      * @param applicationTags additional application tags
      * @param redMetricsCustomTagKeys RED metrics custom tag keys
      */
-    public WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender, MeterRegistry meterRegistry,
+    public WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender, SpanMetrics spanMetrics,
             String source, ApplicationTags applicationTags, Set<String> redMetricsCustomTagKeys) {
         this.wavefrontSender = wavefrontSender;
         this.applicationTags = applicationTags;
         this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
+        this.spanMetrics = spanMetrics;
 
         this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
                 new NamedThreadFactory("observability-heart-beater").setDaemon(true));
@@ -186,12 +180,8 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         this.spanBuffer = new LinkedBlockingQueue<>(maxQueueSize);
 
-        // init internal metrics
-        meterRegistry.gauge("reporter.queue.size", spanBuffer, sb -> (double) sb.size());
-        meterRegistry.gauge("reporter.queue.remaining_capacity", spanBuffer, sb -> (double) sb.remainingCapacity());
-        this.spansReceived = meterRegistry.counter("reporter.spans.received");
-        this.spansDropped = meterRegistry.counter("reporter.spans.dropped");
-        this.reportErrors = meterRegistry.counter("reporter.errors");
+        spanMetrics.registerQueueSize(spanBuffer);
+        spanMetrics.registerQueueRemainingCapacity(spanBuffer);
 
         this.sendingThread = new Thread(this, "wavefrontSpanReporter");
         this.sendingThread.setDaemon(true);
@@ -269,12 +259,12 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
      * @return should other handler be ran
      */
     public boolean end(TraceContext context, FinishedSpan span) {
-        spansReceived.increment();
+        this.spanMetrics.reportReceived();
         if (!spanBuffer.offer(Pair.of(context, span))) {
-            spansDropped.increment();
+            long dropped = this.spanMetrics.reportDropped();
             if (LOG.isWarnEnabled()) {
                 LOG.warn("Buffer full, dropping span: " + span);
-                LOG.warn("Total spans dropped: " + spansDropped.count());
+                LOG.warn("Total spans dropped: " + dropped);
             }
         }
         return true; // regardless of error, other handlers should run
@@ -340,7 +330,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("error sending span " + context, t);
             }
-            this.reportErrors.increment();
+            this.spanMetrics.reportErrors();
         }
 
         // report stats irrespective of span sampling.
@@ -357,7 +347,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("error sending span RED metrics " + context, t);
                 }
-                this.reportErrors.increment();
+                this.spanMetrics.reportErrors();
             }
         }
     }

@@ -27,8 +27,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.observation.ObservationHandler;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
@@ -237,10 +237,10 @@ public final class InMemoryOtelSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
-         * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
+         * @param registry observation registry to which the {@link ObservationHandler} should be attached
          * @return setup with all OTel building blocks
          */
-        public InMemoryOtelSetup register(MeterRegistry meterRegistry) {
+        public InMemoryOtelSetup register(ObservationRegistry registry) {
             ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
             SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null ? this.sdkTracerProvider.apply(arrayListSpanProcessor) : sdkTracerProvider(arrayListSpanProcessor, this.applicationName);
             OpenTelemetrySdk openTelemetrySdk = this.openTelemetrySdk != null ? this.openTelemetrySdk.apply(sdkTracerProvider) : openTelemetrySdk(sdkTracerProvider);
@@ -252,7 +252,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             };
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers, arrayListSpanProcessor);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
-            meterRegistry.observationConfig().observationHandler(tracingHandlers);
+            registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new InMemoryOtelSetup(closingFunction, otelBuildingBlocks);
         }
@@ -313,11 +313,11 @@ public final class InMemoryOtelSetup implements AutoCloseable {
     /**
      * Runs the given lambda with Zipkin setup.
      *
-     * @param meterRegistry meter registry to register the handlers against
+     * @param observationRegistry observation registry to register the handlers against
      * @param consumer      lambda to be executed with the building blocks
      */
-    public static void run(MeterRegistry meterRegistry, Consumer<Builder.OtelBuildingBlocks> consumer) {
-        run(InMemoryOtelSetup.builder().register(meterRegistry), consumer);
+    public static void run(ObservationRegistry observationRegistry, Consumer<Builder.OtelBuildingBlocks> consumer) {
+        run(InMemoryOtelSetup.builder().register(observationRegistry), consumer);
     }
 
     /**

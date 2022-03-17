@@ -30,8 +30,8 @@ import brave.Tracing;
 import brave.http.HttpTracing;
 import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.observation.ObservationHandler;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
@@ -237,10 +237,10 @@ public final class InMemoryBraveSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
-         * @param meterRegistry meter registry to which the {@link ObservationHandler} should be attached
+         * @param registry registry to which the {@link ObservationHandler} should be attached
          * @return setup with all Brave building blocks
          */
-        public InMemoryBraveSetup register(MeterRegistry meterRegistry) {
+        public InMemoryBraveSetup register(ObservationRegistry registry) {
             TestSpanHandler testSpanHandler = new TestSpanHandler();
             Tracing tracing = this.tracing != null ? this.tracing.apply(testSpanHandler) : tracing(testSpanHandler, this.applicationName);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
@@ -251,7 +251,7 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
-            meterRegistry.observationConfig().observationHandler(tracingHandlers);
+            registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new InMemoryBraveSetup(closingFunction, braveBuildingBlocks);
         }
@@ -315,11 +315,11 @@ public final class InMemoryBraveSetup implements AutoCloseable {
     /**
      * Runs the given lambda with Zipkin setup.
      *
-     * @param meterRegistry meter registry to register the handlers against
+     * @param registry registry to register the handlers against
      * @param consumer      lambda to be executed with the building blocks
      */
-    public static void run(MeterRegistry meterRegistry, Consumer<Builder.BraveBuildingBlocks> consumer) {
-        run(InMemoryBraveSetup.builder().register(meterRegistry), consumer);
+    public static void run(ObservationRegistry registry, Consumer<Builder.BraveBuildingBlocks> consumer) {
+        run(InMemoryBraveSetup.builder().register(registry), consumer);
     }
 
     /**

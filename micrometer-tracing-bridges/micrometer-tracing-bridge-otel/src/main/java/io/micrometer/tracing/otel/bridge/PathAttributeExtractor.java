@@ -16,9 +16,9 @@
 
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.core.instrument.transport.http.HttpRequest;
-import io.micrometer.core.instrument.transport.http.HttpResponse;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.observation.transport.http.HttpRequest;
+import io.micrometer.observation.transport.http.HttpResponse;
+import io.micrometer.observation.lang.Nullable;
 import io.micrometer.tracing.util.StringUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.AttributesBuilder;

@@ -20,10 +20,11 @@ import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import io.micrometer.core.instrument.observation.Observation;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.util.logging.InternalLogger;
+import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +36,9 @@ class WavefrontOtelSetupTests {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(WavefrontOtelSetupTests.class);
 
-    SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
+    ObservationRegistry registry = ObservationRegistry.create();
+
+    SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
 
     @Test
     void should_register_a_span_in_wavefront(WireMockRuntimeInfo wmri) throws InterruptedException {
@@ -43,10 +46,10 @@ class WavefrontOtelSetupTests {
                 .applicationName("app-name")
                 .serviceName("service-name")
                 .source("source")
-                .register(this.simpleMeterRegistry);
+                .register(this.registry, this.meterRegistry);
 
         WavefrontOtelSetup.run(setup, __ -> {
-            Observation sample = Observation.start("the-name", simpleMeterRegistry);
+            Observation sample = Observation.start("the-name", this.registry);
             try (Observation.Scope scope = sample.openScope()) {
                 log.info("New observation created");
             }

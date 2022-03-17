@@ -18,7 +18,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import java.util.function.Function;
 
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.observation.lang.Nullable;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;

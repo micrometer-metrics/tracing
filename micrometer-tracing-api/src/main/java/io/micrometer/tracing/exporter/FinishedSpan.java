@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import io.micrometer.tracing.Span;
-import io.micrometer.core.lang.Nullable;
+import io.micrometer.observation.lang.Nullable;
 
 /**
  * This API is inspired by OpenZipkin Brave (from {code MutableSpan}).

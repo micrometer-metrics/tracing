@@ -20,10 +20,10 @@ import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import io.micrometer.core.instrument.observation.Observation;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.micrometer.core.util.internal.logging.InternalLogger;
-import io.micrometer.core.util.internal.logging.InternalLoggerFactory;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.util.logging.InternalLogger;
+import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
@@ -35,14 +35,14 @@ class ZipkinBraveSetupTests {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(ZipkinBraveSetupTests.class);
 
-    SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
+    ObservationRegistry registry = ObservationRegistry.create();
 
     @Test
     void should_register_a_span_in_zipkin(WireMockRuntimeInfo wmri) throws InterruptedException {
-        ZipkinBraveSetup setup = ZipkinBraveSetup.builder().zipkinUrl(wmri.getHttpBaseUrl()).register(this.simpleMeterRegistry);
+        ZipkinBraveSetup setup = ZipkinBraveSetup.builder().zipkinUrl(wmri.getHttpBaseUrl()).register(this.registry);
 
         ZipkinBraveSetup.run(setup, __ -> {
-            Observation sample = Observation.start("the-name", simpleMeterRegistry);
+            Observation sample = Observation.start("the-name", this.registry);
             try (Observation.Scope scope = sample.openScope()) {
                 log.info("New sample created");
             }
