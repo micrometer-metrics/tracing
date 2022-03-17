@@ -115,6 +115,8 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private static final byte[] DECODING = buildDecodingArray();
 
+    private static final boolean METRICS_ON_CLASSPATH = isMicrometerOnClasspath();
+
     private final LinkedBlockingQueue<Pair<TraceContext, FinishedSpan>> spanBuffer;
 
     private final WavefrontSender wavefrontSender;
@@ -123,11 +125,11 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private final Set<String> traceDerivedCustomTagKeys;
 
-    private final Counter spansDropped;
+    private Counter spansDropped;
 
-    private final Counter spansReceived;
+    private Counter spansReceived;
 
-    private final Counter reportErrors;
+    private Counter reportErrors;
 
     private final Thread sendingThread;
 
@@ -148,12 +150,11 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
     /**
      * @param maxQueueSize maximal span queue size
      * @param wavefrontSender wavefront server
-     * @param meterRegistry meter registry
      * @param source source of metrics and spans
      * @param applicationTags additional application tags
      * @param redMetricsCustomTagKeys RED metrics custom tag keys
      */
-    public WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender, MeterRegistry meterRegistry,
+    public WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender,
             String source, ApplicationTags applicationTags, Set<String> redMetricsCustomTagKeys) {
         this.wavefrontSender = wavefrontSender;
         this.applicationTags = applicationTags;
@@ -186,16 +187,33 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         this.spanBuffer = new LinkedBlockingQueue<>(maxQueueSize);
 
+
+        this.sendingThread = new Thread(this, "wavefrontSpanReporter");
+        this.sendingThread.setDaemon(true);
+        this.sendingThread.start();
+    }
+
+    /**
+     * This method must be called to initialize metrics
+     * @param meterRegistry meter registry
+     */
+    public void initMetrics(MeterRegistry meterRegistry) {
         // init internal metrics
         meterRegistry.gauge("reporter.queue.size", spanBuffer, sb -> (double) sb.size());
         meterRegistry.gauge("reporter.queue.remaining_capacity", spanBuffer, sb -> (double) sb.remainingCapacity());
         this.spansReceived = meterRegistry.counter("reporter.spans.received");
         this.spansDropped = meterRegistry.counter("reporter.spans.dropped");
         this.reportErrors = meterRegistry.counter("reporter.errors");
+    }
 
-        this.sendingThread = new Thread(this, "wavefrontSpanReporter");
-        this.sendingThread.setDaemon(true);
-        this.sendingThread.start();
+    private static boolean isMicrometerOnClasspath() {
+        try {
+            Class.forName("io.micrometer.core.instrument.MeterRegistry");
+            return true;
+        }
+        catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     private static byte[] buildDecodingArray() {
@@ -269,12 +287,17 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
      * @return should other handler be ran
      */
     public boolean end(TraceContext context, FinishedSpan span) {
-        spansReceived.increment();
-        if (!spanBuffer.offer(Pair.of(context, span))) {
-            spansDropped.increment();
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Buffer full, dropping span: " + span);
-                LOG.warn("Total spans dropped: " + spansDropped.count());
+        if (METRICS_ON_CLASSPATH) {
+            if (spansReceived == null) {
+                throw new IllegalStateException("You must call applyMetrics method to setup metrics!");
+            }
+            spansReceived.increment();
+            if (!spanBuffer.offer(Pair.of(context, span))) {
+                spansDropped.increment();
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("Buffer full, dropping span: " + span);
+                    LOG.warn("Total spans dropped: " + spansDropped.count());
+                }
             }
         }
         return true; // regardless of error, other handlers should run
@@ -340,7 +363,12 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("error sending span " + context, t);
             }
-            this.reportErrors.increment();
+            if (METRICS_ON_CLASSPATH) {
+                if (reportErrors == null) {
+                    throw new IllegalStateException("You must call applyMetrics method to setup metrics!");
+                }
+                this.reportErrors.increment();
+            }
         }
 
         // report stats irrespective of span sampling.
@@ -357,7 +385,12 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("error sending span RED metrics " + context, t);
                 }
-                this.reportErrors.increment();
+                if (METRICS_ON_CLASSPATH) {
+                    if (reportErrors == null) {
+                        throw new IllegalStateException("You must call applyMetrics method to setup metrics!");
+                    }
+                    this.reportErrors.increment();
+                }
             }
         }
     }
