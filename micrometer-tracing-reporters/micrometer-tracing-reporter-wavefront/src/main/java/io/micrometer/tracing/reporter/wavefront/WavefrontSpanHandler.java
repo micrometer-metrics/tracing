@@ -289,7 +289,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
     public boolean end(TraceContext context, FinishedSpan span) {
         if (METRICS_ON_CLASSPATH) {
             if (spansReceived == null) {
-                throw new IllegalStateException("You must call applyMetrics method to setup metrics!");
+                throw new IllegalStateException("You must call initMetrics method to setup metrics!");
             }
             spansReceived.increment();
             if (!spanBuffer.offer(Pair.of(context, span))) {
@@ -365,7 +365,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             }
             if (METRICS_ON_CLASSPATH) {
                 if (reportErrors == null) {
-                    throw new IllegalStateException("You must call applyMetrics method to setup metrics!");
+                    throw new IllegalStateException("You must call initMetrics method to setup metrics!");
                 }
                 this.reportErrors.increment();
             }
@@ -387,7 +387,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
                 }
                 if (METRICS_ON_CLASSPATH) {
                     if (reportErrors == null) {
-                        throw new IllegalStateException("You must call applyMetrics method to setup metrics!");
+                        throw new IllegalStateException("You must call initMetrics method to setup metrics!");
                     }
                     this.reportErrors.increment();
                 }
