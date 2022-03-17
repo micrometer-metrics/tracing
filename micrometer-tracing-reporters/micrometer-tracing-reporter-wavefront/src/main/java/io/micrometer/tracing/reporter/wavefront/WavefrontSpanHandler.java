@@ -33,9 +33,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
-import com.wavefront.java_sdk.com.google.common.collect.Iterators;
-import com.wavefront.java_sdk.com.google.common.collect.Sets;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;

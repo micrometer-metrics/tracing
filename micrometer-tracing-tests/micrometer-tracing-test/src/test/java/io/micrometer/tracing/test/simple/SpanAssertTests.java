@@ -31,7 +31,7 @@ class SpanAssertTests {
     }
 
     @Test
-    void should_not_throw_exception_when_name_incorrect() {
+    void should_throw_exception_when_name_incorrect() {
         SimpleSpan span = new SimpleSpan().name("foo");
 
         thenThrownBy(() -> assertThat(span).hasNameEqualTo("bar")).isInstanceOf(AssertionError.class);

@@ -10,8 +10,8 @@ def VERSIONS = [
 		// zipkin
 		'io.zipkin.aws:brave-propagation-aws:0.23.2',
 		// wavefront
-		'com.wavefront:wavefront-sdk-java:2.6.4',
-		'com.wavefront:wavefront-internal-reporter-java:1.7.5',
+		'com.wavefront:wavefront-sdk-java:3.0.0',
+		'com.wavefront:wavefront-internal-reporter-java:1.7.10',
 		// test
 		'org.assertj:assertj-core:latest.release',
 		'org.awaitility:awaitility:latest.release',
