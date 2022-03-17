@@ -41,8 +41,6 @@ import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.util.StringUtils;
@@ -115,8 +113,6 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private static final byte[] DECODING = buildDecodingArray();
 
-    private static final boolean METRICS_ON_CLASSPATH = isMicrometerOnClasspath();
-
     private final LinkedBlockingQueue<Pair<TraceContext, FinishedSpan>> spanBuffer;
 
     private final WavefrontSender wavefrontSender;
@@ -124,12 +120,6 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
     private final WavefrontInternalReporter wfInternalReporter;
 
     private final Set<String> traceDerivedCustomTagKeys;
-
-    private Counter spansDropped;
-
-    private Counter spansReceived;
-
-    private Counter reportErrors;
 
     private final Thread sendingThread;
 
@@ -145,6 +135,8 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private final ApplicationTags applicationTags;
 
+    private final SpanMetrics spanMetrics;
+
     private volatile boolean stop = false;
 
     /**
@@ -154,11 +146,12 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
      * @param applicationTags additional application tags
      * @param redMetricsCustomTagKeys RED metrics custom tag keys
      */
-    public WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender,
+    public WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender, SpanMetrics spanMetrics,
             String source, ApplicationTags applicationTags, Set<String> redMetricsCustomTagKeys) {
         this.wavefrontSender = wavefrontSender;
         this.applicationTags = applicationTags;
         this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
+        this.spanMetrics = spanMetrics;
 
         this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
                 new NamedThreadFactory("observability-heart-beater").setDaemon(true));
@@ -187,33 +180,12 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         this.spanBuffer = new LinkedBlockingQueue<>(maxQueueSize);
 
+        spanMetrics.registerQueueSize(spanBuffer);
+        spanMetrics.registerQueueRemainingCapacity(spanBuffer);
 
         this.sendingThread = new Thread(this, "wavefrontSpanReporter");
         this.sendingThread.setDaemon(true);
         this.sendingThread.start();
-    }
-
-    /**
-     * This method must be called to initialize metrics
-     * @param meterRegistry meter registry
-     */
-    public void initMetrics(MeterRegistry meterRegistry) {
-        // init internal metrics
-        meterRegistry.gauge("reporter.queue.size", spanBuffer, sb -> (double) sb.size());
-        meterRegistry.gauge("reporter.queue.remaining_capacity", spanBuffer, sb -> (double) sb.remainingCapacity());
-        this.spansReceived = meterRegistry.counter("reporter.spans.received");
-        this.spansDropped = meterRegistry.counter("reporter.spans.dropped");
-        this.reportErrors = meterRegistry.counter("reporter.errors");
-    }
-
-    private static boolean isMicrometerOnClasspath() {
-        try {
-            Class.forName("io.micrometer.core.instrument.MeterRegistry");
-            return true;
-        }
-        catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     private static byte[] buildDecodingArray() {
@@ -287,17 +259,12 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
      * @return should other handler be ran
      */
     public boolean end(TraceContext context, FinishedSpan span) {
-        if (METRICS_ON_CLASSPATH) {
-            if (spansReceived == null) {
-                throw new IllegalStateException("You must call initMetrics method to setup metrics!");
-            }
-            spansReceived.increment();
-            if (!spanBuffer.offer(Pair.of(context, span))) {
-                spansDropped.increment();
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("Buffer full, dropping span: " + span);
-                    LOG.warn("Total spans dropped: " + spansDropped.count());
-                }
+        this.spanMetrics.reportReceived();
+        if (!spanBuffer.offer(Pair.of(context, span))) {
+            long dropped = this.spanMetrics.reportDropped();
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("Buffer full, dropping span: " + span);
+                LOG.warn("Total spans dropped: " + dropped);
             }
         }
         return true; // regardless of error, other handlers should run
@@ -363,12 +330,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("error sending span " + context, t);
             }
-            if (METRICS_ON_CLASSPATH) {
-                if (reportErrors == null) {
-                    throw new IllegalStateException("You must call initMetrics method to setup metrics!");
-                }
-                this.reportErrors.increment();
-            }
+            this.spanMetrics.reportErrors();
         }
 
         // report stats irrespective of span sampling.
@@ -385,12 +347,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("error sending span RED metrics " + context, t);
                 }
-                if (METRICS_ON_CLASSPATH) {
-                    if (reportErrors == null) {
-                        throw new IllegalStateException("You must call initMetrics method to setup metrics!");
-                    }
-                    this.reportErrors.increment();
-                }
+                this.spanMetrics.reportErrors();
             }
         }
     }
