@@ -24,6 +24,7 @@ import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.test.simple.SimpleSpan;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,11 @@ class WavefrontSpanHandlerTests {
 	void setUp() {
 		this.sender = mock(WavefrontSender.class);
 		this.sut = new WavefrontSpanHandler(10000, sender, SpanMetrics.NOOP, "source", new ApplicationTags.Builder("application", "service").build(), Collections.emptySet());
+	}
+
+	@AfterEach
+	void tearDown() {
+		this.sut.close();
 	}
 
 	@Test
