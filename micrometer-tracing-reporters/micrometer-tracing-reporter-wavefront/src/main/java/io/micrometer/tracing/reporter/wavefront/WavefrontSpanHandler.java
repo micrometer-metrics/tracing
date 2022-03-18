@@ -400,7 +400,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         }
     }
 
-	static class SpanToSend {
+	private static class SpanToSend {
 		private final TraceContext traceContext;
 		private final FinishedSpan finishedSpan;
 
@@ -422,7 +422,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 	 * Gets queued into {@link #spanBuffer} if {@link #close()} is called and will lead
 	 * the sender thread to stop.
 	 */
-	static class DeathPill extends SpanToSend {
+	private static class DeathPill extends SpanToSend {
 		DeathPill() {
 			super(null, null);
 		}
