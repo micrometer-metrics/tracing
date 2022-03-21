@@ -363,7 +363,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         while (!stop.get()) {
             try {
                 SpanToSend spanToSend = spanBuffer.take();
-                if (spanToSend instanceof DeathPill) {
+                if (spanToSend == DeathPill.INSTANCE) {
 					LOG.info("reporting thread stopping");
 					return;
 				}
@@ -389,7 +389,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         try {
             // This will release the thread if it's waiting in BlockingQueue#take()
-			spanBuffer.offer(new DeathPill());
+			spanBuffer.offer(DeathPill.INSTANCE);
 			// wait for 5 secs max to send remaining spans
 			sendingThread.join(5000);
 			sendingThread.interrupt();
@@ -423,7 +423,9 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 	 * the sender thread to stop.
 	 */
 	private static class DeathPill extends SpanToSend {
-		DeathPill() {
+		static final DeathPill INSTANCE = new DeathPill();
+
+		private DeathPill() {
 			super(null, null);
 		}
 	}
