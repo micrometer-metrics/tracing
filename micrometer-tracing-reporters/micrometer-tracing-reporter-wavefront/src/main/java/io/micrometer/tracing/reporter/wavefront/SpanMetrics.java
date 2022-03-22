@@ -17,18 +17,66 @@
 package io.micrometer.tracing.reporter.wavefront;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * Reports metrics from {@link WavefrontSpanHandler}.
+ *
  * @author Moritz Halbritter
+ * @since 1.0.0
  */
 public interface SpanMetrics {
-    long reportDropped();
+	/**
+	 * Is called when a span has been dropped.
+	 */
+	void reportDropped();
 
-    void reportReceived();
+	/**
+	 * Is called when a span is received.
+	 */
+	void reportReceived();
 
-    void reportErrors();
+	/**
+	 * Is called when a span couldn't be sent.
+	 */
+	void reportErrors();
 
-    void registerQueueSize(BlockingQueue<?> queue);
+	/**
+	 * Registers the size of the given {@code queue}.
+	 *
+	 * @param queue queue which size should be registered
+	 */
+	void registerQueueSize(BlockingQueue<?> queue);
 
-    void registerQueueRemainingCapacity(BlockingQueue<?> queue);
+	/**
+	 * Registers the remaining capacity of the given {@code queue}.
+	 *
+	 * @param queue queue which remaining capacity should be registered
+	 */
+	void registerQueueRemainingCapacity(BlockingQueue<?> queue);
+
+	/**
+	 * No-op implementation.
+	 */
+	SpanMetrics NOOP = new SpanMetrics() {
+		@Override
+		public void reportDropped() {
+		}
+
+		@Override
+		public void reportReceived() {
+		}
+
+		@Override
+		public void reportErrors() {
+		}
+
+		@Override
+		public void registerQueueSize(BlockingQueue<?> queue) {
+		}
+
+		@Override
+		public void registerQueueRemainingCapacity(BlockingQueue<?> queue) {
+		}
+	};
 }

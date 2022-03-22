@@ -29,9 +29,11 @@ dependencies {
 	implementation("com.wavefront:wavefront-internal-reporter-java")
 
 	// Tests
+	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'org.awaitility:awaitility'
 	testImplementation 'ch.qos.logback:logback-classic'
+	testImplementation 'org.mockito:mockito-core'
 }
 

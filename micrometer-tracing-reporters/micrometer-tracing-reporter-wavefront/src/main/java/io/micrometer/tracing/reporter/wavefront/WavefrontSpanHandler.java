@@ -31,6 +31,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Iterators;
@@ -113,7 +115,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private static final byte[] DECODING = buildDecodingArray();
 
-    private final LinkedBlockingQueue<Pair<TraceContext, FinishedSpan>> spanBuffer;
+    private final LinkedBlockingQueue<SpanToSend> spanBuffer;
 
     private final WavefrontSender wavefrontSender;
 
@@ -137,7 +139,9 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private final SpanMetrics spanMetrics;
 
-    private volatile boolean stop = false;
+    private final AtomicBoolean stop = new AtomicBoolean();
+
+	private final AtomicLong spansDropped = new AtomicLong();
 
     /**
      * @param maxQueueSize maximal span queue size
@@ -259,14 +263,25 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
      * @return should other handler be ran
      */
     public boolean end(TraceContext context, FinishedSpan span) {
-        this.spanMetrics.reportReceived();
-        if (!spanBuffer.offer(Pair.of(context, span))) {
-            long dropped = this.spanMetrics.reportDropped();
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("Buffer full, dropping span: " + span);
-                LOG.warn("Total spans dropped: " + dropped);
-            }
-        }
+		this.spanMetrics.reportReceived();
+		if (stop.get()) {
+			// A span is being reported, but close() has already been called
+			this.spanMetrics.reportDropped();
+			long dropped = this.spansDropped.incrementAndGet();
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("Trying to send span after close() have been called, dropping span " + span);
+				LOG.warn("Total spans dropped: " + dropped);
+			}
+		} else {
+			if (!spanBuffer.offer(new SpanToSend(context, span))) {
+				this.spanMetrics.reportDropped();
+				long dropped = this.spansDropped.incrementAndGet();
+				if (LOG.isWarnEnabled()) {
+					LOG.warn("Buffer full, dropping span: " + span);
+					LOG.warn("Total spans dropped: " + dropped);
+				}
+			}
+		}
         return true; // regardless of error, other handlers should run
     }
 
@@ -354,10 +369,14 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     @Override
     public void run() {
-        while (!stop) {
+        while (!stop.get()) {
             try {
-                Pair<TraceContext, FinishedSpan> contextAndSpan = spanBuffer.take();
-                send(contextAndSpan._1, contextAndSpan._2);
+                SpanToSend spanToSend = spanBuffer.take();
+                if (spanToSend == DeathPill.INSTANCE) {
+					LOG.info("reporting thread stopping");
+					return;
+				}
+				send(spanToSend.getTraceContext(), spanToSend.getFinishedSpan());
             }
             catch (InterruptedException ex) {
                 if (LOG.isInfoEnabled()) {
@@ -372,16 +391,53 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     @Override
     public void close() {
-        stop = true;
+		if (!stop.compareAndSet(false, true)) {
+			// Ignore multiple stop calls
+			return;
+		}
+
         try {
-            // wait for 5 secs max
-            sendingThread.join(5000);
+            // This will release the thread if it's waiting in BlockingQueue#take()
+			spanBuffer.offer(DeathPill.INSTANCE);
+			// wait for 5 secs max to send remaining spans
+			sendingThread.join(5000);
+			sendingThread.interrupt();
             heartbeatMetricsScheduledExecutorService.shutdownNow();
         }
         catch (InterruptedException ex) {
             // no-op
         }
     }
+
+	private static class SpanToSend {
+		private final TraceContext traceContext;
+		private final FinishedSpan finishedSpan;
+
+		SpanToSend(TraceContext traceContext, FinishedSpan finishedSpan) {
+			this.traceContext = traceContext;
+			this.finishedSpan = finishedSpan;
+		}
+
+		TraceContext getTraceContext() {
+			return traceContext;
+		}
+
+		FinishedSpan getFinishedSpan() {
+			return finishedSpan;
+		}
+	}
+
+	/**
+	 * Gets queued into {@link #spanBuffer} if {@link #close()} is called and will lead
+	 * the sender thread to stop.
+	 */
+	private static class DeathPill extends SpanToSend {
+		static final DeathPill INSTANCE = new DeathPill();
+
+		private DeathPill() {
+			super(null, null);
+		}
+	}
 
     /**
      * Extracted for test isolation and as parsing otherwise implies multiple-returns or
