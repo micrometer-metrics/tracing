@@ -265,10 +265,16 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
     public boolean end(TraceContext context, FinishedSpan span) {
 		this.spanMetrics.reportReceived();
 		if (stop.get()) {
-			LOG.warn("Trying to send span after close() have been called, dropping span");
+			// A span is being reported, but close() has already been called
 			this.spanMetrics.reportDropped();
+			long dropped = this.spansDropped.incrementAndGet();
+			if (LOG.isWarnEnabled()) {
+				LOG.warn("Trying to send span after close() have been called, dropping span " + span);
+				LOG.warn("Total spans dropped: " + dropped);
+			}
 		} else {
 			if (!spanBuffer.offer(new SpanToSend(context, span))) {
+				this.spanMetrics.reportDropped();
 				long dropped = this.spansDropped.incrementAndGet();
 				if (LOG.isWarnEnabled()) {
 					LOG.warn("Buffer full, dropping span: " + span);
