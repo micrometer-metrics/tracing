@@ -42,9 +42,8 @@ class MeterRegistrySpanMetrics implements SpanMetrics {
     }
 
     @Override
-    public long reportDropped() {
-        spansDropped.increment();
-        return (long) spansDropped.count();
+    public void reportDropped() {
+		spansDropped.increment();
     }
 
     @Override

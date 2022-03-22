@@ -28,10 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public interface SpanMetrics {
 	/**
 	 * Is called when a span has been dropped.
-	 *
-	 * @return number of total dropped spans
 	 */
-	long reportDropped();
+	void reportDropped();
 
 	/**
 	 * Is called when a span is received.
@@ -61,11 +59,8 @@ public interface SpanMetrics {
 	 * No-op implementation.
 	 */
 	SpanMetrics NOOP = new SpanMetrics() {
-		private final AtomicLong dropped = new AtomicLong();
-
 		@Override
-		public long reportDropped() {
-			return dropped.incrementAndGet();
+		public void reportDropped() {
 		}
 
 		@Override

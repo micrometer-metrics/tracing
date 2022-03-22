@@ -32,6 +32,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Iterators;
@@ -139,6 +140,8 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
     private final SpanMetrics spanMetrics;
 
     private final AtomicBoolean stop = new AtomicBoolean();
+
+	private final AtomicLong spansDropped = new AtomicLong();
 
     /**
      * @param maxQueueSize maximal span queue size
@@ -266,7 +269,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 			this.spanMetrics.reportDropped();
 		} else {
 			if (!spanBuffer.offer(new SpanToSend(context, span))) {
-				long dropped = this.spanMetrics.reportDropped();
+				long dropped = this.spansDropped.incrementAndGet();
 				if (LOG.isWarnEnabled()) {
 					LOG.warn("Buffer full, dropping span: " + span);
 					LOG.warn("Total spans dropped: " + dropped);
