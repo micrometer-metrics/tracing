@@ -20,9 +20,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.util.StringUtils;
 import io.opentelemetry.api.trace.SpanKind;
 
 

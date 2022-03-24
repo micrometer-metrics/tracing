@@ -23,9 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
-import io.micrometer.tracing.util.StringUtils;
+import io.micrometer.common.util.StringUtils;
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
+
 
 /**
  * {@link SpanFilter} that ignores spans via names.

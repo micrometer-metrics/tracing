@@ -35,11 +35,11 @@ import brave.internal.propagation.StringPropagationAdapter;
 import brave.propagation.Propagation;
 import brave.propagation.TraceContext;
 import brave.propagation.TraceContextOrSamplingFlags;
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
+import io.micrometer.common.util.StringUtils;
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.internal.EncodingUtils;
-import io.micrometer.tracing.util.StringUtils;
 
 import static java.util.Collections.singletonList;
 

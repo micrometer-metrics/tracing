@@ -16,8 +16,8 @@
 
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.util.StringUtils;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;

@@ -43,11 +43,11 @@ import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
+import io.micrometer.common.util.StringUtils;
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
-import io.micrometer.tracing.util.StringUtils;
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 
 import static com.wavefront.internal.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
 import static com.wavefront.internal.SpanDerivedMetricsUtils.reportHeartbeats;
@@ -141,7 +141,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private final AtomicBoolean stop = new AtomicBoolean();
 
-	private final AtomicLong spansDropped = new AtomicLong();
+    private final AtomicLong spansDropped = new AtomicLong();
 
     /**
      * @param maxQueueSize maximal span queue size
@@ -263,25 +263,26 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
      * @return should other handler be ran
      */
     public boolean end(TraceContext context, FinishedSpan span) {
-		this.spanMetrics.reportReceived();
-		if (stop.get()) {
-			// A span is being reported, but close() has already been called
-			this.spanMetrics.reportDropped();
-			long dropped = this.spansDropped.incrementAndGet();
-			if (LOG.isWarnEnabled()) {
-				LOG.warn("Trying to send span after close() have been called, dropping span " + span);
-				LOG.warn("Total spans dropped: " + dropped);
-			}
-		} else {
-			if (!spanBuffer.offer(new SpanToSend(context, span))) {
-				this.spanMetrics.reportDropped();
-				long dropped = this.spansDropped.incrementAndGet();
-				if (LOG.isWarnEnabled()) {
-					LOG.warn("Buffer full, dropping span: " + span);
-					LOG.warn("Total spans dropped: " + dropped);
-				}
-			}
-		}
+        this.spanMetrics.reportReceived();
+        if (stop.get()) {
+            // A span is being reported, but close() has already been called
+            this.spanMetrics.reportDropped();
+            long dropped = this.spansDropped.incrementAndGet();
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("Trying to send span after close() have been called, dropping span " + span);
+                LOG.warn("Total spans dropped: " + dropped);
+            }
+        }
+        else {
+            if (!spanBuffer.offer(new SpanToSend(context, span))) {
+                this.spanMetrics.reportDropped();
+                long dropped = this.spansDropped.incrementAndGet();
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("Buffer full, dropping span: " + span);
+                    LOG.warn("Total spans dropped: " + dropped);
+                }
+            }
+        }
         return true; // regardless of error, other handlers should run
     }
 
@@ -373,10 +374,10 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             try {
                 SpanToSend spanToSend = spanBuffer.take();
                 if (spanToSend == DeathPill.INSTANCE) {
-					LOG.info("reporting thread stopping");
-					return;
-				}
-				send(spanToSend.getTraceContext(), spanToSend.getFinishedSpan());
+                    LOG.info("reporting thread stopping");
+                    return;
+                }
+                send(spanToSend.getTraceContext(), spanToSend.getFinishedSpan());
             }
             catch (InterruptedException ex) {
                 if (LOG.isInfoEnabled()) {
@@ -391,17 +392,17 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     @Override
     public void close() {
-		if (!stop.compareAndSet(false, true)) {
-			// Ignore multiple stop calls
-			return;
-		}
+        if (!stop.compareAndSet(false, true)) {
+            // Ignore multiple stop calls
+            return;
+        }
 
         try {
             // This will release the thread if it's waiting in BlockingQueue#take()
-			spanBuffer.offer(DeathPill.INSTANCE);
-			// wait for 5 secs max to send remaining spans
-			sendingThread.join(5000);
-			sendingThread.interrupt();
+            spanBuffer.offer(DeathPill.INSTANCE);
+            // wait for 5 secs max to send remaining spans
+            sendingThread.join(5000);
+            sendingThread.interrupt();
             heartbeatMetricsScheduledExecutorService.shutdownNow();
         }
         catch (InterruptedException ex) {
@@ -409,35 +410,35 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         }
     }
 
-	private static class SpanToSend {
-		private final TraceContext traceContext;
-		private final FinishedSpan finishedSpan;
+    private static class SpanToSend {
+        private final TraceContext traceContext;
+        private final FinishedSpan finishedSpan;
 
-		SpanToSend(TraceContext traceContext, FinishedSpan finishedSpan) {
-			this.traceContext = traceContext;
-			this.finishedSpan = finishedSpan;
-		}
+        SpanToSend(TraceContext traceContext, FinishedSpan finishedSpan) {
+            this.traceContext = traceContext;
+            this.finishedSpan = finishedSpan;
+        }
 
-		TraceContext getTraceContext() {
-			return traceContext;
-		}
+        TraceContext getTraceContext() {
+            return traceContext;
+        }
 
-		FinishedSpan getFinishedSpan() {
-			return finishedSpan;
-		}
-	}
+        FinishedSpan getFinishedSpan() {
+            return finishedSpan;
+        }
+    }
 
-	/**
-	 * Gets queued into {@link #spanBuffer} if {@link #close()} is called and will lead
-	 * the sender thread to stop.
-	 */
-	private static class DeathPill extends SpanToSend {
-		static final DeathPill INSTANCE = new DeathPill();
+    /**
+     * Gets queued into {@link #spanBuffer} if {@link #close()} is called and will lead
+     * the sender thread to stop.
+     */
+    private static class DeathPill extends SpanToSend {
+        static final DeathPill INSTANCE = new DeathPill();
 
-		private DeathPill() {
-			super(null, null);
-		}
-	}
+        private DeathPill() {
+            super(null, null);
+        }
+    }
 
     /**
      * Extracted for test isolation and as parsing otherwise implies multiple-returns or

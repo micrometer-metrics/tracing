@@ -18,15 +18,15 @@ package io.micrometer.tracing.otel.bridge;
 
 import java.util.regex.Pattern;
 
+import io.micrometer.common.util.StringUtils;
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.observation.transport.http.HttpServerRequest;
 import io.micrometer.observation.transport.http.HttpServerResponse;
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.http.HttpRequestParser;
 import io.micrometer.tracing.http.HttpResponseParser;
 import io.micrometer.tracing.http.HttpServerHandler;
-import io.micrometer.tracing.util.StringUtils;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;

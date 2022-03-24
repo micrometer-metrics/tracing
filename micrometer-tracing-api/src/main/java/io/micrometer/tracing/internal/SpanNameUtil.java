@@ -16,7 +16,8 @@
 
 package io.micrometer.tracing.internal;
 
-import io.micrometer.tracing.util.StringUtils;
+
+import io.micrometer.common.util.StringUtils;
 
 /**
  * Utility class that provides the name in hyphen based notation.
