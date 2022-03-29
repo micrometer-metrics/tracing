@@ -16,12 +16,12 @@
 
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
+import io.micrometer.observation.lang.Nullable;
 import io.micrometer.observation.transport.http.HttpClientRequest;
 import io.micrometer.observation.transport.http.HttpClientResponse;
 import io.micrometer.observation.transport.http.HttpRequest;
-import io.micrometer.observation.lang.Nullable;
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;

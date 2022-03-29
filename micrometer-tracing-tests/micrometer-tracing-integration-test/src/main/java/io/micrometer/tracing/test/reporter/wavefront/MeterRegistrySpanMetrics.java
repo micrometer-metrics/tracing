@@ -43,7 +43,7 @@ class MeterRegistrySpanMetrics implements SpanMetrics {
 
     @Override
     public void reportDropped() {
-		spansDropped.increment();
+        spansDropped.increment();
     }
 
     @Override

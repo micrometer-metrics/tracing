@@ -16,14 +16,14 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.observation.Tag;
+import io.micrometer.common.Tag;
+import io.micrometer.common.util.StringUtils;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
-import io.micrometer.tracing.util.StringUtils;
 
 /**
  * Marker interface for tracing handlers.

@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.trace.Span;

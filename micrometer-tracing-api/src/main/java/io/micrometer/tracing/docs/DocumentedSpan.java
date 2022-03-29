@@ -16,8 +16,7 @@
 
 package io.micrometer.tracing.docs;
 
-import io.micrometer.observation.docs.DocumentedObservation;
-import io.micrometer.observation.docs.TagKey;
+import io.micrometer.common.docs.TagKey;
 
 /**
  * In order to describe your spans via e.g. enums instead of Strings you can use this
@@ -101,9 +100,9 @@ public interface DocumentedSpan {
     /**
      * Override this when custom span should be documented instead of the default one.
      *
-     * @return {@link DocumentedObservation} for which you don't want to create a default span documentation
+     * @return {@link io.micrometer.observation.docs.DocumentedObservation} for which you don't want to create a default span documentation
      */
-    default DocumentedObservation overridesDefaultSpanFrom() {
+    default Enum<?> overridesDefaultSpanFrom() {
         return null;
     }
 

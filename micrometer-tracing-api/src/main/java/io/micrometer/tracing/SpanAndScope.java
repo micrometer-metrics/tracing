@@ -18,8 +18,8 @@ package io.micrometer.tracing;
 
 import java.io.Closeable;
 
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.observation.lang.Nullable;
 
 /**

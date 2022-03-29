@@ -23,6 +23,8 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.core.ipc.http.HttpSender;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
@@ -34,8 +36,6 @@ import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontAccessor;
-import io.micrometer.tracing.util.logging.InternalLogger;
-import io.micrometer.tracing.util.logging.InternalLoggerFactory;
 import org.assertj.core.api.BDDAssertions;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
