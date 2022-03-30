@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.micrometer.common.docs.TagKey;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
@@ -77,6 +78,10 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    public SELF hasTagWithKey(TagKey key) {
+        return hasTagWithKey(key.getKey());
+    }
+
     public SELF hasTag(String key, String value) {
         isNotNull();
         hasTagWithKey(key);
@@ -88,12 +93,20 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    public SELF hasTag(TagKey key, String value) {
+        return hasTag(key.getKey(), value);
+    }
+
     public SELF doesNotHaveTagWithKey(String key) {
         isNotNull();
         if (this.actual.getTags().containsKey(key)) {
             failWithMessage("Span should not have a tag with key <%s>", key, this.actual.getTags().keySet());
         }
         return (SELF) this;
+    }
+
+    public SELF doesNotHaveTagWithKey(TagKey key) {
+        return doesNotHaveTagWithKey(key.getKey());
     }
 
     public SELF doesNotHaveTag(String key, String value) {
@@ -105,6 +118,10 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
             failWithMessage("Span should not have a tag with key <%s> and value <%s>", key, value);
         }
         return (SELF) this;
+    }
+
+    public SELF doesNotHaveTag(TagKey key, String value) {
+        return doesNotHaveTag(key.getKey(), value);
     }
 
     public SELF isStarted() {

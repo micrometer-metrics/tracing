@@ -33,7 +33,7 @@ class TracerAssertTests {
     }
 
     @Test
-    void should_not_throw_exception_when_name_incorrect() {
+    void should_throw_exception_when_name_incorrect() {
         SimpleTracer simpleTracer = new SimpleTracer();
 
         simpleTracer.nextSpan().name("foo").start().end();
