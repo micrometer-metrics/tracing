@@ -115,7 +115,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public Span remoteIpAndPort(String ip, int port) {
+    public SimpleSpan remoteIpAndPort(String ip, int port) {
         this.ip = ip;
         this.port = port;
         return this;
@@ -137,7 +137,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public Span remoteServiceName(String remoteServiceName) {
+    public SimpleSpan remoteServiceName(String remoteServiceName) {
         this.remoteServiceName = remoteServiceName;
         return this;
     }

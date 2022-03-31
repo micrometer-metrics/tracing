@@ -114,7 +114,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         doesNotHaveTagWithKey(key);
         Map<String, String> tags = this.actual.getTags();
         String tagValue = tags.get(key);
-        if (tagValue.equals(value)) {
+        if (value.equals(tagValue)) {
             failWithMessage("Span should not have a tag with key <%s> and value <%s>", key, value);
         }
         return (SELF) this;
