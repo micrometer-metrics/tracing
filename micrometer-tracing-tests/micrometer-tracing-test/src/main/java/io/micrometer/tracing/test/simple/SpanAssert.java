@@ -228,7 +228,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     public SELF doesNotHaveNameEqualTo(String spanName) {
         isNotNull();
-        if (!this.actual.getName().equals(spanName)) {
+        if (this.actual.getName().equals(spanName)) {
             failWithMessage("Span should not have a name <%s>", spanName, this.actual.getName());
         }
         return (SELF) this;
