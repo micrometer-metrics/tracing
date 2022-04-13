@@ -83,7 +83,7 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    public String serverName(HttpServerRequest httpServerRequest) {
+    public String serverName(HttpServerRequest httpServerRequest, @Nullable HttpServerResponse httpServerResponse) {
         return null;
     }
 
