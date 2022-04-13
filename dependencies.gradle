@@ -6,7 +6,7 @@ def VERSIONS = [
 		'org.apache.logging.log4j:log4j-core:2.+',
 		'org.slf4j:slf4j-api:1.7.+',
 		// otel
-		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.11.1-alpha',
+		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.12.1-alpha',
 		// zipkin
 		'io.zipkin.aws:brave-propagation-aws:0.23.2',
 		// wavefront
@@ -29,8 +29,8 @@ def PLATFORM_VERSIONS = [
 		'io.micrometer:micrometer-bom:1.10.0-SNAPSHOT',
 		'io.zipkin.brave:brave-bom:5.13.2',
 		// opentelemetry-instrumentation-api dependency above with this
-		'io.opentelemetry:opentelemetry-bom:1.12.0',
-		'io.opentelemetry:opentelemetry-bom-alpha:1.12.0-alpha'
+		'io.opentelemetry:opentelemetry-bom:1.13.0',
+		'io.opentelemetry:opentelemetry-bom-alpha:1.13.0-alpha'
 ]
 
 subprojects {
