@@ -19,8 +19,6 @@ package io.micrometer.tracing.brave.bridge;
 import java.util.Collection;
 import java.util.Collections;
 
-import javax.servlet.ServletRequest;
-
 import io.micrometer.observation.transport.Kind;
 import io.micrometer.observation.transport.http.HttpServerRequest;
 
@@ -32,10 +30,24 @@ import io.micrometer.observation.transport.http.HttpServerRequest;
  */
 class BraveHttpServerRequest implements HttpServerRequest {
 
+    private static final boolean JAVAX_SERVLET_ON_THE_CLASSPATH = isClassPresent("javax.servlet.ServletRequest");
+
+    private static final boolean JAKARTA_SERVLET_ON_THE_CLASSPATH = isClassPresent("jakarta.servlet.ServletRequest");
+
     final brave.http.HttpServerRequest delegate;
 
     BraveHttpServerRequest(brave.http.HttpServerRequest delegate) {
         this.delegate = delegate;
+    }
+
+    private static boolean isClassPresent(String clazz) {
+        try {
+            Class.forName(clazz);
+            return true;
+        }
+        catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     static brave.http.HttpServerRequest toBrave(HttpServerRequest request) {
@@ -83,15 +95,16 @@ class BraveHttpServerRequest implements HttpServerRequest {
 
             private boolean resolveFromInetAddress(brave.Span span) {
                 Object delegate = request.unwrap();
-//                if (delegate instanceof ServerHttpRequest) {
-//                    InetSocketAddress addr = ((ServerHttpRequest) delegate).getRemoteAddress();
-//                    if (addr == null) {
-//                        return false;
-//                    }
-//                    return span.remoteIpAndPort(addr.getAddress().getHostAddress(), addr.getPort());
-//                }
-                if (delegate instanceof ServletRequest) {
-                    ServletRequest servletRequest = (ServletRequest) delegate;
+                if (JAVAX_SERVLET_ON_THE_CLASSPATH && delegate instanceof javax.servlet.ServletRequest) {
+                    javax.servlet.ServletRequest servletRequest = (javax.servlet.ServletRequest) delegate;
+                    String addr = servletRequest.getRemoteAddr();
+                    if (addr == null) {
+                        return false;
+                    }
+                    return span.remoteIpAndPort(addr, servletRequest.getRemotePort());
+                }
+                else if (JAKARTA_SERVLET_ON_THE_CLASSPATH && delegate instanceof jakarta.servlet.ServletRequest) {
+                    jakarta.servlet.ServletRequest servletRequest = (jakarta.servlet.ServletRequest) delegate;
                     String addr = servletRequest.getRemoteAddr();
                     if (addr == null) {
                         return false;

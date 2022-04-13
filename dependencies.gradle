@@ -1,5 +1,7 @@
 def VERSIONS = [
 		'javax.servlet:javax.servlet-api:4.0.1',
+		'jakarta.platform:jakarta.jakartaee-web-api:9.1.0',
+
 		'aopalliance:aopalliance:1.0',
 		// logging
 		'ch.qos.logback:logback-classic:1.2.+',
