@@ -16,7 +16,7 @@
 
 package io.micrometer.tracing.docs;
 
-import io.micrometer.common.docs.TagKey;
+import io.micrometer.common.docs.KeyName;
 
 /**
  * In order to describe your spans via e.g. enums instead of Strings you can use this
@@ -29,10 +29,10 @@ import io.micrometer.common.docs.TagKey;
  *
  * <ul>
  *     <li>Metrics are grouped within an enum - the enum implements the {@link DocumentedSpan} interface</li>
- *     <li>If the span contains {@link TagKey} then those need to be declared as nested enums</li>
+ *     <li>If the span contains {@link KeyName} then those need to be declared as nested enums</li>
  *     <li>If the span contains {@link EventValue} then those need to be declared as nested enums</li>
- *     <li>The {@link DocumentedSpan#getTagKeys()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
- *     <li>The {@link DocumentedSpan#getEvents()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys / events</li>
+ *     <li>The {@link DocumentedSpan#getKeyNames()} need to call the nested enum's {@code values()} method to retrieve the array of allowed keys</li>
+ *     <li>The {@link DocumentedSpan#getEvents()} need to call the nested enum's {@code values()} method to retrieve the array of allowed events</li>
  *     <li>Javadocs around enums will be used as description</li>
  * </ul>
  *
@@ -41,9 +41,9 @@ import io.micrometer.common.docs.TagKey;
  */
 public interface DocumentedSpan {
     /**
-     * Empty tag keys.
+     * Empty key names.
      */
-    TagKey[] EMPTY_TAGS = new TagKey[0];
+    KeyName[] EMPTY_KEY_NAMES = new KeyName[0];
 
     /**
      * Empty values.
@@ -80,21 +80,21 @@ public interface DocumentedSpan {
     }
 
     /**
-     * Allowed tag keys.
+     * Allowed key names.
      *
-     * @return allowed tag keys - if set will override any tag keys coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
+     * @return allowed key names - if set will override any key names coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
      */
-    default TagKey[] getTagKeys() {
-        return EMPTY_TAGS;
+    default KeyName[] getKeyNames() {
+        return EMPTY_KEY_NAMES;
     }
 
     /**
-     * Additional tag keys.
+     * Additional key names.
      *
-     * @return additional tag keys - if set will append any tag keys coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
+     * @return additional key names - if set will append any key names coming from {@link DocumentedSpan#overridesDefaultSpanFrom()}
      */
-    default TagKey[] getAdditionalTagKeys() {
-        return EMPTY_TAGS;
+    default KeyName[] getAdditionalKeyNames() {
+        return EMPTY_KEY_NAMES;
     }
 
     /**

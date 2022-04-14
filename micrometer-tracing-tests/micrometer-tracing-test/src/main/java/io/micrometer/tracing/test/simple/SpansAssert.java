@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import io.micrometer.common.docs.TagKey;
+import io.micrometer.common.docs.KeyName;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import org.assertj.core.api.CollectionAssert;
 
@@ -191,12 +191,12 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
         return this;
     }
 
-    public SpansAssert hasASpanWithATag(TagKey tagKey, String value) {
-        return hasASpanWithATag(tagKey.getKey(), value);
+    public SpansAssert hasASpanWithATag(KeyName key, String value) {
+        return hasASpanWithATag(key.getKeyName(), value);
     }
 
-    public SpansAssert hasASpanWithATagKey(TagKey tagKey) {
-        return hasASpanWithATagKey(tagKey.getKey());
+    public SpansAssert hasASpanWithATagKey(KeyName key) {
+        return hasASpanWithATagKey(key.getKeyName());
     }
 
     public static class SpansAssertReturningAssert extends SpanAssert<SpansAssert.SpansAssertReturningAssert> {
