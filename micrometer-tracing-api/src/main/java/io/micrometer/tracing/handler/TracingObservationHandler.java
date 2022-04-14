@@ -16,7 +16,7 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.common.Tag;
+import io.micrometer.common.KeyValue;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
@@ -43,13 +43,13 @@ public interface TracingObservationHandler<T extends Observation.Context>
      * @param span span to tag
      */
     default void tagSpan(T context, Span span) {
-        for (Tag tag : context.getAllTags()) {
-            if (!tag.getKey().equalsIgnoreCase("ERROR")) {
-                span.tag(tag.getKey(), tag.getValue());
+        for (KeyValue keyValue : context.getAllKeyValues()) {
+            if (!keyValue.getKey().equalsIgnoreCase("ERROR")) {
+                span.tag(keyValue.getKey(), keyValue.getValue());
             }
             else {
                 // TODO: Does this make sense?
-                span.error(new RuntimeException(tag.getValue()));
+                span.error(new RuntimeException(keyValue.getValue()));
             }
         }
     }

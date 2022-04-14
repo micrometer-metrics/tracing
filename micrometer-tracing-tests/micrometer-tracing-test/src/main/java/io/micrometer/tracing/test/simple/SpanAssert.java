@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.micrometer.common.docs.TagKey;
+import io.micrometer.common.docs.KeyName;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
@@ -78,8 +78,8 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
-    public SELF hasTagWithKey(TagKey key) {
-        return hasTagWithKey(key.getKey());
+    public SELF hasTagWithKey(KeyName key) {
+        return hasTagWithKey(key.getKeyName());
     }
 
     public SELF hasTag(String key, String value) {
@@ -93,8 +93,8 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
-    public SELF hasTag(TagKey key, String value) {
-        return hasTag(key.getKey(), value);
+    public SELF hasTag(KeyName key, String value) {
+        return hasTag(key.getKeyName(), value);
     }
 
     public SELF doesNotHaveTagWithKey(String key) {
@@ -105,8 +105,8 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
-    public SELF doesNotHaveTagWithKey(TagKey key) {
-        return doesNotHaveTagWithKey(key.getKey());
+    public SELF doesNotHaveTagWithKey(KeyName key) {
+        return doesNotHaveTagWithKey(key.getKeyName());
     }
 
     public SELF doesNotHaveTag(String key, String value) {
@@ -120,8 +120,8 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
-    public SELF doesNotHaveTag(TagKey key, String value) {
-        return doesNotHaveTag(key.getKey(), value);
+    public SELF doesNotHaveTag(KeyName key, String value) {
+        return doesNotHaveTag(key.getKeyName(), value);
     }
 
     public SELF isStarted() {
