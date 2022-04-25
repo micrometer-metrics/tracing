@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
+import io.micrometer.observation.lang.Nullable;
 import io.micrometer.observation.transport.http.HttpServerRequest;
 import io.micrometer.observation.transport.http.HttpServerResponse;
 import io.micrometer.tracing.Span;
@@ -60,8 +61,8 @@ public class OtelHttpServerHandler implements HttpServerHandler {
 
     private final Instrumenter<HttpServerRequest, HttpServerResponse> instrumenter;
 
-    public OtelHttpServerHandler(OpenTelemetry openTelemetry, HttpRequestParser httpServerRequestParser,
-            HttpResponseParser httpServerResponseParser, Pattern skipPattern,
+    public OtelHttpServerHandler(OpenTelemetry openTelemetry, @Nullable HttpRequestParser httpServerRequestParser,
+            @Nullable HttpResponseParser httpServerResponseParser, Pattern skipPattern,
             HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> httpAttributesExtractor) {
         this.httpServerRequestParser = httpServerRequestParser;
         this.httpServerResponseParser = httpServerResponseParser;
