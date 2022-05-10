@@ -22,7 +22,7 @@ dependencies {
 	api("io.opentelemetry:opentelemetry-exporter-zipkin")
 	api("io.opentelemetry:opentelemetry-sdk-trace")
 	api("io.opentelemetry:opentelemetry-extension-trace-propagators")
-	api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+	api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv")
 
 	// Zipkin
 	api("io.zipkin.zipkin2:zipkin")

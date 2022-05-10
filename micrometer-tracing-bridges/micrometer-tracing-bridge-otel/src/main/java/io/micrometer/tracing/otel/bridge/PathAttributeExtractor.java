@@ -17,11 +17,11 @@
 package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.common.util.StringUtils;
-import io.micrometer.observation.lang.Nullable;
 import io.micrometer.observation.transport.http.HttpRequest;
 import io.micrometer.observation.transport.http.HttpResponse;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
@@ -31,22 +31,26 @@ class PathAttributeExtractor implements AttributesExtractor<HttpRequest, HttpRes
     private static final AttributeKey<String> HTTP_PATH = AttributeKey.stringKey("http.path");
 
     @Override
-    public void onStart(AttributesBuilder attributes, HttpRequest httpRequest) {
+    public void onStart(AttributesBuilder attributes, Context parentContext, HttpRequest httpRequest) {
         String path = httpRequest.path();
         if (StringUtils.isNotEmpty(path)) {
             // TODO some tests expect this even on client spans, but this goes against
             // Otel semantic conventions
             // should fix tests
-            set(attributes, SemanticAttributes.HTTP_ROUTE, path);
+            setAttribute(attributes, SemanticAttributes.HTTP_ROUTE, path);
             // some tests expect http.route attribute and some http.path
-            set(attributes, HTTP_PATH, path);
+            setAttribute(attributes, HTTP_PATH, path);
+        }
+    }
+
+    private <T> void setAttribute(AttributesBuilder attributes, AttributeKey<T> key, T value) {
+        if (value != null) {
+            attributes.put(key, value);
         }
     }
 
     @Override
-    public void onEnd(AttributesBuilder attributes, HttpRequest httpRequest, @Nullable HttpResponse httpResponse,
-            @Nullable Throwable error) {
+    public void onEnd(AttributesBuilder attributes, Context context, HttpRequest httpRequest, HttpResponse httpResponse, Throwable error) {
 
     }
-
 }

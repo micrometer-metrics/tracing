@@ -1,6 +1,6 @@
 def VERSIONS = [
-		'javax.servlet:javax.servlet-api:4.0.1',
-		'jakarta.platform:jakarta.jakartaee-web-api:9.1.0',
+		'javax.servlet:javax.servlet-api:4.0.+',
+		'jakarta.platform:jakarta.jakartaee-web-api:9.1.+',
 
 		'aopalliance:aopalliance:1.0',
 		// logging
@@ -8,12 +8,12 @@ def VERSIONS = [
 		'org.apache.logging.log4j:log4j-core:2.+',
 		'org.slf4j:slf4j-api:1.7.+',
 		// otel
-		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.12.1-alpha',
+		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.+',
 		// zipkin
-		'io.zipkin.aws:brave-propagation-aws:0.23.2',
+		'io.zipkin.aws:brave-propagation-aws:latest.release',
 		// wavefront
-		'com.wavefront:wavefront-sdk-java:3.0.0',
-		'com.wavefront:wavefront-internal-reporter-java:1.7.10',
+		'com.wavefront:wavefront-sdk-java:3.0.+',
+		'com.wavefront:wavefront-internal-reporter-java:1.7.+',
 		// test
 		'org.assertj:assertj-core:latest.release',
 		'org.awaitility:awaitility:latest.release',
@@ -29,10 +29,10 @@ def VERSIONS = [
 
 def PLATFORM_VERSIONS = [
 		'io.micrometer:micrometer-bom:1.10.0-M1',
-		'io.zipkin.brave:brave-bom:5.13.2',
+		'io.zipkin.brave:brave-bom:5.13.+',
 		// opentelemetry-instrumentation-api dependency above with this
-		'io.opentelemetry:opentelemetry-bom:1.13.0',
-		'io.opentelemetry:opentelemetry-bom-alpha:1.13.0-alpha'
+		'io.opentelemetry:opentelemetry-bom:1.+',
+		'io.opentelemetry:opentelemetry-bom-alpha:1.+'
 ]
 
 subprojects {

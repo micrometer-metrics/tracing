@@ -51,7 +51,6 @@ import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import zipkin2.Span;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.Sender;
-import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 /**
  * Provides Zipkin setup with Brave.
@@ -254,19 +253,6 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new InMemoryBraveSetup(closingFunction, braveBuildingBlocks);
-        }
-
-        private static Sender sender(String zipkinUrl) {
-            return URLConnectionSender.newBuilder()
-                    .connectTimeout(1000)
-                    .readTimeout(1000)
-                    .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl) + "/api/v2/spans").build();
-        }
-
-        private static AsyncReporter<Span> reporter(Sender sender) {
-            return AsyncReporter
-                    .builder(sender)
-                    .build();
         }
 
         private static Tracer tracer(Tracing tracing) {
