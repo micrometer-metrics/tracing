@@ -101,6 +101,7 @@ org.junit.jupiter:junit-jupiter-params:5.8.2=compileClasspath,default,runtimeCla
 org.junit.jupiter:junit-jupiter:5.8.2=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.junit.platform:junit-platform-commons:1.8.2=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.junit.platform:junit-platform-engine:1.8.2=default,runtimeClasspath,testRuntimeClasspath
+org.junit:junit-bom:5.8.2=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.latencyutils:LatencyUtils:2.0.3=default,runtimeClasspath,testRuntimeClasspath
 org.mockito:mockito-core:4.5.1=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.objenesis:objenesis:3.2=default,runtimeClasspath,testRuntimeClasspath

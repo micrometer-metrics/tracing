@@ -70,6 +70,7 @@ org.junit.jupiter:junit-jupiter-params:5.8.2=testCompileClasspath,testRuntimeCla
 org.junit.jupiter:junit-jupiter:5.8.2=testCompileClasspath,testRuntimeClasspath
 org.junit.platform:junit-platform-commons:1.8.2=testCompileClasspath,testRuntimeClasspath
 org.junit.platform:junit-platform-engine:1.8.2=testRuntimeClasspath
+org.junit:junit-bom:5.8.2=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.opentest4j:opentest4j:1.2.0=testCompileClasspath,testRuntimeClasspath
 org.reflections:reflections:0.9.12=checkstyle
 org.slf4j:slf4j-api:1.7.26=nohttp,nohttp-cli

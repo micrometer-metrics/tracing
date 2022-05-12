@@ -32,7 +32,8 @@ def PLATFORM_VERSIONS = [
 		'io.zipkin.brave:brave-bom:5.13.+',
 		// opentelemetry-instrumentation-api dependency above with this
 		'io.opentelemetry:opentelemetry-bom:1.+',
-		'io.opentelemetry:opentelemetry-bom-alpha:1.+'
+		'io.opentelemetry:opentelemetry-bom-alpha:1.+',
+		'org.junit:junit-bom:5.8.+'
 ]
 
 subprojects {

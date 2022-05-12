@@ -5,4 +5,5 @@ io.micrometer:micrometer-bom:1.10.0-M2=classpath
 io.opentelemetry:opentelemetry-bom-alpha:1.14.0-alpha=classpath
 io.opentelemetry:opentelemetry-bom:1.14.0=classpath
 io.zipkin.brave:brave-bom:5.13.9=classpath
+org.junit:junit-bom:5.8.2=classpath
 empty=archives,default,signatures
