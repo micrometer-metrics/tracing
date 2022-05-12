@@ -30,6 +30,7 @@ import brave.Tracing;
 import brave.http.HttpTracing;
 import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
@@ -111,7 +112,7 @@ public final class InMemoryBraveSetup implements AutoCloseable {
 
         private Function<BraveBuildingBlocks, ObservationHandler> handlers;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers;
 
         private Consumer<BraveBuildingBlocks> closingFunction;
 
@@ -132,11 +133,11 @@ public final class InMemoryBraveSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers;
 
             private final TestSpanHandler testSpanHandler;
 
-            public BraveBuildingBlocks(Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers, TestSpanHandler testSpanHandler) {
+            public BraveBuildingBlocks(Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
                 this.tracing = tracing;
                 this.tracer = tracer;
                 this.propagator = propagator;
@@ -168,7 +169,7 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> getCustomizers() {
                 return this.customizers;
             }
 
@@ -208,7 +209,7 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers) {
+        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -246,7 +247,7 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
             ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
@@ -291,7 +292,7 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             Tracer tracer = braveBuildingBlocks.tracer;
             HttpServerHandler httpServerHandler = braveBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = braveBuildingBlocks.httpClientHandler;
-            LinkedList<ObservationHandler> handlers = new LinkedList<>(Arrays.asList(new HttpServerTracingObservationHandler(tracer, httpServerHandler), new HttpClientTracingObservationHandler(tracer, httpClientHandler), new DefaultTracingObservationHandler(tracer)));
+            LinkedList<ObservationHandler<Observation.Context>> handlers = new LinkedList(Arrays.asList(new HttpServerTracingObservationHandler(tracer, httpServerHandler), new HttpClientTracingObservationHandler(tracer, httpClientHandler), new DefaultTracingObservationHandler(tracer)));
             braveBuildingBlocks.customizers.accept(braveBuildingBlocks, handlers);
             return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
         }

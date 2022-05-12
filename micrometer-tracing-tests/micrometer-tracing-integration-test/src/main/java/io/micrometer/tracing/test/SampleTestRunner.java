@@ -219,7 +219,7 @@ public abstract class SampleTestRunner {
      * @return timer recording handler customizing function
      */
     @SuppressWarnings("rawtypes")
-    public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizeObservationHandlers() {
+    public BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizeObservationHandlers() {
         return (tracer, ObservationHandlers) -> {
 
         };

@@ -18,9 +18,9 @@ package io.micrometer.tracing.propagation;
 
 import java.util.List;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.observation.lang.Nullable;
 
 /**
  * Inspired by OpenZipkin Brave and OpenTelemetry. Most of the documentation is taken

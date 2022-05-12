@@ -18,7 +18,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.observation.transport.http.HttpClientRequest;
 import io.micrometer.observation.transport.http.HttpClientResponse;
 import io.micrometer.observation.transport.http.HttpRequest;

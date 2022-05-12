@@ -23,7 +23,7 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.http.HttpRequest;
 import io.micrometer.observation.transport.http.HttpResponse;
 import io.micrometer.observation.transport.http.context.HttpContext;
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;

@@ -18,7 +18,7 @@ package io.micrometer.tracing;
 
 import java.util.Map;
 
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 
 /**
  * Manages {@link BaggageInScope} entries. Upon retrieval / creation of a baggage entry

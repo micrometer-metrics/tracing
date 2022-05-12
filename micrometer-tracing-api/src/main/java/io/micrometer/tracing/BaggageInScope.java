@@ -18,7 +18,7 @@ package io.micrometer.tracing;
 
 import java.io.Closeable;
 
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 
 /**
  * Inspired by OpenZipkin Brave's {@code BaggageField}. Since some tracer implementations

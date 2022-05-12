@@ -20,7 +20,7 @@ import io.micrometer.observation.transport.http.HttpClientRequest;
 import io.micrometer.observation.transport.http.HttpClientResponse;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 
 /**
  * This API is taken from OpenZipkin Brave.

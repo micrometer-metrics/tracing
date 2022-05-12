@@ -20,6 +20,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.exporter.FinishedSpan;
@@ -69,7 +70,7 @@ public interface BuildingBlocks {
      *
      * @return customizers
      */
-    BiConsumer<BuildingBlocks, Deque<ObservationHandler>> getCustomizers();
+    BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> getCustomizers();
 
     /**
      * Returns a list of finished spans.

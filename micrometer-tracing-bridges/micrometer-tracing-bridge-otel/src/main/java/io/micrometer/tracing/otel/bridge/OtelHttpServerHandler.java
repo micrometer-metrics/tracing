@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.observation.transport.http.HttpServerRequest;
 import io.micrometer.observation.transport.http.HttpServerResponse;
 import io.micrometer.tracing.Span;

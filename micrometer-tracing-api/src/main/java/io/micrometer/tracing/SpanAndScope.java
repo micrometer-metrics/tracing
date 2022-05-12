@@ -20,7 +20,7 @@ import java.io.Closeable;
 
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 
 /**
  * Container object for {@link Span} and its corresponding {@link Tracer.SpanInScope}.

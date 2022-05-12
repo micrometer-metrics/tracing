@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.SpanAndScope;
 import io.micrometer.tracing.TraceContext;

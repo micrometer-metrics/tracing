@@ -88,13 +88,13 @@ class SampleTestRunnerTests extends SampleTestRunner {
         return registry;
     }
 
-    Deque<ObservationHandler> handlers;
+    Deque<ObservationHandler<Observation.Context>> handlers;
 
     @Override
-    public BiConsumer<BuildingBlocks, Deque<ObservationHandler>> customizeObservationHandlers() {
-        return (buildingBlocks, ObservationHandlers) -> {
-            ObservationHandlers.addFirst(new MyRecordingHandler());
-            this.handlers = ObservationHandlers;
+    public BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizeObservationHandlers() {
+        return (buildingBlocks, observationHandlers) -> {
+            observationHandlers.addFirst(new MyRecordingHandler());
+            this.handlers = observationHandlers;
         };
     }
 

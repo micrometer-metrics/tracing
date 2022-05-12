@@ -19,7 +19,7 @@ package io.micrometer.tracing.brave.bridge;
 import java.util.Objects;
 
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 
 /**
  * Brave implementation of a {@link TraceContext}.

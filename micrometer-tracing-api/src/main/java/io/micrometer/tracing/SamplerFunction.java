@@ -16,7 +16,7 @@
 
 package io.micrometer.tracing;
 
-import io.micrometer.observation.lang.Nullable;
+import io.micrometer.common.lang.Nullable;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken
