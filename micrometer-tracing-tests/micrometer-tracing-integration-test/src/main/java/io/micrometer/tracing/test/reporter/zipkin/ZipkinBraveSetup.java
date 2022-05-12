@@ -16,7 +16,6 @@
 
 package io.micrometer.tracing.test.reporter.zipkin;
 
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -115,9 +114,9 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private Function<HttpTracing, HttpClientHandler> httpClientHandler;
 
-        private Function<BraveBuildingBlocks, ObservationHandler> handlers;
+        private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
         private Consumer<BraveBuildingBlocks> closingFunction;
 
@@ -141,11 +140,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
             private final TestSpanHandler testSpanHandler;
 
-            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
+            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
                 this.sender = sender;
                 this.reporter = reporter;
                 this.tracing = tracing;
@@ -179,7 +178,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> getCustomizers() {
                 return this.customizers;
             }
 
@@ -224,7 +223,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers) {
+        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -239,7 +238,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder handlers(Function<BraveBuildingBlocks, ObservationHandler> tracingHandlers) {
+        public Builder handlers(Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> tracingHandlers) {
             this.handlers = tracingHandlers;
             return this;
         }
@@ -264,12 +263,13 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
-            ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
+            ObservationHandler<? extends Observation.Context> tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
+
             return new ZipkinBraveSetup(closingFunction, braveBuildingBlocks);
         }
 
@@ -322,12 +322,16 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         }
 
         @SuppressWarnings("rawtypes")
-        private static ObservationHandler tracingHandlers(BraveBuildingBlocks braveBuildingBlocks) {
+        private static ObservationHandler<Observation.Context> tracingHandlers(BraveBuildingBlocks braveBuildingBlocks) {
             Tracer tracer = braveBuildingBlocks.tracer;
             HttpServerHandler httpServerHandler = braveBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = braveBuildingBlocks.httpClientHandler;
-            LinkedList<ObservationHandler<Observation.Context>> handlers = new LinkedList(Arrays.asList(new HttpServerTracingObservationHandler(tracer, httpServerHandler), new HttpClientTracingObservationHandler(tracer, httpClientHandler), new DefaultTracingObservationHandler(tracer)));
+            LinkedList<ObservationHandler<? extends Observation.Context>> handlers = new LinkedList<>();
+            handlers.add(new HttpServerTracingObservationHandler(tracer, httpServerHandler));
+            handlers.add(new HttpClientTracingObservationHandler(tracer, httpClientHandler));
+            handlers.add(new DefaultTracingObservationHandler(tracer));
             braveBuildingBlocks.customizers.accept(braveBuildingBlocks, handlers);
+
             return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
         }
 

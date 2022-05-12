@@ -80,7 +80,7 @@ public abstract class SampleTestRunner {
 
     private MeterRegistry meterRegistry;
 
-    private final List<ObservationHandler<?>> observationHandlersCopy;
+    private final List<ObservationHandler<? extends Observation.Context>> observationHandlersCopy;
 
     /**
      * Creates a new instance of the {@link SampleTestRunner} with a pre-created configuration and {@link MeterRegistry}.
@@ -219,7 +219,7 @@ public abstract class SampleTestRunner {
      * @return timer recording handler customizing function
      */
     @SuppressWarnings("rawtypes")
-    public BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizeObservationHandlers() {
+    public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizeObservationHandlers() {
         return (tracer, ObservationHandlers) -> {
 
         };

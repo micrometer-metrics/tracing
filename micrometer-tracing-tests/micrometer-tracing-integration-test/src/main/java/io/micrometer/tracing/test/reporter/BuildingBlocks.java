@@ -70,7 +70,7 @@ public interface BuildingBlocks {
      *
      * @return customizers
      */
-    BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> getCustomizers();
+    BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> getCustomizers();
 
     /**
      * Returns a list of finished spans.

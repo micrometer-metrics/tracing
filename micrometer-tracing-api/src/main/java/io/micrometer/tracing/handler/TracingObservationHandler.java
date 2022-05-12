@@ -32,9 +32,7 @@ import io.micrometer.tracing.internal.SpanNameUtil;
  * @param <T> type of handler context
  * @since 1.0.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public interface TracingObservationHandler<T extends Observation.Context>
-        extends ObservationHandler<T> {
+public interface TracingObservationHandler<T extends Observation.Context> extends ObservationHandler<T> {
 
     /**
      * Tags the span.
