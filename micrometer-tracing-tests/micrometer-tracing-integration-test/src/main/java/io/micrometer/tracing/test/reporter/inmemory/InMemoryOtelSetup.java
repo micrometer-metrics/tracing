@@ -16,7 +16,6 @@
 
 package io.micrometer.tracing.test.reporter.inmemory;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -109,13 +108,13 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
         private Function<Tracer, OtelTracer> otelTracer;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers;
+        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
         private Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler;
 
         private Function<OpenTelemetrySdk, HttpClientHandler> httpClientHandler;
 
-        private Function<OtelBuildingBlocks, ObservationHandler> handlers;
+        private Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
         private Consumer<OtelBuildingBlocks> closingFunction;
 
@@ -138,11 +137,11 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
             public final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers;
+            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
             private final ArrayListSpanProcessor arrayListSpanProcessor;
 
-            public OtelBuildingBlocks(SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
+            public OtelBuildingBlocks(SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
                 this.sdkTracerProvider = sdkTracerProvider;
                 this.openTelemetrySdk = openTelemetrySdk;
                 this.tracer = tracer;
@@ -170,7 +169,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             }
 
             @Override
-            public BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> getCustomizers() {
+            public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> getCustomizers() {
                 return this.customizers;
             }
 
@@ -210,7 +209,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers) {
+        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
             this.customizers = customizers;
             return this;
         }
@@ -225,7 +224,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             return this;
         }
 
-        public Builder handlers(Function<OtelBuildingBlocks, ObservationHandler> tracingHandlers) {
+        public Builder handlers(Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> tracingHandlers) {
             this.handlers = tracingHandlers;
             return this;
         }
@@ -249,10 +248,10 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             OtelTracer otelTracer = this.otelTracer != null ? this.otelTracer.apply(tracer) : otelTracer(tracer);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
-            BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
+            BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers, arrayListSpanProcessor);
-            ObservationHandler tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
+            ObservationHandler<? extends Observation.Context> tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
             registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
             return new InMemoryOtelSetup(closingFunction, otelBuildingBlocks);
@@ -300,12 +299,17 @@ public final class InMemoryOtelSetup implements AutoCloseable {
         }
 
         @SuppressWarnings("rawtypes")
-        private static ObservationHandler tracingHandlers(OtelBuildingBlocks otelBuildingBlocks) {
+        private static ObservationHandler<Observation.Context> tracingHandlers(OtelBuildingBlocks otelBuildingBlocks) {
             OtelTracer tracer = otelBuildingBlocks.otelTracer;
             HttpServerHandler httpServerHandler = otelBuildingBlocks.httpServerHandler;
             HttpClientHandler httpClientHandler = otelBuildingBlocks.httpClientHandler;
-            LinkedList<ObservationHandler<Observation.Context>> handlers = new LinkedList(Arrays.asList(new HttpServerTracingObservationHandler(tracer, httpServerHandler), new HttpClientTracingObservationHandler(tracer, httpClientHandler), new DefaultTracingObservationHandler(tracer)));
+
+            LinkedList<ObservationHandler<? extends Observation.Context>> handlers = new LinkedList<>();
+            handlers.add(new HttpServerTracingObservationHandler(tracer, httpServerHandler));
+            handlers.add(new HttpClientTracingObservationHandler(tracer, httpClientHandler));
+            handlers.add(new DefaultTracingObservationHandler(tracer));
             otelBuildingBlocks.customizers.accept(otelBuildingBlocks, handlers);
+
             return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
         }
 

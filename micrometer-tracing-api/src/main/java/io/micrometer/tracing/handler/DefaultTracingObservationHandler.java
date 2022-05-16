@@ -26,8 +26,7 @@ import io.micrometer.tracing.Tracer;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class DefaultTracingObservationHandler implements TracingObservationHandler {
+public class DefaultTracingObservationHandler implements TracingObservationHandler<Observation.Context> {
 
     private final Tracer tracer;
 

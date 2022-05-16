@@ -88,10 +88,10 @@ class SampleTestRunnerTests extends SampleTestRunner {
         return registry;
     }
 
-    Deque<ObservationHandler<Observation.Context>> handlers;
+    Deque<ObservationHandler<? extends Observation.Context>> handlers;
 
     @Override
-    public BiConsumer<BuildingBlocks, Deque<ObservationHandler<Observation.Context>>> customizeObservationHandlers() {
+    public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizeObservationHandlers() {
         return (buildingBlocks, observationHandlers) -> {
             observationHandlers.addFirst(new MyRecordingHandler());
             this.handlers = observationHandlers;
@@ -154,18 +154,18 @@ class SampleTestRunnerTests extends SampleTestRunner {
         };
     }
 
-    static class MyRecordingHandler implements ObservationHandler {
+    static class MyRecordingHandler implements ObservationHandler<CustomContext> {
 
         @Override
-        public void onStart(Observation.Context context) {
+        public void onStart(CustomContext context) {
         }
 
         @Override
-        public void onError(Observation.Context context) {
+        public void onError(CustomContext context) {
         }
 
         @Override
-        public void onStop(Observation.Context context) {
+        public void onStop(CustomContext context) {
         }
 
         @Override
@@ -173,4 +173,8 @@ class SampleTestRunnerTests extends SampleTestRunner {
             return false;
         }
     }
+
+    static class CustomContext extends Observation.Context {
+    }
+
 }
