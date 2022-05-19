@@ -153,6 +153,11 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
+        return this;
+    }
+
+    @Override
     public Collection<Map.Entry<Long, String>> getEvents() {
         return this.events;
     }
@@ -168,6 +173,11 @@ public class SimpleSpan implements Span, FinishedSpan {
     @Override
     public String getRemoteServiceName() {
         return this.remoteServiceName;
+    }
+
+    @Override
+    public FinishedSpan setRemoteServiceName(String remoteServiceName) {
+        return this;
     }
 
     /**
@@ -198,8 +208,18 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setLocalIp(String ip) {
+        return this;
+    }
+
+    @Override
     public int getRemotePort() {
         return this.port;
+    }
+
+    @Override
+    public FinishedSpan setRemotePort(int port) {
+        return this;
     }
 
     @Override
@@ -213,8 +233,18 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setError(Throwable error) {
+        return this;
+    }
+
+    @Override
     public Kind getKind() {
         return this.spanKind;
+    }
+
+    @Override
+    public FinishedSpan setName(String name) {
+        return this;
     }
 
     /**
@@ -234,6 +264,11 @@ public class SimpleSpan implements Span, FinishedSpan {
     @Override
     public long getEndTimestamp() {
         return this.endMicros;
+    }
+
+    @Override
+    public FinishedSpan setTags(Map<String, String> tags) {
+        return this;
     }
 
     /**

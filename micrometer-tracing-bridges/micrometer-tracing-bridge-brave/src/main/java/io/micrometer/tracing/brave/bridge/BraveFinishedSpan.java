@@ -46,6 +46,12 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setName(String name) {
+        this.mutableSpan.name(name);
+        return this;
+    }
+
+    @Override
     public String getName() {
         return this.mutableSpan.name();
     }
@@ -61,8 +67,22 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setTags(Map<String, String> tags) {
+        this.mutableSpan.tags().clear();
+        tags.forEach(this.mutableSpan::tag);
+        return this;
+    }
+
+    @Override
     public Map<String, String> getTags() {
         return this.mutableSpan.tags();
+    }
+
+    @Override
+    public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
+        this.mutableSpan.annotations().clear();
+        events.forEach(e -> this.mutableSpan.annotate(e.getKey(), e.getValue()));
+        return this;
     }
 
     @Override
@@ -91,8 +111,20 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setLocalIp(String ip) {
+        this.mutableSpan.localIp(ip);
+        return this;
+    }
+
+    @Override
     public int getRemotePort() {
         return this.mutableSpan.remotePort();
+    }
+
+    @Override
+    public FinishedSpan setRemotePort(int port) {
+        this.mutableSpan.remotePort(port);
+        return this;
     }
 
     @Override
@@ -106,6 +138,12 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setError(Throwable error) {
+        this.mutableSpan.error(error);
+        return this;
+    }
+
+    @Override
     public Span.Kind getKind() {
         if (this.mutableSpan.kind() == null) {
             return null;
@@ -116,6 +154,12 @@ public class BraveFinishedSpan implements FinishedSpan {
     @Override
     public String getRemoteServiceName() {
         return this.mutableSpan.remoteServiceName();
+    }
+
+    @Override
+    public FinishedSpan setRemoteServiceName(String remoteServiceName) {
+        this.mutableSpan.remoteServiceName(remoteServiceName);
+        return this;
     }
 
     @Override

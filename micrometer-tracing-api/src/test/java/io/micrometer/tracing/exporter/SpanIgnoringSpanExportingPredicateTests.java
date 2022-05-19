@@ -23,7 +23,7 @@ import org.mockito.BDDMockito;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
-class SpanIgnoringSpanFilterTests {
+class SpanIgnoringSpanExportingPredicateTests {
 
     private FinishedSpan namedSpan() {
         FinishedSpan span = BDDMockito.mock(FinishedSpan.class);
@@ -33,7 +33,7 @@ class SpanIgnoringSpanFilterTests {
 
     @Test
     void should_not_handle_span_when_present_in_main_list_of_spans_to_skip() {
-        SpanIgnoringSpanFilter handler = new SpanIgnoringSpanFilter(Collections.singletonList("someName"),
+        SpanIgnoringSpanExportingPredicate handler = new SpanIgnoringSpanExportingPredicate(Collections.singletonList("someName"),
                 Collections.emptyList());
 
         then(handler.isExportable(namedSpan())).isFalse();
@@ -41,7 +41,7 @@ class SpanIgnoringSpanFilterTests {
 
     @Test
     void should_not_handle_span_when_present_in_additional_list_of_spans_to_skip() {
-        SpanIgnoringSpanFilter handler = new SpanIgnoringSpanFilter(Collections.emptyList(),
+        SpanIgnoringSpanExportingPredicate handler = new SpanIgnoringSpanExportingPredicate(Collections.emptyList(),
                 Collections.singletonList("someName"));
 
         then(handler.isExportable(namedSpan())).isFalse();
@@ -53,22 +53,22 @@ class SpanIgnoringSpanFilterTests {
         export(handler("someOtherName"));
         export(handler("someOtherName"));
 
-        then(SpanIgnoringSpanFilter.cache).containsKey("someOtherName");
+        then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName");
 
         export(handler("a"));
         export(handler("b"));
         export(handler("c"));
 
-        then(SpanIgnoringSpanFilter.cache).containsKey("someOtherName").containsKey("a").containsKey("b")
+        then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName").containsKey("a").containsKey("b")
                 .containsKey("c");
     }
 
-    private void export(SpanIgnoringSpanFilter handler) {
+    private void export(SpanIgnoringSpanExportingPredicate handler) {
         handler.isExportable(namedSpan());
     }
 
-    private SpanIgnoringSpanFilter handler(String name) {
-        return new SpanIgnoringSpanFilter(Collections.emptyList(), Collections.singletonList(name));
+    private SpanIgnoringSpanExportingPredicate handler(String name) {
+        return new SpanIgnoringSpanExportingPredicate(Collections.emptyList(), Collections.singletonList(name));
     }
 
 }

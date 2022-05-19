@@ -22,24 +22,29 @@ import java.util.List;
 import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
+import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.exporter.SpanFilter;
+import io.micrometer.tracing.exporter.SpanExportingPredicate;
 import io.micrometer.tracing.exporter.SpanReporter;
 
 /**
- * Merges {@link SpanFilter}s and {@link SpanReporter}s into a {@link SpanHandler}.
+ * Wraps the {@link SpanHandler} with additional predicate, reporting and filtering logic.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
 public class CompositeSpanHandler extends SpanHandler {
 
-    private final List<SpanFilter> filters;
+    private final List<SpanExportingPredicate> filters;
 
     private final List<SpanReporter> reporters;
 
-    public CompositeSpanHandler(List<SpanFilter> filters, List<SpanReporter> reporters) {
+    private final List<SpanFilter> spanFilters;
+
+    public CompositeSpanHandler(List<SpanExportingPredicate> filters, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
         this.filters = filters == null ? Collections.emptyList() : filters;
         this.reporters = reporters == null ? Collections.emptyList() : reporters;
+        this.spanFilters = spanFilters;
     }
 
     @Override
@@ -55,12 +60,18 @@ public class CompositeSpanHandler extends SpanHandler {
         if (!shouldProcess) {
             return false;
         }
-        this.reporters.forEach(r -> r.report(BraveFinishedSpan.fromBrave(span)));
+        FinishedSpan modified = BraveFinishedSpan.fromBrave(span);
+        for (SpanFilter spanFilter : this.spanFilters) {
+            modified = spanFilter.map(modified);
+        }
+        for (SpanReporter reporter : this.reporters) {
+            reporter.report(modified);
+        }
         return true;
     }
 
     private boolean shouldProcess(MutableSpan span) {
-        for (SpanFilter exporter : this.filters) {
+        for (SpanExportingPredicate exporter : this.filters) {
             if (!exporter.isExportable(BraveFinishedSpan.fromBrave(span))) {
                 return false;
             }

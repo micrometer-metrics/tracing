@@ -29,28 +29,28 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 
 
 /**
- * {@link SpanFilter} that ignores spans via names.
+ * {@link SpanExportingPredicate} that ignores spans via names.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class SpanIgnoringSpanFilter implements SpanFilter {
+public class SpanIgnoringSpanExportingPredicate implements SpanExportingPredicate {
 
     static final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
-    private static final InternalLogger log = InternalLoggerFactory.getInstance(SpanIgnoringSpanFilter.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(SpanIgnoringSpanExportingPredicate.class);
 
     private final List<String> spanNamePatternsToSkip;
 
     private final List<String> additionalSpanNamePatternsToIgnore;
 
     /**
-     * Creates a new instance of {@link SpanIgnoringSpanFilter}.
+     * Creates a new instance of {@link SpanIgnoringSpanExportingPredicate}.
      *
      * @param spanNamePatternsToSkip - name patterns to skip
      * @param additionalSpanNamePatternsToIgnore - additional span names to ignore
      */
-    public SpanIgnoringSpanFilter(List<String> spanNamePatternsToSkip,
+    public SpanIgnoringSpanExportingPredicate(List<String> spanNamePatternsToSkip,
             List<String> additionalSpanNamePatternsToIgnore) {
         this.spanNamePatternsToSkip = spanNamePatternsToSkip;
         this.additionalSpanNamePatternsToIgnore = additionalSpanNamePatternsToIgnore;

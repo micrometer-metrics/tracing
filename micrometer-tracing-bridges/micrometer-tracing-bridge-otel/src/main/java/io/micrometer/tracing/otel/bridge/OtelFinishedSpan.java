@@ -19,9 +19,11 @@ package io.micrometer.tracing.otel.bridge;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,7 +31,9 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.sdk.trace.data.DelegatingSpanData;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 
@@ -41,14 +45,12 @@ import io.opentelemetry.sdk.trace.data.SpanData;
  */
 public class OtelFinishedSpan implements FinishedSpan {
 
-    private final SpanData spanData;
-
-    private final Map<String, String> tags = new HashMap<>();
+    private final MutableSpanData spanData;
 
     private volatile String linkLocalIp;
 
     OtelFinishedSpan(SpanData spanData) {
-        this.spanData = spanData;
+        this.spanData = new MutableSpanData(spanData);
     }
 
     public static FinishedSpan fromOtel(SpanData span) {
@@ -57,6 +59,12 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     public static SpanData toOtel(FinishedSpan span) {
         return ((OtelFinishedSpan) span).spanData;
+    }
+
+    @Override
+    public FinishedSpan setName(String name) {
+        this.spanData.name = name;
+        return this;
     }
 
     @Override
@@ -75,11 +83,22 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setTags(Map<String, String> tags) {
+        this.spanData.tags.clear();
+        this.spanData.tags.putAll(tags.entrySet().stream().collect(Collectors.toMap(e -> AttributeKey.stringKey(e.getKey()), Map.Entry::getValue)));
+        return this;
+    }
+
+    @Override
     public Map<String, String> getTags() {
-        if (this.tags.isEmpty()) {
-            this.spanData.getAttributes().forEach((key, value) -> tags.put(key.getKey(), String.valueOf(value)));
-        }
-        return this.tags;
+        return this.spanData.tags.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().getKey(), Map.Entry::getValue));
+    }
+
+    @Override
+    public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
+        this.spanData.events.clear();
+        this.spanData.events.addAll(events.stream().map(e -> EventData.create(e.getKey(), e.getValue(), Attributes.empty())).collect(Collectors.toList()));
+        return this;
     }
 
     @Override
@@ -119,6 +138,12 @@ public class OtelFinishedSpan implements FinishedSpan {
         return this.linkLocalIp;
     }
 
+    @Override
+    public FinishedSpan setLocalIp(String ip) {
+        this.linkLocalIp = ip;
+        return this;
+    }
+
     private String produceLinkLocalIp() {
         try {
             Enumeration<NetworkInterface> nics = NetworkInterface.getNetworkInterfaces();
@@ -140,7 +165,17 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     @Override
     public int getRemotePort() {
-        return Integer.parseInt(getTags().get("net.peer.port"));
+        String port = getTags().get("net.peer.port");
+        if (port == null) {
+            return 0;
+        }
+        return Integer.parseInt(port);
+    }
+
+    @Override
+    public FinishedSpan setRemotePort(int port) {
+        this.spanData.tags.put(AttributeKey.longKey("net.peer.port"), String.valueOf(port));
+        return this;
     }
 
     @Override
@@ -159,6 +194,12 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setError(Throwable error) {
+        this.spanData.getEvents().add(EventData.create(System.nanoTime(), "exception", Attributes.of(AttributeKey.stringKey("exception.message"), error.toString())));
+        return this;
+    }
+
+    @Override
     public Span.Kind getKind() {
         if (this.spanData.getKind() == SpanKind.INTERNAL) {
             return null;
@@ -172,8 +213,14 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public FinishedSpan setRemoteServiceName(String remoteServiceName) {
+        this.spanData.tags.put(AttributeKey.stringKey("peer.service"), remoteServiceName);
+        return this;
+    }
+
+    @Override
     public String toString() {
-        return "SpanDataToReportedSpan{" + "spanData=" + spanData + ", tags=" + tags + '}';
+        return "SpanDataToReportedSpan{" + "spanData=" + spanData + '}';
     }
 
     /**
@@ -193,4 +240,66 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    static class MutableSpanData extends DelegatingSpanData {
+
+        String name;
+
+        long startEpochNanos;
+
+        long endEpochNanos;
+
+        final Map<AttributeKey, String> tags = new HashMap<>();
+
+        final List<EventData> events = new ArrayList<>();
+
+        MutableSpanData(SpanData delegate) {
+            super(delegate);
+            this.name = delegate.getName();
+            this.startEpochNanos = delegate.getStartEpochNanos();
+            this.endEpochNanos = delegate.getEndEpochNanos();
+            delegate.getAttributes().forEach((key, value) -> this.tags.put(key, String.valueOf(value)));
+            this.events.addAll(delegate.getEvents());
+        }
+
+        @Override
+        public String getName() {
+            return this.name;
+        }
+
+        @Override
+        public long getStartEpochNanos() {
+            return this.startEpochNanos;
+        }
+
+        @Override
+        public Attributes getAttributes() {
+            AttributesBuilder builder = Attributes.builder();
+            for (Map.Entry<AttributeKey, String> entry : this.tags.entrySet()) {
+                builder = builder.put(entry.getKey(), entry.getValue());
+            }
+            return builder.build();
+        }
+
+        @Override
+        public List<EventData> getEvents() {
+            return this.events;
+        }
+
+        @Override
+        public long getEndEpochNanos() {
+            return this.endEpochNanos;
+        }
+
+        @Override
+        public int getTotalRecordedEvents() {
+            return getEvents().size();
+        }
+
+        @Override
+        public int getTotalAttributeCount() {
+            return getAttributes().size();
+        }
+
+    }
 }

@@ -35,6 +35,11 @@ import io.micrometer.common.lang.Nullable;
 public interface FinishedSpan {
 
     /**
+     * @return this
+     */
+    FinishedSpan setName(String name);
+
+    /**
      * @return span's name
      */
     String getName();
@@ -50,9 +55,19 @@ public interface FinishedSpan {
     long getEndTimestamp();
 
     /**
+     * @return this
+     */
+    FinishedSpan setTags(Map<String, String> tags);
+
+    /**
      * @return span's tags
      */
     Map<String, String> getTags();
+
+    /**
+     * @return this
+     */
+    FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events);
 
     /**
      * @return span's events as timestamp to value mapping
@@ -85,9 +100,21 @@ public interface FinishedSpan {
     }
 
     /**
+     *
+     * @param ip
+     * @return this
+     */
+    FinishedSpan setLocalIp(String ip);
+
+    /**
      * @return span's remote port
      */
     int getRemotePort();
+
+    /**
+     * @return this
+     */
+    FinishedSpan setRemotePort(int port);
 
     /**
      * @return span's trace id
@@ -101,6 +128,13 @@ public interface FinishedSpan {
     Throwable getError();
 
     /**
+     *
+     * @param error
+     * @return this
+     */
+    FinishedSpan setError(Throwable error);
+
+    /**
      * @return span's kind
      */
     Span.Kind getKind();
@@ -110,5 +144,12 @@ public interface FinishedSpan {
      */
     @Nullable
     String getRemoteServiceName();
+
+    /**
+     *
+     * @param remoteServiceName
+     * @return this
+     */
+    FinishedSpan setRemoteServiceName(String remoteServiceName);
 
 }

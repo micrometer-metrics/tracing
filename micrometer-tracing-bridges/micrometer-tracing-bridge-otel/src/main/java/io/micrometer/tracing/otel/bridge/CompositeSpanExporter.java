@@ -20,7 +20,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.exporter.SpanFilter;
+import io.micrometer.tracing.exporter.SpanExportingPredicate;
 import io.micrometer.tracing.exporter.SpanReporter;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
@@ -28,7 +30,7 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 
 
 /**
- * Composes multiple {@link SpanFilter} into a single {@link SpanExporter}.
+ * Wraps the {@link SpanExporter} delegate with additional predicate, reporting and filtering logic.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -37,26 +39,35 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
 
     private final io.opentelemetry.sdk.trace.export.SpanExporter delegate;
 
-    private final List<SpanFilter> filters;
+    private final List<SpanExportingPredicate> predicates;
 
     private final List<SpanReporter> reporters;
 
-    public CompositeSpanExporter(SpanExporter delegate, List<SpanFilter> filters, List<SpanReporter> reporters) {
+    private final List<SpanFilter> spanFilters;
+
+    public CompositeSpanExporter(SpanExporter delegate, List<SpanExportingPredicate> predicates, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
         this.delegate = delegate;
-        this.filters = filters;
+        this.predicates = predicates;
         this.reporters = reporters;
+        this.spanFilters = spanFilters;
     }
 
     @Override
     public CompletableResultCode export(Collection<SpanData> spans) {
-        return this.delegate.export(spans.stream().filter(this::shouldProcess).map(spanData -> {
-            this.reporters.forEach(reporter -> reporter.report(OtelFinishedSpan.fromOtel(spanData)));
-            return spanData;
-        }).collect(Collectors.toList()));
+        return this.delegate.export(spans.stream().filter(this::shouldProcess)
+                .map(spanData -> {
+                    FinishedSpan finishedSpan = OtelFinishedSpan.fromOtel(spanData);
+                    for (SpanFilter spanFilter : spanFilters) {
+                        finishedSpan = spanFilter.map(finishedSpan);
+                    }
+                    return OtelFinishedSpan.toOtel(finishedSpan);
+                })
+                .peek(spanData -> this.reporters.forEach(reporter -> reporter.report(OtelFinishedSpan.fromOtel(spanData))))
+                .collect(Collectors.toList()));
     }
 
     private boolean shouldProcess(SpanData span) {
-        for (SpanFilter filter : this.filters) {
+        for (SpanExportingPredicate filter : this.predicates) {
             if (!filter.isExportable(OtelFinishedSpan.fromOtel(span))) {
                 return false;
             }

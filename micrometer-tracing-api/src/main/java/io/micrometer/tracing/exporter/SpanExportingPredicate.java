@@ -17,18 +17,19 @@
 package io.micrometer.tracing.exporter;
 
 /**
- * An interface that allows to mutate a finished Span.
+ * An interface that allows to filter whether a given reported span should be exported or
+ * not.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public interface SpanFilter {
+public interface SpanExportingPredicate {
 
     /**
-     * Called to mutate a {@link FinishedSpan} before its filtering.
-     * @param span a finished span to mutate
-     * @return mutated span
+     * Called to export sampled {@code Span}s.
+     * @param span the collection of sampled Spans to be exported.
+     * @return whether should export spans
      */
-    FinishedSpan map(FinishedSpan span);
+    boolean isExportable(FinishedSpan span);
 
 }
