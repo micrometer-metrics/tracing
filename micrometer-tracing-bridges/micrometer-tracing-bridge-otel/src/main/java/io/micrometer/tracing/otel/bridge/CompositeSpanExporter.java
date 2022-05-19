@@ -17,6 +17,7 @@
 package io.micrometer.tracing.otel.bridge;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,9 +48,9 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
 
     public CompositeSpanExporter(SpanExporter delegate, List<SpanExportingPredicate> predicates, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
         this.delegate = delegate;
-        this.predicates = predicates;
-        this.reporters = reporters;
-        this.spanFilters = spanFilters;
+        this.predicates = predicates == null ? Collections.emptyList() : predicates;
+        this.reporters = reporters == null ? Collections.emptyList() : reporters;
+        this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
     }
 
     @Override

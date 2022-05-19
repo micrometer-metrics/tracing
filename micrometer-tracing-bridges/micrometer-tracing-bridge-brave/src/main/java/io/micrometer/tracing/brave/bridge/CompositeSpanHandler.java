@@ -44,7 +44,7 @@ public class CompositeSpanHandler extends SpanHandler {
     public CompositeSpanHandler(List<SpanExportingPredicate> filters, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
         this.filters = filters == null ? Collections.emptyList() : filters;
         this.reporters = reporters == null ? Collections.emptyList() : reporters;
-        this.spanFilters = spanFilters;
+        this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
     }
 
     @Override
