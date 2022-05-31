@@ -18,8 +18,8 @@ package io.micrometer.tracing.brave.bridge;
 
 import java.util.Objects;
 
-import io.micrometer.tracing.TraceContext;
 import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.TraceContext;
 
 /**
  * Brave implementation of a {@link TraceContext}.
@@ -31,10 +31,21 @@ public class BraveTraceContext implements TraceContext {
 
     final brave.propagation.TraceContext traceContext;
 
+    /**
+     * Creates a new instance of {@link BraveTraceContext}.
+     *
+     * @param traceContext Brave {@link TraceContext}
+     */
     public BraveTraceContext(brave.propagation.TraceContext traceContext) {
         this.traceContext = traceContext;
     }
 
+    /**
+     * Converts from Tracing to Brave.
+     *
+     * @param traceContext Tracing version
+     * @return Brave version
+     */
     public static brave.propagation.TraceContext toBrave(TraceContext traceContext) {
         if (traceContext == null) {
             return null;
@@ -42,6 +53,12 @@ public class BraveTraceContext implements TraceContext {
         return ((BraveTraceContext) traceContext).traceContext;
     }
 
+    /**
+     * Converts from Brave to Tracing.
+     *
+     * @param traceContext Brave version
+     * @return Tracing version
+     */
     public static TraceContext fromBrave(brave.propagation.TraceContext traceContext) {
         return new BraveTraceContext(traceContext);
     }

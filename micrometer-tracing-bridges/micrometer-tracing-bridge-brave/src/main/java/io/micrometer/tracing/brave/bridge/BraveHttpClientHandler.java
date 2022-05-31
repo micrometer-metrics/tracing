@@ -36,6 +36,11 @@ public class BraveHttpClientHandler implements HttpClientHandler {
 
     final brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate;
 
+    /**
+     * Creates a new instance of {@link BraveHttpClientHandler}.
+     *
+     * @param delegate Brave version of a {@link HttpClientHandler}
+     */
     public BraveHttpClientHandler(
             brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate) {
         this.delegate = delegate;

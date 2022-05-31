@@ -27,7 +27,7 @@ import org.aopalliance.intercept.MethodInvocation;
 public interface MethodInvocationProcessor {
 
     /**
-     * Executes a given Sleuth annotated method.
+     * Executes the annotated method.
      * @param invocation method invocation
      * @param newSpan annotation
      * @param continueSpan annotation

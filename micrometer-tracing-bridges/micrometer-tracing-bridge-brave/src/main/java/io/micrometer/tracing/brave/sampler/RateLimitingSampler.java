@@ -34,6 +34,8 @@ public class RateLimitingSampler extends Sampler {
     private final Sampler sampler;
 
     /**
+     * Creates a new instance of {@link RateLimitingSampler}.
+     *
      * @param rate supplier of rate
      */
     public RateLimitingSampler(Supplier<Integer> rate) {

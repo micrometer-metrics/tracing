@@ -23,8 +23,8 @@ import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
-import io.micrometer.tracing.exporter.SpanFilter;
 import io.micrometer.tracing.exporter.SpanExportingPredicate;
+import io.micrometer.tracing.exporter.SpanFilter;
 import io.micrometer.tracing.exporter.SpanReporter;
 
 /**
@@ -41,8 +41,15 @@ public class CompositeSpanHandler extends SpanHandler {
 
     private final List<SpanFilter> spanFilters;
 
-    public CompositeSpanHandler(List<SpanExportingPredicate> filters, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
-        this.filters = filters == null ? Collections.emptyList() : filters;
+    /**
+     * Creates a new instance of {@link CompositeSpanHandler}.
+     *
+     * @param predicates predicates that decide which spans should be exported
+     * @param reporters reporters that export spans
+     * @param spanFilters filters that mutate spans before reporting them
+     */
+    public CompositeSpanHandler(List<SpanExportingPredicate> predicates, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
+        this.filters = predicates == null ? Collections.emptyList() : predicates;
         this.reporters = reporters == null ? Collections.emptyList() : reporters;
         this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
     }

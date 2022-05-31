@@ -33,16 +33,33 @@ public class BraveFinishedSpan implements FinishedSpan {
 
     private final MutableSpan mutableSpan;
 
+    /**
+     * Creates a new instance of {@link BraveFinishedSpan}.
+     *
+     * @param mutableSpan Brave version of {@link FinishedSpan}
+     */
     public BraveFinishedSpan(MutableSpan mutableSpan) {
         this.mutableSpan = mutableSpan;
     }
 
+    /**
+     * Converts from Brave to Tracing.
+     *
+     * @param mutableSpan Brave version of {@link FinishedSpan}
+     * @return Tracing version of a {@link FinishedSpan}
+     */
     public static FinishedSpan fromBrave(MutableSpan mutableSpan) {
         return new BraveFinishedSpan(mutableSpan);
     }
 
-    public static MutableSpan toBrave(FinishedSpan mutableSpan) {
-        return ((BraveFinishedSpan) mutableSpan).mutableSpan;
+    /**
+     * Converts from Tracing to Brave.
+     *
+     * @param finishedSpan Tracing version of a {@link FinishedSpan}
+     * @return Brave version of {@link FinishedSpan}
+     */
+    public static MutableSpan toBrave(FinishedSpan finishedSpan) {
+        return ((BraveFinishedSpan) finishedSpan).mutableSpan;
     }
 
     @Override

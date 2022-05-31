@@ -32,6 +32,11 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
 
     final brave.sampler.SamplerFunction<T> samplerFunction;
 
+    /**
+     * Creates a new instance of {@link BraveSamplerFunction}.
+     *
+     * @param samplerFunction Brave {@link SamplerFunction}
+     */
     public BraveSamplerFunction(brave.sampler.SamplerFunction<T> samplerFunction) {
         this.samplerFunction = samplerFunction;
     }
@@ -44,6 +49,12 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
         return SamplerFunctions.deferDecision();
     }
 
+    /**
+     * Converts from Tracing to Brave.
+     *
+     * @param samplerFunction Tracing version
+     * @return Brave version
+     */
     public static brave.sampler.SamplerFunction<brave.http.HttpRequest> toHttpBrave(
             SamplerFunction<HttpRequest> samplerFunction) {
         return arg -> samplerFunction.trySample(BraveHttpRequest.fromBrave(arg));

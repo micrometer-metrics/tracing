@@ -40,6 +40,8 @@ public class CompositePropagationFactorySupplier implements PropagationFactorySu
     private final List<PropagationType> types;
 
     /**
+     * Creates a new instance of {@link CompositePropagationFactorySupplier}.
+     *
      * @param baggageManagerSupplier bean factory
      * @param factorySupplier factory supplier
      * @param localFields local fields to be set in context

@@ -41,6 +41,13 @@ public class BraveTracer implements Tracer {
 
     private final CurrentTraceContext currentTraceContext;
 
+    /**
+     * Creates a new instance of {@link BraveTracer}.
+     *
+     * @param tracer Brave Tracer
+     * @param context Brave context
+     * @param braveBaggageManager Brave baggage manager
+     */
     public BraveTracer(brave.Tracer tracer, CurrentTraceContext context, BraveBaggageManager braveBaggageManager) {
         this.tracer = tracer;
         this.braveBaggageManager = braveBaggageManager;

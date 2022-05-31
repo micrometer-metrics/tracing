@@ -51,6 +51,8 @@ public class ProbabilityBasedSampler extends Sampler {
     private final Supplier<Float> probability;
 
     /**
+     * Creates a new instance of {@link ProbabilityBasedSampler}.
+     *
      * @param probability supplier of probability
      */
     public ProbabilityBasedSampler(Supplier<Float> probability) {

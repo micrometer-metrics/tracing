@@ -27,6 +27,8 @@ import brave.propagation.Propagation;
 public interface PropagationFactorySupplier {
 
     /**
+     * Creates an instance of a {@link Propagation.Factory}.
+     *
      * @return an instance of a {@link Propagation.Factory}
      */
     Propagation.Factory get();

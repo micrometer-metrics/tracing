@@ -35,6 +35,11 @@ public class BravePropagator implements Propagator {
 
     private final Tracing tracing;
 
+    /**
+     * Creates a new instance of {@link BravePropagator}.
+     *
+     * @param tracing Brave tracing
+     */
     public BravePropagator(Tracing tracing) {
         this.tracing = tracing;
     }

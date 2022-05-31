@@ -31,13 +31,20 @@ public class BraveHttpResponseParser implements HttpResponseParser {
 
     final brave.http.HttpResponseParser delegate;
 
+    /**
+     * Creates a new instance of {@link BraveHttpResponseParser}.
+     *
+     * @param delegate Brave version of {@link HttpResponseParser}
+     */
     public BraveHttpResponseParser(brave.http.HttpResponseParser delegate) {
         this.delegate = delegate;
     }
 
     /**
+     * Converts from Tracing to Brave.
+     *
      * @param parser API parser
-     * @return Brave's parser
+     * @return Brave parser
      */
     public static brave.http.HttpResponseParser toBrave(HttpResponseParser parser) {
         if (parser instanceof BraveHttpResponseParser) {

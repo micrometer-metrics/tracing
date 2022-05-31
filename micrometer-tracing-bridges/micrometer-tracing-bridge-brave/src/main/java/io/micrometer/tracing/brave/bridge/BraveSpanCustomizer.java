@@ -28,15 +28,32 @@ public class BraveSpanCustomizer implements SpanCustomizer {
 
     private final brave.SpanCustomizer spanCustomizer;
 
+    /**
+     * Creates a new instance of {@link BraveSpanCustomizer}.
+     *
+     * @param spanCustomizer Brave {@link SpanCustomizer}
+     */
     public BraveSpanCustomizer(brave.SpanCustomizer spanCustomizer) {
         this.spanCustomizer = spanCustomizer;
     }
 
-    static brave.SpanCustomizer toBrave(SpanCustomizer spanCustomizer) {
+    /**
+     * Converts from Tracing to Brave.
+     *
+     * @param spanCustomizer Tracing version
+     * @return Brave version
+     */
+    public static brave.SpanCustomizer toBrave(SpanCustomizer spanCustomizer) {
         return ((BraveSpanCustomizer) spanCustomizer).spanCustomizer;
     }
 
-    static SpanCustomizer fromBrave(brave.SpanCustomizer spanCustomizer) {
+    /**
+     * Converts from Brave to Tracing.
+     *
+     * @param spanCustomizer Brave version
+     * @return Tracing version
+     */
+    public static SpanCustomizer fromBrave(brave.SpanCustomizer spanCustomizer) {
         return new BraveSpanCustomizer(spanCustomizer);
     }
 

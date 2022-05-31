@@ -34,6 +34,8 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
     final brave.propagation.CurrentTraceContext delegate;
 
     /**
+     * Creates a new instance of {@link BraveCurrentTraceContext}.
+     *
      * @param delegate Brave delegate
      */
     public BraveCurrentTraceContext(brave.propagation.CurrentTraceContext delegate) {
@@ -41,8 +43,8 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
     }
 
     /**
-     * Converts from Spring Observability to Brave.
-     * @param context Spring Observability delegate
+     * Converts from Tracing to Brave.
+     * @param context Tracing delegate
      * @return converted version
      */
     public static brave.propagation.CurrentTraceContext toBrave(CurrentTraceContext context) {
@@ -50,7 +52,7 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
     }
 
     /**
-     * Converts from Brave to Spring Observability.
+     * Converts from Brave to Tracing.
      * @param context Brave delegate
      * @return converted version
      */

@@ -32,10 +32,21 @@ public class BraveSpan implements Span {
 
     final brave.Span delegate;
 
+    /**
+     * Creates a new instance of {@link BraveSpan}.
+     *
+     * @param delegate Brave {@link BraveSpan}
+     */
     public BraveSpan(brave.Span delegate) {
         this.delegate = delegate;
     }
 
+    /**
+     * Converts from Tracing to Brave.
+     *
+     * @param span Tracing version
+     * @return Brave's version
+     */
     public static brave.Span toBrave(Span span) {
         BraveSpan braveSpan = (BraveSpan) span;
         if (braveSpan == null) {
@@ -44,6 +55,12 @@ public class BraveSpan implements Span {
         return braveSpan.delegate;
     }
 
+    /**
+     * Converts from Brave to Tracing.
+     *
+     * @param span Brave version
+     * @return Tracing version
+     */
     public static Span fromBrave(brave.Span span) {
         return new BraveSpan(span);
     }
