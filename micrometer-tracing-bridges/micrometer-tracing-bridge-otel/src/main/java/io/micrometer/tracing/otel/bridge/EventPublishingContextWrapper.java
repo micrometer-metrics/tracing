@@ -24,10 +24,20 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 
+/**
+ * A context wrapper that publishes events when scope is being attached, closed or restored.
+ *
+ * @since 1.0.0
+ */
 public final class EventPublishingContextWrapper implements Function<ContextStorage, ContextStorage> {
 
     private final OtelTracer.EventPublisher publisher;
 
+    /**
+     * Creates a new instance of {@link EventPublishingContextWrapper}.
+     *
+     * @param publisher an event publisher
+     */
     public EventPublishingContextWrapper(OtelTracer.EventPublisher publisher) {
         this.publisher = publisher;
     }
@@ -57,6 +67,11 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
         };
     }
 
+    /**
+     * An event with context attached.
+     *
+     * @since 1.0.0
+     */
     public static class ScopeAttachedEvent {
 
         /**
@@ -66,6 +81,7 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
 
         /**
          * Create a new event.
+         *
          * @param context corresponding otel context
          */
         public ScopeAttachedEvent(@Nullable Context context) {

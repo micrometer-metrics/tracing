@@ -41,6 +41,12 @@ public class OtelPropagator implements Propagator {
 
     private final Tracer tracer;
 
+    /**
+     * Creates a new instance of {@link OtelPropagator}.
+     *
+     * @param propagation propagation
+     * @param tracer tracer
+     */
     public OtelPropagator(ContextPropagators propagation, Tracer tracer) {
         this.propagator = propagation.getTextMapPropagator();
         this.tracer = tracer;

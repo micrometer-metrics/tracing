@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import io.micrometer.tracing.exporter.FinishedSpan;
-import io.micrometer.tracing.exporter.SpanFilter;
 import io.micrometer.tracing.exporter.SpanExportingPredicate;
+import io.micrometer.tracing.exporter.SpanFilter;
 import io.micrometer.tracing.exporter.SpanReporter;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
@@ -46,6 +46,14 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
 
     private final List<SpanFilter> spanFilters;
 
+    /**
+     * Creates a new instance of {@link CompositeSpanExporter}.
+     *
+     * @param delegate a {@link SpanExporter} delegate
+     * @param predicates predicates that decide which spans should be exported
+     * @param reporters reporters that export spans
+     * @param spanFilters filters that mutate spans before reporting them
+     */
     public CompositeSpanExporter(SpanExporter delegate, List<SpanExportingPredicate> predicates, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
         this.delegate = delegate;
         this.predicates = predicates == null ? Collections.emptyList() : predicates;

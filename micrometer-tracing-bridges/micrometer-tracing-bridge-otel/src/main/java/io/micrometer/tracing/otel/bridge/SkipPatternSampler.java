@@ -32,6 +32,11 @@ public class SkipPatternSampler implements SamplerFunction<HttpRequest> {
 
     private final Pattern pattern;
 
+    /**
+     * Creates a new instance of {@link SkipPatternSampler}.
+     *
+     * @param pattern skip pattern
+     */
     public SkipPatternSampler(Pattern pattern) {
         this.pattern = pattern;
     }

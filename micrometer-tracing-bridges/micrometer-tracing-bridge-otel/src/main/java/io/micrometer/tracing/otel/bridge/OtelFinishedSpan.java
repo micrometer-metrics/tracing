@@ -53,10 +53,22 @@ public class OtelFinishedSpan implements FinishedSpan {
         this.spanData = new MutableSpanData(spanData);
     }
 
+    /**
+     * Converts from OTel to Tracing.
+     *
+     * @param span OTel version
+     * @return Tracing version
+     */
     public static FinishedSpan fromOtel(SpanData span) {
         return new OtelFinishedSpan(span);
     }
 
+    /**
+     * Converts from Tracing to OTel.
+     *
+     * @param span Tracing version
+     * @return OTel version
+     */
     public static SpanData toOtel(FinishedSpan span) {
         return ((OtelFinishedSpan) span).spanData;
     }

@@ -64,10 +64,22 @@ public class OtelTraceContext implements TraceContext {
         this(span.otelTraceContext.context.get(), span.getSpanContext(), span);
     }
 
-    public static TraceContext fromOtel(SpanContext traceContext) {
-        return new OtelTraceContext(traceContext, null);
+    /**
+     * Converts from Tracing to OTel.
+     *
+     * @param context Tracing version
+     * @return OTel version
+     */
+    public static TraceContext fromOtel(SpanContext context) {
+        return new OtelTraceContext(context, null);
     }
 
+    /**
+     * Converts from OTel to Tracing.
+     *
+     * @param context OTel version
+     * @return Tracing version
+     */
     public static Context toOtelContext(TraceContext context) {
         if (context instanceof OtelTraceContext) {
             Span span = ((OtelTraceContext) context).span;

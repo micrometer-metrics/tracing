@@ -29,10 +29,20 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * A {@link SpanProcessor} that sets baggage entries on a span.
+ *
+ * @since 1.0.0
+ */
 public class BaggageTaggingSpanProcessor implements SpanProcessor {
 
     private final Map<String, AttributeKey<String>> tagsToApply;
 
+    /**
+     * Creates a new instance of {@link BaggageTaggingSpanProcessor}.
+     *
+     * @param tagsToApply tags to apply from the baggage on the span
+     */
     public BaggageTaggingSpanProcessor(List<String> tagsToApply) {
         this.tagsToApply = tagsToApply.stream().map(tag -> stringKey(tag))
                 .collect(toMap(AttributeKey::getKey, key -> key));

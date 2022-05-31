@@ -29,6 +29,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttribut
  * Extracts OpenTelemetry http semantic attributes value for server http spans.
  *
  * @author Nikita Salnikov-Tarnovski
+ * @since 1.0.0
  */
 public class DefaultHttpServerAttributesExtractor
         implements HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> {

@@ -31,7 +31,6 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.baggage.BaggageEntry;
@@ -44,8 +43,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * OpenTelemetry implementation of a {@link BaggageManager}. Doesn't implement an
- * interface cause {@link Tracer} already implements it.
+ * OpenTelemetry implementation of a {@link BaggageManager}.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -58,6 +56,13 @@ public class OtelBaggageManager implements BaggageManager {
 
     private final List<String> tagFields;
 
+    /**
+     * Creates a new instance of {@link OtelBaggageManager}.
+     *
+     * @param currentTraceContext current trace context
+     * @param remoteFields remote fields names
+     * @param tagFields tag fields names
+     */
     public OtelBaggageManager(CurrentTraceContext currentTraceContext, List<String> remoteFields,
             List<String> tagFields) {
         this.currentTraceContext = currentTraceContext;

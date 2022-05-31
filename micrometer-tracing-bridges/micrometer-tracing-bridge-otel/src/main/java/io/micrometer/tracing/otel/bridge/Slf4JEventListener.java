@@ -21,6 +21,11 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.opentelemetry.api.trace.Span;
 import org.slf4j.MDC;
 
+/**
+ * Reacts to events with updating of Slf4j's {@link MDC}.
+ *
+ * @since 1.0.0
+ */
 public class Slf4JEventListener implements EventListener {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JEventListener.class);

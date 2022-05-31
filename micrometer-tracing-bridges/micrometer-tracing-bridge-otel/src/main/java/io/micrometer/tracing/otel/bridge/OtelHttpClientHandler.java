@@ -16,9 +16,9 @@
 
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.common.lang.Nullable;
 import io.micrometer.observation.transport.http.HttpClientRequest;
 import io.micrometer.observation.transport.http.HttpClientResponse;
 import io.micrometer.observation.transport.http.HttpRequest;
@@ -61,6 +61,15 @@ public class OtelHttpClientHandler implements HttpClientHandler {
 
     private final Instrumenter<HttpClientRequest, HttpClientResponse> instrumenter;
 
+    /**
+     * Creates a new instance of {@link OtelHttpClientHandler}.
+     *
+     * @param openTelemetry open telemetry
+     * @param httpClientRequestParser http client request parser
+     * @param httpClientResponseParser http client response parser
+     * @param samplerFunction sampler function
+     * @param httpAttributesExtractor http attributes extractor
+     */
     public OtelHttpClientHandler(OpenTelemetry openTelemetry, @Nullable HttpRequestParser httpClientRequestParser,
             @Nullable HttpResponseParser httpClientResponseParser, SamplerFunction<HttpRequest> samplerFunction,
             HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> httpAttributesExtractor) {

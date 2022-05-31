@@ -53,22 +53,28 @@ public class CompositeTextMapPropagator implements TextMapPropagator {
 
     private final List<PropagationType> types;
 
-    public CompositeTextMapPropagator(PropagationSupplier beanFactory, List<PropagationType> types) {
+    /**
+     * Creates a new instance of {@link CompositeTextMapPropagator}.
+     *
+     * @param propagationSupplier propagation supplier
+     * @param types types of propagation
+     */
+    public CompositeTextMapPropagator(PropagationSupplier propagationSupplier, List<PropagationType> types) {
         this.types = types;
         if (isOnClasspath(awsClass())) {
-            this.mapping.put(PropagationType.AWS, beanFactory.getProvider(AwsXrayPropagator.class)
+            this.mapping.put(PropagationType.AWS, propagationSupplier.getProvider(AwsXrayPropagator.class)
                     .getIfAvailable(AwsXrayPropagator::getInstance));
         }
         if (isOnClasspath(b3Class())) {
-            this.mapping.put(PropagationType.B3, beanFactory.getProvider(B3Propagator.class)
+            this.mapping.put(PropagationType.B3, propagationSupplier.getProvider(B3Propagator.class)
                     .getIfAvailable(B3Propagator::injectingSingleHeader));
         }
         if (isOnClasspath(jaegerClass())) {
             this.mapping.put(PropagationType.JAEGER,
-                    beanFactory.getProvider(JaegerPropagator.class).getIfAvailable(JaegerPropagator::getInstance));
+                    propagationSupplier.getProvider(JaegerPropagator.class).getIfAvailable(JaegerPropagator::getInstance));
         }
         if (isOnClasspath(otClass())) {
-            this.mapping.put(PropagationType.OT_TRACER, beanFactory.getProvider(OtTracePropagator.class)
+            this.mapping.put(PropagationType.OT_TRACER, propagationSupplier.getProvider(OtTracePropagator.class)
                     .getIfAvailable(OtTracePropagator::getInstance));
         }
         this.mapping.put(PropagationType.W3C, TextMapPropagator.composite(W3CTraceContextPropagator.getInstance(),

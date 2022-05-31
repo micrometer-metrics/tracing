@@ -38,7 +38,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
 
-    Queue<SpanData> spans = new ConcurrentLinkedQueue<>();
+    private final Queue<SpanData> spans = new ConcurrentLinkedQueue<>();
 
     @Override
     public void onStart(Context parent, ReadWriteSpan span) {

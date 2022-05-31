@@ -47,6 +47,12 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
 
     private final BaggageManager baggageManager;
 
+    /**
+     * Creates a new instance of {@link BaggageTextMapPropagator}.
+     *
+     * @param remoteFields remote fields
+     * @param baggageManager baggage manager
+     */
     public BaggageTextMapPropagator(List<String> remoteFields, BaggageManager baggageManager) {
         this.remoteFields = remoteFields;
         this.baggageManager = baggageManager;

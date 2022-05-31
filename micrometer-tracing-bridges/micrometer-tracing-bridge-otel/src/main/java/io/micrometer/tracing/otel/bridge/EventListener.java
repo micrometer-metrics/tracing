@@ -17,7 +17,7 @@
 package io.micrometer.tracing.otel.bridge;
 
 /**
- * Listener to events.
+ * Listener to events. Can be used for e.g. reacting to MDC entry changes.
  *
  * @since 1.0.0
  */

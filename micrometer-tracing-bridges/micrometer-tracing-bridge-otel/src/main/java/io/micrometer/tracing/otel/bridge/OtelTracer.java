@@ -43,6 +43,14 @@ public class OtelTracer implements Tracer {
 
     private final EventPublisher publisher;
 
+    /**
+     * Creates a new instance of {@link OtelTracer}.
+     *
+     * @param tracer tracer
+     * @param otelCurrentTraceContext current trace context
+     * @param publisher event publisher
+     * @param otelBaggageManager baggage manager
+     */
     public OtelTracer(io.opentelemetry.api.trace.Tracer tracer, OtelCurrentTraceContext otelCurrentTraceContext, EventPublisher publisher,
             BaggageManager otelBaggageManager) {
         this.tracer = tracer;

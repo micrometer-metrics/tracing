@@ -28,6 +28,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttribut
  * Extracts OpenTelemetry http semantic attributes value for client http spans.
  *
  * @author Nikita Salnikov-Tarnovski
+ * @since 1.0.0
  */
 public class DefaultHttpClientAttributesGetter
         implements HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> {

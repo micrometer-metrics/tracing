@@ -32,6 +32,11 @@ public class Slf4JBaggageEventListener implements EventListener {
 
     private final List<String> correlationFields;
 
+    /**
+     * Creates a new instance of {@link Slf4JBaggageEventListener}.
+     *
+     * @param correlationFields correlation fields
+     */
     public Slf4JBaggageEventListener(List<String> correlationFields) {
         this.lowerCaseCorrelationFields = correlationFields.stream().map(String::toLowerCase)
                 .collect(Collectors.toList());

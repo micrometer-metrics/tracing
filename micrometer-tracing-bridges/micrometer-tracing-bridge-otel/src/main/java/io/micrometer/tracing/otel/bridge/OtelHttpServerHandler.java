@@ -61,6 +61,15 @@ public class OtelHttpServerHandler implements HttpServerHandler {
 
     private final Instrumenter<HttpServerRequest, HttpServerResponse> instrumenter;
 
+    /**
+     * Creates a new instance of {@link OtelHttpServerHandler}.
+     *
+     * @param openTelemetry open telemetry
+     * @param httpServerRequestParser http client request parser
+     * @param httpServerResponseParser http client response parser
+     * @param skipPattern skip pattern
+     * @param httpAttributesExtractor http attributes extractor
+     */
     public OtelHttpServerHandler(OpenTelemetry openTelemetry, @Nullable HttpRequestParser httpServerRequestParser,
             @Nullable HttpResponseParser httpServerResponseParser, Pattern skipPattern,
             HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> httpAttributesExtractor) {
