@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import brave.Tracing;
@@ -48,9 +47,6 @@ import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
-import zipkin2.Span;
-import zipkin2.reporter.AsyncReporter;
-import zipkin2.reporter.Sender;
 
 /**
  * Provides Zipkin setup with Brave.
@@ -94,10 +90,6 @@ public final class InMemoryBraveSetup implements AutoCloseable {
     public static class Builder {
 
         private String applicationName = "observability-test";
-
-        private Supplier<Sender> sender;
-
-        private Function<Sender, AsyncReporter<Span>> reporter;
 
         private Function<TestSpanHandler, Tracing> tracing;
 
@@ -178,56 +170,100 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             }
         }
 
+        /**
+         * Overrides the application name.
+         *
+         * @param applicationName name of the application
+         * @return this for chaining
+         */
         public Builder applicationName(String applicationName) {
             this.applicationName = applicationName;
             return this;
         }
 
-        public Builder sender(Supplier<Sender> sender) {
-            this.sender = sender;
-            return this;
-        }
-
-        public Builder reporter(Function<Sender, AsyncReporter<Span>> reporter) {
-            this.reporter = reporter;
-            return this;
-        }
-
+        /**
+         * Overrides Tracing.
+         *
+         * @param tracing tracing provider
+         * @return this for chaining
+         */
         public Builder tracing(Function<TestSpanHandler, Tracing> tracing) {
             this.tracing = tracing;
             return this;
         }
 
+        /**
+         * Overrides Tracer.
+         *
+         * @param tracer tracer provider
+         * @return this for chaining
+         */
         public Builder tracer(Function<Tracing, Tracer> tracer) {
             this.tracer = tracer;
             return this;
         }
 
+        /**
+         * Overrides Http Tracing.
+         *
+         * @param httpTracing http tracing provider
+         * @return this for chaining
+         */
         public Builder httpTracing(Function<Tracing, HttpTracing> httpTracing) {
             this.httpTracing = httpTracing;
             return this;
         }
 
+        /**
+         * Allows customization of Observation Handlers.
+         *
+         * @param customizers customization provider
+         * @return this for chaining
+         */
         public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
             this.customizers = customizers;
             return this;
         }
 
+        /**
+         * Overrides Http Server Handler.
+         *
+         * @param httpServerHandler http server handler provider
+         * @return this for chaining
+         */
         public Builder httpServerHandler(Function<HttpTracing, HttpServerHandler> httpServerHandler) {
             this.httpServerHandler = httpServerHandler;
             return this;
         }
 
+        /**
+         * Overrides Http Client Handler.
+         *
+         * @param httpClientHandler http client handler provider
+         * @return this for chaining
+         */
         public Builder httpClientHandler(Function<HttpTracing, HttpClientHandler> httpClientHandler) {
             this.httpClientHandler = httpClientHandler;
             return this;
         }
 
-        public Builder handlers(Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> tracingHandlers) {
-            this.handlers = tracingHandlers;
+        /**
+         * Overrides Observation Handlers
+         *
+         * @param handlers handlers provider
+         * @return this for chaining
+         */
+        public Builder handlers(Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers) {
+            this.handlers = handlers;
             return this;
         }
 
+        /**
+         * Overrides the closing function.
+         *
+         * @param closingFunction closing function provider
+         * @return this for chaining
+         */
         public Builder closingFunction(Consumer<BraveBuildingBlocks> closingFunction) {
             this.closingFunction = closingFunction;
             return this;

@@ -188,66 +188,137 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             }
         }
 
+        /**
+         * Overrides the application name.
+         *
+         * @param applicationName name of the application
+         * @return this for chaining
+         */
         public Builder applicationName(String applicationName) {
             this.applicationName = applicationName;
             return this;
         }
 
+        /**
+         * Overrides the Zipkin URL.
+         *
+         * @param zipkinUrl zipkin URL
+         * @return this for chaining
+         */
         public Builder zipkinUrl(String zipkinUrl) {
             this.zipkinUrl = zipkinUrl;
             return this;
         }
 
+        /**
+         * Overrides sender.
+         *
+         * @param sender sender provider
+         * @return this for chaining
+         */
         public Builder sender(Supplier<Sender> sender) {
             this.sender = sender;
             return this;
         }
 
+        /**
+         * Overrides reporter.
+         *
+         * @param reporter reporter provider
+         * @return this for chaining
+         */
         public Builder reporter(Function<Sender, AsyncReporter<Span>> reporter) {
             this.reporter = reporter;
             return this;
         }
 
+        /**
+         * Overrides Tracing.
+         *
+         * @param tracing tracing provider
+         * @return this for chaining
+         */
         public Builder tracing(Function<Reporter, Tracing> tracing) {
             this.tracing = tracing;
             return this;
         }
 
+        /**
+         * Overrides Tracer.
+         *
+         * @param tracer tracer provider
+         * @return this for chaining
+         */
         public Builder tracer(Function<Tracing, Tracer> tracer) {
             this.tracer = tracer;
             return this;
         }
 
+        /**
+         * Overrides Http Tracing.
+         *
+         * @param httpTracing http tracing provider
+         * @return this for chaining
+         */
         public Builder httpTracing(Function<Tracing, HttpTracing> httpTracing) {
             this.httpTracing = httpTracing;
             return this;
         }
 
+        /**
+         * Allows customization of Observation Handlers.
+         *
+         * @param customizers customization provider
+         * @return this for chaining
+         */
         public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
             this.customizers = customizers;
             return this;
         }
 
+        /**
+         * Overrides Http Server Handler.
+         *
+         * @param httpServerHandler http server handler provider
+         * @return this for chaining
+         */
         public Builder httpServerHandler(Function<HttpTracing, HttpServerHandler> httpServerHandler) {
             this.httpServerHandler = httpServerHandler;
             return this;
         }
 
+        /**
+         * Overrides Http Client Handler.
+         *
+         * @param httpClientHandler http client handler provider
+         * @return this for chaining
+         */
         public Builder httpClientHandler(Function<HttpTracing, HttpClientHandler> httpClientHandler) {
             this.httpClientHandler = httpClientHandler;
             return this;
         }
 
-        public Builder handlers(Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> tracingHandlers) {
-            this.handlers = tracingHandlers;
+        /**
+         * Overrides Observation Handlers
+         *
+         * @param handlers handlers provider
+         * @return this for chaining
+         */
+        public Builder handlers(Function<Builder.BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers) {
+            this.handlers = handlers;
             return this;
         }
 
-        public Builder closingFunction(Consumer<BraveBuildingBlocks> closingFunction) {
+        /**
+         * Overrides the closing function.
+         *
+         * @param closingFunction closing function provider
+         * @return this for chaining
+         */
+        public Builder closingFunction(Consumer<Builder.BraveBuildingBlocks> closingFunction) {
             this.closingFunction = closingFunction;
             return this;
         }
-
         /**
          * Registers setup.
          *

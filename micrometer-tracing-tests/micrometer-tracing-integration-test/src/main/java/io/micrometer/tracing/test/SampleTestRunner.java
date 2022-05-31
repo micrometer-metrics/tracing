@@ -45,6 +45,7 @@ import io.micrometer.tracing.test.reporter.zipkin.ZipkinBraveSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -124,6 +125,7 @@ public abstract class SampleTestRunner {
      * @return meter registry to be used in tests
      */
     protected MeterRegistry getMeterRegistry() {
+        Assertions.assertNotNull(this.meterRegistry, "MeterRegistry must be set either via constructor via overriding a method");
         return this.meterRegistry;
     }
 
@@ -134,6 +136,7 @@ public abstract class SampleTestRunner {
      * @return observation registry to be used in tests
      */
     protected ObservationRegistry getObservationRegistry() {
+        Assertions.assertNotNull(this.observationRegistry, "ObservationRegistry must be set either via constructor via overriding a method");
         return this.observationRegistry;
     }
 

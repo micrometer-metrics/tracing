@@ -184,51 +184,111 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             }
         }
 
+        /**
+         * Overrides the application name.
+         *
+         * @param applicationName name of the application
+         * @return this for chaining
+         */
         public Builder applicationName(String applicationName) {
             this.applicationName = applicationName;
             return this;
         }
 
+        /**
+         * Overrides the sdk tracer provider.
+         *
+         * @param sdkTracerProvider sdk tracer provider function
+         * @return this for chaining
+         */
         public Builder sdkTracerProvider(Function<ArrayListSpanProcessor, SdkTracerProvider> sdkTracerProvider) {
             this.sdkTracerProvider = sdkTracerProvider;
             return this;
         }
 
+        /**
+         * Overrides the opentelemetry sdk provider.
+         *
+         * @param openTelemetrySdk opentelemetry sdk provider
+         * @return this for chaining
+         */
         public Builder openTelemetrySdk(Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk) {
             this.openTelemetrySdk = openTelemetrySdk;
             return this;
         }
 
+        /**
+         * Overrides Tracer.
+         *
+         * @param tracer tracer provider
+         * @return this for chaining
+         */
         public Builder tracer(Function<OpenTelemetrySdk, Tracer> tracer) {
             this.tracer = tracer;
             return this;
         }
 
+        /**
+         * Overrides OTel Tracer.
+         *
+         * @param otelTracer OTel tracer provider
+         * @return this for chaining
+         */
         public Builder otelTracer(Function<Tracer, OtelTracer> otelTracer) {
             this.otelTracer = otelTracer;
             return this;
         }
 
+        /**
+         * Allows customization of Observation Handlers.
+         *
+         * @param customizers customization provider
+         * @return this for chaining
+         */
         public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
             this.customizers = customizers;
             return this;
         }
 
+        /**
+         * Overrides Http Server Handler.
+         *
+         * @param httpServerHandler http server handler provider
+         * @return this for chaining
+         */
         public Builder httpServerHandler(Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler) {
             this.httpServerHandler = httpServerHandler;
             return this;
         }
 
+        /**
+         * Overrides Http Client Handler.
+         *
+         * @param httpClientHandler http client handler provider
+         * @return this for chaining
+         */
         public Builder httpClientHandler(Function<OpenTelemetrySdk, HttpClientHandler> httpClientHandler) {
             this.httpClientHandler = httpClientHandler;
             return this;
         }
 
-        public Builder handlers(Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> tracingHandlers) {
-            this.handlers = tracingHandlers;
+        /**
+         * Overrides Observation Handlers
+         *
+         * @param handlers handlers provider
+         * @return this for chaining
+         */
+        public Builder handlers(Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers) {
+            this.handlers = handlers;
             return this;
         }
 
+        /**
+         * Overrides the closing function.
+         *
+         * @param closingFunction closing function provider
+         * @return this for chaining
+         */
         public Builder closingFunction(Consumer<OtelBuildingBlocks> closingFunction) {
             this.closingFunction = closingFunction;
             return this;

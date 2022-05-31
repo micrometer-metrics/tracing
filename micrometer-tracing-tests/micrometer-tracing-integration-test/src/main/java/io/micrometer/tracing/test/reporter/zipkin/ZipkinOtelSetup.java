@@ -203,67 +203,146 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             }
         }
 
+        /**
+         * Overrides the application name.
+         *
+         * @param applicationName name of the application
+         * @return this for chaining
+         */
         public Builder applicationName(String applicationName) {
             this.applicationName = applicationName;
             return this;
         }
 
+        /**
+         * Overrides the Zipkin URL.
+         *
+         * @param zipkinUrl zipkin URL
+         * @return this for chaining
+         */
         public Builder zipkinUrl(String zipkinUrl) {
             this.zipkinUrl = zipkinUrl;
             return this;
         }
 
-        public Builder zipkinSender(Supplier<Sender> sender) {
+        /**
+         * Overrides sender.
+         *
+         * @param sender sender provider
+         * @return this for chaining
+         */
+        public Builder sender(Supplier<Sender> sender) {
             this.sender = sender;
             return this;
         }
 
+        /**
+         * Overrides Zipkin span exporter.
+         *
+         * @param zipkinSpanExporter exporter provider
+         * @return this for chaining
+         */
         public Builder zipkinSpanExporter(Function<Sender, ZipkinSpanExporter> zipkinSpanExporter) {
             this.zipkinSpanExporter = zipkinSpanExporter;
             return this;
         }
 
+
+        /**
+         * Overrides the sdk tracer provider.
+         *
+         * @param sdkTracerProvider sdk tracer provider function
+         * @return this for chaining
+         */
         public Builder sdkTracerProvider(Function<ZipkinSpanExporter, SdkTracerProvider> sdkTracerProvider) {
             this.sdkTracerProvider = sdkTracerProvider;
             return this;
         }
 
+        /**
+         * Overrides the opentelemetry sdk provider.
+         *
+         * @param openTelemetrySdk opentelemetry sdk provider
+         * @return this for chaining
+         */
         public Builder openTelemetrySdk(Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk) {
             this.openTelemetrySdk = openTelemetrySdk;
             return this;
         }
 
-        public Builder tracer(Function<OpenTelemetrySdk, io.opentelemetry.api.trace.Tracer> tracer) {
+        /**
+         * Overrides Tracer.
+         *
+         * @param tracer tracer provider
+         * @return this for chaining
+         */
+        public Builder tracer(Function<OpenTelemetrySdk, Tracer> tracer) {
             this.tracer = tracer;
             return this;
         }
 
-        public Builder otelTracer(Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer) {
+        /**
+         * Overrides OTel Tracer.
+         *
+         * @param otelTracer OTel tracer provider
+         * @return this for chaining
+         */
+        public Builder otelTracer(Function<Tracer, OtelTracer> otelTracer) {
             this.otelTracer = otelTracer;
             return this;
         }
 
+        /**
+         * Allows customization of Observation Handlers.
+         *
+         * @param customizers customization provider
+         * @return this for chaining
+         */
         public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
             this.customizers = customizers;
             return this;
         }
 
+        /**
+         * Overrides Http Server Handler.
+         *
+         * @param httpServerHandler http server handler provider
+         * @return this for chaining
+         */
         public Builder httpServerHandler(Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler) {
             this.httpServerHandler = httpServerHandler;
             return this;
         }
 
+        /**
+         * Overrides Http Client Handler.
+         *
+         * @param httpClientHandler http client handler provider
+         * @return this for chaining
+         */
         public Builder httpClientHandler(Function<OpenTelemetrySdk, HttpClientHandler> httpClientHandler) {
             this.httpClientHandler = httpClientHandler;
             return this;
         }
 
-        public Builder handlers(Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> tracingHandlers) {
-            this.handlers = tracingHandlers;
+        /**
+         * Overrides Observation Handlers
+         *
+         * @param handlers handlers provider
+         * @return this for chaining
+         */
+        public Builder handlers(Function<Builder.OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers) {
+            this.handlers = handlers;
             return this;
         }
 
-        public Builder closingFunction(Consumer<OtelBuildingBlocks> closingFunction) {
+        /**
+         * Overrides the closing function.
+         *
+         * @param closingFunction closing function provider
+         * @return this for chaining
+         */
+        public Builder closingFunction(Consumer<Builder.OtelBuildingBlocks> closingFunction) {
             this.closingFunction = closingFunction;
             return this;
         }
