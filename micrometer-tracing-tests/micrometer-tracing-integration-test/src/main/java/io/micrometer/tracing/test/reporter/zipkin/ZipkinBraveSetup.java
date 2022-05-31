@@ -124,23 +124,23 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          * All Brave building blocks required to communicate with Zipkin.
          */
         public static class BraveBuildingBlocks implements BuildingBlocks {
-            public final Sender sender;
+            private final Sender sender;
 
-            public final AsyncReporter<Span> reporter;
+            private final AsyncReporter<Span> reporter;
 
-            public final Tracing tracing;
+            private final Tracing tracing;
 
-            public final Tracer tracer;
+            private final Tracer tracer;
 
-            public final BravePropagator propagator;
+            private final BravePropagator propagator;
 
-            public final HttpTracing httpTracing;
+            private final HttpTracing httpTracing;
 
-            public final HttpServerHandler httpServerHandler;
+            private final HttpServerHandler httpServerHandler;
 
-            public final HttpClientHandler httpClientHandler;
+            private final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+            private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
             private final TestSpanHandler testSpanHandler;
 
@@ -155,6 +155,15 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                 this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
                 this.testSpanHandler = testSpanHandler;
+            }
+
+            /**
+             * Returns the sender.
+             *
+             * @return sender
+             */
+            public Sender getSender() {
+                return sender;
             }
 
             @Override

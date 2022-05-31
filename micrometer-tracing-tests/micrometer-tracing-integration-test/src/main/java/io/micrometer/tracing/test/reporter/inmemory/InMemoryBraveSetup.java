@@ -112,22 +112,34 @@ public final class InMemoryBraveSetup implements AutoCloseable {
          */
         public static class BraveBuildingBlocks implements BuildingBlocks {
 
-            public final Tracing tracing;
+            private final Tracing tracing;
 
-            public final Tracer tracer;
+            private final Tracer tracer;
 
-            public final BravePropagator propagator;
+            private final BravePropagator propagator;
 
-            public final HttpTracing httpTracing;
+            private final HttpTracing httpTracing;
 
-            public final HttpServerHandler httpServerHandler;
+            private final HttpServerHandler httpServerHandler;
 
-            public final HttpClientHandler httpClientHandler;
+            private final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+            private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
             private final TestSpanHandler testSpanHandler;
 
+            /**
+             * Creates a new instance of {@link BraveBuildingBlocks}.
+             *
+             * @param tracing tracing
+             * @param tracer tracer
+             * @param propagator propagator
+             * @param httpTracing http tracing
+             * @param httpServerHandler http server handler
+             * @param httpClientHandler http client handler
+             * @param customizers observation customizers
+             * @param testSpanHandler test span handler
+             */
             public BraveBuildingBlocks(Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
                 this.tracing = tracing;
                 this.tracer = tracer;

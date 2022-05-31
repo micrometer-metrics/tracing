@@ -21,6 +21,9 @@ package io.micrometer.tracing.test.simple;
  * @author Jon Schneider
  */
 public interface Clock {
+    /**
+     * Default, system clock.
+     */
     Clock SYSTEM = new Clock() {
         @Override
         public long wallTime() {

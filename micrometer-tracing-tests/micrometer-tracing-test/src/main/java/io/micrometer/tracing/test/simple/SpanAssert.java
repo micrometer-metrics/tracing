@@ -35,8 +35,14 @@ import org.assertj.core.api.AbstractThrowableAssert;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SELF, FinishedSpan> {
 
+    /**
+     * Creates a new instance of {@link SpanAssert}.
+     *
+     * @param actual actual object to assert
+     */
     protected SpanAssert(FinishedSpan actual) {
         super(actual, SpanAssert.class);
     }
@@ -64,7 +70,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has no tags.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(finishedSpan).hasNoTags();
@@ -89,7 +94,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span has a tag with key.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -116,7 +120,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has a tag with key.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(finishedSpanWithTagFoo).hasTagWithKey("foo");
@@ -137,7 +140,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span has a tag with key and value.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -168,7 +170,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has a tag with key and value.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(finishedSpanWithTag).hasTag("tagKey", "tagValue");
@@ -190,7 +191,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span does not have a tag with key.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -217,7 +217,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span does not have a tag with key.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(finishedSpanWithNoTags).doesNotHaveTagWithKey("foo");
@@ -238,7 +237,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span does not have a tag with key and value.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -269,7 +267,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span does not have a tag with key and value.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(finishedSpanWithNoTags).doesNotHaveTag("tagKey", "tagValue");
@@ -291,7 +288,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span is started.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -317,7 +313,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span is not started.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(notStartedSpan).isNotStarted();
@@ -342,7 +337,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span is ended.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(endedSpan).isEnded();
@@ -366,7 +360,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span is not ended.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -410,7 +403,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has remote service name equal to the given value.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(remoteServiceNameContainingSpan).hasRemoteServiceNameEqualTo("foo");
@@ -435,7 +427,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span does not have remote service name equal to the given value.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -462,7 +453,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has span kind equal to the given value.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(clientSpan).hasKindEqualTo(Span.Kind.CLIENT);
@@ -488,7 +478,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span doesn't have span kind equal to the given value.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(serverSpan).doesNotHaveKindEqualTo(Span.Kind.CLIENT);
@@ -513,7 +502,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span has an event with a given name.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -545,7 +533,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span does not have an event with a given name.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(spanWithNoEvents).doesNotHaveEventWithNameEqualTo("foo");
@@ -572,7 +559,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has name equal to the given value
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(spanNamedFoo).hasNameEqualTo("foo");
@@ -597,7 +583,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span does not have name equal to the given value
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -624,7 +609,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has ip equal to the given value.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(spanWithIpLocalhost).hasIpEqualTo("127.0.0.1");
@@ -649,7 +633,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span does not have ip equal to the given value.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -676,7 +659,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has ip set.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(spanWithIpLocalhost).hasIpThatIsNotBlank();
@@ -701,7 +683,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span has ip set.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(spanWithNoIp).hasIpThatIsBlank();
@@ -725,7 +706,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span has port equal to the given value.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
@@ -752,7 +732,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span doesn't have port equal to the given value.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(spanWithPort80).doesNotHavePortEqualTo(7777);
@@ -778,7 +757,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     /**
      * Verifies that this span doesn't have a port set.
      * <p>
-     * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed
      * assertThat(spanWithNoPort).hasPortThatIsNotSet();
@@ -802,7 +780,6 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
 
     /**
      * Verifies that this span has a port set.
-     * <p>
      * <p>
      * Examples:
      * <pre><code class='java'> // assertions succeed

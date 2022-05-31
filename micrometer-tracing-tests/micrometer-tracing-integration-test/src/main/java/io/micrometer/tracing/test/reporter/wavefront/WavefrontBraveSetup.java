@@ -128,6 +128,12 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private Consumer<BraveBuildingBlocks> closingFunction;
 
+        /**
+         * Creates a new instance of {@link Builder}.
+         *
+         * @param server server URL
+         * @param token authentication token
+         */
         public Builder(String server, String token) {
             this.server = server;
             this.token = token;
@@ -138,14 +144,14 @@ public final class WavefrontBraveSetup implements AutoCloseable {
          */
         @SuppressWarnings("rawtypes")
         public static class BraveBuildingBlocks implements BuildingBlocks {
-            public final WavefrontSpanHandler wavefrontSpanHandler;
-            public final Tracing tracing;
-            public final Tracer tracer;
-            public final BravePropagator propagator;
-            public final HttpTracing httpTracing;
-            public final HttpServerHandler httpServerHandler;
-            public final HttpClientHandler httpClientHandler;
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+            private final WavefrontSpanHandler wavefrontSpanHandler;
+            private final Tracing tracing;
+            private final Tracer tracer;
+            private final BravePropagator propagator;
+            private final HttpTracing httpTracing;
+            private final HttpServerHandler httpServerHandler;
+            private final HttpClientHandler httpClientHandler;
+            private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
             private final TestSpanHandler testSpanHandler;
 
             public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
@@ -326,6 +332,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
         /**
          * Registers setup.
          *
+         * @param meterRegistry meter registry to set up Wavefront Sender
          * @param registry observation registry to which the {@link ObservationHandler} should be attached
          * @return setup with all Brave building blocks
          */

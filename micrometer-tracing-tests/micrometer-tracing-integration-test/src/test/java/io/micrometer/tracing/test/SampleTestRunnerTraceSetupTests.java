@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.test.reporter;
-
-import io.micrometer.tracing.test.SampleTestRunner;
+package io.micrometer.tracing.test;
 
 class SampleTestRunnerTraceSetupTests extends SampleTestRunner {
 

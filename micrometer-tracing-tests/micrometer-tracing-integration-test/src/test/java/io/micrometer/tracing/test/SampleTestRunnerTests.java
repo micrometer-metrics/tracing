@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.micrometer.tracing.test.reporter;
+package io.micrometer.tracing.test;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -34,7 +34,7 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
-import io.micrometer.tracing.test.SampleTestRunner;
+import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontAccessor;
 import org.assertj.core.api.BDDAssertions;
 import org.awaitility.Awaitility;

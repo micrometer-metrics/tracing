@@ -189,6 +189,7 @@ public abstract class SampleTestRunner {
      * Code that you want to measure and run.
      *
      * @return your code with access to the current tracing and measuring infrastructure
+     * @throws Exception any exception will be rethrown
      */
     public abstract SampleTestRunnerConsumer yourCode() throws Exception;
 
@@ -206,6 +207,12 @@ public abstract class SampleTestRunner {
         };
     }
 
+    /**
+     * Functional interface to run user code.
+     *
+     * @since 1.0.0
+     */
+    @FunctionalInterface
     public interface SampleTestRunnerConsumer {
         /**
          *
@@ -307,7 +314,7 @@ public abstract class SampleTestRunner {
                 ZipkinBraveSetup setup = ZipkinBraveSetup.builder()
                         .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers()).zipkinUrl(
                                 sampleRunnerConfig.zipkinUrl).register(observationRegistry);
-                checkZipkinAssumptions(setup.getBuildingBlocks().sender);
+                checkZipkinAssumptions(setup.getBuildingBlocks().getSender());
                 ZipkinBraveSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks(), observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
 
@@ -410,17 +417,17 @@ public abstract class SampleTestRunner {
      */
     public static class SampleRunnerConfig {
 
-        public String wavefrontToken;
+        private String wavefrontToken;
 
-        public String wavefrontServerUrl;
+        private String wavefrontServerUrl;
 
-        public String zipkinUrl;
+        String zipkinUrl;
 
-        public String wavefrontApplicationName;
+        private String wavefrontApplicationName;
 
-        public String wavefrontServiceName;
+        private String wavefrontServiceName;
 
-        public String wavefrontSource;
+        private String wavefrontSource;
 
         SampleRunnerConfig(String wavefrontToken, String wavefrontServerUrl, String wavefrontApplicationName, String wavefrontServiceName, String wavefrontSource, String zipkinUrl) {
             this.wavefrontToken = wavefrontToken;

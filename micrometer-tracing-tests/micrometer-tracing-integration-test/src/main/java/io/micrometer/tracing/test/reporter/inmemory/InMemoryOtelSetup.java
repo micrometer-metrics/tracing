@@ -123,28 +123,33 @@ public final class InMemoryOtelSetup implements AutoCloseable {
          */
         public static class OtelBuildingBlocks implements BuildingBlocks {
 
-            public final SdkTracerProvider sdkTracerProvider;
+            private final SdkTracerProvider sdkTracerProvider;
 
-            public final OpenTelemetrySdk openTelemetrySdk;
+            private final OtelTracer otelTracer;
 
-            public final Tracer tracer;
+            private final OtelPropagator propagator;
 
-            public final OtelTracer otelTracer;
+            private final HttpServerHandler httpServerHandler;
 
-            public final OtelPropagator propagator;
+            private final HttpClientHandler httpClientHandler;
 
-            public final HttpServerHandler httpServerHandler;
-
-            public final HttpClientHandler httpClientHandler;
-
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+            private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
             private final ArrayListSpanProcessor arrayListSpanProcessor;
 
-            public OtelBuildingBlocks(SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
+            /**
+             * Creates a new instance of {@link OtelBuildingBlocks}.
+             *
+             * @param sdkTracerProvider sdk tracer provider
+             * @param otelTracer otel tracer
+             * @param propagator propagator
+             * @param httpServerHandler http server handler
+             * @param httpClientHandler http client handler
+             * @param customizers observation customizers
+             * @param arrayListSpanProcessor array list span processor
+             */
+            public OtelBuildingBlocks(SdkTracerProvider sdkTracerProvider, OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
                 this.sdkTracerProvider = sdkTracerProvider;
-                this.openTelemetrySdk = openTelemetrySdk;
-                this.tracer = tracer;
                 this.otelTracer = otelTracer;
                 this.propagator = propagator;
                 this.httpServerHandler = httpServerHandler;
@@ -310,7 +315,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
             BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
             };
-            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sdkTracerProvider, openTelemetrySdk, tracer, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers, arrayListSpanProcessor);
+            OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(sdkTracerProvider, otelTracer, new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())), tracer), httpServerHandler, httpClientHandler, customizers, arrayListSpanProcessor);
             ObservationHandler<? extends Observation.Context> tracingHandlers = this.handlers != null ? this.handlers.apply(otelBuildingBlocks) : tracingHandlers(otelBuildingBlocks);
             registry.observationConfig().observationHandler(tracingHandlers);
             Consumer<OtelBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();

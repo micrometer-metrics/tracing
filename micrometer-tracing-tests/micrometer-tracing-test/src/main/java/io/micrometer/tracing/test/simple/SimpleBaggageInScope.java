@@ -81,10 +81,20 @@ public class SimpleBaggageInScope implements BaggageInScope {
         this.closed = true;
     }
 
+    /**
+     * Checks if baggage is in scope.
+     *
+     * @return {@code true} when baggage in scope
+     */
     public boolean isInScope() {
         return inScope;
     }
 
+    /**
+     * Checks if baggage scope was closed.
+     *
+     * @return {@code true} when baggage was closed
+     */
     public boolean isClosed() {
         return closed;
     }
