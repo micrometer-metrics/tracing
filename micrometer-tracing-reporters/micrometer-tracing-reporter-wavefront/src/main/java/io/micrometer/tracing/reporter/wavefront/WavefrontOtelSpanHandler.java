@@ -35,6 +35,8 @@ public class WavefrontOtelSpanHandler implements SpanExporter {
     private final WavefrontSpanHandler spanHandler;
 
     /**
+     * Creates a new instance of {@link WavefrontOtelSpanHandler}.
+     *
      * @param spanHandler wavefront span handler
      */
     public WavefrontOtelSpanHandler(WavefrontSpanHandler spanHandler) {

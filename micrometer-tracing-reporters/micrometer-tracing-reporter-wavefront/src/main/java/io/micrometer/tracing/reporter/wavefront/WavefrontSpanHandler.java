@@ -144,6 +144,8 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
     private final AtomicLong spansDropped = new AtomicLong();
 
     /**
+     * Creates a new instance of {@link WavefrontSpanHandler}.
+     *
      * @param maxQueueSize maximal span queue size
      * @param wavefrontSender wavefront server
      * @param source source of metrics and spans

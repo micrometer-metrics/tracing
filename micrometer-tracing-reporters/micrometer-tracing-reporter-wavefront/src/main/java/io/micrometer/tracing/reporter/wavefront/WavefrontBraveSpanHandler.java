@@ -35,6 +35,8 @@ public class WavefrontBraveSpanHandler extends SpanHandler implements Runnable, 
     private final WavefrontSpanHandler spanHandler;
 
     /**
+     * Creates a new instance of {@link WavefrontBraveSpanHandler}.
+     *
      * @param spanHandler wavefront span handler
      */
     public WavefrontBraveSpanHandler(WavefrontSpanHandler spanHandler) {
