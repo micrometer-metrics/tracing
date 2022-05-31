@@ -44,7 +44,7 @@ public class SimpleTracer implements Tracer {
     private final Deque<SpanAndScope> scopedSpans = new LinkedList<>();
 
     /**
-     * Creates a new instance.
+     * Creates a new instance of {@link SimpleTracer}.
      */
     public SimpleTracer() {
         this.currentTraceContext = new SimpleCurrentTraceContext(this);
@@ -56,7 +56,11 @@ public class SimpleTracer implements Tracer {
     }
 
     /**
+     * Returns a single reported span.
+     *
      * @return a single reported span
+     * @throws AssertionError when there are 0 or more than 1 spans
+     * @throws AssertionError when span hasn't been started and stopped
      */
     public SimpleSpan onlySpan() {
         assertTrue(this.spans.size() == 1, "There must be only one span");
@@ -73,7 +77,11 @@ public class SimpleTracer implements Tracer {
     }
 
     /**
+     * Returns the last reported span.
+     *
      * @return the last reported span
+     * @throws AssertionError when there are 0 spans
+     * @throws AssertionError when span hasn't been started
      */
     public SimpleSpan lastSpan() {
         assertTrue(!this.spans.isEmpty(), "There must be at least one span");
@@ -156,7 +164,7 @@ public class SimpleTracer implements Tracer {
     /**
      * Created spans.
      *
-     * @return spans
+     * @return all created spans
      */
     public Deque<SimpleSpan> getSpans() {
         return spans;

@@ -29,6 +29,11 @@ public class SimpleScopedSpan implements ScopedSpan {
 
     private final SimpleSpan span;
 
+    /**
+     * Creates a new instance of {@link SimpleScopedSpan}.
+     *
+     * @param simpleTracer simple tracer
+     */
     public SimpleScopedSpan(SimpleTracer simpleTracer) {
         this.span = simpleTracer.nextSpan().start();
     }

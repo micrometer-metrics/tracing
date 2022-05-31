@@ -56,6 +56,8 @@ public class SimpleSpanBuilder implements Span.Builder {
     private TimeUnit startTimestampUnit;
 
     /**
+     * Creates a new instance of {@link SimpleSpanBuilder}.
+     *
      * @param simpleTracer simple tracer
      */
     public SimpleSpanBuilder(SimpleTracer simpleTracer) {

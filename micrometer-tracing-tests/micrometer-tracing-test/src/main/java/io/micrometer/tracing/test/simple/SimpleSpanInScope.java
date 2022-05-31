@@ -38,6 +38,12 @@ public class SimpleSpanInScope implements Tracer.SpanInScope {
 
     private final SpanAndScope spanAndScope;
 
+    /**
+     * Creates a new instance of {@link SimpleSpanInScope}.
+     *
+     * @param span span
+     * @param scopedSpans scoped spans
+     */
     public SimpleSpanInScope(Span span, Deque<SpanAndScope> scopedSpans) {
         this.span = span;
         this.scopedSpans = scopedSpans;

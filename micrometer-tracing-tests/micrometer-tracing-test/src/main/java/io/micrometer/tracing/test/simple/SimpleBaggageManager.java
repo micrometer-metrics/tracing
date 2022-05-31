@@ -40,6 +40,11 @@ public class SimpleBaggageManager implements BaggageManager {
 
     private final SimpleTracer simpleTracer;
 
+    /**
+     * Creates a new instance of {@link SimpleBaggageManager}.
+     *
+     * @param simpleTracer simple tracer
+     */
     public SimpleBaggageManager(SimpleTracer simpleTracer) {
         this.simpleTracer = simpleTracer;
     }

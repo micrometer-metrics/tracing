@@ -28,6 +28,11 @@ public class SimpleSpanCustomizer implements SpanCustomizer {
 
     private final SimpleSpan span;
 
+    /**
+     * Creates a new instance of {@link SimpleSpanCustomizer}.
+     *
+     * @param span simple span
+     */
     public SimpleSpanCustomizer(SimpleSpan span) {
         this.span = span;
     }

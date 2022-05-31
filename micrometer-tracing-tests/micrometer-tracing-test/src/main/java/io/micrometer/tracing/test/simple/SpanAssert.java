@@ -61,6 +61,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return new SpanAssert(actual);
     }
 
+    /**
+     * Verifies that this span has no tags.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpan).hasNoTags();
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithTags).hasNoTags();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has tags.
+     *
+     * @since 1.0.0
+     */
     public SELF hasNoTags() {
         isNotNull();
         Map<String, String> tags = this.actual.getTags();
@@ -70,6 +87,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has a tag with key.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithTagFoo).hasTagWithKey("foo");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithNoTags).hasTagWithKey("foo");</code></pre>
+     *
+     * @param key tag key name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span doesn't have a tag with given key.
+     *
+     * @since 1.0.0
+     */
     public SELF hasTagWithKey(String key) {
         isNotNull();
         if (!this.actual.getTags().containsKey(key)) {
@@ -78,10 +113,47 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has a tag with key.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithTagFoo).hasTagWithKey("foo");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithNoTags).hasTagWithKey("foo");</code></pre>
+     *
+     * @param key tag key name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span doesn't have a tag with given key.
+     *
+     * @since 1.0.0
+     */
     public SELF hasTagWithKey(KeyName key) {
         return hasTagWithKey(key.getKeyName());
     }
 
+    /**
+     * Verifies that this span has a tag with key and value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithTag).hasTag("tagKey", "tagValue");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithNoTags).hasTag("tagKey", "tagValue");</code></pre>
+     *
+     * @param key tag key name
+     * @param value tag value
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span doesn't have a tag with given key and value.
+     *
+     * @since 1.0.0
+     */
     public SELF hasTag(String key, String value) {
         isNotNull();
         hasTagWithKey(key);
@@ -93,10 +165,47 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has a tag with key and value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithTag).hasTag("tagKey", "tagValue");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithNoTags).hasTag("tagKey", "tagValue");</code></pre>
+     *
+     * @param key tag key name
+     * @param value tag value
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span doesn't have a tag with given key and value.
+     *
+     * @since 1.0.0
+     */
     public SELF hasTag(KeyName key, String value) {
         return hasTag(key.getKeyName(), value);
     }
 
+    /**
+     * Verifies that this span does not have a tag with key.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithNoTags).doesNotHaveTagWithKey("foo");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithFooTag).doesNotHaveTagWithKey("foo");</code></pre>
+     *
+     * @param key tag key name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a tag with given key.
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveTagWithKey(String key) {
         isNotNull();
         if (this.actual.getTags().containsKey(key)) {
@@ -105,10 +214,47 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span does not have a tag with key.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithNoTags).doesNotHaveTagWithKey("foo");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithFooTag).doesNotHaveTagWithKey("foo");</code></pre>
+     *
+     * @param key tag key name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a tag with given key.
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveTagWithKey(KeyName key) {
         return doesNotHaveTagWithKey(key.getKeyName());
     }
 
+    /**
+     * Verifies that this span does not have a tag with key and value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithNoTags).doesNotHaveTag("tagKey", "tagValue");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithFooTag).doesNotHaveTag("foo", "tagValue");</code></pre>
+     *
+     * @param key tag key name
+     * @param value tag value
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a tag with given key and value.
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveTag(String key, String value) {
         isNotNull();
         doesNotHaveTagWithKey(key);
@@ -120,10 +266,46 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span does not have a tag with key and value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(finishedSpanWithNoTags).doesNotHaveTag("tagKey", "tagValue");
+     *
+     * // assertions fail
+     * assertThat(finishedSpanWithFooTag).doesNotHaveTag("foo", "tagValue");</code></pre>
+     *
+     * @param key tag key name
+     * @param value tag value
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a tag with given key and value.
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveTag(KeyName key, String value) {
         return doesNotHaveTag(key.getKeyName(), value);
     }
 
+    /**
+     * Verifies that this span is started.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(startedSpan).isStarted();
+     *
+     * // assertions fail
+     * assertThat(notStartedSpan).isStarted();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has not been started
+     *
+     * @since 1.0.0
+     */
     public SELF isStarted() {
         isNotNull();
         if (this.actual.getStartTimestamp() == 0) {
@@ -132,6 +314,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span is not started.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(notStartedSpan).isNotStarted();
+     *
+     * // assertions fail
+     * assertThat(startedSpan).isNotStarted();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has been started
+     *
+     * @since 1.0.0
+     */
     public SELF isNotStarted() {
         isNotNull();
         if (this.actual.getStartTimestamp() != 0) {
@@ -140,6 +339,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span is ended.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(endedSpan).isEnded();
+     *
+     * // assertions fail
+     * assertThat(notEndedSpan).isEnded();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has not been ended
+     *
+     * @since 1.0.0
+     */
     public SELF isEnded() {
         isNotNull();
         if (this.actual.getEndTimestamp() == 0) {
@@ -148,6 +364,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span is not ended.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(notEndedSpan).isNotEnded();
+     *
+     * // assertions fail
+     * assertThat(endedSpan).isNotEnded();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has been ended
+     *
+     * @since 1.0.0
+     */
     public SELF isNotEnded() {
         isNotNull();
         if (this.actual.getEndTimestamp() != 0) {
@@ -156,14 +389,42 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Syntactic sugar to assert a throwable on a {@link FinishedSpan#getError()}.
+     *
+     * @return {@link SpanAssertReturningAssert}
+     */
     public SpanAssertReturningAssert assertThatThrowable() {
         return new SpanAssertReturningAssert(actual.getError(), this);
     }
 
+    /**
+     * Syntactic sugar to assert a throwable on a {@link FinishedSpan#getError()}.
+     *
+     * @return {@link SpanAssertReturningAssert}
+     */
     public SpanAssertReturningAssert thenThrowable() {
         return assertThatThrowable();
     }
 
+    /**
+     * Verifies that this span has remote service name equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(remoteServiceNameContainingSpan).hasRemoteServiceNameEqualTo("foo");
+     *
+     * // assertions fail
+     * assertThat(remoteServiceNameMissingSpan).hasRemoteServiceNameEqualTo("foo");</code></pre>
+     *
+     * @param remoteServiceName remote service name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have remote service name equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF hasRemoteServiceNameEqualTo(String remoteServiceName) {
         isNotNull();
         if (!remoteServiceName.equals(this.actual.getRemoteServiceName())) {
@@ -172,6 +433,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span does not have remote service name equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(remoteServiceNameMissingSpan).doesNotHaveRemoteServiceNameEqualTo("foo");
+     *
+     * // assertions fail
+     * assertThat(remoteServiceNameContainingSpan).doesNotHaveRemoteServiceNameEqualTo("foo");</code></pre>
+     *
+     * @param remoteServiceName remote service name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does has remote service name equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveRemoteServiceNameEqualTo(String remoteServiceName) {
         isNotNull();
         if (remoteServiceName.equals(this.actual.getRemoteServiceName())) {
@@ -180,6 +459,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has span kind equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(clientSpan).hasKindEqualTo(Span.Kind.CLIENT);
+     *
+     * // assertions fail
+     * assertThat(serverSpan).hasKindEqualTo(Span.Kind.SERVER);</code></pre>
+     *
+     * @param kind span kind
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have span kind equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF hasKindEqualTo(Span.Kind kind) {
         isNotNull();
         if (!kind.equals(this.actual.getKind())) {
@@ -188,6 +485,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span doesn't have span kind equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(serverSpan).doesNotHaveKindEqualTo(Span.Kind.CLIENT);
+     *
+     * // assertions fail
+     * assertThat(clientSpan).doesNotHaveKindEqualTo(Span.Kind.SERVER);</code></pre>
+     *
+     * @param kind span kind
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has span kind equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveKindEqualTo(Span.Kind kind) {
         isNotNull();
         if (kind.equals(this.actual.getKind())) {
@@ -196,6 +511,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has an event with a given name.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithEventFoo).hasEventWithNameEqualTo("foo");
+     *
+     * // assertions fail
+     * assertThat(spanWithNoEvents).hasEventWithNameEqualTo("foo");</code></pre>
+     *
+     * @param eventName name of the event
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have span kind equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF hasEventWithNameEqualTo(String eventName) {
         isNotNull();
         List<String> eventNames = eventNames();
@@ -209,6 +542,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return this.actual.getEvents().stream().map(Map.Entry::getValue).collect(Collectors.toList());
     }
 
+    /**
+     * Verifies that this span does not have an event with a given name.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithNoEvents).doesNotHaveEventWithNameEqualTo("foo");
+     *
+     * // assertions fail
+     * assertThat(spanWithEventFoo).doesNotHaveEventWithNameEqualTo("foo");</code></pre>
+     *
+     * @param eventName name of the event
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has span kind equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveEventWithNameEqualTo(String eventName) {
         isNotNull();
         List<String> eventNames = eventNames();
@@ -218,6 +569,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has name equal to the given value
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanNamedFoo).hasNameEqualTo("foo");
+     *
+     * // assertions fail
+     * assertThat(spanNamedBar).hasNameEqualTo("foo");</code></pre>
+     *
+     * @param spanName span name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have name equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF hasNameEqualTo(String spanName) {
         isNotNull();
         if (!this.actual.getName().equals(spanName)) {
@@ -226,6 +595,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span does not have name equal to the given value
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanNamedFoo).doesNotHaveNameEqualTo("bar");
+     *
+     * // assertions fail
+     * assertThat(spanNamedBar).doesNotHaveNameEqualTo("bar");</code></pre>
+     *
+     * @param spanName span name
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have name equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveNameEqualTo(String spanName) {
         isNotNull();
         if (this.actual.getName().equals(spanName)) {
@@ -234,6 +621,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has ip equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithIpLocalhost).hasIpEqualTo("127.0.0.1");
+     *
+     * // assertions fail
+     * assertThat(spanWithNoIp).hasIpEqualTo("127.0.0.1");</code></pre>
+     *
+     * @param ip ip
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have ip equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF hasIpEqualTo(String ip) {
         isNotNull();
         if (!this.actual.getRemoteIp().equals(ip)) {
@@ -242,6 +647,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span does not have ip equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithNoIp).doesNotHaveIpEqualTo("127.0.0.1");
+     *
+     * // assertions fail
+     * assertThat(spanWithIpLocalhost).doesNotHaveIpEqualTo("127.0.0.1");</code></pre>
+     *
+     * @param ip ip
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has ip equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHaveIpEqualTo(String ip) {
         isNotNull();
         if (this.actual.getRemoteIp().equals(ip)) {
@@ -250,6 +673,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has ip set.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithIpLocalhost).hasIpThatIsNotBlank();
+     *
+     * // assertions fail
+     * assertThat(spanWithNoIp).hasIpThatIsNotBlank();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have ip set
+     *
+     * @since 1.0.0
+     */
     public SELF hasIpThatIsNotBlank() {
         isNotNull();
         if (StringUtils.isBlank(this.actual.getRemoteIp())) {
@@ -258,6 +698,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has ip set.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithNoIp).hasIpThatIsBlank();
+     *
+     * // assertions fail
+     * assertThat(spanWithIpLocalhost).hasIpThatIsBlank();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span does not have ip set
+     *
+     * @since 1.0.0
+     */
     public SELF hasIpThatIsBlank() {
         isNotNull();
         if (StringUtils.isNotBlank(this.actual.getRemoteIp())) {
@@ -266,6 +723,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has port equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithPort80).hasPortEqualTo(80);
+     *
+     * // assertions fail
+     * assertThat(spanWithPort80).hasPortEqualTo(7777);</code></pre>
+     *
+     * @param port port
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has port equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF hasPortEqualTo(int port) {
         isNotNull();
         if (this.actual.getRemotePort() != port) {
@@ -274,6 +749,24 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span doesn't have port equal to the given value.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithPort80).doesNotHavePortEqualTo(7777);
+     *
+     * // assertions fail
+     * assertThat(spanWithPort80).doesNotHavePortEqualTo(80);</code></pre>
+     *
+     * @param port port
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has port equal to the given value
+     *
+     * @since 1.0.0
+     */
     public SELF doesNotHavePortEqualTo(int port) {
         isNotNull();
         if (this.actual.getRemotePort() == port) {
@@ -282,6 +775,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span doesn't have a port set.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithNoPort).hasPortThatIsNotSet();
+     *
+     * // assertions fail
+     * assertThat(spanWithPort80).hasPortThatIsNotSet();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has port that was set
+     *
+     * @since 1.0.0
+     */
     public SELF hasPortThatIsNotSet() {
         isNotNull();
         if (this.actual.getRemotePort() != 0) {
@@ -290,6 +800,23 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Verifies that this span has a port set.
+     * <p>
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithPort80).hasPortThatIsSet();
+     *
+     * // assertions fail
+     * assertThat(spanWithNoPort).hasPortThatIsSet();</code></pre>
+     *
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has port that wasn't set
+     *
+     * @since 1.0.0
+     */
     public SELF hasPortThatIsSet() {
         isNotNull();
         if (this.actual.getRemotePort() == 0) {
@@ -298,15 +825,33 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         return (SELF) this;
     }
 
+    /**
+     * Syntactic sugar that extends {@link AbstractThrowableAssert} methods with an option to
+     * go back to {@link SpanAssert}.
+     *
+     * @since 1.0.0
+     */
     public static class SpanAssertReturningAssert extends AbstractThrowableAssert<SpanAssertReturningAssert, Throwable> {
 
         private final SpanAssert spanAssert;
 
+        /**
+         * Creates a new instance of {@link SpanAssertReturningAssert}.
+         *
+         * @param throwable throwable to assert
+         * @param spanAssert span assert to go back to
+         */
         public SpanAssertReturningAssert(Throwable throwable, SpanAssert spanAssert) {
             super(throwable, SpanAssertReturningAssert.class);
             this.spanAssert = spanAssert;
         }
 
+        /**
+         * Goes back to the previous {@link SpanAssert}.
+         * Allows better fluent assertions.
+         *
+         * @return previous {@link SpanAssert}
+         */
         public SpanAssert backToSpan() {
             return this.spanAssert;
         }

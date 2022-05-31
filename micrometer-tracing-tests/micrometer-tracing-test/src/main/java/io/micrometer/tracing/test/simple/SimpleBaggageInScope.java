@@ -33,6 +33,11 @@ public class SimpleBaggageInScope implements BaggageInScope {
 
     private boolean closed;
 
+    /**
+     * Creates a new instance of {@link SimpleBaggageInScope}.
+     *
+     * @param baggage baggage
+     */
     public SimpleBaggageInScope(SimpleBaggageManager.Baggage baggage) {
         this.baggage = baggage;
     }

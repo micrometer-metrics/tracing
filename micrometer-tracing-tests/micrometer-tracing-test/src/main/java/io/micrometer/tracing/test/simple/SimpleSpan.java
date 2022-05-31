@@ -64,6 +64,9 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     private TraceContext context = new SimpleTraceContext();
 
+    /**
+     * Creates a new instance of {@link SimpleSpan}.
+     */
     public SimpleSpan() {
         SimpleSpanAndScope.traceContextsToSpans.put(context(), this);
     }

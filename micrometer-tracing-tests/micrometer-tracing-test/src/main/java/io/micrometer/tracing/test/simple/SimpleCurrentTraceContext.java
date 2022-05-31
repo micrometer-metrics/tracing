@@ -35,6 +35,11 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
     private final SimpleTracer simpleTracer;
 
+    /**
+     * Creates a new instance of {@link SimpleCurrentTraceContext}.
+     *
+     * @param simpleTracer simple tracer
+     */
     public SimpleCurrentTraceContext(SimpleTracer simpleTracer) {
         this.simpleTracer = simpleTracer;
     }
