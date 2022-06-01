@@ -154,6 +154,19 @@ public final class WavefrontBraveSetup implements AutoCloseable {
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
             private final TestSpanHandler testSpanHandler;
 
+            /**
+             * Creates a new instance of {@link BraveBuildingBlocks}.
+             *
+             * @param wavefrontSpanHandler Wavefront span handler
+             * @param tracing tracing
+             * @param tracer tracer
+             * @param propagator propagator
+             * @param httpTracing http tracing
+             * @param httpServerHandler http server handler
+             * @param httpClientHandler http client handler
+             * @param customizers observation customizers
+             * @param testSpanHandler test span handler
+             */
             public BraveBuildingBlocks(WavefrontSpanHandler wavefrontSpanHandler, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
                 this.wavefrontSpanHandler = wavefrontSpanHandler;
                 this.tracing = tracing;

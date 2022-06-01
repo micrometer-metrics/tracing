@@ -136,28 +136,43 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          */
         public static class OtelBuildingBlocks implements BuildingBlocks {
 
-            public final Sender sender;
+            private final Sender sender;
 
-            public final ZipkinSpanExporter zipkinSpanExporter;
+            private final ZipkinSpanExporter zipkinSpanExporter;
 
-            public final SdkTracerProvider sdkTracerProvider;
+            private final SdkTracerProvider sdkTracerProvider;
 
-            public final OpenTelemetrySdk openTelemetrySdk;
+            private final OpenTelemetrySdk openTelemetrySdk;
 
-            public final io.opentelemetry.api.trace.Tracer tracer;
+            private final io.opentelemetry.api.trace.Tracer tracer;
 
-            public final OtelTracer otelTracer;
+            private final OtelTracer otelTracer;
 
-            public final OtelPropagator propagator;
+            private final OtelPropagator propagator;
 
-            public final HttpServerHandler httpServerHandler;
+            private final HttpServerHandler httpServerHandler;
 
-            public final HttpClientHandler httpClientHandler;
+            private final HttpClientHandler httpClientHandler;
 
-            public final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+            private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
             private final ArrayListSpanProcessor arrayListSpanProcessor;
 
+            /**
+             * Creates a new instance of {@link OtelBuildingBlocks}.
+             *
+             * @param sender sender
+             * @param zipkinSpanExporter zipkin span exporter
+             * @param sdkTracerProvider sdk tracer provider
+             * @param openTelemetrySdk opentelemetry sdk
+             * @param tracer tracer
+             * @param otelTracer otel tracer
+             * @param propagator propagator
+             * @param httpServerHandler http server handler
+             * @param httpClientHandler http client handler
+             * @param customizers observation customizers
+             * @param arrayListSpanProcessor array list span processor
+             */
             public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter, SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer, OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
                 this.sender = sender;
                 this.zipkinSpanExporter = zipkinSpanExporter;
@@ -170,6 +185,15 @@ public final class ZipkinOtelSetup implements AutoCloseable {
                 this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
                 this.arrayListSpanProcessor = arrayListSpanProcessor;
+            }
+
+            /**
+             * Returns a sender.
+             *
+             * @return a {@link Sender}
+             */
+            public Sender getSender() {
+                return sender;
             }
 
             @Override

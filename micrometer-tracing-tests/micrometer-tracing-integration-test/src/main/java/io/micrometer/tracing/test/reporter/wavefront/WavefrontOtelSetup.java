@@ -138,6 +138,12 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
         private Consumer<OtelBuildingBlocks> closingFunction;
 
+        /**
+         * Creates a new instance of {@link Builder}.
+         *
+         * @param server server URL
+         * @param token token
+         */
         public Builder(String server, String token) {
             this.server = server;
             this.token = token;
@@ -162,6 +168,17 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             private final ArrayListSpanProcessor arrayListSpanProcessor;
 
+            /**
+             * Creates a new instance of {@link OtelBuildingBlocks}.
+             *
+             * @param wavefrontOTelSpanHandler span handler
+             * @param otelTracer otel tracer
+             * @param otelPropagator otel propagator
+             * @param httpServerHandler otel http server handler
+             * @param httpClientHandler otel http client handler
+             * @param customizers observation customizers
+             * @param arrayListSpanProcessor array list span processor
+             */
             public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, OtelTracer otelTracer, OtelPropagator otelPropagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
                 this.wavefrontOTelSpanHandler = wavefrontOTelSpanHandler;
                 this.otelTracer = otelTracer;

@@ -144,6 +144,20 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             private final TestSpanHandler testSpanHandler;
 
+            /**
+             * Creates a new instance of {@link BraveBuildingBlocks}.
+             *
+             * @param sender sender
+             * @param reporter reporter
+             * @param tracing tracing
+             * @param tracer tracer
+             * @param propagator propagator
+             * @param httpTracing http tracing
+             * @param httpServerHandler http server handler
+             * @param httpClientHandler http client handler
+             * @param customizers observation handler customizers
+             * @param testSpanHandler test span handler
+             */
             public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
                 this.sender = sender;
                 this.reporter = reporter;

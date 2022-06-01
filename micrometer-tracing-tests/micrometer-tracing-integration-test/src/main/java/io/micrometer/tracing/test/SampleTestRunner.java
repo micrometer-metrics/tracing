@@ -293,7 +293,7 @@ public abstract class SampleTestRunner {
                 ZipkinOtelSetup setup = ZipkinOtelSetup.builder()
                         .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers()).zipkinUrl(
                                 sampleRunnerConfig.zipkinUrl).register(observationRegistry);
-                checkZipkinAssumptions(setup.getBuildingBlocks().sender);
+                checkZipkinAssumptions(setup.getBuildingBlocks().getSender());
                 ZipkinOtelSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks(), observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
             }
 
