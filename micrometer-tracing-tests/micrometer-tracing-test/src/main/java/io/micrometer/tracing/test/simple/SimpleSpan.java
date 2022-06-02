@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 
 /**
@@ -62,7 +61,7 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     private Clock clock = Clock.SYSTEM;
 
-    private TraceContext context = new SimpleTraceContext();
+    private SimpleTraceContext context = new SimpleTraceContext();
 
     /**
      * Creates a new instance of {@link SimpleSpan}.
@@ -77,7 +76,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public TraceContext context() {
+    public SimpleTraceContext context() {
         return this.context;
     }
 
