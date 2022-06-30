@@ -31,25 +31,21 @@ public abstract class PropagatingSenderTracingObservationHandler<T> implements T
 
     private final Propagator propagator;
 
-    private final Propagator.Setter<T> setter;
-
     /**
      * Creates a new instance of {@link PropagatingSenderTracingObservationHandler}.
      *
      * @param tracer     the tracer to use to record events
      * @param propagator the mechanism to propagate tracing information into the carrier
-     * @param setter     logic used to inject tracing information to the carrier
      */
-    public PropagatingSenderTracingObservationHandler(Tracer tracer, Propagator propagator, Propagator.Setter<T> setter) {
+    public PropagatingSenderTracingObservationHandler(Tracer tracer, Propagator propagator) {
         this.tracer = tracer;
         this.propagator = propagator;
-        this.setter = setter;
     }
 
     @Override
     public void onStart(SenderContext<T> context) {
         Span childSpan = createSenderSpan(context);
-        this.propagator.inject(childSpan.context(), context.getCarrier(), this.setter);
+        this.propagator.inject(childSpan.context(), context.getCarrier(), context.getSetter());
         getTracingContext(context).setSpan(childSpan);
     }
 
@@ -63,11 +59,17 @@ public abstract class PropagatingSenderTracingObservationHandler<T> implements T
     @Override
     public void onStop(SenderContext<T> context) {
         Span span = getRequiredSpan(context);
-        customizeSenderSpan(span);
+        tagSpan(context, span);
+        customizeSenderSpan(context, span);
         span.end();
     }
 
-    public void customizeSenderSpan(Span span) {
+    /**
+     * Allows to customize the receiver span before reporting it.
+     * @param context context
+     * @param span span to customize
+     */
+    public void customizeSenderSpan(SenderContext<T> context, Span span) {
 
     }
 

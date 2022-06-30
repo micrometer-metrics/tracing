@@ -17,6 +17,7 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.tracing.propagation.Propagator;
 
 /**
  * Context used when sending a message / request over the wire.
@@ -25,7 +26,13 @@ import io.micrometer.observation.Observation;
  * @since 1.0.0
  */
 public class SenderContext<T> extends Observation.Context {
+    private final Propagator.Setter<T> setter;
+
     private T carrier;
+
+    public SenderContext(Propagator.Setter<T> setter) {
+        this.setter = setter;
+    }
 
     public T getCarrier() {
         return carrier;
@@ -34,4 +41,9 @@ public class SenderContext<T> extends Observation.Context {
     public void setCarrier(T carrier) {
         this.carrier = carrier;
     }
+
+    public Propagator.Setter<T> getSetter() {
+        return setter;
+    }
+
 }

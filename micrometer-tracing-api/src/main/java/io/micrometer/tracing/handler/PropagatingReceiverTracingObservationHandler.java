@@ -32,27 +32,28 @@ public abstract class PropagatingReceiverTracingObservationHandler<T> implements
 
     private final Propagator propagator;
 
-    private final Propagator.Getter<T> getter;
-
     /**
      * Creates a new instance of {@link PropagatingReceiverTracingObservationHandler}.
      *
      * @param tracer     the tracer to use to record events
      * @param propagator the mechanism to propagate tracing information from the carrier
-     * @param getter     logic used to retrieve tracing information from the carrier
      */
-    public PropagatingReceiverTracingObservationHandler(Tracer tracer, Propagator propagator, Propagator.Getter<T> getter) {
+    public PropagatingReceiverTracingObservationHandler(Tracer tracer, Propagator propagator) {
         this.tracer = tracer;
         this.propagator = propagator;
-        this.getter = getter;
     }
 
     @Override
     public void onStart(ReceiverContext<T> context) {
-        Span.Builder extractedSpan = this.propagator.extract(context.getCarrier(), this.getter);
+        Span.Builder extractedSpan = this.propagator.extract(context.getCarrier(), context.getGetter());
         getTracingContext(context).setSpan(customizeExtractedSpan(extractedSpan).start());
     }
 
+    /**
+     * Customizes the extracted span (e.g. you can set the {@link Span.Kind} via {@link Span.Builder#kind(Span.Kind)}).
+     * @param builder span builder
+     * @return span builder
+     */
     public abstract Span.Builder customizeExtractedSpan(Span.Builder builder);
 
     @Override
@@ -63,11 +64,17 @@ public abstract class PropagatingReceiverTracingObservationHandler<T> implements
     @Override
     public void onStop(ReceiverContext<T> context) {
         Span span = getRequiredSpan(context);
-        customizeReceiverSpan(span);
+        tagSpan(context, span);
+        customizeReceiverSpan(context, span);
         span.end();
     }
 
-    public void customizeReceiverSpan(Span span) {
+    /**
+     * Allows to customize the receiver span before reporting it.
+     * @param context context
+     * @param span span to customize
+     */
+    public void customizeReceiverSpan(ReceiverContext<T> context, Span span) {
 
     }
 
