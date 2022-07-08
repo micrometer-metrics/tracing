@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-	api project(':micrometer-tracing-api')
+	api project(':micrometer-tracing')
 	api 'io.micrometer:micrometer-observation'
 
 	// Brave
