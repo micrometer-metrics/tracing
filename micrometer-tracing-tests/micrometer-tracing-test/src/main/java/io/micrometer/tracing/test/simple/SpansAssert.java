@@ -116,6 +116,58 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
         return this;
     }
 
+    /**
+     * Verifies that there is a span with a given name and also given assertion is met.
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(Collections.singletonList(finishedSpanWithNameFoo)).hasASpanWithName("foo", spanAssert -> spanAssert.isStarted());
+     *
+     * // assertions fail
+     * assertThat(Collections.singletonList(notFinishedSpanWithNameFoo)).hasASpanWithName("foo", spanAssert -> spanAssert.isStarted());</code></pre>
+     *
+     * @param name searched span name
+     * @param spanConsumer assertion to be executed for each span
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there is no span with the given name
+     * @throws AssertionError if the span assertion is not met
+     *
+     * @since 1.0.0
+     */
+    public SpansAssert hasASpanWithName(String name, Consumer<SpanAssert> spanConsumer) {
+        isNotEmpty();
+        FinishedSpan finishedSpan = extractSpanWithName(name);
+        spanConsumer.accept(SpanAssert.assertThat(finishedSpan));
+        return this;
+    }
+
+    /**
+     * Verifies that there is a span with a given name (ignoring case) and also given assertion is met.
+     * <p>
+     * Examples:
+     * <pre><code class='java'> // assertions succeed
+     * assertThat(Collections.singletonList(finishedSpanWithNameFoo)).hasASpanWithNameIgnoreCase("FoO", spanAssert -> spanAssert.isStarted());
+     *
+     * // assertions fail
+     * assertThat(Collections.singletonList(notFinishedSpanWithNameFoo)).hasASpanWithNameIgnoreCase("FoO", spanAssert -> spanAssert.isStarted());</code></pre>
+     *
+     * @param name searched span name
+     * @param spanConsumer assertion to be executed for each span
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there is no span with the given name
+     * @throws AssertionError if the span assertion is not met
+     *
+     * @since 1.0.0
+     */
+    public SpansAssert hasASpanWithNameIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
+        isNotEmpty();
+        FinishedSpan finishedSpan = extractSpanWithNameIgnoreCase(name);
+        spanConsumer.accept(SpanAssert.assertThat(finishedSpan));
+        return this;
+    }
+
     private FinishedSpan extractSpanWithName(String name) {
         return this.actual.stream().filter(f -> name.equals(f.getName())).findFirst().orElseThrow(() -> {
             failWithMessage("There should be at least one span with name <%s> but found none. Found following spans \n%s", name, spansAsString());
