@@ -44,43 +44,49 @@ class SpansAssertTests {
     @Test
     void should_not_throw_exception_when_name_and_assertion_correct() {
         SimpleSpan span = new SimpleSpan().name("foo");
+        SimpleSpan span2 = new SimpleSpan().name("baz");
 
-        thenNoException().isThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithName("foo", spanAssert -> spanAssert.hasNameEqualTo("foo")));
+        thenNoException().isThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithName("baz", AbstractAssert::isNotNull));
     }
 
     @Test
     void should_throw_exception_when_name_incorrect_but_assertion_correct() {
         SimpleSpan span = new SimpleSpan().name("foo");
+        SimpleSpan span2 = new SimpleSpan().name("baz");
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithName("bar", AbstractAssert::isNotNull)).isInstanceOf(AssertionError.class);
+        thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithName("bar", AbstractAssert::isNotNull)).isInstanceOf(AssertionError.class);
     }
 
     @Test
     void should_throw_exception_when_name_correct_but_assertion_incorrect() {
         SimpleSpan span = new SimpleSpan().name("foo");
+        SimpleSpan span2 = new SimpleSpan().name("baz");
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithName("foo", spanAssert -> spanAssert.hasNameEqualTo("bar"))).isInstanceOf(AssertionError.class);
+        thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithName("baz", spanAssert -> spanAssert.hasNameEqualTo("bar"))).isInstanceOf(AssertionError.class);
     }
 
     @Test
     void should_not_throw_exception_when_name_ignore_case_and_assertion_correct() {
         SimpleSpan span = new SimpleSpan().name("foo");
+        SimpleSpan span2 = new SimpleSpan().name("baz");
 
-        thenNoException().isThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithNameIgnoreCase("FoO", spanAssert -> spanAssert.hasNameEqualTo("foo")));
+        thenNoException().isThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithNameIgnoreCase("BaZ", AbstractAssert::isNotNull));
     }
 
     @Test
     void should_throw_exception_when_name_ignore_case_incorrect_but_assertion_correct() {
         SimpleSpan span = new SimpleSpan().name("foo");
+        SimpleSpan span2 = new SimpleSpan().name("baz");
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithNameIgnoreCase("bar", AbstractAssert::isNotNull)).isInstanceOf(AssertionError.class);
+        thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithNameIgnoreCase("bar", AbstractAssert::isNotNull)).isInstanceOf(AssertionError.class);
     }
 
     @Test
     void should_throw_exception_when_name_ignore_case_correct_but_assertion_incorrect() {
         SimpleSpan span = new SimpleSpan().name("foo");
+        SimpleSpan span2 = new SimpleSpan().name("baz");
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithNameIgnoreCase("FoO", spanAssert -> spanAssert.hasNameEqualTo("bar"))).isInstanceOf(AssertionError.class);
+        thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithNameIgnoreCase("BaZ", spanAssert -> spanAssert.hasNameEqualTo("bar"))).isInstanceOf(AssertionError.class);
     }
 
     @Test

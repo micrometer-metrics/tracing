@@ -137,11 +137,24 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      */
     public SpansAssert hasASpanWithName(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
-        FinishedSpan finishedSpan = extractSpanWithName(name);
-        spanConsumer.accept(SpanAssert.assertThat(finishedSpan));
+        atLeastOneSpanPassesTheAssertion(name, spanConsumer);
         return this;
     }
 
+    private void atLeastOneSpanPassesTheAssertion(String name, Consumer<SpanAssert> spanConsumer) {
+        FinishedSpan finishedSpan = this.actual.stream().filter(f -> name.equals(f.getName())).filter(f -> {
+            try {
+                spanConsumer.accept(SpanAssert.assertThat(f));
+                return true;
+            }
+            catch (AssertionError e) {
+                return false;
+            }
+        }).findFirst().orElse(null);
+        if (finishedSpan == null) {
+            failWithMessage("Not a single span with name <%s> was found or has passed the assertion. Found following spans %s", name, spansAsString());
+        }
+    }
     /**
      * Verifies that there is a span with a given name (ignoring case) and also given assertion is met.
      * <p>
@@ -163,9 +176,23 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      */
     public SpansAssert hasASpanWithNameIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
-        FinishedSpan finishedSpan = extractSpanWithNameIgnoreCase(name);
-        spanConsumer.accept(SpanAssert.assertThat(finishedSpan));
+        atLeastOneSpanPassesTheAssertionIgnoreCase(name, spanConsumer);
         return this;
+    }
+
+    private void atLeastOneSpanPassesTheAssertionIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
+        FinishedSpan finishedSpan = this.actual.stream().filter(f -> name.equalsIgnoreCase(f.getName())).filter(f -> {
+            try {
+                spanConsumer.accept(SpanAssert.assertThat(f));
+                return true;
+            }
+            catch (AssertionError e) {
+                return false;
+            }
+        }).findFirst().orElse(null);
+        if (finishedSpan == null) {
+            failWithMessage("Not a single span with name <%s> was found (ignoring case) or has passed the assertion. Found following spans %s", name, spansAsString());
+        }
     }
 
     private FinishedSpan extractSpanWithName(String name) {
