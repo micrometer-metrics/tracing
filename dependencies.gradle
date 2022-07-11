@@ -17,9 +17,6 @@ def VERSIONS = [
 		// test
 		'org.assertj:assertj-core:latest.release',
 		'org.awaitility:awaitility:latest.release',
-		'org.junit.jupiter:junit-jupiter:5.8.+',
-		'org.junit.platform:junit-platform-launcher:1.8.+',
-		'org.junit.vintage:junit-vintage-engine:5.8.+',
 		'org.mockito:mockito-core:latest.release',
 		'org.mockito:mockito-inline:latest.release',
 		'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
@@ -33,7 +30,7 @@ def PLATFORM_VERSIONS = [
 		// opentelemetry-instrumentation-api dependency above with this
 		'io.opentelemetry:opentelemetry-bom:1.+',
 		'io.opentelemetry:opentelemetry-bom-alpha:1.+',
-		'org.junit:junit-bom:5.8.+'
+		'org.junit:junit-bom:5.8.2'
 ]
 
 subprojects {
