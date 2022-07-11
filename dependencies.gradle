@@ -28,7 +28,7 @@ def VERSIONS = [
 ]
 
 def PLATFORM_VERSIONS = [
-		'io.micrometer:micrometer-bom:1.10.0-SNAPSHOT',
+		'io.micrometer:micrometer-bom:1.10.0-M3',
 		'io.zipkin.brave:brave-bom:5.13.+',
 		// opentelemetry-instrumentation-api dependency above with this
 		'io.opentelemetry:opentelemetry-bom:1.+',
