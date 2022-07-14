@@ -42,8 +42,6 @@ import io.micrometer.tracing.brave.bridge.BravePropagator;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
-import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
-import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;

@@ -36,8 +36,6 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
-import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
-import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
