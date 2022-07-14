@@ -41,7 +41,7 @@ public class DefaultTracingObservationHandler implements TracingObservationHandl
 
     @Override
     public void onStart(Observation.Context context) {
-        Span parentSpan = getTracingContext(context).getSpan();
+        Span parentSpan = getParentSpan(context);
         Span childSpan = parentSpan != null ? getTracer().nextSpan(parentSpan)
                 : getTracer().nextSpan();
         childSpan.start();

@@ -17,15 +17,22 @@
 package io.micrometer.tracing.otel.handler;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelFinishedSpan;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.micrometer.tracing.test.simple.SpanAssert;
+import io.micrometer.tracing.test.simple.SpansAssert;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -86,6 +93,32 @@ class DefaultTracingObservationHandlerOtelTests {
 
         then(tracer.currentSpan()).as("Span still not in scope").isNull();
         thenSpanStartedAndStopped(currentNanos);
+    }
+    @Test
+    void should_create_parent_child_relationship_via_observations() {
+        TestObservationRegistry registry = TestObservationRegistry.create();
+        registry.observationConfig().observationHandler(handler);
+
+        Observation parent = Observation.start("parent", registry);
+        Observation child = Observation.createNotStarted("child", registry).parentObservation(parent).start();
+        Observation grandchild = Observation.createNotStarted("grandchild", registry).parentObservation(child).start();
+
+        grandchild.stop();
+        child.stop();
+        parent.stop();
+
+        List<FinishedSpan> spans = testSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel).collect(Collectors.toList());
+        SpansAssert.then(spans)
+                .haveSameTraceId();
+        FinishedSpan grandchildFinishedSpan = spans.get(0);
+        SpanAssert.then(grandchildFinishedSpan).hasNameEqualTo("grandchild");
+        FinishedSpan childFinishedSpan = spans.get(1);
+        SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
+        FinishedSpan parentFinishedSpan = spans.get(2);
+        SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
+
+        then(grandchildFinishedSpan.getParentId()).isEqualTo(childFinishedSpan.getSpanId());
+        then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
     }
 
     @Test

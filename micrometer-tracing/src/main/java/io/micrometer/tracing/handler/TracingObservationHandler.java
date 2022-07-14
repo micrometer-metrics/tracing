@@ -17,6 +17,8 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.common.KeyValue;
+import io.micrometer.common.lang.NonNull;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
@@ -99,13 +101,37 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     }
 
     /**
-     * Get the current tracing context.
+     * Get the current span from parent if applicable.
+     *
+     * @param context a {@link Observation.ContextView}
+     * @return parent span or {@code null} when there's none
+     */
+    @Nullable
+    default Span getParentSpan(Observation.ContextView context) {
+        // This would mean that the user has manually created a tracing context
+        TracingContext tracingContext = context.get(TracingContext.class);
+        if (tracingContext == null) {
+            Observation observation = context.getParentObservation();
+            if (observation != null) {
+                tracingContext = observation.getContext().get(TracingContext.class);
+                if (tracingContext != null) {
+                    return tracingContext.getSpan();
+                }
+            }
+        } else {
+            return tracingContext.getSpan();
+        }
+        return null;
+    }
+
+    /**
+     * Get the current tracing context and updates the context if it's missing.
      *
      * @param context a {@link Observation.Context}
      * @return tracing context
      */
+    @NonNull
     default TracingContext getTracingContext(T context) {
-        // maybe consider returning a null ?
         return context.computeIfAbsent(TracingContext.class,
                 clazz -> new TracingContext());
     }
@@ -118,7 +144,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     /**
      * Returns the span from the context or throws an exception if it's not there.
      *
-     * @param context contextd
+     * @param context context
      * @return span or exception
      */
     default Span getRequiredSpan(T context) {
