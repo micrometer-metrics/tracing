@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
 	api 'io.micrometer:micrometer-observation'
+	api 'io.micrometer:context-propagation'
 	api 'aopalliance:aopalliance'
 
 	// log monitoring

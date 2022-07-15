@@ -2,6 +2,8 @@ def VERSIONS = [
 		'javax.servlet:javax.servlet-api:4.0.+',
 		'jakarta.platform:jakarta.jakartaee-web-api:9.1.+',
 
+		'io.micrometer:context-propagation:1.0.0-SNAPSHOT',
+
 		'aopalliance:aopalliance:1.0',
 		// logging
 		'ch.qos.logback:logback-classic:1.2.+',
