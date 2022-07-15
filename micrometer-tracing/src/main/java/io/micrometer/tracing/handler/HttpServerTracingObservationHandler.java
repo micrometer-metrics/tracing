@@ -17,7 +17,7 @@
 package io.micrometer.tracing.handler;
 
 import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.http.HttpResponse;
@@ -46,7 +46,7 @@ public class HttpServerTracingObservationHandler extends
      * @param handler http server handler
      */
     public HttpServerTracingObservationHandler(Tracer tracer, HttpServerHandler handler) {
-        super(tracer, handler::handleReceive, handler::handleSend);
+        super(tracer, (httpServerRequest, span) -> handler.handleReceive(httpServerRequest), handler::handleSend);
     }
 
     /**
@@ -57,7 +57,7 @@ public class HttpServerTracingObservationHandler extends
      * @param startFunction  function that creates a span
      * @param stopConsumer lambda to be applied on the span upon receiving the response
      */
-    public HttpServerTracingObservationHandler(Tracer tracer, Function<HttpServerRequest, Span> startFunction,
+    public HttpServerTracingObservationHandler(Tracer tracer, BiFunction<HttpServerRequest, Span, Span> startFunction,
             BiConsumer<HttpServerResponse, Span> stopConsumer) {
         super(tracer, startFunction, stopConsumer);
     }
