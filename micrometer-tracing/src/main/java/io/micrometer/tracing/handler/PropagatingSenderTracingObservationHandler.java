@@ -28,7 +28,8 @@ import io.micrometer.tracing.propagation.Propagator;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class PropagatingSenderTracingObservationHandler<T extends SenderContext<T>> implements TracingObservationHandler<T> {
+@SuppressWarnings({"rawtypes", "unchecked"})
+public class PropagatingSenderTracingObservationHandler<T extends SenderContext> implements TracingObservationHandler<T> {
     private final Tracer tracer;
 
     private final Propagator propagator;

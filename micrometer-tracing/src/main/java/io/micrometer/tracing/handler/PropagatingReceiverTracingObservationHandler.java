@@ -28,7 +28,8 @@ import io.micrometer.tracing.propagation.Propagator;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class PropagatingReceiverTracingObservationHandler<T extends ReceiverContext<T>> implements TracingObservationHandler<T> {
+@SuppressWarnings({"rawtypes", "unchecked"})
+public class PropagatingReceiverTracingObservationHandler<T extends ReceiverContext> implements TracingObservationHandler<T> {
 
     private final Tracer tracer;
 
@@ -56,6 +57,7 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
 
     /**
      * Customizes the extracted span (e.g. you can set the {@link Span.Kind} via {@link Span.Builder#kind(Span.Kind)}).
+     *
      * @param builder span builder
      * @return span builder
      */
@@ -78,8 +80,9 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
 
     /**
      * Allows to customize the receiver span before reporting it.
+     *
      * @param context context
-     * @param span span to customize
+     * @param span    span to customize
      */
     public void customizeReceiverSpan(T context, Span span) {
 
