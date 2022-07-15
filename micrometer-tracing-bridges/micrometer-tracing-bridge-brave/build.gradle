@@ -16,6 +16,9 @@ dependencies {
 	api("io.zipkin.brave:brave-instrumentation-http")
 	api("io.zipkin.aws:brave-propagation-aws")
 
+	testImplementation 'org.apiguardian:apiguardian-api' // to make CI pass
+	testImplementation 'io.micrometer:micrometer-observation-test'
+	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'

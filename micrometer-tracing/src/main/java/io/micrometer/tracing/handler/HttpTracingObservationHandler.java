@@ -17,13 +17,13 @@
 package io.micrometer.tracing.handler;
 
 import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.http.HttpRequest;
 import io.micrometer.observation.transport.http.HttpResponse;
 import io.micrometer.observation.transport.http.context.HttpContext;
-import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -36,11 +36,11 @@ abstract class HttpTracingObservationHandler<CTX extends HttpContext, REQ extend
 
     private final CurrentTraceContext currentTraceContext;
 
-    private final Function<REQ, Span> startFunction;
+    private final BiFunction<REQ, Span, Span> startFunction;
 
     private final BiConsumer<RES, Span> stopConsumer;
 
-    HttpTracingObservationHandler(Tracer tracer, Function<REQ, Span> startFunction,
+    HttpTracingObservationHandler(Tracer tracer, BiFunction<REQ, Span, Span> startFunction,
             BiConsumer<RES, Span> stopConsumer) {
         this.tracer = tracer;
         this.currentTraceContext = tracer.currentTraceContext();
@@ -50,21 +50,10 @@ abstract class HttpTracingObservationHandler<CTX extends HttpContext, REQ extend
 
     @Override
     public void onStart(CTX ctx) {
-        Span parentSpan = getTracingContext(ctx).getSpan();
-        CurrentTraceContext.Scope scope = null;
-        if (parentSpan != null) {
-            scope = this.currentTraceContext.maybeScope(parentSpan.context());
-        }
+        Span parentSpan = getParentSpan(ctx);
         REQ request = getRequest(ctx);
-        try {
-            Span span = this.startFunction.apply(request);
-            getTracingContext(ctx).setSpan(span);
-        }
-        finally {
-            if (scope != null) {
-                scope.close();
-            }
-        }
+        Span span = this.startFunction.apply(request, parentSpan);
+        getTracingContext(ctx).setSpan(span);
     }
 
     @Override

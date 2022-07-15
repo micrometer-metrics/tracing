@@ -17,16 +17,22 @@
 package io.micrometer.tracing.brave.handler;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
+import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
+import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.test.simple.SpanAssert;
+import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -75,6 +81,32 @@ class DefaultTracingObservationHandlerBraveTests {
 
         then(tracer.currentSpan()).as("Span still not in scope").isNull();
         thenSpanStartedAndStopped(currentMillis);
+    }
+    @Test
+    void should_create_parent_child_relationship_via_observations() {
+        TestObservationRegistry registry = TestObservationRegistry.create();
+        registry.observationConfig().observationHandler(handler);
+
+        Observation parent = Observation.start("parent", registry);
+        Observation child = Observation.createNotStarted("child", registry).parentObservation(parent).start();
+        Observation grandchild = Observation.createNotStarted("grandchild", registry).parentObservation(child).start();
+
+        grandchild.stop();
+        child.stop();
+        parent.stop();
+
+        List<FinishedSpan> spans = testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave).collect(Collectors.toList());
+        SpansAssert.then(spans)
+                .haveSameTraceId();
+        FinishedSpan grandchildFinishedSpan = spans.get(0);
+        SpanAssert.then(grandchildFinishedSpan).hasNameEqualTo("grandchild");
+        FinishedSpan childFinishedSpan = spans.get(1);
+        SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
+        FinishedSpan parentFinishedSpan = spans.get(2);
+        SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
+
+        then(grandchildFinishedSpan.getParentId()).isEqualTo(childFinishedSpan.getSpanId());
+        then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
     }
 
     @Test
