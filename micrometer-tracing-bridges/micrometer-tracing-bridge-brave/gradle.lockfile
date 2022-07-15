@@ -56,6 +56,7 @@ org.antlr:antlr4-runtime:4.8-1=nohttp
 org.antlr:antlr4-runtime:4.9.3=checkstyle
 org.apache.logging.log4j:log4j-api:2.18.0=testCompileClasspath,testRuntimeClasspath
 org.apache.logging.log4j:log4j-core:2.18.0=testCompileClasspath,testRuntimeClasspath
+org.apiguardian:apiguardian-api:1.1.2=testCompileClasspath,testRuntimeClasspath
 org.assertj:assertj-core:3.23.1=testCompileClasspath,testRuntimeClasspath
 org.checkerframework:checker-qual:2.11.1=nohttp
 org.checkerframework:checker-qual:3.12.0=checkstyle
