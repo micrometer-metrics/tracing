@@ -28,7 +28,7 @@ import io.micrometer.tracing.propagation.Propagator;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class PropagatingReceiverTracingObservationHandler<T> implements TracingObservationHandler<ReceiverContext<T>> {
+public class PropagatingReceiverTracingObservationHandler<T extends ReceiverContext<T>> implements TracingObservationHandler<T> {
 
     private final Tracer tracer;
 
@@ -46,7 +46,7 @@ public class PropagatingReceiverTracingObservationHandler<T> implements TracingO
     }
 
     @Override
-    public void onStart(ReceiverContext<T> context) {
+    public void onStart(T context) {
         Span.Builder extractedSpan = this.propagator.extract(context.getCarrier(), (carrier, key) -> context.getGetter().get(carrier, key));
         extractedSpan.kind(Span.Kind.valueOf(context.getKind().name()));
         String name = context.getContextualName() != null ? context.getContextualName() : context.getName();
@@ -59,17 +59,17 @@ public class PropagatingReceiverTracingObservationHandler<T> implements TracingO
      * @param builder span builder
      * @return span builder
      */
-    public Span.Builder customizeExtractedSpan(ReceiverContext<T> context, Span.Builder builder) {
+    public Span.Builder customizeExtractedSpan(T context, Span.Builder builder) {
         return builder;
     }
 
     @Override
-    public void onError(ReceiverContext<T> context) {
+    public void onError(T context) {
         context.getError().ifPresent(throwable -> getRequiredSpan(context).error(throwable));
     }
 
     @Override
-    public void onStop(ReceiverContext<T> context) {
+    public void onStop(T context) {
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeReceiverSpan(context, span);
@@ -81,7 +81,7 @@ public class PropagatingReceiverTracingObservationHandler<T> implements TracingO
      * @param context context
      * @param span span to customize
      */
-    public void customizeReceiverSpan(ReceiverContext<T> context, Span span) {
+    public void customizeReceiverSpan(T context, Span span) {
 
     }
 

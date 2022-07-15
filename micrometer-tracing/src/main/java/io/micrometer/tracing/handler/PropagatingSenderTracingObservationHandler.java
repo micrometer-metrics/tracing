@@ -28,7 +28,7 @@ import io.micrometer.tracing.propagation.Propagator;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class PropagatingSenderTracingObservationHandler<T> implements TracingObservationHandler<SenderContext<T>> {
+public class PropagatingSenderTracingObservationHandler<T extends SenderContext<T>> implements TracingObservationHandler<T> {
     private final Tracer tracer;
 
     private final Propagator propagator;
@@ -45,7 +45,7 @@ public class PropagatingSenderTracingObservationHandler<T> implements TracingObs
     }
 
     @Override
-    public void onStart(SenderContext<T> context) {
+    public void onStart(T context) {
         Span childSpan = createSenderSpan(context);
         this.propagator.inject(childSpan.context(), context.getCarrier(), (carrier, key, value) -> context.getSetter().set(carrier, key, value));
         getTracingContext(context).setSpan(childSpan);
@@ -56,23 +56,21 @@ public class PropagatingSenderTracingObservationHandler<T> implements TracingObs
      * @param context context
      * @return sender span
      */
-    public Span createSenderSpan(SenderContext<T> context) {
-        // TODO: Rewrite this to use parent spans once they are done
-        TracingContext tracingContext = getTracingContext(context);
-        Span span = tracingContext.getSpan();
-        Span senderSpan = span != null ? getTracer().nextSpan(span) : getTracer().nextSpan();
+    public Span createSenderSpan(T context) {
+        Span parentSpan = getParentSpan(context);
+        Span senderSpan = parentSpan != null ? getTracer().nextSpan(parentSpan) : getTracer().nextSpan();
         String name = context.getContextualName() != null ? context.getContextualName() : context.getName();
         senderSpan.name(name);
         return senderSpan;
     }
 
     @Override
-    public void onError(SenderContext<T> context) {
+    public void onError(T context) {
         context.getError().ifPresent(throwable -> getRequiredSpan(context).error(throwable));
     }
 
     @Override
-    public void onStop(SenderContext<T> context) {
+    public void onStop(T context) {
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeSenderSpan(context, span);
@@ -84,7 +82,7 @@ public class PropagatingSenderTracingObservationHandler<T> implements TracingObs
      * @param context context
      * @param span span to customize
      */
-    public void customizeSenderSpan(SenderContext<T> context, Span span) {
+    public void customizeSenderSpan(T context, Span span) {
 
     }
 
