@@ -1,6 +1,7 @@
 buildscript {
 	dependencyLocking {
-		lockAllConfigurations()
+		// TODO: Fix this
+		// lockAllConfigurations()
 	}
 
 	repositories {
@@ -237,7 +238,8 @@ subprojects {
 	}
 
 	dependencyLocking {
-		lockAllConfigurations()
+		// TODO: Fix this
+		// lockAllConfigurations()
 	}
 
 	tasks.register('resolveAndLockAll') {
