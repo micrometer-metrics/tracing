@@ -16,6 +16,7 @@
 
 package io.micrometer.tracing.handler;
 
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.SenderContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -27,7 +28,7 @@ import io.micrometer.tracing.propagation.Propagator;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public abstract class PropagatingSenderTracingObservationHandler<T> implements TracingObservationHandler<SenderContext<T>> {
+public class PropagatingSenderTracingObservationHandler<T> implements TracingObservationHandler<SenderContext<T>> {
     private final Tracer tracer;
 
     private final Propagator propagator;
@@ -85,6 +86,11 @@ public abstract class PropagatingSenderTracingObservationHandler<T> implements T
      */
     public void customizeSenderSpan(SenderContext<T> context, Span span) {
 
+    }
+
+    @Override
+    public boolean supportsContext(Observation.Context context) {
+        return context instanceof SenderContext;
     }
 
     @Override

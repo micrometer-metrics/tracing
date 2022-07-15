@@ -34,6 +34,8 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
@@ -455,11 +457,10 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         @SuppressWarnings("rawtypes")
         private static ObservationHandler<Observation.Context> tracingHandlers(OtelBuildingBlocks otelBuildingBlocks) {
             OtelTracer tracer = otelBuildingBlocks.otelTracer;
-            HttpServerHandler httpServerHandler = otelBuildingBlocks.httpServerHandler;
-            HttpClientHandler httpClientHandler = otelBuildingBlocks.httpClientHandler;
+
             LinkedList<ObservationHandler<? extends Observation.Context>> handlers = new LinkedList<>();
-            handlers.add(new HttpServerTracingObservationHandler(tracer, httpServerHandler));
-            handlers.add(new HttpClientTracingObservationHandler(tracer, httpClientHandler));
+            handlers.add(new PropagatingSenderTracingObservationHandler<>(tracer, otelBuildingBlocks.propagator));
+            handlers.add(new PropagatingReceiverTracingObservationHandler<>(tracer, otelBuildingBlocks.propagator));
             handlers.add(new DefaultTracingObservationHandler(tracer));
             otelBuildingBlocks.customizers.accept(otelBuildingBlocks, handlers);
 

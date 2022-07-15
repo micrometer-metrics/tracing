@@ -19,8 +19,8 @@ package io.micrometer.tracing.otel.bridge;
 import java.util.Collections;
 import java.util.List;
 
-import io.micrometer.observation.transport.http.HttpClientRequest;
-import io.micrometer.observation.transport.http.HttpClientResponse;
+import io.micrometer.tracing.http.HttpClientRequest;
+import io.micrometer.tracing.http.HttpClientResponse;
 import io.micrometer.common.lang.Nullable;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
 

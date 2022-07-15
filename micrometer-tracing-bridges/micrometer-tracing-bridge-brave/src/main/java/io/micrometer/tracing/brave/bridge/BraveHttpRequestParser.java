@@ -16,9 +16,9 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import io.micrometer.observation.transport.http.HttpRequest;
 import io.micrometer.tracing.SpanCustomizer;
 import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.http.HttpRequest;
 import io.micrometer.tracing.http.HttpRequestParser;
 
 /**

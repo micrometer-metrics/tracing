@@ -41,6 +41,8 @@ import io.micrometer.tracing.brave.bridge.BravePropagator;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;
@@ -335,11 +337,9 @@ public final class InMemoryBraveSetup implements AutoCloseable {
         @SuppressWarnings("rawtypes")
         private static ObservationHandler<Observation.Context> tracingHandlers(BraveBuildingBlocks braveBuildingBlocks) {
             Tracer tracer = braveBuildingBlocks.tracer;
-            HttpServerHandler httpServerHandler = braveBuildingBlocks.httpServerHandler;
-            HttpClientHandler httpClientHandler = braveBuildingBlocks.httpClientHandler;
             LinkedList<ObservationHandler<? extends Observation.Context>> handlers = new LinkedList<>();
-            handlers.add(new HttpServerTracingObservationHandler(tracer, httpServerHandler));
-            handlers.add(new HttpClientTracingObservationHandler(tracer, httpClientHandler));
+            handlers.add(new PropagatingSenderTracingObservationHandler<>(tracer, braveBuildingBlocks.propagator));
+            handlers.add(new PropagatingReceiverTracingObservationHandler<>(tracer, braveBuildingBlocks.propagator));
             handlers.add(new DefaultTracingObservationHandler(tracer));
             braveBuildingBlocks.customizers.accept(braveBuildingBlocks, handlers);
 

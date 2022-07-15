@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2021 VMware, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,31 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.micrometer.tracing.http;
 
-import io.micrometer.tracing.http.HttpRequest;
-import io.micrometer.tracing.SpanCustomizer;
-import io.micrometer.tracing.TraceContext;
+import java.util.Collection;
+
+import io.micrometer.observation.transport.Kind;
 
 /**
  * This API is taken from OpenZipkin Brave.
  *
- * Use this to control the request data recorded.
+ * Abstract request type used for parsing and sampling.
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
- * @since 1.0.0
+ * @since 1.10.0
  */
-public interface HttpRequestParser {
+public interface Request {
 
     /**
-     * Implement to choose what data from the http request are parsed into the span
-     * representing it.
-     * @param request current request
-     * @param context corresponding trace context
-     * @param span customizer for the current span
+     * Returns the header names.
+     * @return collection of header names
      */
-    void parse(HttpRequest request, TraceContext context, SpanCustomizer span);
+    Collection<String> headerNames();
+
+    /**
+     * Returns the transport kind.
+     * @return the remote kind describing the direction and type of the request
+     */
+    Kind kind();
+
+    /**
+     * Returns the underlying request object.
+     * @return the underlying request object or {@code null} if there is none
+     */
+    Object unwrap();
 
 }

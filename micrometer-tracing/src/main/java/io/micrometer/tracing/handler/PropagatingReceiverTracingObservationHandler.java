@@ -16,6 +16,7 @@
 
 package io.micrometer.tracing.handler;
 
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.ReceiverContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -82,6 +83,11 @@ public class PropagatingReceiverTracingObservationHandler<T> implements TracingO
      */
     public void customizeReceiverSpan(ReceiverContext<T> context, Span span) {
 
+    }
+
+    @Override
+    public boolean supportsContext(Observation.Context context) {
+        return context instanceof ReceiverContext;
     }
 
     @Override
