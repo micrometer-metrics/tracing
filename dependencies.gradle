@@ -21,7 +21,8 @@ def VERSIONS = [
 		'org.mockito:mockito-inline:latest.release',
 		'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
 		'org.testcontainers:testcontainers:latest.release',
-		'org.testcontainers:junit-jupiter:latest.release'
+		'org.testcontainers:junit-jupiter:latest.release',
+		'org.apiguardian:apiguardian-api:latest.release' // to make Ci pass
 ]
 
 def PLATFORM_VERSIONS = [
