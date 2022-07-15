@@ -59,10 +59,10 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
      */
     public Span createSenderSpan(T context) {
         Span parentSpan = getParentSpan(context);
-        Span senderSpan = parentSpan != null ? getTracer().nextSpan(parentSpan) : getTracer().nextSpan();
+        Span.Builder builder = getTracer().spanBuilder().kind(Span.Kind.valueOf(context.getKind().name()));
+        builder = parentSpan != null ? builder.setParent(parentSpan.context()) : builder.setNoParent();
         String name = context.getContextualName() != null ? context.getContextualName() : context.getName();
-        senderSpan.name(name);
-        return senderSpan;
+        return builder.name(name).start();
     }
 
     @Override
