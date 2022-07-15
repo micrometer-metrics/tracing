@@ -14,6 +14,8 @@ def VERSIONS = [
 		// wavefront
 		'com.wavefront:wavefront-sdk-java:3.0.+',
 		'com.wavefront:wavefront-internal-reporter-java:1.7.+',
+		// instrumentations
+		'org.mongodb:mongodb-driver-sync:latest.release',
 		// test
 		'org.assertj:assertj-core:latest.release',
 		'org.awaitility:awaitility:latest.release',
@@ -21,8 +23,7 @@ def VERSIONS = [
 		'org.mockito:mockito-inline:latest.release',
 		'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
 		'org.testcontainers:testcontainers:latest.release',
-		'org.testcontainers:junit-jupiter:latest.release',
-		'org.apiguardian:apiguardian-api:latest.release' // to make CI pass
+		'org.testcontainers:junit-jupiter:latest.release'
 ]
 
 def PLATFORM_VERSIONS = [
@@ -31,8 +32,7 @@ def PLATFORM_VERSIONS = [
 		// opentelemetry-instrumentation-api dependency above with this
 		'io.opentelemetry:opentelemetry-bom:1.+',
 		'io.opentelemetry:opentelemetry-bom-alpha:1.+',
-		'org.junit:junit-bom:5.8.2',
-		'com.fasterxml.jackson:jackson-bom:2.13.3' // to make CI pass
+		'org.junit:junit-bom:5.8.2'
 ]
 
 subprojects {

@@ -3,15 +3,17 @@ plugins {
 }
 
 dependencies {
-	api 'io.micrometer:micrometer-observation'
-	api 'aopalliance:aopalliance'
+	api "io.micrometer:micrometer-core"
+	api project(":micrometer-tracing")
 
-	optionalApi 'io.micrometer:micrometer-core'
+	optionalApi 'org.mongodb:mongodb-driver-sync'
 
 	// log monitoring
 	optionalApi 'ch.qos.logback:logback-classic'
 	optionalApi 'org.apache.logging.log4j:log4j-core'
 
+	testImplementation project(":micrometer-tracing-test")
+	testImplementation project(":micrometer-tracing-integration-test")
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'org.mockito:mockito-core'
