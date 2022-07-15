@@ -11,6 +11,7 @@ com.fasterxml.jackson.core:jackson-annotations:2.13.3=compileClasspath,default,r
 com.fasterxml.jackson.core:jackson-core:2.13.3=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.fasterxml.jackson.core:jackson-databind:2.13.3=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+com.fasterxml.jackson:jackson-bom:2.13.3=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.github.docker-java:docker-java-api:3.2.13=testCompileClasspath,testRuntimeClasspath
 com.github.docker-java:docker-java-transport-zerodep:3.2.13=testCompileClasspath,testRuntimeClasspath
 com.github.docker-java:docker-java-transport:3.2.13=testCompileClasspath,testRuntimeClasspath

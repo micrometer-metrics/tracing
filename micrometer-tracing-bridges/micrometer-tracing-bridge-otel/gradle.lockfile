@@ -5,6 +5,7 @@ antlr:antlr:2.7.7=nohttp
 aopalliance:aopalliance:1.0=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 ch.qos.logback:logback-classic:1.2.3=checkstyle,nohttp,nohttp-cli
 ch.qos.logback:logback-core:1.2.3=checkstyle,nohttp,nohttp-cli
+com.fasterxml.jackson:jackson-bom:2.13.3=compileClasspath,default,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.google.code.findbugs:jsr305:3.0.2=checkstyle,compileClasspath,nohttp,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.google.errorprone:error_prone_annotations:2.3.4=nohttp
 com.google.errorprone:error_prone_annotations:2.7.1=checkstyle

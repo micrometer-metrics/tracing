@@ -22,7 +22,7 @@ def VERSIONS = [
 		'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
 		'org.testcontainers:testcontainers:latest.release',
 		'org.testcontainers:junit-jupiter:latest.release',
-		'org.apiguardian:apiguardian-api:latest.release' // to make Ci pass
+		'org.apiguardian:apiguardian-api:latest.release' // to make CI pass
 ]
 
 def PLATFORM_VERSIONS = [
@@ -31,7 +31,8 @@ def PLATFORM_VERSIONS = [
 		// opentelemetry-instrumentation-api dependency above with this
 		'io.opentelemetry:opentelemetry-bom:1.+',
 		'io.opentelemetry:opentelemetry-bom-alpha:1.+',
-		'org.junit:junit-bom:5.8.2'
+		'org.junit:junit-bom:5.8.2',
+		'com.fasterxml.jackson:jackson-bom:2.13.3' // to make CI pass
 ]
 
 subprojects {
