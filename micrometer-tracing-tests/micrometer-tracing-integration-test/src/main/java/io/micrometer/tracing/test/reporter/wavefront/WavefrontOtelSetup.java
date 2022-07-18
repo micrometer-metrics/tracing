@@ -36,8 +36,8 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
-import io.micrometer.tracing.handler.HttpClientTracingObservationHandler;
-import io.micrometer.tracing.handler.HttpServerTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
@@ -158,7 +158,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             private final OtelTracer otelTracer;
 
-            private final OtelPropagator otelPropagator;
+            private final OtelPropagator propagator;
 
             private final HttpServerHandler httpServerHandler;
 
@@ -173,16 +173,16 @@ public final class WavefrontOtelSetup implements AutoCloseable {
              *
              * @param wavefrontOTelSpanHandler span handler
              * @param otelTracer otel tracer
-             * @param otelPropagator otel propagator
+             * @param propagator otel propagator
              * @param httpServerHandler otel http server handler
              * @param httpClientHandler otel http client handler
              * @param customizers observation customizers
              * @param arrayListSpanProcessor array list span processor
              */
-            public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, OtelTracer otelTracer, OtelPropagator otelPropagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
+            public OtelBuildingBlocks(WavefrontOtelSpanHandler wavefrontOTelSpanHandler, OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, ArrayListSpanProcessor arrayListSpanProcessor) {
                 this.wavefrontOTelSpanHandler = wavefrontOTelSpanHandler;
                 this.otelTracer = otelTracer;
-                this.otelPropagator = otelPropagator;
+                this.propagator = propagator;
                 this.httpServerHandler = httpServerHandler;
                 this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
@@ -196,7 +196,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             @Override
             public Propagator getPropagator() {
-                return this.otelPropagator;
+                return this.propagator;
             }
 
             @Override
@@ -450,11 +450,10 @@ public final class WavefrontOtelSetup implements AutoCloseable {
         @SuppressWarnings("rawtypes")
         private static ObservationHandler<Observation.Context> tracingHandlers(OtelBuildingBlocks otelBuildingBlocks) {
             OtelTracer tracer = otelBuildingBlocks.otelTracer;
-            HttpServerHandler httpServerHandler = otelBuildingBlocks.httpServerHandler;
-            HttpClientHandler httpClientHandler = otelBuildingBlocks.httpClientHandler;
+
             LinkedList<ObservationHandler<? extends Observation.Context>> handlers = new LinkedList<>();
-            handlers.add(new HttpServerTracingObservationHandler(tracer, httpServerHandler));
-            handlers.add(new HttpClientTracingObservationHandler(tracer, httpClientHandler));
+            handlers.add(new PropagatingSenderTracingObservationHandler<>(tracer, otelBuildingBlocks.propagator));
+            handlers.add(new PropagatingReceiverTracingObservationHandler<>(tracer, otelBuildingBlocks.propagator));
             handlers.add(new DefaultTracingObservationHandler(tracer));
             otelBuildingBlocks.customizers.accept(otelBuildingBlocks, handlers);
 

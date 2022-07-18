@@ -81,7 +81,7 @@ public abstract class SampleTestRunner {
 
     private MeterRegistry meterRegistry;
 
-    private final List<ObservationHandler<? extends Observation.Context>> observationHandlersCopy;
+    private final List<ObservationHandler<?>> observationHandlersCopy;
 
     /**
      * Creates a new instance of the {@link SampleTestRunner} with a pre-created configuration and {@link MeterRegistry}.

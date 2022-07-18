@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import io.micrometer.observation.transport.Kind;
-import io.micrometer.observation.transport.http.HttpServerRequest;
+import io.micrometer.tracing.http.HttpServerRequest;
 
 /**
  * Brave implementation of a {@link HttpServerRequest}.

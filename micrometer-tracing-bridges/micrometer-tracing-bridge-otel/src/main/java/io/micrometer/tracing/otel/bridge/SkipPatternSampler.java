@@ -18,7 +18,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import java.util.regex.Pattern;
 
-import io.micrometer.observation.transport.http.HttpRequest;
+import io.micrometer.tracing.http.HttpRequest;
 import io.micrometer.tracing.SamplerFunction;
 
 
