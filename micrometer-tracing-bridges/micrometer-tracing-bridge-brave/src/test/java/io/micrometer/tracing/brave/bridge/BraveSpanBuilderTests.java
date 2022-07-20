@@ -25,16 +25,16 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class BraveSpanBuilderTests {
 
-	@Test
-	void should_set_child_span_when_using_builders() {
-		Tracer tracer = Tracing.newBuilder().build().tracer();
-		Span.Builder builder = new BraveSpanBuilder(tracer);
-		Span parentSpan = BraveSpan.fromBrave(tracer.nextSpan());
+    @Test
+    void should_set_child_span_when_using_builders() {
+        Tracer tracer = Tracing.newBuilder().build().tracer();
+        Span.Builder builder = new BraveSpanBuilder(tracer);
+        Span parentSpan = BraveSpan.fromBrave(tracer.nextSpan());
 
-		Span child = builder.setParent(parentSpan.context()).start();
+        Span child = builder.setParent(parentSpan.context()).start();
 
-		then(child.context().traceId()).isEqualTo(parentSpan.context().traceId());
-		then(child.context().parentId()).isEqualTo(parentSpan.context().spanId());
-	}
+        then(child.context().traceId()).isEqualTo(parentSpan.context().traceId());
+        then(child.context().parentId()).isEqualTo(parentSpan.context().spanId());
+    }
 
 }

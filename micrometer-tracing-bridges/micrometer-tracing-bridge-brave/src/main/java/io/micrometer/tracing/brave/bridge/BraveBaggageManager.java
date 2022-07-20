@@ -33,40 +33,40 @@ import io.micrometer.tracing.TraceContext;
  */
 public class BraveBaggageManager implements Closeable, BaggageManager {
 
-	private static final Map<String, BaggageInScope> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, BaggageInScope> CACHE = new ConcurrentHashMap<>();
 
-	@Override
-	public Map<String, String> getAllBaggage() {
-		return BaggageField.getAllValues();
-	}
+    @Override
+    public Map<String, String> getAllBaggage() {
+        return BaggageField.getAllValues();
+    }
 
-	@Override
-	public BaggageInScope getBaggage(String name) {
-		return createBaggage(name);
-	}
+    @Override
+    public BaggageInScope getBaggage(String name) {
+        return createBaggage(name);
+    }
 
-	@Override
-	public BaggageInScope getBaggage(TraceContext traceContext, String name) {
-		BaggageField baggageField = BaggageField.getByName(BraveTraceContext.toBrave(traceContext), name);
-		if (baggageField == null) {
-			return null;
-		}
-		return new BraveBaggageInScope(baggageField);
-	}
+    @Override
+    public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+        BaggageField baggageField = BaggageField.getByName(BraveTraceContext.toBrave(traceContext), name);
+        if (baggageField == null) {
+            return null;
+        }
+        return new BraveBaggageInScope(baggageField);
+    }
 
-	@Override
-	public BaggageInScope createBaggage(String name) {
-		return CACHE.computeIfAbsent(name, s -> new BraveBaggageInScope(BaggageField.create(s)));
-	}
+    @Override
+    public BaggageInScope createBaggage(String name) {
+        return CACHE.computeIfAbsent(name, s -> new BraveBaggageInScope(BaggageField.create(s)));
+    }
 
-	@Override
-	public BaggageInScope createBaggage(String name, String value) {
-		return createBaggage(name).set(value);
-	}
+    @Override
+    public BaggageInScope createBaggage(String name, String value) {
+        return createBaggage(name).set(value);
+    }
 
-	@Override
-	public void close() {
-		CACHE.clear();
-	}
+    @Override
+    public void close() {
+        CACHE.clear();
+    }
 
 }

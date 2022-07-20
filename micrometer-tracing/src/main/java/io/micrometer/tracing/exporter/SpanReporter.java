@@ -24,10 +24,10 @@ package io.micrometer.tracing.exporter;
  */
 public interface SpanReporter {
 
-	/**
-	 * Reports the finished span.
-	 * @param span a span that was ended and is ready to be reported.
-	 */
-	void report(FinishedSpan span);
+    /**
+     * Reports the finished span.
+     * @param span a span that was ended and is ready to be reported.
+     */
+    void report(FinishedSpan span);
 
 }

@@ -19,7 +19,7 @@ import io.micrometer.common.lang.Nullable;
 
 /**
  * This API is taken from OpenZipkin Brave.
- *
+ * <p>
  * Abstract response type used for parsing and sampling. Represents an HTTP request.
  *
  * @author OpenZipkin Brave Authors
@@ -28,60 +28,60 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface HttpRequest extends Request {
 
-	/**
-	 * Returns an HTTP method.
-	 * @return an HTTP method.
-	 */
-	String method();
+    /**
+     * Returns an HTTP method.
+     * @return an HTTP method.
+     */
+    String method();
 
-	/**
-	 * Returns an HTTP path.
-	 * @return an HTTP path or {@code null} if not set.
-	 */
-	@Nullable
-	String path();
+    /**
+     * Returns an HTTP path.
+     * @return an HTTP path or {@code null} if not set.
+     */
+    @Nullable
+    String path();
 
-	/**
-	 * Returns an expression such as "/items/:itemId" representing an application
-	 * endpoint, conventionally associated with the tag key "http.route". If no route
-	 * matched, "" (empty string) is returned. {@code null} indicates this instrumentation
-	 * doesn't understand http routes.
-	 * @return an HTTP route or {@code null} if not set
-	 */
-	@Nullable
-	default String route() {
-		return null;
-	}
+    /**
+     * Returns an expression such as "/items/:itemId" representing an application
+     * endpoint, conventionally associated with the tag key "http.route". If no route
+     * matched, "" (empty string) is returned. {@code null} indicates this instrumentation
+     * doesn't understand http routes.
+     * @return an HTTP route or {@code null} if not set
+     */
+    @Nullable
+    default String route() {
+        return null;
+    }
 
-	/**
-	 * Returns an HTTP URL.
-	 * @return an HTTP URL or {@code null} if not set.
-	 */
-	@Nullable
-	String url();
+    /**
+     * Returns an HTTP URL.
+     * @return an HTTP URL or {@code null} if not set.
+     */
+    @Nullable
+    String url();
 
-	/**
-	 * Returns a header.
-	 * @param name header name
-	 * @return an HTTP header or {@code null} if not set.
-	 */
-	@Nullable
-	String header(String name);
+    /**
+     * Returns a header.
+     * @param name header name
+     * @return an HTTP header or {@code null} if not set.
+     */
+    @Nullable
+    String header(String name);
 
-	/**
-	 * Returns a remote IP.
-	 * @return remote IP for the given connection.
-	 */
-	default String remoteIp() {
-		return null;
-	}
+    /**
+     * Returns a remote IP.
+     * @return remote IP for the given connection.
+     */
+    default String remoteIp() {
+        return null;
+    }
 
-	/**
-	 * Returns a remote port.
-	 * @return remote port for the given connection.
-	 */
-	default int remotePort() {
-		return 0;
-	}
+    /**
+     * Returns a remote port.
+     * @return remote port for the given connection.
+     */
+    default int remotePort() {
+        return 0;
+    }
 
 }

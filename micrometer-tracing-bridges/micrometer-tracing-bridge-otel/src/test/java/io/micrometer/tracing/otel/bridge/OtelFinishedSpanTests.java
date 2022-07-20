@@ -40,168 +40,168 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelFinishedSpanTests {
 
-	@Test
-	void should_set_name() {
-		FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
-		then(span.getName()).isEqualTo("foo");
+    @Test
+    void should_set_name() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getName()).isEqualTo("foo");
 
-		span.setName("bar");
+        span.setName("bar");
 
-		then(span.getName()).isEqualTo("bar");
-	}
+        then(span.getName()).isEqualTo("bar");
+    }
 
-	@Test
-	void should_set_tags() {
-		FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
-		then(span.getTags()).isEmpty();
+    @Test
+    void should_set_tags() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getTags()).isEmpty();
 
-		Map<String, String> map = new HashMap<>();
-		map.put("foo", "bar");
-		span.setTags(map);
+        Map<String, String> map = new HashMap<>();
+        map.put("foo", "bar");
+        span.setTags(map);
 
-		then(span.getTags().get("foo")).isEqualTo("bar");
-	}
+        then(span.getTags().get("foo")).isEqualTo("bar");
+    }
 
-	@Test
-	void should_set_events() {
-		FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
-		then(span.getEvents()).isEmpty();
+    @Test
+    void should_set_events() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getEvents()).isEmpty();
 
-		List<Map.Entry<Long, String>> eventData = new ArrayList<>();
-		eventData.add(new AbstractMap.SimpleEntry<>(System.nanoTime(), "foo"));
-		span.setEvents(eventData);
+        List<Map.Entry<Long, String>> eventData = new ArrayList<>();
+        eventData.add(new AbstractMap.SimpleEntry<>(System.nanoTime(), "foo"));
+        span.setEvents(eventData);
 
-		then(span.getEvents()).hasSize(1);
-		then(span.getEvents().iterator().next().getValue()).isEqualTo("foo");
-	}
+        then(span.getEvents()).hasSize(1);
+        then(span.getEvents().iterator().next().getValue()).isEqualTo("foo");
+    }
 
-	@Test
-	void should_set_local_ip() {
-		FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
-		then(span.getLocalIp()).isNotEmpty();
+    @Test
+    void should_set_local_ip() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getLocalIp()).isNotEmpty();
 
-		span.setLocalIp("bar");
+        span.setLocalIp("bar");
 
-		then(span.getLocalIp()).isEqualTo("bar");
-	}
+        then(span.getLocalIp()).isEqualTo("bar");
+    }
 
-	@Test
-	void should_set_remote_port() {
-		FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
-		then(span.getRemotePort()).isZero();
+    @Test
+    void should_set_remote_port() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getRemotePort()).isZero();
 
-		span.setRemotePort(80);
+        span.setRemotePort(80);
 
-		then(span.getRemotePort()).isEqualTo(80);
-	}
+        then(span.getRemotePort()).isEqualTo(80);
+    }
 
-	@Test
-	void should_set_error() {
-		FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
-		then(span.getError()).isNull();
+    @Test
+    void should_set_error() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getError()).isNull();
 
-		span.setError(new RuntimeException("foo"));
+        span.setError(new RuntimeException("foo"));
 
-		then(span.getError()).hasMessageContaining("foo");
-	}
+        then(span.getError()).hasMessageContaining("foo");
+    }
 
-	@Test
-	void should_set_remote_service_name() {
-		FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
-		then(span.getRemoteServiceName()).isNull();
+    @Test
+    void should_set_remote_service_name() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getRemoteServiceName()).isNull();
 
-		span.setRemoteServiceName("bar");
+        span.setRemoteServiceName("bar");
 
-		then(span.getRemoteServiceName()).isEqualTo("bar");
-	}
+        then(span.getRemoteServiceName()).isEqualTo("bar");
+    }
 
-	static class CustomSpanData implements SpanData {
+    static class CustomSpanData implements SpanData {
 
-		@Override
-		public String getName() {
-			return "foo";
-		}
+        @Override
+        public String getName() {
+            return "foo";
+        }
 
-		@Override
-		public SpanKind getKind() {
-			return SpanKind.PRODUCER;
-		}
+        @Override
+        public SpanKind getKind() {
+            return SpanKind.PRODUCER;
+        }
 
-		@Override
-		public SpanContext getSpanContext() {
-			return SpanContext.getInvalid();
-		}
+        @Override
+        public SpanContext getSpanContext() {
+            return SpanContext.getInvalid();
+        }
 
-		@Override
-		public SpanContext getParentSpanContext() {
-			return SpanContext.getInvalid();
-		}
+        @Override
+        public SpanContext getParentSpanContext() {
+            return SpanContext.getInvalid();
+        }
 
-		@Override
-		public StatusData getStatus() {
-			return StatusData.ok();
-		}
+        @Override
+        public StatusData getStatus() {
+            return StatusData.ok();
+        }
 
-		@Override
-		public long getStartEpochNanos() {
-			return 100;
-		}
+        @Override
+        public long getStartEpochNanos() {
+            return 100;
+        }
 
-		@Override
-		public Attributes getAttributes() {
-			return Attributes.empty();
-		}
+        @Override
+        public Attributes getAttributes() {
+            return Attributes.empty();
+        }
 
-		@Override
-		public List<EventData> getEvents() {
-			return Collections.emptyList();
-		}
+        @Override
+        public List<EventData> getEvents() {
+            return Collections.emptyList();
+        }
 
-		@Override
-		public List<LinkData> getLinks() {
-			return Collections.emptyList();
-		}
+        @Override
+        public List<LinkData> getLinks() {
+            return Collections.emptyList();
+        }
 
-		@Override
-		public long getEndEpochNanos() {
-			return 200;
-		}
+        @Override
+        public long getEndEpochNanos() {
+            return 200;
+        }
 
-		@Override
-		public boolean hasEnded() {
-			return true;
-		}
+        @Override
+        public boolean hasEnded() {
+            return true;
+        }
 
-		@Override
-		public int getTotalRecordedEvents() {
-			return 10;
-		}
+        @Override
+        public int getTotalRecordedEvents() {
+            return 10;
+        }
 
-		@Override
-		public int getTotalRecordedLinks() {
-			return 20;
-		}
+        @Override
+        public int getTotalRecordedLinks() {
+            return 20;
+        }
 
-		@Override
-		public int getTotalAttributeCount() {
-			return 30;
-		}
+        @Override
+        public int getTotalAttributeCount() {
+            return 30;
+        }
 
-		@Override
-		public InstrumentationLibraryInfo getInstrumentationLibraryInfo() {
-			return InstrumentationLibraryInfo.empty();
-		}
+        @Override
+        public InstrumentationLibraryInfo getInstrumentationLibraryInfo() {
+            return InstrumentationLibraryInfo.empty();
+        }
 
-		@Override
-		public InstrumentationScopeInfo getInstrumentationScopeInfo() {
-			return InstrumentationScopeInfo.empty();
-		}
+        @Override
+        public InstrumentationScopeInfo getInstrumentationScopeInfo() {
+            return InstrumentationScopeInfo.empty();
+        }
 
-		@Override
-		public Resource getResource() {
-			return Resource.empty();
-		}
+        @Override
+        public Resource getResource() {
+            return Resource.empty();
+        }
 
-	}
+    }
 
 }

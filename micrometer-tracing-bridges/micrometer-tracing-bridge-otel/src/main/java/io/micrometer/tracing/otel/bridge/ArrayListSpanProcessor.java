@@ -38,69 +38,69 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
 
-	private final Queue<SpanData> spans = new ConcurrentLinkedQueue<>();
+    private final Queue<SpanData> spans = new ConcurrentLinkedQueue<>();
 
-	@Override
-	public void onStart(Context parent, ReadWriteSpan span) {
+    @Override
+    public void onStart(Context parent, ReadWriteSpan span) {
 
-	}
+    }
 
-	@Override
-	public boolean isStartRequired() {
-		return false;
-	}
+    @Override
+    public boolean isStartRequired() {
+        return false;
+    }
 
-	@Override
-	public void onEnd(ReadableSpan span) {
-		this.spans.add(span.toSpanData());
-	}
+    @Override
+    public void onEnd(ReadableSpan span) {
+        this.spans.add(span.toSpanData());
+    }
 
-	@Override
-	public boolean isEndRequired() {
-		return true;
-	}
+    @Override
+    public boolean isEndRequired() {
+        return true;
+    }
 
-	@Override
-	public CompletableResultCode export(Collection<SpanData> spans) {
-		this.spans.addAll(spans);
-		return CompletableResultCode.ofSuccess();
-	}
+    @Override
+    public CompletableResultCode export(Collection<SpanData> spans) {
+        this.spans.addAll(spans);
+        return CompletableResultCode.ofSuccess();
+    }
 
-	@Override
-	public CompletableResultCode flush() {
-		return CompletableResultCode.ofSuccess();
-	}
+    @Override
+    public CompletableResultCode flush() {
+        return CompletableResultCode.ofSuccess();
+    }
 
-	@Override
-	public CompletableResultCode shutdown() {
-		return CompletableResultCode.ofSuccess();
-	}
+    @Override
+    public CompletableResultCode shutdown() {
+        return CompletableResultCode.ofSuccess();
+    }
 
-	@Override
-	public CompletableResultCode forceFlush() {
-		return CompletableResultCode.ofSuccess();
-	}
+    @Override
+    public CompletableResultCode forceFlush() {
+        return CompletableResultCode.ofSuccess();
+    }
 
-	@Override
-	public void close() {
-		shutdown().join(10, SECONDS);
-	}
+    @Override
+    public void close() {
+        shutdown().join(10, SECONDS);
+    }
 
-	public SpanData takeLocalSpan() {
-		return this.spans.poll();
-	}
+    public SpanData takeLocalSpan() {
+        return this.spans.poll();
+    }
 
-	public Queue<SpanData> spans() {
-		return this.spans;
-	}
+    public Queue<SpanData> spans() {
+        return this.spans;
+    }
 
-	public void clear() {
-		this.spans.clear();
-	}
+    public void clear() {
+        this.spans.clear();
+    }
 
-	@Override
-	public String toString() {
-		return "ArrayListSpanProcessor{" + "spans=" + spans + '}';
-	}
+    @Override
+    public String toString() {
+        return "ArrayListSpanProcessor{" + "spans=" + spans + '}';
+    }
 
 }

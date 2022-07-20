@@ -38,58 +38,58 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
  */
 public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.SpanExporter {
 
-	private final io.opentelemetry.sdk.trace.export.SpanExporter delegate;
+    private final io.opentelemetry.sdk.trace.export.SpanExporter delegate;
 
-	private final List<SpanExportingPredicate> predicates;
+    private final List<SpanExportingPredicate> predicates;
 
-	private final List<SpanReporter> reporters;
+    private final List<SpanReporter> reporters;
 
-	private final List<SpanFilter> spanFilters;
+    private final List<SpanFilter> spanFilters;
 
-	/**
-	 * Creates a new instance of {@link CompositeSpanExporter}.
-	 * @param delegate a {@link SpanExporter} delegate
-	 * @param predicates predicates that decide which spans should be exported
-	 * @param reporters reporters that export spans
-	 * @param spanFilters filters that mutate spans before reporting them
-	 */
-	public CompositeSpanExporter(SpanExporter delegate, List<SpanExportingPredicate> predicates,
-			List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
-		this.delegate = delegate;
-		this.predicates = predicates == null ? Collections.emptyList() : predicates;
-		this.reporters = reporters == null ? Collections.emptyList() : reporters;
-		this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
-	}
+    /**
+     * Creates a new instance of {@link CompositeSpanExporter}.
+     * @param delegate a {@link SpanExporter} delegate
+     * @param predicates predicates that decide which spans should be exported
+     * @param reporters reporters that export spans
+     * @param spanFilters filters that mutate spans before reporting them
+     */
+    public CompositeSpanExporter(SpanExporter delegate, List<SpanExportingPredicate> predicates,
+            List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
+        this.delegate = delegate;
+        this.predicates = predicates == null ? Collections.emptyList() : predicates;
+        this.reporters = reporters == null ? Collections.emptyList() : reporters;
+        this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
+    }
 
-	@Override
-	public CompletableResultCode export(Collection<SpanData> spans) {
-		return this.delegate.export(spans.stream().filter(this::shouldProcess).map(spanData -> {
-			FinishedSpan finishedSpan = OtelFinishedSpan.fromOtel(spanData);
-			for (SpanFilter spanFilter : spanFilters) {
-				finishedSpan = spanFilter.map(finishedSpan);
-			}
-			return OtelFinishedSpan.toOtel(finishedSpan);
-		}).peek(spanData -> this.reporters.forEach(reporter -> reporter.report(OtelFinishedSpan.fromOtel(spanData))))
-				.collect(Collectors.toList()));
-	}
+    @Override
+    public CompletableResultCode export(Collection<SpanData> spans) {
+        return this.delegate.export(spans.stream().filter(this::shouldProcess).map(spanData -> {
+            FinishedSpan finishedSpan = OtelFinishedSpan.fromOtel(spanData);
+            for (SpanFilter spanFilter : spanFilters) {
+                finishedSpan = spanFilter.map(finishedSpan);
+            }
+            return OtelFinishedSpan.toOtel(finishedSpan);
+        }).peek(spanData -> this.reporters.forEach(reporter -> reporter.report(OtelFinishedSpan.fromOtel(spanData))))
+                .collect(Collectors.toList()));
+    }
 
-	private boolean shouldProcess(SpanData span) {
-		for (SpanExportingPredicate filter : this.predicates) {
-			if (!filter.isExportable(OtelFinishedSpan.fromOtel(span))) {
-				return false;
-			}
-		}
-		return true;
-	}
+    private boolean shouldProcess(SpanData span) {
+        for (SpanExportingPredicate filter : this.predicates) {
+            if (!filter.isExportable(OtelFinishedSpan.fromOtel(span))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	@Override
-	public CompletableResultCode flush() {
-		return this.delegate.flush();
-	}
+    @Override
+    public CompletableResultCode flush() {
+        return this.delegate.flush();
+    }
 
-	@Override
-	public CompletableResultCode shutdown() {
-		return this.delegate.shutdown();
-	}
+    @Override
+    public CompletableResultCode shutdown() {
+        return this.delegate.shutdown();
+    }
 
 }

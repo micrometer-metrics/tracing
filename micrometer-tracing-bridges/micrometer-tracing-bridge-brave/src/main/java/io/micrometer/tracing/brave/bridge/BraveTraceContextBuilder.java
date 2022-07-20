@@ -27,45 +27,45 @@ import io.micrometer.tracing.internal.EncodingUtils;
  */
 class BraveTraceContextBuilder implements TraceContext.Builder {
 
-	brave.propagation.TraceContext.Builder delegate = brave.propagation.TraceContext.newBuilder();
+    brave.propagation.TraceContext.Builder delegate = brave.propagation.TraceContext.newBuilder();
 
-	@Override
-	public TraceContext.Builder traceId(String traceId) {
-		long[] fromString = EncodingUtils.fromString(traceId);
-		if (fromString.length == 2) {
-			this.delegate.traceIdHigh(fromString[0]);
-			this.delegate.traceId(fromString[1]);
-		}
-		else {
-			this.delegate.traceId(fromString[0]);
-		}
-		return this;
-	}
+    @Override
+    public TraceContext.Builder traceId(String traceId) {
+        long[] fromString = EncodingUtils.fromString(traceId);
+        if (fromString.length == 2) {
+            this.delegate.traceIdHigh(fromString[0]);
+            this.delegate.traceId(fromString[1]);
+        }
+        else {
+            this.delegate.traceId(fromString[0]);
+        }
+        return this;
+    }
 
-	@Override
-	public TraceContext.Builder parentId(String traceId) {
-		long[] fromString = EncodingUtils.fromString(traceId);
-		this.delegate.parentId(fromString[fromString.length == 2 ? 1 : 0]);
-		return this;
-	}
+    @Override
+    public TraceContext.Builder parentId(String traceId) {
+        long[] fromString = EncodingUtils.fromString(traceId);
+        this.delegate.parentId(fromString[fromString.length == 2 ? 1 : 0]);
+        return this;
+    }
 
-	@Override
-	public TraceContext.Builder spanId(String spanId) {
-		long[] fromString = EncodingUtils.fromString(spanId);
-		this.delegate.spanId(fromString[fromString.length == 2 ? 1 : 0]);
-		return this;
-	}
+    @Override
+    public TraceContext.Builder spanId(String spanId) {
+        long[] fromString = EncodingUtils.fromString(spanId);
+        this.delegate.spanId(fromString[fromString.length == 2 ? 1 : 0]);
+        return this;
+    }
 
-	@Override
-	public TraceContext.Builder sampled(Boolean sampled) {
-		this.delegate.sampled(sampled);
-		return this;
-	}
+    @Override
+    public TraceContext.Builder sampled(Boolean sampled) {
+        this.delegate.sampled(sampled);
+        return this;
+    }
 
-	@Override
-	public TraceContext build() {
-		brave.propagation.TraceContext context = this.delegate.build();
-		return BraveTraceContext.fromBrave(context);
-	}
+    @Override
+    public TraceContext build() {
+        brave.propagation.TraceContext context = this.delegate.build();
+        return BraveTraceContext.fromBrave(context);
+    }
 
 }

@@ -24,27 +24,27 @@ import io.opentelemetry.context.Scope;
 
 class OtelSpanInScope implements Tracer.SpanInScope {
 
-	private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelSpanInScope.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelSpanInScope.class);
 
-	final Scope delegate;
+    final Scope delegate;
 
-	final OtelSpan span;
+    final OtelSpan span;
 
-	final io.opentelemetry.api.trace.Span otelSpan;
+    final io.opentelemetry.api.trace.Span otelSpan;
 
-	final SpanContext spanContext;
+    final SpanContext spanContext;
 
-	OtelSpanInScope(OtelSpan span, io.opentelemetry.api.trace.Span otelSpan) {
-		this.span = span;
-		this.otelSpan = otelSpan;
-		this.delegate = otelSpan.makeCurrent();
-		this.spanContext = otelSpan.getSpanContext();
-	}
+    OtelSpanInScope(OtelSpan span, io.opentelemetry.api.trace.Span otelSpan) {
+        this.span = span;
+        this.otelSpan = otelSpan;
+        this.delegate = otelSpan.makeCurrent();
+        this.spanContext = otelSpan.getSpanContext();
+    }
 
-	@Override
-	public void close() {
-		log.trace("Will close scope for trace context [{}]", this.spanContext);
-		this.delegate.close();
-	}
+    @Override
+    public void close() {
+        log.trace("Will close scope for trace context [{}]", this.spanContext);
+        this.delegate.close();
+    }
 
 }

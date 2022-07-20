@@ -47,128 +47,128 @@ import io.opentelemetry.extension.trace.propagation.OtTracePropagator;
  */
 public class CompositeTextMapPropagator implements TextMapPropagator {
 
-	private static final InternalLogger log = InternalLoggerFactory.getInstance(CompositeTextMapPropagator.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(CompositeTextMapPropagator.class);
 
-	private final Map<PropagationType, TextMapPropagator> mapping = new HashMap<>();
+    private final Map<PropagationType, TextMapPropagator> mapping = new HashMap<>();
 
-	private final List<PropagationType> types;
+    private final List<PropagationType> types;
 
-	/**
-	 * Creates a new instance of {@link CompositeTextMapPropagator}.
-	 * @param propagationSupplier propagation supplier
-	 * @param types types of propagation
-	 */
-	public CompositeTextMapPropagator(PropagationSupplier propagationSupplier, List<PropagationType> types) {
-		this.types = types;
-		if (isOnClasspath(awsClass())) {
-			this.mapping.put(PropagationType.AWS, propagationSupplier.getProvider(AwsXrayPropagator.class)
-					.getIfAvailable(AwsXrayPropagator::getInstance));
-		}
-		if (isOnClasspath(b3Class())) {
-			this.mapping.put(PropagationType.B3, propagationSupplier.getProvider(B3Propagator.class)
-					.getIfAvailable(B3Propagator::injectingSingleHeader));
-		}
-		if (isOnClasspath(jaegerClass())) {
-			this.mapping.put(PropagationType.JAEGER, propagationSupplier.getProvider(JaegerPropagator.class)
-					.getIfAvailable(JaegerPropagator::getInstance));
-		}
-		if (isOnClasspath(otClass())) {
-			this.mapping.put(PropagationType.OT_TRACER, propagationSupplier.getProvider(OtTracePropagator.class)
-					.getIfAvailable(OtTracePropagator::getInstance));
-		}
-		this.mapping.put(PropagationType.W3C, TextMapPropagator.composite(W3CTraceContextPropagator.getInstance(),
-				W3CBaggagePropagator.getInstance()));
-		this.mapping.put(PropagationType.CUSTOM, NoopTextMapPropagator.INSTANCE);
-		if (log.isDebugEnabled()) {
-			log.debug("Registered the following context propagation types " + this.mapping.keySet());
-		}
-	}
+    /**
+     * Creates a new instance of {@link CompositeTextMapPropagator}.
+     * @param propagationSupplier propagation supplier
+     * @param types types of propagation
+     */
+    public CompositeTextMapPropagator(PropagationSupplier propagationSupplier, List<PropagationType> types) {
+        this.types = types;
+        if (isOnClasspath(awsClass())) {
+            this.mapping.put(PropagationType.AWS, propagationSupplier.getProvider(AwsXrayPropagator.class)
+                    .getIfAvailable(AwsXrayPropagator::getInstance));
+        }
+        if (isOnClasspath(b3Class())) {
+            this.mapping.put(PropagationType.B3, propagationSupplier.getProvider(B3Propagator.class)
+                    .getIfAvailable(B3Propagator::injectingSingleHeader));
+        }
+        if (isOnClasspath(jaegerClass())) {
+            this.mapping.put(PropagationType.JAEGER, propagationSupplier.getProvider(JaegerPropagator.class)
+                    .getIfAvailable(JaegerPropagator::getInstance));
+        }
+        if (isOnClasspath(otClass())) {
+            this.mapping.put(PropagationType.OT_TRACER, propagationSupplier.getProvider(OtTracePropagator.class)
+                    .getIfAvailable(OtTracePropagator::getInstance));
+        }
+        this.mapping.put(PropagationType.W3C, TextMapPropagator.composite(W3CTraceContextPropagator.getInstance(),
+                W3CBaggagePropagator.getInstance()));
+        this.mapping.put(PropagationType.CUSTOM, NoopTextMapPropagator.INSTANCE);
+        if (log.isDebugEnabled()) {
+            log.debug("Registered the following context propagation types " + this.mapping.keySet());
+        }
+    }
 
-	String otClass() {
-		return "io.opentelemetry.extension.trace.propagation.OtTracePropagator";
-	}
+    String otClass() {
+        return "io.opentelemetry.extension.trace.propagation.OtTracePropagator";
+    }
 
-	String jaegerClass() {
-		return "io.opentelemetry.extension.trace.propagation.JaegerPropagator";
-	}
+    String jaegerClass() {
+        return "io.opentelemetry.extension.trace.propagation.JaegerPropagator";
+    }
 
-	String b3Class() {
-		return "io.opentelemetry.extension.trace.propagation.B3Propagator";
-	}
+    String b3Class() {
+        return "io.opentelemetry.extension.trace.propagation.B3Propagator";
+    }
 
-	String awsClass() {
-		return "io.opentelemetry.extension.aws.AwsXrayPropagator";
-	}
+    String awsClass() {
+        return "io.opentelemetry.extension.aws.AwsXrayPropagator";
+    }
 
-	private boolean isOnClasspath(String clazz) {
-		try {
-			Class.forName(clazz);
-			return true;
-		}
-		catch (ClassNotFoundException e) {
-			return false;
-		}
-	}
+    private boolean isOnClasspath(String clazz) {
+        try {
+            Class.forName(clazz);
+            return true;
+        }
+        catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
-	@Override
-	public List<String> fields() {
-		return this.types.stream().map(key -> this.mapping.getOrDefault(key, NoopTextMapPropagator.INSTANCE))
-				.flatMap(p -> p.fields().stream()).collect(Collectors.toList());
-	}
+    @Override
+    public List<String> fields() {
+        return this.types.stream().map(key -> this.mapping.getOrDefault(key, NoopTextMapPropagator.INSTANCE))
+                .flatMap(p -> p.fields().stream()).collect(Collectors.toList());
+    }
 
-	@Override
-	public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {
-		this.types.stream().map(key -> this.mapping.getOrDefault(key, NoopTextMapPropagator.INSTANCE))
-				.forEach(p -> p.inject(context, carrier, setter));
-	}
+    @Override
+    public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {
+        this.types.stream().map(key -> this.mapping.getOrDefault(key, NoopTextMapPropagator.INSTANCE))
+                .forEach(p -> p.inject(context, carrier, setter));
+    }
 
-	@Override
-	public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-		for (PropagationType type : this.types) {
-			TextMapPropagator propagator = this.mapping.get(type);
-			if (propagator == null || propagator == NoopTextMapPropagator.INSTANCE) {
-				continue;
-			}
-			Context extractedContext = propagator.extract(context, carrier, getter);
-			Span span = Span.fromContextOrNull(extractedContext);
-			Baggage baggage = Baggage.fromContextOrNull(extractedContext);
-			if (span != null || baggage != null) {
-				return extractedContext;
-			}
-		}
-		return context;
-	}
+    @Override
+    public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
+        for (PropagationType type : this.types) {
+            TextMapPropagator propagator = this.mapping.get(type);
+            if (propagator == null || propagator == NoopTextMapPropagator.INSTANCE) {
+                continue;
+            }
+            Context extractedContext = propagator.extract(context, carrier, getter);
+            Span span = Span.fromContextOrNull(extractedContext);
+            Baggage baggage = Baggage.fromContextOrNull(extractedContext);
+            if (span != null || baggage != null) {
+                return extractedContext;
+            }
+        }
+        return context;
+    }
 
-	public interface PropagationSupplier {
+    public interface PropagationSupplier {
 
-		<T> ObjectProvider<T> getProvider(Class<T> clazz);
+        <T> ObjectProvider<T> getProvider(Class<T> clazz);
 
-		interface ObjectProvider<T> {
+        interface ObjectProvider<T> {
 
-			T getIfAvailable(Supplier<T> supplier);
+            T getIfAvailable(Supplier<T> supplier);
 
-		}
+        }
 
-	}
+    }
 
-	private static final class NoopTextMapPropagator implements TextMapPropagator {
+    private static final class NoopTextMapPropagator implements TextMapPropagator {
 
-		private static final NoopTextMapPropagator INSTANCE = new NoopTextMapPropagator();
+        private static final NoopTextMapPropagator INSTANCE = new NoopTextMapPropagator();
 
-		@Override
-		public List<String> fields() {
-			return Collections.emptyList();
-		}
+        @Override
+        public List<String> fields() {
+            return Collections.emptyList();
+        }
 
-		@Override
-		public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {
-		}
+        @Override
+        public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {
+        }
 
-		@Override
-		public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-			return context;
-		}
+        @Override
+        public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
+            return context;
+        }
 
-	}
+    }
 
 }

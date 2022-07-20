@@ -25,25 +25,25 @@ import java.util.Collection;
  */
 public final class TestConfigAccessor {
 
-	private TestConfigAccessor() {
-		throw new IllegalStateException("Should not instantiate a utility class");
-	}
+    private TestConfigAccessor() {
+        throw new IllegalStateException("Should not instantiate a utility class");
+    }
 
-	/**
-	 * Returns the stored handlers.
-	 * @param config meter registry config
-	 * @return stored handlers
-	 */
-	public static Collection<ObservationHandler<?>> getHandlers(ObservationRegistry.ObservationConfig config) {
-		return config.getObservationHandlers();
-	}
+    /**
+     * Returns the stored handlers.
+     * @param config meter registry config
+     * @return stored handlers
+     */
+    public static Collection<ObservationHandler<?>> getHandlers(ObservationRegistry.ObservationConfig config) {
+        return config.getObservationHandlers();
+    }
 
-	/**
-	 * Clears the timer recording handlers.
-	 * @param config meter registry config
-	 */
-	public static void clearHandlers(ObservationRegistry.ObservationConfig config) {
-		config.getObservationHandlers().clear();
-	}
+    /**
+     * Clears the timer recording handlers.
+     * @param config meter registry config
+     */
+    public static void clearHandlers(ObservationRegistry.ObservationConfig config) {
+        config.getObservationHandlers().clear();
+    }
 
 }

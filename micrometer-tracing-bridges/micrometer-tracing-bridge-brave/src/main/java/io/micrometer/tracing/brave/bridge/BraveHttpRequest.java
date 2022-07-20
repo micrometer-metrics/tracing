@@ -30,54 +30,54 @@ import io.micrometer.tracing.http.HttpRequest;
  */
 class BraveHttpRequest implements HttpRequest {
 
-	final brave.http.HttpRequest delegate;
+    final brave.http.HttpRequest delegate;
 
-	BraveHttpRequest(brave.http.HttpRequest delegate) {
-		this.delegate = delegate;
-	}
+    BraveHttpRequest(brave.http.HttpRequest delegate) {
+        this.delegate = delegate;
+    }
 
-	static brave.http.HttpRequest toBrave(HttpRequest httpRequest) {
-		return ((BraveHttpRequest) httpRequest).delegate;
-	}
+    static brave.http.HttpRequest toBrave(HttpRequest httpRequest) {
+        return ((BraveHttpRequest) httpRequest).delegate;
+    }
 
-	static HttpRequest fromBrave(brave.http.HttpRequest httpRequest) {
-		return new BraveHttpRequest(httpRequest);
-	}
+    static HttpRequest fromBrave(brave.http.HttpRequest httpRequest) {
+        return new BraveHttpRequest(httpRequest);
+    }
 
-	@Override
-	public String method() {
-		return this.delegate.method();
-	}
+    @Override
+    public String method() {
+        return this.delegate.method();
+    }
 
-	@Override
-	public String path() {
-		return this.delegate.path();
-	}
+    @Override
+    public String path() {
+        return this.delegate.path();
+    }
 
-	@Override
-	public String url() {
-		return this.delegate.url();
-	}
+    @Override
+    public String url() {
+        return this.delegate.url();
+    }
 
-	@Override
-	public String header(String name) {
-		return this.delegate.header(name);
-	}
+    @Override
+    public String header(String name) {
+        return this.delegate.header(name);
+    }
 
-	@Override
-	public Collection<String> headerNames() {
-		// this is unused by Brave
-		return Collections.emptyList();
-	}
+    @Override
+    public Collection<String> headerNames() {
+        // this is unused by Brave
+        return Collections.emptyList();
+    }
 
-	@Override
-	public Kind kind() {
-		return Kind.valueOf(this.delegate.spanKind().name());
-	}
+    @Override
+    public Kind kind() {
+        return Kind.valueOf(this.delegate.spanKind().name());
+    }
 
-	@Override
-	public Object unwrap() {
-		return this.delegate.unwrap();
-	}
+    @Override
+    public Object unwrap() {
+        return this.delegate.unwrap();
+    }
 
 }

@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * There are 3 different ways to add tags to a span. All of them are controlled by the
  * annotation values. Precedence is:
- *
+ * <p>
  * try with the {@link TagValueResolver} bean if the value of the bean wasn't set, try to
  * evaluate a SPEL expression if there’s no SPEL expression just return a
  * {@code toString()} value of the parameter
@@ -38,29 +38,29 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface SpanTag {
 
-	/**
-	 * The name of the key of the tag which should be created.
-	 * @return the tag key
-	 */
-	String value() default "";
+    /**
+     * The name of the key of the tag which should be created.
+     * @return the tag key
+     */
+    String value() default "";
 
-	/**
-	 * The name of the key of the tag which should be created.
-	 * @return the tag value
-	 */
-	String key() default "";
+    /**
+     * The name of the key of the tag which should be created.
+     * @return the tag value
+     */
+    String key() default "";
 
-	/**
-	 * Execute this SPEL expression to calculate the tag value. Will be analyzed if no
-	 * value of the {@link SpanTag#resolver()} was set.
-	 * @return a SPEL expression
-	 */
-	String expression() default "";
+    /**
+     * Execute this SPEL expression to calculate the tag value. Will be analyzed if no
+     * value of the {@link SpanTag#resolver()} was set.
+     * @return a SPEL expression
+     */
+    String expression() default "";
 
-	/**
-	 * Use this bean to resolve the tag value. Has the highest precedence.
-	 * @return {@link TagValueResolver} bean
-	 */
-	Class<? extends TagValueResolver> resolver() default NoOpTagValueResolver.class;
+    /**
+     * Use this bean to resolve the tag value. Has the highest precedence.
+     * @return {@link TagValueResolver} bean
+     */
+    Class<? extends TagValueResolver> resolver() default NoOpTagValueResolver.class;
 
 }

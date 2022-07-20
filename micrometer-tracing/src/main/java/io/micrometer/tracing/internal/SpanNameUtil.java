@@ -26,45 +26,45 @@ import io.micrometer.common.util.StringUtils;
  */
 public final class SpanNameUtil {
 
-	static final int MAX_NAME_LENGTH = 50;
+    static final int MAX_NAME_LENGTH = 50;
 
-	private SpanNameUtil() {
+    private SpanNameUtil() {
 
-	}
+    }
 
-	/**
-	 * Shortens the name of a span.
-	 * @param name name to shorten
-	 * @return shortened name
-	 */
-	public static String shorten(String name) {
-		if (!StringUtils.isNotBlank(name)) {
-			return name;
-		}
-		int maxLength = Math.min(name.length(), MAX_NAME_LENGTH);
-		return name.substring(0, maxLength);
-	}
+    /**
+     * Shortens the name of a span.
+     * @param name name to shorten
+     * @return shortened name
+     */
+    public static String shorten(String name) {
+        if (!StringUtils.isNotBlank(name)) {
+            return name;
+        }
+        int maxLength = Math.min(name.length(), MAX_NAME_LENGTH);
+        return name.substring(0, maxLength);
+    }
 
-	/**
-	 * Converts the name to a lower hyphen version.
-	 * @param name name to change
-	 * @return changed name
-	 */
-	public static String toLowerHyphen(String name) {
-		StringBuilder result = new StringBuilder();
-		for (int i = 0; i < name.length(); i++) {
-			char c = name.charAt(i);
-			if (Character.isUpperCase(c)) {
-				if (i != 0) {
-					result.append('-');
-				}
-				result.append(Character.toLowerCase(c));
-			}
-			else {
-				result.append(c);
-			}
-		}
-		return SpanNameUtil.shorten(result.toString());
-	}
+    /**
+     * Converts the name to a lower hyphen version.
+     * @param name name to change
+     * @return changed name
+     */
+    public static String toLowerHyphen(String name) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (Character.isUpperCase(c)) {
+                if (i != 0) {
+                    result.append('-');
+                }
+                result.append(Character.toLowerCase(c));
+            }
+            else {
+                result.append(c);
+            }
+        }
+        return SpanNameUtil.shorten(result.toString());
+    }
 
 }

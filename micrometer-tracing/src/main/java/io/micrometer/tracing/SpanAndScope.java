@@ -31,53 +31,53 @@ import io.micrometer.common.lang.Nullable;
  */
 public class SpanAndScope implements Closeable {
 
-	private static final InternalLogger log = InternalLoggerFactory.getInstance(SpanAndScope.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(SpanAndScope.class);
 
-	private final Span span;
+    private final Span span;
 
-	private final Tracer.SpanInScope scope;
+    private final Tracer.SpanInScope scope;
 
-	/**
-	 * Creates a new span and scope
-	 * @param span span
-	 * @param scope scope
-	 */
-	public SpanAndScope(Span span, @Nullable Tracer.SpanInScope scope) {
-		this.span = span;
-		this.scope = scope;
-	}
+    /**
+     * Creates a new span and scope
+     * @param span span
+     * @param scope scope
+     */
+    public SpanAndScope(Span span, @Nullable Tracer.SpanInScope scope) {
+        this.span = span;
+        this.scope = scope;
+    }
 
-	/**
-	 * Gets the span.
-	 * @return span
-	 */
-	public Span getSpan() {
-		return this.span;
-	}
+    /**
+     * Gets the span.
+     * @return span
+     */
+    public Span getSpan() {
+        return this.span;
+    }
 
-	/**
-	 * Gets the scope.
-	 * @return scope
-	 */
-	@Nullable
-	public Tracer.SpanInScope getScope() {
-		return this.scope;
-	}
+    /**
+     * Gets the scope.
+     * @return scope
+     */
+    @Nullable
+    public Tracer.SpanInScope getScope() {
+        return this.scope;
+    }
 
-	@Override
-	public String toString() {
-		return "SpanAndScope{" + "span=" + this.span + '}';
-	}
+    @Override
+    public String toString() {
+        return "SpanAndScope{" + "span=" + this.span + '}';
+    }
 
-	@Override
-	public void close() {
-		if (log.isTraceEnabled()) {
-			log.trace("Closing span [" + this.span + "]");
-		}
-		if (this.scope != null) {
-			this.scope.close();
-		}
-		this.span.end();
-	}
+    @Override
+    public void close() {
+        if (log.isTraceEnabled()) {
+            log.trace("Closing span [" + this.span + "]");
+        }
+        if (this.scope != null) {
+            this.scope.close();
+        }
+        this.span.end();
+    }
 
 }

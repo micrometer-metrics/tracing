@@ -36,104 +36,104 @@ import io.opentelemetry.context.Scope;
  */
 class OtelBaggageInScope implements BaggageInScope {
 
-	private final OtelBaggageManager otelBaggageManager;
+    private final OtelBaggageManager otelBaggageManager;
 
-	private final CurrentTraceContext currentTraceContext;
+    private final CurrentTraceContext currentTraceContext;
 
-	private final List<String> tagFields;
+    private final List<String> tagFields;
 
-	private final AtomicReference<Entry> entry = new AtomicReference<>();
+    private final AtomicReference<Entry> entry = new AtomicReference<>();
 
-	private final AtomicReference<Scope> scope = new AtomicReference<>();
+    private final AtomicReference<Scope> scope = new AtomicReference<>();
 
-	OtelBaggageInScope(OtelBaggageManager otelBaggageManager, CurrentTraceContext currentTraceContext,
-			List<String> tagFields, Entry entry) {
-		this.otelBaggageManager = otelBaggageManager;
-		this.currentTraceContext = currentTraceContext;
-		this.tagFields = tagFields;
-		this.entry.set(entry);
-	}
+    OtelBaggageInScope(OtelBaggageManager otelBaggageManager, CurrentTraceContext currentTraceContext,
+            List<String> tagFields, Entry entry) {
+        this.otelBaggageManager = otelBaggageManager;
+        this.currentTraceContext = currentTraceContext;
+        this.tagFields = tagFields;
+        this.entry.set(entry);
+    }
 
-	@Override
-	public String name() {
-		return entry().getKey();
-	}
+    @Override
+    public String name() {
+        return entry().getKey();
+    }
 
-	@Override
-	public String get() {
-		return this.otelBaggageManager.currentBaggage().getEntryValue(entry().getKey());
-	}
+    @Override
+    public String get() {
+        return this.otelBaggageManager.currentBaggage().getEntryValue(entry().getKey());
+    }
 
-	@Override
-	public String get(TraceContext traceContext) {
-		Entry entry = this.otelBaggageManager.getEntry((OtelTraceContext) traceContext, entry().getKey());
-		if (entry == null) {
-			return null;
-		}
-		return entry.getValue();
-	}
+    @Override
+    public String get(TraceContext traceContext) {
+        Entry entry = this.otelBaggageManager.getEntry((OtelTraceContext) traceContext, entry().getKey());
+        if (entry == null) {
+            return null;
+        }
+        return entry.getValue();
+    }
 
-	@Override
-	public BaggageInScope set(String value) {
-		return doSet(this.currentTraceContext.context(), value);
-	}
+    @Override
+    public BaggageInScope set(String value) {
+        return doSet(this.currentTraceContext.context(), value);
+    }
 
-	private BaggageInScope doSet(TraceContext context, String value) {
-		Context current = Context.current();
-		Span currentSpan = Span.current();
-		io.opentelemetry.api.baggage.Baggage baggage;
-		if (context != null) {
-			OtelTraceContext ctx = (OtelTraceContext) context;
-			Context storedCtx = ctx.context();
-			Baggage fromContext = Baggage.fromContext(storedCtx);
+    private BaggageInScope doSet(TraceContext context, String value) {
+        Context current = Context.current();
+        Span currentSpan = Span.current();
+        io.opentelemetry.api.baggage.Baggage baggage;
+        if (context != null) {
+            OtelTraceContext ctx = (OtelTraceContext) context;
+            Context storedCtx = ctx.context();
+            Baggage fromContext = Baggage.fromContext(storedCtx);
 
-			BaggageBuilder newBaggageBuilder = fromContext.toBuilder();
-			Baggage.current().forEach((key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(),
-					baggageEntry.getMetadata()));
+            BaggageBuilder newBaggageBuilder = fromContext.toBuilder();
+            Baggage.current().forEach((key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(),
+                    baggageEntry.getMetadata()));
 
-			baggage = newBaggageBuilder.put(entry().getKey(), value, entry().getMetadata()).build();
-			current = current.with(baggage);
-			ctx.updateContext(current);
-		}
-		else {
-			baggage = Baggage.builder().put(entry().getKey(), value, entry().getMetadata()).build();
-		}
-		Context withBaggage = current.with(baggage);
-		this.scope.set(withBaggage.makeCurrent());
-		if (this.tagFields.stream().map(String::toLowerCase).anyMatch(s -> s.equals(entry().getKey()))) {
-			currentSpan.setAttribute(entry().getKey(), value);
-		}
-		Entry previous = entry();
-		this.entry.set(new Entry(previous.getKey(), value, previous.getMetadata()));
-		return this;
-	}
+            baggage = newBaggageBuilder.put(entry().getKey(), value, entry().getMetadata()).build();
+            current = current.with(baggage);
+            ctx.updateContext(current);
+        }
+        else {
+            baggage = Baggage.builder().put(entry().getKey(), value, entry().getMetadata()).build();
+        }
+        Context withBaggage = current.with(baggage);
+        this.scope.set(withBaggage.makeCurrent());
+        if (this.tagFields.stream().map(String::toLowerCase).anyMatch(s -> s.equals(entry().getKey()))) {
+            currentSpan.setAttribute(entry().getKey(), value);
+        }
+        Entry previous = entry();
+        this.entry.set(new Entry(previous.getKey(), value, previous.getMetadata()));
+        return this;
+    }
 
-	private Entry entry() {
-		return this.entry.get();
-	}
+    private Entry entry() {
+        return this.entry.get();
+    }
 
-	@Override
-	public BaggageInScope set(TraceContext traceContext, String value) {
-		return doSet(traceContext, value);
-	}
+    @Override
+    public BaggageInScope set(TraceContext traceContext, String value) {
+        return doSet(traceContext, value);
+    }
 
-	@Override
-	public BaggageInScope makeCurrent() {
-		close();
-		Entry entry = entry();
-		Scope scope = Baggage.builder().put(entry.getKey(), entry.getValue(), entry.getMetadata()).build()
-				.makeCurrent();
-		this.scope.set(scope);
-		return this;
-	}
+    @Override
+    public BaggageInScope makeCurrent() {
+        close();
+        Entry entry = entry();
+        Scope scope = Baggage.builder().put(entry.getKey(), entry.getValue(), entry.getMetadata()).build()
+                .makeCurrent();
+        this.scope.set(scope);
+        return this;
+    }
 
-	@Override
-	public void close() {
-		Scope scope = this.scope.get();
-		if (scope != null) {
-			this.scope.set(null);
-			scope.close();
-		}
-	}
+    @Override
+    public void close() {
+        Scope scope = this.scope.get();
+        if (scope != null) {
+            this.scope.set(null);
+            scope.close();
+        }
+    }
 
 }

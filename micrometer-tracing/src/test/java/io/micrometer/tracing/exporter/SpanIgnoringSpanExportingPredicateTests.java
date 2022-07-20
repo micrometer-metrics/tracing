@@ -25,50 +25,50 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class SpanIgnoringSpanExportingPredicateTests {
 
-	private FinishedSpan namedSpan() {
-		FinishedSpan span = BDDMockito.mock(FinishedSpan.class);
-		BDDMockito.given(span.getName()).willReturn("someName");
-		return span;
-	}
+    private FinishedSpan namedSpan() {
+        FinishedSpan span = BDDMockito.mock(FinishedSpan.class);
+        BDDMockito.given(span.getName()).willReturn("someName");
+        return span;
+    }
 
-	@Test
-	void should_not_handle_span_when_present_in_main_list_of_spans_to_skip() {
-		SpanIgnoringSpanExportingPredicate handler = new SpanIgnoringSpanExportingPredicate(
-				Collections.singletonList("someName"), Collections.emptyList());
+    @Test
+    void should_not_handle_span_when_present_in_main_list_of_spans_to_skip() {
+        SpanIgnoringSpanExportingPredicate handler = new SpanIgnoringSpanExportingPredicate(
+                Collections.singletonList("someName"), Collections.emptyList());
 
-		then(handler.isExportable(namedSpan())).isFalse();
-	}
+        then(handler.isExportable(namedSpan())).isFalse();
+    }
 
-	@Test
-	void should_not_handle_span_when_present_in_additional_list_of_spans_to_skip() {
-		SpanIgnoringSpanExportingPredicate handler = new SpanIgnoringSpanExportingPredicate(Collections.emptyList(),
-				Collections.singletonList("someName"));
+    @Test
+    void should_not_handle_span_when_present_in_additional_list_of_spans_to_skip() {
+        SpanIgnoringSpanExportingPredicate handler = new SpanIgnoringSpanExportingPredicate(Collections.emptyList(),
+                Collections.singletonList("someName"));
 
-		then(handler.isExportable(namedSpan())).isFalse();
-	}
+        then(handler.isExportable(namedSpan())).isFalse();
+    }
 
-	@Test
-	void should_use_cached_entry_for_same_patterns() {
-		export(handler("someOtherName"));
-		export(handler("someOtherName"));
-		export(handler("someOtherName"));
+    @Test
+    void should_use_cached_entry_for_same_patterns() {
+        export(handler("someOtherName"));
+        export(handler("someOtherName"));
+        export(handler("someOtherName"));
 
-		then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName");
+        then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName");
 
-		export(handler("a"));
-		export(handler("b"));
-		export(handler("c"));
+        export(handler("a"));
+        export(handler("b"));
+        export(handler("c"));
 
-		then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName").containsKey("a").containsKey("b")
-				.containsKey("c");
-	}
+        then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName").containsKey("a").containsKey("b")
+                .containsKey("c");
+    }
 
-	private void export(SpanIgnoringSpanExportingPredicate handler) {
-		handler.isExportable(namedSpan());
-	}
+    private void export(SpanIgnoringSpanExportingPredicate handler) {
+        handler.isExportable(namedSpan());
+    }
 
-	private SpanIgnoringSpanExportingPredicate handler(String name) {
-		return new SpanIgnoringSpanExportingPredicate(Collections.emptyList(), Collections.singletonList(name));
-	}
+    private SpanIgnoringSpanExportingPredicate handler(String name) {
+        return new SpanIgnoringSpanExportingPredicate(Collections.emptyList(), Collections.singletonList(name));
+    }
 
 }

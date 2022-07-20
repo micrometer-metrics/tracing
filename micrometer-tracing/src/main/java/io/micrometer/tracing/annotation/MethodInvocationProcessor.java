@@ -26,14 +26,14 @@ import org.aopalliance.intercept.MethodInvocation;
  */
 public interface MethodInvocationProcessor {
 
-	/**
-	 * Executes the annotated method.
-	 * @param invocation method invocation
-	 * @param newSpan annotation
-	 * @param continueSpan annotation
-	 * @return executed method result
-	 * @throws Throwable exception upon running a method
-	 */
-	Object process(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable;
+    /**
+     * Executes the annotated method.
+     * @param invocation method invocation
+     * @param newSpan annotation
+     * @param continueSpan annotation
+     * @return executed method result
+     * @throws Throwable exception upon running a method
+     */
+    Object process(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable;
 
 }

@@ -26,29 +26,29 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleTraceContextBuilder implements TraceContext.Builder {
 
-	@Override
-	public TraceContext.Builder traceId(String traceId) {
-		return this;
-	}
+    @Override
+    public TraceContext.Builder traceId(String traceId) {
+        return this;
+    }
 
-	@Override
-	public TraceContext.Builder parentId(String parentId) {
-		return this;
-	}
+    @Override
+    public TraceContext.Builder parentId(String parentId) {
+        return this;
+    }
 
-	@Override
-	public TraceContext.Builder spanId(String spanId) {
-		return this;
-	}
+    @Override
+    public TraceContext.Builder spanId(String spanId) {
+        return this;
+    }
 
-	@Override
-	public TraceContext.Builder sampled(Boolean sampled) {
-		return this;
-	}
+    @Override
+    public TraceContext.Builder sampled(Boolean sampled) {
+        return this;
+    }
 
-	@Override
-	public TraceContext build() {
-		return new SimpleTraceContext();
-	}
+    @Override
+    public TraceContext build() {
+        return new SimpleTraceContext();
+    }
 
 }

@@ -34,28 +34,28 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 @WireMockTest
 class WavefrontOtelSetupTests {
 
-	private static final InternalLogger log = InternalLoggerFactory.getInstance(WavefrontOtelSetupTests.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(WavefrontOtelSetupTests.class);
 
-	ObservationRegistry registry = ObservationRegistry.create();
+    ObservationRegistry registry = ObservationRegistry.create();
 
-	SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+    SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
 
-	@Test
-	void should_register_a_span_in_wavefront(WireMockRuntimeInfo wmri) throws InterruptedException {
-		WavefrontOtelSetup setup = WavefrontOtelSetup.builder(wmri.getHttpBaseUrl(), "token")
-				.applicationName("app-name").serviceName("service-name").source("source")
-				.register(this.registry, this.meterRegistry);
+    @Test
+    void should_register_a_span_in_wavefront(WireMockRuntimeInfo wmri) throws InterruptedException {
+        WavefrontOtelSetup setup = WavefrontOtelSetup.builder(wmri.getHttpBaseUrl(), "token")
+                .applicationName("app-name").serviceName("service-name").source("source")
+                .register(this.registry, this.meterRegistry);
 
-		WavefrontOtelSetup.run(setup, __ -> {
-			Observation sample = Observation.start("the-name", this.registry);
-			try (Observation.Scope scope = sample.openScope()) {
-				log.info("New observation created");
-			}
-			sample.stop();
-		});
+        WavefrontOtelSetup.run(setup, __ -> {
+            Observation sample = Observation.start("the-name", this.registry);
+            try (Observation.Scope scope = sample.openScope()) {
+                log.info("New observation created");
+            }
+            sample.stop();
+        });
 
-		Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(
-				() -> wmri.getWireMock().verifyThat(anyRequestedFor(urlMatching(".*/report\\?f=trace.*"))));
-	}
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(
+                () -> wmri.getWireMock().verifyThat(anyRequestedFor(urlMatching(".*/report\\?f=trace.*"))));
+    }
 
 }

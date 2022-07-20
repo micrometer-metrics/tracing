@@ -26,13 +26,13 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
  */
 public interface SpanExporterCustomizer {
 
-	/**
-	 * Customizes a span exporter.
-	 * @param spanExporter to customize
-	 * @return customized span exporter
-	 */
-	default SpanExporter customize(SpanExporter spanExporter) {
-		return spanExporter;
-	}
+    /**
+     * Customizes a span exporter.
+     * @param spanExporter to customize
+     * @return customized span exporter
+     */
+    default SpanExporter customize(SpanExporter spanExporter) {
+        return spanExporter;
+    }
 
 }

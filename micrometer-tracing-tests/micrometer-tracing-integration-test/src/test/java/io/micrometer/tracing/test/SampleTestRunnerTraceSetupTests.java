@@ -18,18 +18,18 @@ package io.micrometer.tracing.test;
 
 class SampleTestRunnerTraceSetupTests extends SampleTestRunner {
 
-	SampleTestRunnerTraceSetupTests() {
-		super(SampleRunnerConfig.builder().wavefrontUrl("foo").wavefrontToken("bar").build());
-	}
+    SampleTestRunnerTraceSetupTests() {
+        super(SampleRunnerConfig.builder().wavefrontUrl("foo").wavefrontToken("bar").build());
+    }
 
-	@Override
-	public TracingSetup[] getTracingSetup() {
-		return new TracingSetup[] {};
-	}
+    @Override
+    public TracingSetup[] getTracingSetup() {
+        return new TracingSetup[] {};
+    }
 
-	@Override
-	public SampleTestRunnerConsumer yourCode() {
-		throw new AssertionError("This code should not be ran!");
-	}
+    @Override
+    public SampleTestRunnerConsumer yourCode() {
+        throw new AssertionError("This code should not be ran!");
+    }
 
 }

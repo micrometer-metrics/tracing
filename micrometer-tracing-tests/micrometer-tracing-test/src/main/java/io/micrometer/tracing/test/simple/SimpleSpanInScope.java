@@ -30,42 +30,42 @@ import io.micrometer.tracing.Tracer;
  */
 public class SimpleSpanInScope implements Tracer.SpanInScope {
 
-	private boolean closed;
+    private boolean closed;
 
-	private final Deque<SpanAndScope> scopedSpans;
+    private final Deque<SpanAndScope> scopedSpans;
 
-	private final Span span;
+    private final Span span;
 
-	private final SpanAndScope spanAndScope;
+    private final SpanAndScope spanAndScope;
 
-	/**
-	 * Creates a new instance of {@link SimpleSpanInScope}.
-	 * @param span span
-	 * @param scopedSpans scoped spans
-	 */
-	public SimpleSpanInScope(Span span, Deque<SpanAndScope> scopedSpans) {
-		this.span = span;
-		this.scopedSpans = scopedSpans;
-		this.spanAndScope = new SpanAndScope(span, this);
-		this.scopedSpans.addFirst(this.spanAndScope);
-	}
+    /**
+     * Creates a new instance of {@link SimpleSpanInScope}.
+     * @param span span
+     * @param scopedSpans scoped spans
+     */
+    public SimpleSpanInScope(Span span, Deque<SpanAndScope> scopedSpans) {
+        this.span = span;
+        this.scopedSpans = scopedSpans;
+        this.spanAndScope = new SpanAndScope(span, this);
+        this.scopedSpans.addFirst(this.spanAndScope);
+    }
 
-	@Override
-	public void close() {
-		this.closed = true;
-		SpanAndScope first = this.scopedSpans.peekFirst();
-		if (first != this.spanAndScope) {
-			throw new IllegalStateException("Trying to close scope for span [" + span
-					+ "] but current span in scope is [" + (first != null ? first.getSpan() : null) + "]");
-		}
-		this.scopedSpans.remove(this.spanAndScope);
-	}
+    @Override
+    public void close() {
+        this.closed = true;
+        SpanAndScope first = this.scopedSpans.peekFirst();
+        if (first != this.spanAndScope) {
+            throw new IllegalStateException("Trying to close scope for span [" + span
+                    + "] but current span in scope is [" + (first != null ? first.getSpan() : null) + "]");
+        }
+        this.scopedSpans.remove(this.spanAndScope);
+    }
 
-	/**
-	 * @return was scoped closed?
-	 */
-	public boolean isClosed() {
-		return closed;
-	}
+    /**
+     * @return was scoped closed?
+     */
+    public boolean isClosed() {
+        return closed;
+    }
 
 }

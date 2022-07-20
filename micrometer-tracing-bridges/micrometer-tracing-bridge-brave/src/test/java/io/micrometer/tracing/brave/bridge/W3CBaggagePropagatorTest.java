@@ -37,134 +37,134 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class W3CBaggagePropagatorTest {
 
-	W3CBaggagePropagator propagator = new W3CBaggagePropagator(new BraveBaggageManager(), Collections.emptyList());
+    W3CBaggagePropagator propagator = new W3CBaggagePropagator(new BraveBaggageManager(), Collections.emptyList());
 
-	@Test
-	void fields() {
-		assertThat(propagator.keys()).containsExactly("baggage");
-	}
+    @Test
+    void fields() {
+        assertThat(propagator.keys()).containsExactly("baggage");
+    }
 
-	@Test
-	void extract_noBaggageHeader() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
+    @Test
+    void extract_noBaggageHeader() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
 
-		TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
-		assertThat(contextWithBaggage).isEqualTo(context);
-	}
+        assertThat(contextWithBaggage).isEqualTo(context);
+    }
 
-	@Test
-	void extract_emptyBaggageHeader() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
-		carrier.put("baggage", "");
+    @Test
+    void extract_emptyBaggageHeader() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "");
 
-		TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
-		assertThat(contextWithBaggage).isEqualTo(context);
-	}
+        assertThat(contextWithBaggage).isEqualTo(context);
+    }
 
-	@Test
-	void extract_singleEntry() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
-		carrier.put("baggage", "key=value");
+    @Test
+    void extract_singleEntry() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "key=value");
 
-		TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
-		Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
-		assertThat(baggageEntries).hasSize(1).containsEntry("key", "value");
-	}
+        Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
+        assertThat(baggageEntries).hasSize(1).containsEntry("key", "value");
+    }
 
-	private TraceContextOrSamplingFlags context() {
-		return TraceContextOrSamplingFlags
-				.create(TraceContext.newBuilder().traceId(1L).spanId(2L).sampled(true).build());
-	}
+    private TraceContextOrSamplingFlags context() {
+        return TraceContextOrSamplingFlags
+                .create(TraceContext.newBuilder().traceId(1L).spanId(2L).sampled(true).build());
+    }
 
-	@Test
-	void extract_multiEntry() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
-		carrier.put("baggage", "key1=value1,key2=value2");
+    @Test
+    void extract_multiEntry() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "key1=value1,key2=value2");
 
-		TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
-		Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
-		assertThat(baggageEntries).hasSize(2).containsEntry("key1", "value1").containsEntry("key2", "value2");
-	}
+        Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
+        assertThat(baggageEntries).hasSize(2).containsEntry("key1", "value1").containsEntry("key2", "value2");
+    }
 
-	@Test
-	void extract_duplicateKeys() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
-		carrier.put("baggage", "key=value1,key=value2");
+    @Test
+    void extract_duplicateKeys() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "key=value1,key=value2");
 
-		TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
-		Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
-		assertThat(baggageEntries).hasSize(1).containsEntry("key", "value2");
-	}
+        Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
+        assertThat(baggageEntries).hasSize(1).containsEntry("key", "value2");
+    }
 
-	@Test
-	void extract_fullComplexities() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
-		carrier.put("baggage",
-				"key1= value1; metadata-key = value; othermetadata, " + "key2 =value2 , key3 =\tvalue3 ; ");
+    @Test
+    void extract_fullComplexities() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage",
+                "key1= value1; metadata-key = value; othermetadata, " + "key2 =value2 , key3 =\tvalue3 ; ");
 
-		TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
-		Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
-		assertThat(baggageEntries).hasSize(3).containsEntry("key1", "value1").containsEntry("key2", "value2")
-				.containsEntry("key3", "value3");
-	}
+        Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
+        assertThat(baggageEntries).hasSize(3).containsEntry("key1", "value1").containsEntry("key2", "value2")
+                .containsEntry("key3", "value3");
+    }
 
-	/**
-	 * It would be cool if we could replace this with a fuzzer to generate tons of crud
-	 * data, to make sure we don't blow up with it.
-	 */
-	@Test
-	@Disabled("We don't support additional data")
-	void extract_invalidHeader() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
-		carrier.put("baggage", "key1= v;alsdf;-asdflkjasdf===asdlfkjadsf ,,a sdf9asdf-alue1; metadata-key = "
-				+ "value; othermetadata, key2 =value2 , key3 =\tvalue3 ; ");
+    /**
+     * It would be cool if we could replace this with a fuzzer to generate tons of crud
+     * data, to make sure we don't blow up with it.
+     */
+    @Test
+    @Disabled("We don't support additional data")
+    void extract_invalidHeader() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "key1= v;alsdf;-asdflkjasdf===asdlfkjadsf ,,a sdf9asdf-alue1; metadata-key = "
+                + "value; othermetadata, key2 =value2 , key3 =\tvalue3 ; ");
 
-		TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
-		Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
-		assertThat(baggageEntries).isEmpty();
-	}
+        Map<String, String> baggageEntries = BaggageField.getAllValues(contextWithBaggage);
+        assertThat(baggageEntries).isEmpty();
+    }
 
-	@Test
-	void inject_noBaggage() {
-		TraceContextOrSamplingFlags context = context();
-		Map<String, String> carrier = new HashMap<>();
+    @Test
+    void inject_noBaggage() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
 
-		propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put).inject(context.context(),
-				carrier);
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put).inject(context.context(),
+                carrier);
 
-		assertThat(carrier).isEmpty();
-	}
+        assertThat(carrier).isEmpty();
+    }
 
-	@Test
-	void inject() {
-		TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
-		BaggageField nometa = BaggageField.create("nometa");
-		BaggageField meta = BaggageField.create("meta");
-		builder.addExtra(BaggageFields.newFactory(Arrays.asList(nometa, meta), 10).create());
-		TraceContextOrSamplingFlags context = builder.build();
-		nometa.updateValue(context, "nometa-value");
-		meta.updateValue(context, "meta-value;somemetadata; someother=foo");
-		Map<String, String> carrier = new HashMap<>();
+    @Test
+    void inject() {
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        BaggageField nometa = BaggageField.create("nometa");
+        BaggageField meta = BaggageField.create("meta");
+        builder.addExtra(BaggageFields.newFactory(Arrays.asList(nometa, meta), 10).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        nometa.updateValue(context, "nometa-value");
+        meta.updateValue(context, "meta-value;somemetadata; someother=foo");
+        Map<String, String> carrier = new HashMap<>();
 
-		propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put).inject(context.context(),
-				carrier);
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put).inject(context.context(),
+                carrier);
 
-		assertThat(carrier).containsExactlyInAnyOrderEntriesOf(
-				singletonMap("baggage", "nometa=nometa-value,meta=meta-value;somemetadata; someother=foo"));
-	}
+        assertThat(carrier).containsExactlyInAnyOrderEntriesOf(
+                singletonMap("baggage", "nometa=nometa-value,meta=meta-value;somemetadata; someother=foo"));
+    }
 
 }

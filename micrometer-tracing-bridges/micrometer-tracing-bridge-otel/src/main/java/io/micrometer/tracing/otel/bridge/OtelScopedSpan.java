@@ -29,53 +29,53 @@ import io.opentelemetry.context.Scope;
  */
 class OtelScopedSpan implements ScopedSpan {
 
-	final Span span;
+    final Span span;
 
-	final Scope scope;
+    final Scope scope;
 
-	OtelScopedSpan(Span span, Scope scope) {
-		this.span = span;
-		this.scope = scope;
-	}
+    OtelScopedSpan(Span span, Scope scope) {
+        this.span = span;
+        this.scope = scope;
+    }
 
-	@Override
-	public boolean isNoop() {
-		return !this.span.isRecording();
-	}
+    @Override
+    public boolean isNoop() {
+        return !this.span.isRecording();
+    }
 
-	@Override
-	public TraceContext context() {
-		return new OtelTraceContext(this.span);
-	}
+    @Override
+    public TraceContext context() {
+        return new OtelTraceContext(this.span);
+    }
 
-	@Override
-	public ScopedSpan name(String name) {
-		this.span.updateName(name);
-		return this;
-	}
+    @Override
+    public ScopedSpan name(String name) {
+        this.span.updateName(name);
+        return this;
+    }
 
-	@Override
-	public ScopedSpan tag(String key, String value) {
-		this.span.setAttribute(key, value);
-		return this;
-	}
+    @Override
+    public ScopedSpan tag(String key, String value) {
+        this.span.setAttribute(key, value);
+        return this;
+    }
 
-	@Override
-	public ScopedSpan event(String value) {
-		this.span.addEvent(value);
-		return this;
-	}
+    @Override
+    public ScopedSpan event(String value) {
+        this.span.addEvent(value);
+        return this;
+    }
 
-	@Override
-	public ScopedSpan error(Throwable throwable) {
-		this.span.recordException(throwable);
-		return this;
-	}
+    @Override
+    public ScopedSpan error(Throwable throwable) {
+        this.span.recordException(throwable);
+        return this;
+    }
 
-	@Override
-	public void end() {
-		this.scope.close();
-		this.span.end();
-	}
+    @Override
+    public void end() {
+        this.scope.close();
+        this.span.end();
+    }
 
 }

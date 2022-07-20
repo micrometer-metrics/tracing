@@ -27,21 +27,21 @@ import io.opentelemetry.instrumentation.api.instrumenter.net.NetServerAttributes
  */
 class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGetter<HttpRequest> {
 
-	@Nullable
-	@Override
-	public String transport(HttpRequest httpRequest) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public String transport(HttpRequest httpRequest) {
+        return null;
+    }
 
-	@Override
-	public Integer peerPort(HttpRequest httpRequest) {
-		return httpRequest.remotePort();
-	}
+    @Override
+    public Integer peerPort(HttpRequest httpRequest) {
+        return httpRequest.remotePort();
+    }
 
-	@Nullable
-	@Override
-	public String peerIp(HttpRequest httpRequest) {
-		return httpRequest.remoteIp();
-	}
+    @Nullable
+    @Override
+    public String peerIp(HttpRequest httpRequest) {
+        return httpRequest.remoteIp();
+    }
 
 }

@@ -20,7 +20,7 @@ import io.micrometer.observation.transport.Kind;
 
 /**
  * This API is taken from OpenZipkin Brave.
- *
+ * <p>
  * Abstract response type used for parsing and sampling. Represents an HTTP Server
  * response.
  *
@@ -30,19 +30,19 @@ import io.micrometer.observation.transport.Kind;
  */
 public interface HttpServerResponse extends HttpResponse {
 
-	@Nullable
-	default HttpServerRequest request() {
-		return null;
-	}
+    @Nullable
+    default HttpServerRequest request() {
+        return null;
+    }
 
-	@Override
-	default Throwable error() {
-		return null;
-	}
+    @Override
+    default Throwable error() {
+        return null;
+    }
 
-	@Override
-	default Kind kind() {
-		return Kind.SERVER;
-	}
+    @Override
+    default Kind kind() {
+        return Kind.SERVER;
+    }
 
 }

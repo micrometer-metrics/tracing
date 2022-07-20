@@ -31,41 +31,41 @@ import io.micrometer.tracing.brave.propagation.PropagationType;
  */
 public class CompositePropagationFactorySupplier implements PropagationFactorySupplier {
 
-	private final Supplier<BraveBaggageManager> baggageManagerSupplier;
+    private final Supplier<BraveBaggageManager> baggageManagerSupplier;
 
-	private final Supplier<Propagation.Factory> factorySupplier;
+    private final Supplier<Propagation.Factory> factorySupplier;
 
-	private final List<String> localFields;
+    private final List<String> localFields;
 
-	private final List<PropagationType> types;
+    private final List<PropagationType> types;
 
-	/**
-	 * Creates a new instance of {@link CompositePropagationFactorySupplier}.
-	 * @param baggageManagerSupplier bean factory
-	 * @param factorySupplier factory supplier
-	 * @param localFields local fields to be set in context
-	 * @param types supported propagation types
-	 */
-	public CompositePropagationFactorySupplier(Supplier<BraveBaggageManager> baggageManagerSupplier,
-			Supplier<Propagation.Factory> factorySupplier, List<String> localFields, List<PropagationType> types) {
-		this.baggageManagerSupplier = baggageManagerSupplier;
-		this.factorySupplier = factorySupplier;
-		this.localFields = localFields;
-		this.types = types;
-	}
+    /**
+     * Creates a new instance of {@link CompositePropagationFactorySupplier}.
+     * @param baggageManagerSupplier bean factory
+     * @param factorySupplier factory supplier
+     * @param localFields local fields to be set in context
+     * @param types supported propagation types
+     */
+    public CompositePropagationFactorySupplier(Supplier<BraveBaggageManager> baggageManagerSupplier,
+            Supplier<Propagation.Factory> factorySupplier, List<String> localFields, List<PropagationType> types) {
+        this.baggageManagerSupplier = baggageManagerSupplier;
+        this.factorySupplier = factorySupplier;
+        this.localFields = localFields;
+        this.types = types;
+    }
 
-	@Override
-	public Propagation.Factory get() {
-		return new CompositePropagationFactory(this.factorySupplier, braveBaggageManager(), this.localFields,
-				this.types);
-	}
+    @Override
+    public Propagation.Factory get() {
+        return new CompositePropagationFactory(this.factorySupplier, braveBaggageManager(), this.localFields,
+                this.types);
+    }
 
-	private BraveBaggageManager braveBaggageManager() {
-		BraveBaggageManager baggageManager = baggageManagerSupplier.get();
-		if (baggageManager != null) {
-			return baggageManager;
-		}
-		return new BraveBaggageManager();
-	}
+    private BraveBaggageManager braveBaggageManager() {
+        BraveBaggageManager baggageManager = baggageManagerSupplier.get();
+        if (baggageManager != null) {
+            return baggageManager;
+        }
+        return new BraveBaggageManager();
+    }
 
 }

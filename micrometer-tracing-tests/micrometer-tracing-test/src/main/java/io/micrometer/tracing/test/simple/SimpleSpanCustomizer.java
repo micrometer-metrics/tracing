@@ -26,32 +26,32 @@ import io.micrometer.tracing.SpanCustomizer;
  */
 public class SimpleSpanCustomizer implements SpanCustomizer {
 
-	private final SimpleSpan span;
+    private final SimpleSpan span;
 
-	/**
-	 * Creates a new instance of {@link SimpleSpanCustomizer}.
-	 * @param span simple span
-	 */
-	public SimpleSpanCustomizer(SimpleSpan span) {
-		this.span = span;
-	}
+    /**
+     * Creates a new instance of {@link SimpleSpanCustomizer}.
+     * @param span simple span
+     */
+    public SimpleSpanCustomizer(SimpleSpan span) {
+        this.span = span;
+    }
 
-	@Override
-	public SpanCustomizer name(String name) {
-		this.span.name(name);
-		return this;
-	}
+    @Override
+    public SpanCustomizer name(String name) {
+        this.span.name(name);
+        return this;
+    }
 
-	@Override
-	public SpanCustomizer tag(String key, String value) {
-		this.span.tag(key, value);
-		return this;
-	}
+    @Override
+    public SpanCustomizer tag(String key, String value) {
+        this.span.tag(key, value);
+        return this;
+    }
 
-	@Override
-	public SpanCustomizer event(String value) {
-		this.span.event(value);
-		return this;
-	}
+    @Override
+    public SpanCustomizer event(String value) {
+        this.span.event(value);
+        return this;
+    }
 
 }

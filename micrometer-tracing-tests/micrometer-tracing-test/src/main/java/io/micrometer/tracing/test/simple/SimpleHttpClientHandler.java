@@ -30,39 +30,39 @@ import io.micrometer.tracing.http.HttpClientHandler;
  */
 public class SimpleHttpClientHandler implements HttpClientHandler {
 
-	private final SimpleTracer simpleTracer;
+    private final SimpleTracer simpleTracer;
 
-	private boolean receiveHandled;
+    private boolean receiveHandled;
 
-	/**
-	 * Creates a new instance of {@link SimpleHttpClientHandler}.
-	 * @param simpleTracer simple tracer
-	 */
-	public SimpleHttpClientHandler(SimpleTracer simpleTracer) {
-		this.simpleTracer = simpleTracer;
-	}
+    /**
+     * Creates a new instance of {@link SimpleHttpClientHandler}.
+     * @param simpleTracer simple tracer
+     */
+    public SimpleHttpClientHandler(SimpleTracer simpleTracer) {
+        this.simpleTracer = simpleTracer;
+    }
 
-	@Override
-	public Span handleSend(HttpClientRequest request) {
-		return this.simpleTracer.nextSpan().start();
-	}
+    @Override
+    public Span handleSend(HttpClientRequest request) {
+        return this.simpleTracer.nextSpan().start();
+    }
 
-	@Override
-	public Span handleSend(HttpClientRequest request, TraceContext parent) {
-		return this.simpleTracer.nextSpan().start();
-	}
+    @Override
+    public Span handleSend(HttpClientRequest request, TraceContext parent) {
+        return this.simpleTracer.nextSpan().start();
+    }
 
-	@Override
-	public void handleReceive(HttpClientResponse response, Span span) {
-		span.end();
-		this.receiveHandled = true;
-	}
+    @Override
+    public void handleReceive(HttpClientResponse response, Span span) {
+        span.end();
+        this.receiveHandled = true;
+    }
 
-	/**
-	 * @return Was the handle receive method called?
-	 */
-	public boolean isReceiveHandled() {
-		return this.receiveHandled;
-	}
+    /**
+     * @return Was the handle receive method called?
+     */
+    public boolean isReceiveHandled() {
+        return this.receiveHandled;
+    }
 
 }

@@ -35,88 +35,85 @@ import org.assertj.core.api.ObjectAssert;
 @SuppressWarnings("rawtypes")
 public class TracerAssert extends AbstractAssert<TracerAssert, SimpleTracer> {
 
-	/**
-	 * Creates a new instance of {@link TracerAssert}.
-	 * @param actual a {@link SimpleTracer} object to assert
-	 */
-	protected TracerAssert(SimpleTracer actual) {
-		super(actual, TracerAssert.class);
-	}
+    /**
+     * Creates a new instance of {@link TracerAssert}.
+     * @param actual a {@link SimpleTracer} object to assert
+     */
+    protected TracerAssert(SimpleTracer actual) {
+        super(actual, TracerAssert.class);
+    }
 
-	/**
-	 * Creates the assert object for {@link SimpleTracer}.
-	 * @param actual tracer to assert against
-	 * @return meter registry assertions
-	 */
-	public static TracerAssert assertThat(SimpleTracer actual) {
-		return new TracerAssert(actual);
-	}
+    /**
+     * Creates the assert object for {@link SimpleTracer}.
+     * @param actual tracer to assert against
+     * @return meter registry assertions
+     */
+    public static TracerAssert assertThat(SimpleTracer actual) {
+        return new TracerAssert(actual);
+    }
 
-	/**
-	 * Creates the assert object for {@link SimpleTracer}.
-	 * @param actual tracer to assert against
-	 * @return meter registry assertions
-	 */
-	public static TracerAssert then(SimpleTracer actual) {
-		return new TracerAssert(actual);
-	}
+    /**
+     * Creates the assert object for {@link SimpleTracer}.
+     * @param actual tracer to assert against
+     * @return meter registry assertions
+     */
+    public static TracerAssert then(SimpleTracer actual) {
+        return new TracerAssert(actual);
+    }
 
-	/**
-	 * Verifies that there was only one span created by a {@link SimpleTracer}.
-	 * <p>
-	 * Examples: <pre><code class='java'> // assertions succeed
-	 * assertThat(simpleTracer).onlySpan();
-	 *
-	 * // assertions fail
-	 * assertThat(simpleTracerWithNoSpans).onlySpan();</code></pre>
-	 * @return {@link SpanAssert} assertion object.
-	 * @throws AssertionError if the actual value is {@code null}.
-	 * @throws AssertionError if there were zero or more than one spans
-	 * @throws AssertionError if the span wasn't started
-	 *
-	 * @since 1.0.0
-	 */
-	public SpanAssert onlySpan() {
-		isNotNull();
-		return SpanAssert.assertThat(this.actual.onlySpan());
-	}
+    /**
+     * Verifies that there was only one span created by a {@link SimpleTracer}.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(simpleTracer).onlySpan();
+     *
+     * // assertions fail
+     * assertThat(simpleTracerWithNoSpans).onlySpan();</code></pre>
+     * @return {@link SpanAssert} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there were zero or more than one spans
+     * @throws AssertionError if the span wasn't started
+     * @since 1.0.0
+     */
+    public SpanAssert onlySpan() {
+        isNotNull();
+        return SpanAssert.assertThat(this.actual.onlySpan());
+    }
 
-	/**
-	 * Returns assertion options for the last span created by {@link SimpleTracer}.
-	 * <p>
-	 * Examples: <pre><code class='java'> // assertions succeed
-	 * assertThat(simpleTracer).lastSpan();
-	 *
-	 * // assertions fail
-	 * assertThat(simpleTracerWithNoSpans).lastSpan();</code></pre>
-	 * @return {@link SpanAssert} assertion object.
-	 * @throws AssertionError if the actual value is {@code null}.
-	 * @throws AssertionError if there were no spans
-	 * @throws AssertionError if the span wasn't started
-	 *
-	 * @since 1.0.0
-	 */
-	public SpanAssert lastSpan() {
-		isNotNull();
-		return SpanAssert.assertThat(this.actual.lastSpan());
-	}
+    /**
+     * Returns assertion options for the last span created by {@link SimpleTracer}.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(simpleTracer).lastSpan();
+     *
+     * // assertions fail
+     * assertThat(simpleTracerWithNoSpans).lastSpan();</code></pre>
+     * @return {@link SpanAssert} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there were no spans
+     * @throws AssertionError if the span wasn't started
+     * @since 1.0.0
+     */
+    public SpanAssert lastSpan() {
+        isNotNull();
+        return SpanAssert.assertThat(this.actual.lastSpan());
+    }
 
-	/**
-	 * Returns assertion options for all spans created by {@link SimpleTracer}.
-	 * <p>
-	 * Examples: <pre><code class='java'> // assertions succeed
-	 * assertThat(simpleTracer).reportedSpans();
-	 *
-	 * // assertions fail
-	 * assertThat(simpleTracerWithNoSpans).reportedSpans();</code></pre>
-	 * @return {@link SpanAssert} assertion object.
-	 * @throws AssertionError if the actual value is {@code null}.
-	 * @throws AssertionError if there were no spans created by this tracer
-	 *
-	 * @since 1.0.0
-	 */
-	public AbstractCollectionAssert<?, Collection<? extends SimpleSpan>, SimpleSpan, ObjectAssert<SimpleSpan>> reportedSpans() {
-		return Assertions.assertThat(this.actual.getSpans());
-	}
+    /**
+     * Returns assertion options for all spans created by {@link SimpleTracer}.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(simpleTracer).reportedSpans();
+     *
+     * // assertions fail
+     * assertThat(simpleTracerWithNoSpans).reportedSpans();</code></pre>
+     * @return {@link SpanAssert} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there were no spans created by this tracer
+     * @since 1.0.0
+     */
+    public AbstractCollectionAssert<?, Collection<? extends SimpleSpan>, SimpleSpan, ObjectAssert<SimpleSpan>> reportedSpans() {
+        return Assertions.assertThat(this.actual.getSpans());
+    }
 
 }

@@ -42,64 +42,64 @@ import static org.mockito.Mockito.verify;
  */
 class WavefrontSpanHandlerTests {
 
-	private WavefrontSender sender;
+    private WavefrontSender sender;
 
-	private WavefrontSpanHandler sut;
+    private WavefrontSpanHandler sut;
 
-	@BeforeEach
-	void setUp() {
-		this.sender = mock(WavefrontSender.class);
-		this.sut = new WavefrontSpanHandler(10000, sender, SpanMetrics.NOOP, "source",
-				new ApplicationTags.Builder("application", "service").build(), Collections.emptySet());
-	}
+    @BeforeEach
+    void setUp() {
+        this.sender = mock(WavefrontSender.class);
+        this.sut = new WavefrontSpanHandler(10000, sender, SpanMetrics.NOOP, "source",
+                new ApplicationTags.Builder("application", "service").build(), Collections.emptySet());
+    }
 
-	@AfterEach
-	void tearDown() {
-		this.sut.close();
-	}
+    @AfterEach
+    void tearDown() {
+        this.sut.close();
+    }
 
-	@Test
-	void sends() throws Exception {
-		TraceContext traceContext = new DummyTraceContext();
-		SimpleSpan span = new SimpleSpan();
-		sut.end(traceContext, span);
-		sut.close();
+    @Test
+    void sends() throws Exception {
+        TraceContext traceContext = new DummyTraceContext();
+        SimpleSpan span = new SimpleSpan();
+        sut.end(traceContext, span);
+        sut.close();
 
-		verify(sender).sendSpan(eq("defaultOperation"), anyLong(), anyLong(), eq("source"),
-				eq(UUID.fromString("00000000-0000-0000-7fff-ffffffffffff")),
-				eq(UUID.fromString("00000000-0000-0000-7fff-ffffffffffff")), any(), any(), any(), any());
-	}
+        verify(sender).sendSpan(eq("defaultOperation"), anyLong(), anyLong(), eq("source"),
+                eq(UUID.fromString("00000000-0000-0000-7fff-ffffffffffff")),
+                eq(UUID.fromString("00000000-0000-0000-7fff-ffffffffffff")), any(), any(), any(), any());
+    }
 
-	@Test
-	void stopsInTime() {
-		await().pollDelay(Duration.ofMillis(10)).atMost(Duration.ofMillis(100)).until(() -> {
-			sut.close();
-			return true;
-		});
-	}
+    @Test
+    void stopsInTime() {
+        await().pollDelay(Duration.ofMillis(10)).atMost(Duration.ofMillis(100)).until(() -> {
+            sut.close();
+            return true;
+        });
+    }
 
-	static class DummyTraceContext implements TraceContext {
+    static class DummyTraceContext implements TraceContext {
 
-		@Override
-		public String traceId() {
-			return "7fffffffffffffff";
-		}
+        @Override
+        public String traceId() {
+            return "7fffffffffffffff";
+        }
 
-		@Override
-		public String parentId() {
-			return null;
-		}
+        @Override
+        public String parentId() {
+            return null;
+        }
 
-		@Override
-		public String spanId() {
-			return "7fffffffffffffff";
-		}
+        @Override
+        public String spanId() {
+            return "7fffffffffffffff";
+        }
 
-		@Override
-		public Boolean sampled() {
-			return true;
-		}
+        @Override
+        public Boolean sampled() {
+            return true;
+        }
 
-	}
+    }
 
 }

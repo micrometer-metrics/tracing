@@ -35,54 +35,54 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CompositeTextMapPropagatorTest {
 
-	@Test
-	void extract_onlyBaggage() {
-		CompositeTextMapPropagator compositeTextMapPropagator = new CompositeTextMapPropagator(
-				new CompositeTextMapPropagator.PropagationSupplier() {
-					@Override
-					public <T> ObjectProvider<T> getProvider(Class<T> clazz) {
-						return Supplier::get;
-					}
-				}, Collections.singletonList(PropagationType.W3C));
+    @Test
+    void extract_onlyBaggage() {
+        CompositeTextMapPropagator compositeTextMapPropagator = new CompositeTextMapPropagator(
+                new CompositeTextMapPropagator.PropagationSupplier() {
+                    @Override
+                    public <T> ObjectProvider<T> getProvider(Class<T> clazz) {
+                        return Supplier::get;
+                    }
+                }, Collections.singletonList(PropagationType.W3C));
 
-		Map<String, String> carrier = new HashMap<>();
-		carrier.put("baggage", "key=value");
-		Context result = compositeTextMapPropagator.extract(Context.root(), carrier, new MapGetter());
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "key=value");
+        Context result = compositeTextMapPropagator.extract(Context.root(), carrier, new MapGetter());
 
-		assertThat(Baggage.fromContextOrNull(result)).isNotNull();
-		assertThat(Baggage.fromContext(result)).isEqualTo(Baggage.builder().put("key", "value").build());
-	}
+        assertThat(Baggage.fromContextOrNull(result)).isNotNull();
+        assertThat(Baggage.fromContext(result)).isEqualTo(Baggage.builder().put("key", "value").build());
+    }
 
-	@Test
-	void should_map_propagaotr_string_class_names_to_actual_classes() {
-		CompositeTextMapPropagator propagator = new CompositeTextMapPropagator(
-				new CompositeTextMapPropagator.PropagationSupplier() {
-					@Override
-					public <T> ObjectProvider<T> getProvider(Class<T> clazz) {
-						return Supplier::get;
-					}
-				}, Collections.emptyList());
+    @Test
+    void should_map_propagaotr_string_class_names_to_actual_classes() {
+        CompositeTextMapPropagator propagator = new CompositeTextMapPropagator(
+                new CompositeTextMapPropagator.PropagationSupplier() {
+                    @Override
+                    public <T> ObjectProvider<T> getProvider(Class<T> clazz) {
+                        return Supplier::get;
+                    }
+                }, Collections.emptyList());
 
-		SoftAssertions softly = new SoftAssertions();
-		softly.assertThat(propagator.awsClass()).isEqualTo(AwsXrayPropagator.class.getName());
-		softly.assertThat(propagator.b3Class()).isEqualTo(B3Propagator.class.getName());
-		softly.assertThat(propagator.jaegerClass()).isEqualTo(JaegerPropagator.class.getName());
-		softly.assertThat(propagator.otClass()).isEqualTo(OtTracePropagator.class.getName());
-		softly.assertAll();
-	}
+        SoftAssertions softly = new SoftAssertions();
+        softly.assertThat(propagator.awsClass()).isEqualTo(AwsXrayPropagator.class.getName());
+        softly.assertThat(propagator.b3Class()).isEqualTo(B3Propagator.class.getName());
+        softly.assertThat(propagator.jaegerClass()).isEqualTo(JaegerPropagator.class.getName());
+        softly.assertThat(propagator.otClass()).isEqualTo(OtTracePropagator.class.getName());
+        softly.assertAll();
+    }
 
-	private static class MapGetter implements TextMapGetter<Map<String, String>> {
+    private static class MapGetter implements TextMapGetter<Map<String, String>> {
 
-		@Override
-		public Iterable<String> keys(Map<String, String> carrier) {
-			return carrier.keySet();
-		}
+        @Override
+        public Iterable<String> keys(Map<String, String> carrier) {
+            return carrier.keySet();
+        }
 
-		@Override
-		public String get(Map<String, String> carrier, String key) {
-			return carrier.get(key);
-		}
+        @Override
+        public String get(Map<String, String> carrier, String key) {
+            return carrier.get(key);
+        }
 
-	}
+    }
 
 }

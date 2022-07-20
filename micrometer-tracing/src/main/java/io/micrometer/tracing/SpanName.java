@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * {@link Runnable Runnable} or {@link java.util.concurrent.Callable Callable} classes for
  * the instrumentation logic to pick up how to name the span.
  * <p>
- *
+ * <p>
  * Having for example the following code <pre>{@code
  *     &#64;SpanName("custom-operation")
  *     class CustomRunnable implements Runnable {
@@ -37,10 +37,10 @@ import java.lang.annotation.Target;
  *         }
  *      }
  * }</pre>
- *
+ * <p>
  * Will result in creating a span with name {@code custom-operation}.
  * <p>
- *
+ * <p>
  * When there's no @SpanName annotation, {@code toString} is used. Here's an example of
  * the above, but via an anonymous instance. <pre>{@code
  *     return new Runnable() {
@@ -61,10 +61,10 @@ import java.lang.annotation.Target;
 @Documented
 public @interface SpanName {
 
-	/**
-	 * Name of the span to be resolved at runtime.
-	 * @return - value of the span name.
-	 */
-	String value();
+    /**
+     * Name of the span to be resolved at runtime.
+     * @return - value of the span name.
+     */
+    String value();
 
 }

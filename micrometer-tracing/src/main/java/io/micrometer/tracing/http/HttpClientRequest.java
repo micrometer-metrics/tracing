@@ -19,7 +19,7 @@ import io.micrometer.observation.transport.Kind;
 
 /**
  * This API is taken from OpenZipkin Brave.
- *
+ * <p>
  * Abstract request type used for parsing and sampling. Represents an HTTP Client request.
  *
  * @author OpenZipkin Brave Authors
@@ -28,16 +28,16 @@ import io.micrometer.observation.transport.Kind;
  */
 public interface HttpClientRequest extends HttpRequest {
 
-	/**
-	 * Adds a new header.
-	 * @param name header name
-	 * @param value header value
-	 */
-	void header(String name, String value);
+    /**
+     * Adds a new header.
+     * @param name header name
+     * @param value header value
+     */
+    void header(String name, String value);
 
-	@Override
-	default Kind kind() {
-		return Kind.CLIENT;
-	}
+    @Override
+    default Kind kind() {
+        return Kind.CLIENT;
+    }
 
 }

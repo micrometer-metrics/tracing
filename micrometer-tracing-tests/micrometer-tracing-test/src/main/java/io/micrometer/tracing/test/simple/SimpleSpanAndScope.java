@@ -35,37 +35,37 @@ import io.micrometer.tracing.Tracer;
  */
 public class SimpleSpanAndScope extends SpanAndScope {
 
-	static final Map<TraceContext, Span> traceContextsToSpans = new ConcurrentHashMap<>();
+    static final Map<TraceContext, Span> traceContextsToSpans = new ConcurrentHashMap<>();
 
-	private final TraceContext traceContext;
+    private final TraceContext traceContext;
 
-	/**
-	 * Creates a new span and scope
-	 * @param span span
-	 * @param scope scope
-	 */
-	public SimpleSpanAndScope(Span span, @Nullable Tracer.SpanInScope scope) {
-		super(span, scope);
-		this.traceContext = span.context();
-	}
+    /**
+     * Creates a new span and scope
+     * @param span span
+     * @param scope scope
+     */
+    public SimpleSpanAndScope(Span span, @Nullable Tracer.SpanInScope scope) {
+        super(span, scope);
+        this.traceContext = span.context();
+    }
 
-	/**
-	 * Creates a new span and scope
-	 * @param traceContext trace context
-	 * @param scope scope
-	 */
-	public SimpleSpanAndScope(TraceContext traceContext, @Nullable Tracer.SpanInScope scope) {
-		super(Objects.requireNonNull(traceContextsToSpans.get(traceContext),
-				"You must create a span with this context before"), scope);
-		this.traceContext = traceContext;
-	}
+    /**
+     * Creates a new span and scope
+     * @param traceContext trace context
+     * @param scope scope
+     */
+    public SimpleSpanAndScope(TraceContext traceContext, @Nullable Tracer.SpanInScope scope) {
+        super(Objects.requireNonNull(traceContextsToSpans.get(traceContext),
+                "You must create a span with this context before"), scope);
+        this.traceContext = traceContext;
+    }
 
-	/**
-	 * Gets the trace context.
-	 * @return trace context
-	 */
-	public TraceContext getTraceContext() {
-		return traceContext;
-	}
+    /**
+     * Gets the trace context.
+     * @return trace context
+     */
+    public TraceContext getTraceContext() {
+        return traceContext;
+    }
 
 }

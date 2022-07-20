@@ -48,131 +48,131 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 class BaseTests {
 
-	ArrayListSpanProcessor spans = new ArrayListSpanProcessor();
+    ArrayListSpanProcessor spans = new ArrayListSpanProcessor();
 
-	SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder().setSampler(alwaysOn()).addSpanProcessor(spans)
-			.build();
+    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder().setSampler(alwaysOn()).addSpanProcessor(spans)
+            .build();
 
-	OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-			.setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
+            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
 
-	io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracerProvider()
-			.get("io.micrometer.micrometer-tracing");
+    io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracerProvider()
+            .get("io.micrometer.micrometer-tracing");
 
-	OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
+    OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
 
-	OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
-	}, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
+    OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
+    }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
 
-	@BeforeEach
-	void setup() {
-		this.spans.clear();
-	}
+    @BeforeEach
+    void setup() {
+        this.spans.clear();
+    }
 
-	@AfterEach
-	void close() {
-		this.sdkTracerProvider.close();
-	}
+    @AfterEach
+    void close() {
+        this.sdkTracerProvider.close();
+    }
 
-	@Test
-	void should_create_a_span_with_tracer() {
-		String taxValue = "10";
+    @Test
+    void should_create_a_span_with_tracer() {
+        String taxValue = "10";
 
-		// tag::manual_span_creation[]
-		// Start a span. If there was a span present in this thread it will become
-		// the `newSpan`'s parent.
-		Span newSpan = this.tracer.nextSpan().name("calculateTax");
-		try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
-			// ...
-			// You can tag a span
-			newSpan.tag("taxValue", taxValue);
-			// ...
-			// You can log an event on a span
-			newSpan.event("taxCalculated");
-		}
-		finally {
-			// Once done remember to end the span. This will allow collecting
-			// the span to send it to a distributed tracing system e.g. Zipkin
-			newSpan.end();
-		}
-		// end::manual_span_creation[]
+        // tag::manual_span_creation[]
+        // Start a span. If there was a span present in this thread it will become
+        // the `newSpan`'s parent.
+        Span newSpan = this.tracer.nextSpan().name("calculateTax");
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
+            // ...
+            // You can tag a span
+            newSpan.tag("taxValue", taxValue);
+            // ...
+            // You can log an event on a span
+            newSpan.event("taxCalculated");
+        }
+        finally {
+            // Once done remember to end the span. This will allow collecting
+            // the span to send it to a distributed tracing system e.g. Zipkin
+            newSpan.end();
+        }
+        // end::manual_span_creation[]
 
-		then(this.spans.spans()).hasSize(1);
-		SpanData spanData = this.spans.takeLocalSpan();
-		then(spanData.getName()).isEqualTo("calculateTax");
-		then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
-		then(spanData.getEvents()).hasSize(1);
-	}
+        then(this.spans.spans()).hasSize(1);
+        SpanData spanData = this.spans.takeLocalSpan();
+        then(spanData.getName()).isEqualTo("calculateTax");
+        then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
+        then(spanData.getEvents()).hasSize(1);
+    }
 
-	@Test
-	void should_continue_a_span_with_tracer() throws Exception {
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		String taxValue = "10";
-		// tag::manual_span_continuation[]
-		Span spanFromThreadX = this.tracer.nextSpan().name("calculateTax");
-		try (Tracer.SpanInScope ws = this.tracer.withSpan(spanFromThreadX.start())) {
-			executorService.submit(() -> {
-				// Pass the span from thread X
-				Span continuedSpan = spanFromThreadX;
-				// ...
-				// You can tag a span
-				continuedSpan.tag("taxValue", taxValue);
-				// ...
-				// You can log an event on a span
-				continuedSpan.event("taxCalculated");
-			}).get();
-		}
-		finally {
-			spanFromThreadX.end();
-		}
-		// end::manual_span_continuation[]
+    @Test
+    void should_continue_a_span_with_tracer() throws Exception {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        String taxValue = "10";
+        // tag::manual_span_continuation[]
+        Span spanFromThreadX = this.tracer.nextSpan().name("calculateTax");
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(spanFromThreadX.start())) {
+            executorService.submit(() -> {
+                // Pass the span from thread X
+                Span continuedSpan = spanFromThreadX;
+                // ...
+                // You can tag a span
+                continuedSpan.tag("taxValue", taxValue);
+                // ...
+                // You can log an event on a span
+                continuedSpan.event("taxCalculated");
+            }).get();
+        }
+        finally {
+            spanFromThreadX.end();
+        }
+        // end::manual_span_continuation[]
 
-		then(spans.spans()).hasSize(1);
-		SpanData spanData = this.spans.takeLocalSpan();
-		then(spanData.getName()).isEqualTo("calculateTax");
-		then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
-		then(spanData.getEvents()).hasSize(1);
-		executorService.shutdown();
-	}
+        then(spans.spans()).hasSize(1);
+        SpanData spanData = this.spans.takeLocalSpan();
+        then(spanData.getName()).isEqualTo("calculateTax");
+        then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
+        then(spanData.getEvents()).hasSize(1);
+        executorService.shutdown();
+    }
 
-	@Test
-	void should_start_a_span_with_explicit_parent() throws Exception {
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		String commissionValue = "10";
-		Span initialSpan = this.tracer.nextSpan().name("calculateTax").start();
+    @Test
+    void should_start_a_span_with_explicit_parent() throws Exception {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        String commissionValue = "10";
+        Span initialSpan = this.tracer.nextSpan().name("calculateTax").start();
 
-		executorService.submit(() -> {
-			// tag::manual_span_joining[]
-			// let's assume that we're in a thread Y and we've received
-			// the `initialSpan` from thread X. `initialSpan` will be the parent
-			// of the `newSpan`
-			Span newSpan = null;
-			try (Tracer.SpanInScope ws = this.tracer.withSpan(initialSpan)) {
-				newSpan = this.tracer.nextSpan().name("calculateCommission");
-				// ...
-				// You can tag a span
-				newSpan.tag("commissionValue", commissionValue);
-				// ...
-				// You can log an event on a span
-				newSpan.event("commissionCalculated");
-			}
-			finally {
-				// Once done remember to end the span. This will allow collecting
-				// the span to send it to e.g. Zipkin. The tags and events set on the
-				// newSpan will not be present on the parent
-				if (newSpan != null) {
-					newSpan.end();
-				}
-			}
-			// end::manual_span_joining[]
-		}).get();
-		;
-		Optional<SpanData> calculateTax = spans.spans().stream()
-				.filter(span -> span.getName().equals("calculateCommission")).findFirst();
-		then(calculateTax).isPresent();
-		then(calculateTax.get().getAttributes().asMap()).containsEntry(AttributeKey.stringKey("commissionValue"), "10");
-		then(calculateTax.get().getEvents()).hasSize(1);
-		executorService.shutdown();
-	}
+        executorService.submit(() -> {
+            // tag::manual_span_joining[]
+            // let's assume that we're in a thread Y and we've received
+            // the `initialSpan` from thread X. `initialSpan` will be the parent
+            // of the `newSpan`
+            Span newSpan = null;
+            try (Tracer.SpanInScope ws = this.tracer.withSpan(initialSpan)) {
+                newSpan = this.tracer.nextSpan().name("calculateCommission");
+                // ...
+                // You can tag a span
+                newSpan.tag("commissionValue", commissionValue);
+                // ...
+                // You can log an event on a span
+                newSpan.event("commissionCalculated");
+            }
+            finally {
+                // Once done remember to end the span. This will allow collecting
+                // the span to send it to e.g. Zipkin. The tags and events set on the
+                // newSpan will not be present on the parent
+                if (newSpan != null) {
+                    newSpan.end();
+                }
+            }
+            // end::manual_span_joining[]
+        }).get();
+        ;
+        Optional<SpanData> calculateTax = spans.spans().stream()
+                .filter(span -> span.getName().equals("calculateCommission")).findFirst();
+        then(calculateTax).isPresent();
+        then(calculateTax.get().getAttributes().asMap()).containsEntry(AttributeKey.stringKey("commissionValue"), "10");
+        then(calculateTax.get().getEvents()).hasSize(1);
+        executorService.shutdown();
+    }
 
 }

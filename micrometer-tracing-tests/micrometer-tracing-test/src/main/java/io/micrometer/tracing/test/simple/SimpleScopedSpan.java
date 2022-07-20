@@ -27,53 +27,53 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleScopedSpan implements ScopedSpan {
 
-	private final SimpleSpan span;
+    private final SimpleSpan span;
 
-	/**
-	 * Creates a new instance of {@link SimpleScopedSpan}.
-	 * @param simpleTracer simple tracer
-	 */
-	public SimpleScopedSpan(SimpleTracer simpleTracer) {
-		this.span = simpleTracer.nextSpan().start();
-	}
+    /**
+     * Creates a new instance of {@link SimpleScopedSpan}.
+     * @param simpleTracer simple tracer
+     */
+    public SimpleScopedSpan(SimpleTracer simpleTracer) {
+        this.span = simpleTracer.nextSpan().start();
+    }
 
-	@Override
-	public boolean isNoop() {
-		return this.span.isNoop();
-	}
+    @Override
+    public boolean isNoop() {
+        return this.span.isNoop();
+    }
 
-	@Override
-	public TraceContext context() {
-		return new SimpleTraceContext();
-	}
+    @Override
+    public TraceContext context() {
+        return new SimpleTraceContext();
+    }
 
-	@Override
-	public ScopedSpan name(String name) {
-		this.span.name(name);
-		return this;
-	}
+    @Override
+    public ScopedSpan name(String name) {
+        this.span.name(name);
+        return this;
+    }
 
-	@Override
-	public ScopedSpan tag(String key, String value) {
-		this.span.tag(key, value);
-		return this;
-	}
+    @Override
+    public ScopedSpan tag(String key, String value) {
+        this.span.tag(key, value);
+        return this;
+    }
 
-	@Override
-	public ScopedSpan event(String value) {
-		this.span.event(value);
-		return this;
-	}
+    @Override
+    public ScopedSpan event(String value) {
+        this.span.event(value);
+        return this;
+    }
 
-	@Override
-	public ScopedSpan error(Throwable throwable) {
-		this.span.error(throwable);
-		return this;
-	}
+    @Override
+    public ScopedSpan error(Throwable throwable) {
+        this.span.error(throwable);
+        return this;
+    }
 
-	@Override
-	public void end() {
-		this.span.end();
-	}
+    @Override
+    public void end() {
+        this.span.end();
+    }
 
 }

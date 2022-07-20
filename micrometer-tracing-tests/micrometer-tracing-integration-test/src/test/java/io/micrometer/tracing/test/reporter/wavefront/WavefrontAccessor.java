@@ -21,30 +21,30 @@ import org.mockito.BDDMockito;
 
 public class WavefrontAccessor {
 
-	/**
-	 * @return mocked span handler for Brave
-	 */
-	public static WavefrontSpanHandler setMockForBrave() {
-		WavefrontSpanHandler handler = BDDMockito.mock(WavefrontSpanHandler.class);
-		WavefrontBraveSetup.mockHandler = handler;
-		return handler;
-	}
+    /**
+     * @return mocked span handler for Brave
+     */
+    public static WavefrontSpanHandler setMockForBrave() {
+        WavefrontSpanHandler handler = BDDMockito.mock(WavefrontSpanHandler.class);
+        WavefrontBraveSetup.mockHandler = handler;
+        return handler;
+    }
 
-	/**
-	 * @return mocked span handler for Otel
-	 */
-	public static WavefrontSpanHandler setMockForOTel() {
-		WavefrontSpanHandler handler = BDDMockito.mock(WavefrontSpanHandler.class);
-		WavefrontOtelSetup.mockHandler = handler;
-		return handler;
-	}
+    /**
+     * @return mocked span handler for Otel
+     */
+    public static WavefrontSpanHandler setMockForOTel() {
+        WavefrontSpanHandler handler = BDDMockito.mock(WavefrontSpanHandler.class);
+        WavefrontOtelSetup.mockHandler = handler;
+        return handler;
+    }
 
-	/**
-	 * Resets any mocks.
-	 */
-	public static void resetMocks() {
-		WavefrontBraveSetup.mockHandler = null;
-		WavefrontOtelSetup.mockHandler = null;
-	}
+    /**
+     * Resets any mocks.
+     */
+    public static void resetMocks() {
+        WavefrontBraveSetup.mockHandler = null;
+        WavefrontOtelSetup.mockHandler = null;
+    }
 
 }

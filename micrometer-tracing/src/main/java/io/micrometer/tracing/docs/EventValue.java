@@ -24,9 +24,9 @@ package io.micrometer.tracing.docs;
  */
 public interface EventValue {
 
-	/**
-	 * @return event value
-	 */
-	String getValue();
+    /**
+     * @return event value
+     */
+    String getValue();
 
 }

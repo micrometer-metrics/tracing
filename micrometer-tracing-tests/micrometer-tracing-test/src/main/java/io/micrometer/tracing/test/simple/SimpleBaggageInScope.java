@@ -27,73 +27,73 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleBaggageInScope implements BaggageInScope {
 
-	private final SimpleBaggageManager.Baggage baggage;
+    private final SimpleBaggageManager.Baggage baggage;
 
-	private boolean inScope;
+    private boolean inScope;
 
-	private boolean closed;
+    private boolean closed;
 
-	/**
-	 * Creates a new instance of {@link SimpleBaggageInScope}.
-	 * @param baggage baggage
-	 */
-	public SimpleBaggageInScope(SimpleBaggageManager.Baggage baggage) {
-		this.baggage = baggage;
-	}
+    /**
+     * Creates a new instance of {@link SimpleBaggageInScope}.
+     * @param baggage baggage
+     */
+    public SimpleBaggageInScope(SimpleBaggageManager.Baggage baggage) {
+        this.baggage = baggage;
+    }
 
-	@Override
-	public String name() {
-		return this.baggage.name;
-	}
+    @Override
+    public String name() {
+        return this.baggage.name;
+    }
 
-	@Override
-	public String get() {
-		return this.baggage.value;
-	}
+    @Override
+    public String get() {
+        return this.baggage.value;
+    }
 
-	@Override
-	public String get(TraceContext traceContext) {
-		return baggage.value;
-	}
+    @Override
+    public String get(TraceContext traceContext) {
+        return baggage.value;
+    }
 
-	@Override
-	public BaggageInScope set(String value) {
-		this.baggage.value = value;
-		return this;
-	}
+    @Override
+    public BaggageInScope set(String value) {
+        this.baggage.value = value;
+        return this;
+    }
 
-	@Override
-	public BaggageInScope set(TraceContext traceContext, String value) {
-		baggage.value = value;
-		return this;
-	}
+    @Override
+    public BaggageInScope set(TraceContext traceContext, String value) {
+        baggage.value = value;
+        return this;
+    }
 
-	@Override
-	public BaggageInScope makeCurrent() {
-		this.inScope = true;
-		return this;
-	}
+    @Override
+    public BaggageInScope makeCurrent() {
+        this.inScope = true;
+        return this;
+    }
 
-	@Override
-	public void close() {
-		this.inScope = false;
-		this.closed = true;
-	}
+    @Override
+    public void close() {
+        this.inScope = false;
+        this.closed = true;
+    }
 
-	/**
-	 * Checks if baggage is in scope.
-	 * @return {@code true} when baggage in scope
-	 */
-	public boolean isInScope() {
-		return inScope;
-	}
+    /**
+     * Checks if baggage is in scope.
+     * @return {@code true} when baggage in scope
+     */
+    public boolean isInScope() {
+        return inScope;
+    }
 
-	/**
-	 * Checks if baggage scope was closed.
-	 * @return {@code true} when baggage was closed
-	 */
-	public boolean isClosed() {
-		return closed;
-	}
+    /**
+     * Checks if baggage scope was closed.
+     * @return {@code true} when baggage was closed
+     */
+    public boolean isClosed() {
+        return closed;
+    }
 
 }

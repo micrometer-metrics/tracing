@@ -49,134 +49,134 @@ import static org.assertj.core.api.BDDAssertions.then;
 @SuppressWarnings("unchecked")
 class DefaultTracingObservationHandlerOtelTests {
 
-	ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
+    ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
 
-	SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-			.setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-			.addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
+    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+            .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
 
-	OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-			.setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
+            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
 
-	io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+    io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
-	Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> {
-	}, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
+    Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> {
+    }, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
 
-	DefaultTracingObservationHandler handler = new DefaultTracingObservationHandler(tracer);
+    DefaultTracingObservationHandler handler = new DefaultTracingObservationHandler(tracer);
 
-	@Test
-	void should_be_applicable_for_non_null_context() {
-		then(handler.supportsContext(new Observation.Context())).isTrue();
-	}
+    @Test
+    void should_be_applicable_for_non_null_context() {
+        then(handler.supportsContext(new Observation.Context())).isTrue();
+    }
 
-	@Test
-	void should_not_be_applicable_for_null_context() {
-		then(handler.supportsContext(null)).isFalse();
-	}
+    @Test
+    void should_not_be_applicable_for_null_context() {
+        then(handler.supportsContext(null)).isFalse();
+    }
 
-	@Test
-	void should_put_and_remove_trace_from_thread_local_on_scope_change() {
-		Observation.Context context = new Observation.Context().setName("foo");
-		long currentNanos = System.nanoTime();
+    @Test
+    void should_put_and_remove_trace_from_thread_local_on_scope_change() {
+        Observation.Context context = new Observation.Context().setName("foo");
+        long currentNanos = System.nanoTime();
 
-		handler.onStart(context);
+        handler.onStart(context);
 
-		then(tracer.currentSpan()).as("Span NOT put in scope").isNull();
+        then(tracer.currentSpan()).as("Span NOT put in scope").isNull();
 
-		handler.onScopeOpened(context);
+        handler.onScopeOpened(context);
 
-		then(tracer.currentSpan()).as("Span put in scope").isNotNull();
+        then(tracer.currentSpan()).as("Span put in scope").isNotNull();
 
-		handler.onScopeClosed(context);
+        handler.onScopeClosed(context);
 
-		then(tracer.currentSpan()).as("Span removed from scope").isNull();
+        then(tracer.currentSpan()).as("Span removed from scope").isNull();
 
-		handler.onStop(context);
+        handler.onStop(context);
 
-		then(tracer.currentSpan()).as("Span still not in scope").isNull();
-		thenSpanStartedAndStopped(currentNanos);
-	}
+        then(tracer.currentSpan()).as("Span still not in scope").isNull();
+        thenSpanStartedAndStopped(currentNanos);
+    }
 
-	@Test
-	void should_create_parent_child_relationship_via_observations() {
-		TestObservationRegistry registry = TestObservationRegistry.create();
-		registry.observationConfig().observationHandler(handler);
+    @Test
+    void should_create_parent_child_relationship_via_observations() {
+        TestObservationRegistry registry = TestObservationRegistry.create();
+        registry.observationConfig().observationHandler(handler);
 
-		Observation parent = Observation.start("parent", registry);
-		Observation child = Observation.createNotStarted("child", registry).parentObservation(parent).start();
-		Observation grandchild = Observation.createNotStarted("grandchild", registry).parentObservation(child).start();
+        Observation parent = Observation.start("parent", registry);
+        Observation child = Observation.createNotStarted("child", registry).parentObservation(parent).start();
+        Observation grandchild = Observation.createNotStarted("grandchild", registry).parentObservation(child).start();
 
-		grandchild.stop();
-		child.stop();
-		parent.stop();
+        grandchild.stop();
+        child.stop();
+        parent.stop();
 
-		List<FinishedSpan> spans = testSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
-				.collect(Collectors.toList());
-		SpansAssert.then(spans).haveSameTraceId();
-		FinishedSpan grandchildFinishedSpan = spans.get(0);
-		SpanAssert.then(grandchildFinishedSpan).hasNameEqualTo("grandchild");
-		FinishedSpan childFinishedSpan = spans.get(1);
-		SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
-		FinishedSpan parentFinishedSpan = spans.get(2);
-		SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
+        List<FinishedSpan> spans = testSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
+                .collect(Collectors.toList());
+        SpansAssert.then(spans).haveSameTraceId();
+        FinishedSpan grandchildFinishedSpan = spans.get(0);
+        SpanAssert.then(grandchildFinishedSpan).hasNameEqualTo("grandchild");
+        FinishedSpan childFinishedSpan = spans.get(1);
+        SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
+        FinishedSpan parentFinishedSpan = spans.get(2);
+        SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 
-		then(grandchildFinishedSpan.getParentId()).isEqualTo(childFinishedSpan.getSpanId());
-		then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
-	}
+        then(grandchildFinishedSpan.getParentId()).isEqualTo(childFinishedSpan.getSpanId());
+        then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
+    }
 
-	@Test
-	void should_use_contextual_name() {
-		Observation.Context context = new Observation.Context().setName("foo").setContextualName("bar");
+    @Test
+    void should_use_contextual_name() {
+        Observation.Context context = new Observation.Context().setName("foo").setContextualName("bar");
 
-		handler.onStart(context);
-		handler.onStop(context);
+        handler.onStart(context);
+        handler.onStop(context);
 
-		SpanData data = takeOnlySpan();
-		then(data.getName()).isEqualTo("bar");
-	}
+        SpanData data = takeOnlySpan();
+        then(data.getName()).isEqualTo("bar");
+    }
 
-	@Test
-	void should_signal_errors() {
-		Exception error = new IOException("simulated");
-		Observation.Context context = new Observation.Context().setName("foo").setError(error);
+    @Test
+    void should_signal_errors() {
+        Exception error = new IOException("simulated");
+        Observation.Context context = new Observation.Context().setName("foo").setError(error);
 
-		handler.onStart(context);
-		handler.onError(context);
-		handler.onStop(context);
+        handler.onStart(context);
+        handler.onError(context);
+        handler.onStop(context);
 
-		SpanData data = takeOnlySpan();
-		then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("exception");
-		then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.type")))
-				.isEqualTo("java.io.IOException");
-		then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.message")))
-				.isEqualTo("simulated");
-	}
+        SpanData data = takeOnlySpan();
+        then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("exception");
+        then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.type")))
+                .isEqualTo("java.io.IOException");
+        then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.message")))
+                .isEqualTo("simulated");
+    }
 
-	@Test
-	void should_signal_events() {
-		Observation.Event event = new Observation.Event("foo", "bar");
-		Observation.Context context = new Observation.Context().setName("foo");
+    @Test
+    void should_signal_events() {
+        Observation.Event event = new Observation.Event("foo", "bar");
+        Observation.Context context = new Observation.Context().setName("foo");
 
-		handler.onStart(context);
-		handler.onEvent(event, context);
-		handler.onStop(context);
+        handler.onStart(context);
+        handler.onEvent(event, context);
+        handler.onStop(context);
 
-		SpanData data = takeOnlySpan();
-		then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("bar");
-	}
+        SpanData data = takeOnlySpan();
+        then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("bar");
+    }
 
-	private SpanData takeOnlySpan() {
-		Queue<SpanData> spans = testSpanProcessor.spans();
-		then(spans).hasSize(1);
-		return testSpanProcessor.takeLocalSpan();
-	}
+    private SpanData takeOnlySpan() {
+        Queue<SpanData> spans = testSpanProcessor.spans();
+        then(spans).hasSize(1);
+        return testSpanProcessor.takeLocalSpan();
+    }
 
-	private void thenSpanStartedAndStopped(long currentNanos) {
-		SpanData data = takeOnlySpan();
-		long startTimestamp = data.getStartEpochNanos();
-		then(startTimestamp).isGreaterThan(currentNanos);
-		then(data.getEndEpochNanos()).as("Span has to have a duration").isGreaterThan(startTimestamp);
-	}
+    private void thenSpanStartedAndStopped(long currentNanos) {
+        SpanData data = takeOnlySpan();
+        long startTimestamp = data.getStartEpochNanos();
+        then(startTimestamp).isGreaterThan(currentNanos);
+        then(data.getEndEpochNanos()).as("Span has to have a duration").isGreaterThan(startTimestamp);
+    }
 
 }

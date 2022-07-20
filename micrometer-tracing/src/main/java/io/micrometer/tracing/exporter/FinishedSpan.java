@@ -24,7 +24,7 @@ import io.micrometer.common.lang.Nullable;
 
 /**
  * This API is inspired by OpenZipkin Brave (from {code MutableSpan}).
- *
+ * <p>
  * Represents a span that has been finished and is ready to be sent to an external
  * location (e.g. Zipkin).
  *
@@ -34,119 +34,119 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface FinishedSpan {
 
-	/**
-	 * @return this
-	 */
-	FinishedSpan setName(String name);
+    /**
+     * @return this
+     */
+    FinishedSpan setName(String name);
 
-	/**
-	 * @return span's name
-	 */
-	String getName();
+    /**
+     * @return span's name
+     */
+    String getName();
 
-	/**
-	 * @return span's start timestamp
-	 */
-	long getStartTimestamp();
+    /**
+     * @return span's start timestamp
+     */
+    long getStartTimestamp();
 
-	/**
-	 * @return span's end timestamp
-	 */
-	long getEndTimestamp();
+    /**
+     * @return span's end timestamp
+     */
+    long getEndTimestamp();
 
-	/**
-	 * @return this
-	 */
-	FinishedSpan setTags(Map<String, String> tags);
+    /**
+     * @return this
+     */
+    FinishedSpan setTags(Map<String, String> tags);
 
-	/**
-	 * @return span's tags
-	 */
-	Map<String, String> getTags();
+    /**
+     * @return span's tags
+     */
+    Map<String, String> getTags();
 
-	/**
-	 * @return this
-	 */
-	FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events);
+    /**
+     * @return this
+     */
+    FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events);
 
-	/**
-	 * @return span's events as timestamp to value mapping
-	 */
-	Collection<Map.Entry<Long, String>> getEvents();
+    /**
+     * @return span's events as timestamp to value mapping
+     */
+    Collection<Map.Entry<Long, String>> getEvents();
 
-	/**
-	 * @return span's span id
-	 */
-	String getSpanId();
+    /**
+     * @return span's span id
+     */
+    String getSpanId();
 
-	/**
-	 * @return span's parent id or {@code null} if not set
-	 */
-	@Nullable
-	String getParentId();
+    /**
+     * @return span's parent id or {@code null} if not set
+     */
+    @Nullable
+    String getParentId();
 
-	/**
-	 * @return span's remote ip
-	 */
-	@Nullable
-	String getRemoteIp();
+    /**
+     * @return span's remote ip
+     */
+    @Nullable
+    String getRemoteIp();
 
-	/**
-	 * @return span's local ip
-	 */
-	@Nullable
-	default String getLocalIp() {
-		return null;
-	}
+    /**
+     * @return span's local ip
+     */
+    @Nullable
+    default String getLocalIp() {
+        return null;
+    }
 
-	/**
-	 * @param ip
-	 * @return this
-	 */
-	FinishedSpan setLocalIp(String ip);
+    /**
+     * @param ip
+     * @return this
+     */
+    FinishedSpan setLocalIp(String ip);
 
-	/**
-	 * @return span's remote port
-	 */
-	int getRemotePort();
+    /**
+     * @return span's remote port
+     */
+    int getRemotePort();
 
-	/**
-	 * @return this
-	 */
-	FinishedSpan setRemotePort(int port);
+    /**
+     * @return this
+     */
+    FinishedSpan setRemotePort(int port);
 
-	/**
-	 * @return span's trace id
-	 */
-	String getTraceId();
+    /**
+     * @return span's trace id
+     */
+    String getTraceId();
 
-	/**
-	 * @return corresponding error or {@code null} if one was not thrown
-	 */
-	@Nullable
-	Throwable getError();
+    /**
+     * @return corresponding error or {@code null} if one was not thrown
+     */
+    @Nullable
+    Throwable getError();
 
-	/**
-	 * @param error
-	 * @return this
-	 */
-	FinishedSpan setError(Throwable error);
+    /**
+     * @param error
+     * @return this
+     */
+    FinishedSpan setError(Throwable error);
 
-	/**
-	 * @return span's kind
-	 */
-	Span.Kind getKind();
+    /**
+     * @return span's kind
+     */
+    Span.Kind getKind();
 
-	/**
-	 * @return remote service name or {@code null} if not set
-	 */
-	@Nullable
-	String getRemoteServiceName();
+    /**
+     * @return remote service name or {@code null} if not set
+     */
+    @Nullable
+    String getRemoteServiceName();
 
-	/**
-	 * @param remoteServiceName
-	 * @return this
-	 */
-	FinishedSpan setRemoteServiceName(String remoteServiceName);
+    /**
+     * @param remoteServiceName
+     * @return this
+     */
+    FinishedSpan setRemoteServiceName(String remoteServiceName);
 
 }

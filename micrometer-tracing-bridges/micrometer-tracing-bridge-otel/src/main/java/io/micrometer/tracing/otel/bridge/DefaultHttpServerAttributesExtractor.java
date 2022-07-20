@@ -32,112 +32,112 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttribut
  * @since 1.0.0
  */
 public class DefaultHttpServerAttributesExtractor
-		implements HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> {
+        implements HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> {
 
-	@Nullable
-	@Override
-	public String flavor(HttpServerRequest httpServerRequest) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public String flavor(HttpServerRequest httpServerRequest) {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public String target(HttpServerRequest httpServerRequest) {
-		URI uri = toUri(httpServerRequest);
-		if (uri == null) {
-			return null;
-		}
-		return uri.getPath() + queryPart(uri);
-	}
+    @Nullable
+    @Override
+    public String target(HttpServerRequest httpServerRequest) {
+        URI uri = toUri(httpServerRequest);
+        if (uri == null) {
+            return null;
+        }
+        return uri.getPath() + queryPart(uri);
+    }
 
-	private URI toUri(HttpServerRequest request) {
-		String url = request.url();
-		return url == null ? null : URI.create(url);
-	}
+    private URI toUri(HttpServerRequest request) {
+        String url = request.url();
+        return url == null ? null : URI.create(url);
+    }
 
-	private String queryPart(URI uri) {
-		String query = uri.getQuery();
-		return query != null ? "?" + query : "";
-	}
+    private String queryPart(URI uri) {
+        String query = uri.getQuery();
+        return query != null ? "?" + query : "";
+    }
 
-	@Nullable
-	@Override
-	public String route(HttpServerRequest httpServerRequest) {
-		return httpServerRequest.route();
-	}
+    @Nullable
+    @Override
+    public String route(HttpServerRequest httpServerRequest) {
+        return httpServerRequest.route();
+    }
 
-	@Nullable
-	@Override
-	public String scheme(HttpServerRequest httpServerRequest) {
-		String url = httpServerRequest.url();
-		if (url == null) {
-			return null;
-		}
-		if (url.startsWith("https:")) {
-			return "https";
-		}
-		if (url.startsWith("http:")) {
-			return "http";
-		}
-		return null;
-	}
+    @Nullable
+    @Override
+    public String scheme(HttpServerRequest httpServerRequest) {
+        String url = httpServerRequest.url();
+        if (url == null) {
+            return null;
+        }
+        if (url.startsWith("https:")) {
+            return "https";
+        }
+        if (url.startsWith("http:")) {
+            return "http";
+        }
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public String serverName(HttpServerRequest httpServerRequest) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public String serverName(HttpServerRequest httpServerRequest) {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public String method(HttpServerRequest httpServerRequest) {
-		return httpServerRequest.method();
-	}
+    @Nullable
+    @Override
+    public String method(HttpServerRequest httpServerRequest) {
+        return httpServerRequest.method();
+    }
 
-	@Override
-	public List<String> requestHeader(HttpServerRequest httpServerRequest, String name) {
-		String value = httpServerRequest.header(name);
-		return value == null ? Collections.emptyList() : Collections.singletonList(value);
-	}
+    @Override
+    public List<String> requestHeader(HttpServerRequest httpServerRequest, String name) {
+        String value = httpServerRequest.header(name);
+        return value == null ? Collections.emptyList() : Collections.singletonList(value);
+    }
 
-	@Nullable
-	@Override
-	public Long requestContentLength(HttpServerRequest httpServerRequest,
-			@Nullable HttpServerResponse httpServerResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long requestContentLength(HttpServerRequest httpServerRequest,
+            @Nullable HttpServerResponse httpServerResponse) {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public Long requestContentLengthUncompressed(HttpServerRequest httpServerRequest,
-			@Nullable HttpServerResponse httpServerResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long requestContentLengthUncompressed(HttpServerRequest httpServerRequest,
+            @Nullable HttpServerResponse httpServerResponse) {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public Integer statusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
-		return httpServerResponse.statusCode();
-	}
+    @Nullable
+    @Override
+    public Integer statusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
+        return httpServerResponse.statusCode();
+    }
 
-	@Nullable
-	@Override
-	public Long responseContentLength(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long responseContentLength(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public Long responseContentLengthUncompressed(HttpServerRequest httpServerRequest,
-			HttpServerResponse httpServerResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long responseContentLengthUncompressed(HttpServerRequest httpServerRequest,
+            HttpServerResponse httpServerResponse) {
+        return null;
+    }
 
-	@Override
-	public List<String> responseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
-			String name) {
-		String value = httpServerResponse.header(name);
-		return value == null ? Collections.emptyList() : Collections.singletonList(value);
-	}
+    @Override
+    public List<String> responseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+            String name) {
+        String value = httpServerResponse.header(name);
+        return value == null ? Collections.emptyList() : Collections.singletonList(value);
+    }
 
 }

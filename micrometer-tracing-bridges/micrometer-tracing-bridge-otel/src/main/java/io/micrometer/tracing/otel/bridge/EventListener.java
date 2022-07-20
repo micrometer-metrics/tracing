@@ -23,10 +23,10 @@ package io.micrometer.tracing.otel.bridge;
  */
 public interface EventListener {
 
-	/**
-	 * Processes an event.
-	 * @param event event to process
-	 */
-	void onEvent(Object event);
+    /**
+     * Processes an event.
+     * @param event event to process
+     */
+    void onEvent(Object event);
 
 }

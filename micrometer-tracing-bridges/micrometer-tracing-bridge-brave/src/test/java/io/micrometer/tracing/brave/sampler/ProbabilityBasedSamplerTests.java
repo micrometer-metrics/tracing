@@ -30,57 +30,57 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 class ProbabilityBasedSamplerTests {
 
-	private static Random RANDOM = new Random();
+    private static Random RANDOM = new Random();
 
-	@Test
-	void should_pass_all_samples_when_config_has_1_probability() throws Exception {
-		for (int i = 0; i < 10; i++) {
-			then(new ProbabilityBasedSampler(() -> 1f).isSampled(RANDOM.nextLong())).isTrue();
-		}
-	}
+    @Test
+    void should_pass_all_samples_when_config_has_1_probability() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            then(new ProbabilityBasedSampler(() -> 1f).isSampled(RANDOM.nextLong())).isTrue();
+        }
+    }
 
-	@Test
-	void should_reject_all_samples_when_config_has_0_probability() throws Exception {
-		for (int i = 0; i < 10; i++) {
-			then(new ProbabilityBasedSampler(() -> 0f).isSampled(RANDOM.nextLong())).isFalse();
-		}
-	}
+    @Test
+    void should_reject_all_samples_when_config_has_0_probability() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            then(new ProbabilityBasedSampler(() -> 0f).isSampled(RANDOM.nextLong())).isFalse();
+        }
+    }
 
-	@Test
-	void should_pass_given_percent_of_samples() throws Exception {
-		int numberOfIterations = 1000;
-		float probability = 1f;
+    @Test
+    void should_pass_given_percent_of_samples() throws Exception {
+        int numberOfIterations = 1000;
+        float probability = 1f;
 
-		int numberOfSampledElements = countNumberOfSampledElements(numberOfIterations, () -> probability);
+        int numberOfSampledElements = countNumberOfSampledElements(numberOfIterations, () -> probability);
 
-		then(numberOfSampledElements).isEqualTo((int) (numberOfIterations * probability));
-	}
+        then(numberOfSampledElements).isEqualTo((int) (numberOfIterations * probability));
+    }
 
-	@Test
-	void should_pass_given_percent_of_samples_with_fractional_element() throws Exception {
-		int numberOfIterations = 1000;
-		float probability = 0.35f;
+    @Test
+    void should_pass_given_percent_of_samples_with_fractional_element() throws Exception {
+        int numberOfIterations = 1000;
+        float probability = 0.35f;
 
-		int numberOfSampledElements = countNumberOfSampledElements(numberOfIterations, () -> probability);
+        int numberOfSampledElements = countNumberOfSampledElements(numberOfIterations, () -> probability);
 
-		int threshold = (int) (numberOfIterations * probability);
-		then(numberOfSampledElements).isEqualTo(threshold);
-	}
+        int threshold = (int) (numberOfIterations * probability);
+        then(numberOfSampledElements).isEqualTo(threshold);
+    }
 
-	@Test
-	void should_fail_given_no_probability() {
-		assertThatThrownBy(() -> new ProbabilityBasedSampler(null)).isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("probability property is required for ProbabilityBasedSampler");
-	}
+    @Test
+    void should_fail_given_no_probability() {
+        assertThatThrownBy(() -> new ProbabilityBasedSampler(null)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("probability property is required for ProbabilityBasedSampler");
+    }
 
-	private int countNumberOfSampledElements(int numberOfIterations, Supplier<Float> probability) {
-		Sampler sampler = new ProbabilityBasedSampler(probability);
-		int passedCounter = 0;
-		for (int i = 0; i < numberOfIterations; i++) {
-			boolean passed = sampler.isSampled(RANDOM.nextLong());
-			passedCounter = passedCounter + (passed ? 1 : 0);
-		}
-		return passedCounter;
-	}
+    private int countNumberOfSampledElements(int numberOfIterations, Supplier<Float> probability) {
+        Sampler sampler = new ProbabilityBasedSampler(probability);
+        int passedCounter = 0;
+        for (int i = 0; i < numberOfIterations; i++) {
+            boolean passed = sampler.isSampled(RANDOM.nextLong());
+            passedCounter = passedCounter + (passed ? 1 : 0);
+        }
+        return passedCounter;
+    }
 
 }

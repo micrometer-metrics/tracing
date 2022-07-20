@@ -31,88 +31,88 @@ import io.micrometer.tracing.TraceContext;
  */
 public class BraveCurrentTraceContext implements CurrentTraceContext {
 
-	final brave.propagation.CurrentTraceContext delegate;
+    final brave.propagation.CurrentTraceContext delegate;
 
-	/**
-	 * Creates a new instance of {@link BraveCurrentTraceContext}.
-	 * @param delegate Brave delegate
-	 */
-	public BraveCurrentTraceContext(brave.propagation.CurrentTraceContext delegate) {
-		this.delegate = delegate;
-	}
+    /**
+     * Creates a new instance of {@link BraveCurrentTraceContext}.
+     * @param delegate Brave delegate
+     */
+    public BraveCurrentTraceContext(brave.propagation.CurrentTraceContext delegate) {
+        this.delegate = delegate;
+    }
 
-	/**
-	 * Converts from Tracing to Brave.
-	 * @param context Tracing delegate
-	 * @return converted version
-	 */
-	public static brave.propagation.CurrentTraceContext toBrave(CurrentTraceContext context) {
-		return ((BraveCurrentTraceContext) context).delegate;
-	}
+    /**
+     * Converts from Tracing to Brave.
+     * @param context Tracing delegate
+     * @return converted version
+     */
+    public static brave.propagation.CurrentTraceContext toBrave(CurrentTraceContext context) {
+        return ((BraveCurrentTraceContext) context).delegate;
+    }
 
-	/**
-	 * Converts from Brave to Tracing.
-	 * @param context Brave delegate
-	 * @return converted version
-	 */
-	public static CurrentTraceContext fromBrave(brave.propagation.CurrentTraceContext context) {
-		return new BraveCurrentTraceContext(context);
-	}
+    /**
+     * Converts from Brave to Tracing.
+     * @param context Brave delegate
+     * @return converted version
+     */
+    public static CurrentTraceContext fromBrave(brave.propagation.CurrentTraceContext context) {
+        return new BraveCurrentTraceContext(context);
+    }
 
-	@Override
-	public TraceContext context() {
-		brave.propagation.TraceContext context = this.delegate.get();
-		if (context == null) {
-			return null;
-		}
-		return new io.micrometer.tracing.brave.bridge.BraveTraceContext(context);
-	}
+    @Override
+    public TraceContext context() {
+        brave.propagation.TraceContext context = this.delegate.get();
+        if (context == null) {
+            return null;
+        }
+        return new io.micrometer.tracing.brave.bridge.BraveTraceContext(context);
+    }
 
-	@Override
-	public Scope newScope(TraceContext context) {
-		return new BraveScope(
-				this.delegate.newScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
-	}
+    @Override
+    public Scope newScope(TraceContext context) {
+        return new BraveScope(
+                this.delegate.newScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
+    }
 
-	@Override
-	public Scope maybeScope(TraceContext context) {
-		return new BraveScope(
-				this.delegate.maybeScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
-	}
+    @Override
+    public Scope maybeScope(TraceContext context) {
+        return new BraveScope(
+                this.delegate.maybeScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
+    }
 
-	@Override
-	public <C> Callable<C> wrap(Callable<C> task) {
-		return this.delegate.wrap(task);
-	}
+    @Override
+    public <C> Callable<C> wrap(Callable<C> task) {
+        return this.delegate.wrap(task);
+    }
 
-	@Override
-	public Runnable wrap(Runnable task) {
-		return this.delegate.wrap(task);
-	}
+    @Override
+    public Runnable wrap(Runnable task) {
+        return this.delegate.wrap(task);
+    }
 
-	@Override
-	public Executor wrap(Executor delegate) {
-		return this.delegate.executor(delegate);
-	}
+    @Override
+    public Executor wrap(Executor delegate) {
+        return this.delegate.executor(delegate);
+    }
 
-	@Override
-	public ExecutorService wrap(ExecutorService delegate) {
-		return this.delegate.executorService(delegate);
-	}
+    @Override
+    public ExecutorService wrap(ExecutorService delegate) {
+        return this.delegate.executorService(delegate);
+    }
 
 }
 
 class BraveScope implements CurrentTraceContext.Scope {
 
-	private final brave.propagation.CurrentTraceContext.Scope delegate;
+    private final brave.propagation.CurrentTraceContext.Scope delegate;
 
-	BraveScope(brave.propagation.CurrentTraceContext.Scope delegate) {
-		this.delegate = delegate;
-	}
+    BraveScope(brave.propagation.CurrentTraceContext.Scope delegate) {
+        this.delegate = delegate;
+    }
 
-	@Override
-	public void close() {
-		this.delegate.close();
-	}
+    @Override
+    public void close() {
+        this.delegate.close();
+    }
 
 }

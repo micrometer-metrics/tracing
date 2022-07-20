@@ -31,68 +31,68 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttribut
  * @since 1.0.0
  */
 public class DefaultHttpClientAttributesGetter
-		implements HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> {
+        implements HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> {
 
-	@Nullable
-	@Override
-	public String url(HttpClientRequest httpClientRequest) {
-		return httpClientRequest.url();
-	}
+    @Nullable
+    @Override
+    public String url(HttpClientRequest httpClientRequest) {
+        return httpClientRequest.url();
+    }
 
-	@Nullable
-	@Override
-	public String flavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public String flavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
+        return null;
+    }
 
-	@Override
-	public String method(HttpClientRequest httpClientRequest) {
-		return httpClientRequest.method();
-	}
+    @Override
+    public String method(HttpClientRequest httpClientRequest) {
+        return httpClientRequest.method();
+    }
 
-	@Override
-	public List<String> requestHeader(HttpClientRequest httpClientRequest, String name) {
-		String value = httpClientRequest.header(name);
-		return value == null ? Collections.emptyList() : Collections.singletonList(value);
-	}
+    @Override
+    public List<String> requestHeader(HttpClientRequest httpClientRequest, String name) {
+        String value = httpClientRequest.header(name);
+        return value == null ? Collections.emptyList() : Collections.singletonList(value);
+    }
 
-	@Nullable
-	@Override
-	public Long requestContentLength(HttpClientRequest httpClientRequest,
-			@Nullable HttpClientResponse httpClientResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long requestContentLength(HttpClientRequest httpClientRequest,
+            @Nullable HttpClientResponse httpClientResponse) {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public Long requestContentLengthUncompressed(HttpClientRequest httpClientRequest,
-			@Nullable HttpClientResponse httpClientResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long requestContentLengthUncompressed(HttpClientRequest httpClientRequest,
+            @Nullable HttpClientResponse httpClientResponse) {
+        return null;
+    }
 
-	@Override
-	public Integer statusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
-		return httpClientResponse.statusCode();
-	}
+    @Override
+    public Integer statusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
+        return httpClientResponse.statusCode();
+    }
 
-	@Nullable
-	@Override
-	public Long responseContentLength(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long responseContentLength(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public Long responseContentLengthUncompressed(HttpClientRequest httpClientRequest,
-			HttpClientResponse httpClientResponse) {
-		return null;
-	}
+    @Nullable
+    @Override
+    public Long responseContentLengthUncompressed(HttpClientRequest httpClientRequest,
+            HttpClientResponse httpClientResponse) {
+        return null;
+    }
 
-	@Override
-	public List<String> responseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
-			String name) {
-		String value = httpClientResponse.header(name);
-		return value == null ? Collections.emptyList() : Collections.singletonList(value);
-	}
+    @Override
+    public List<String> responseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+            String name) {
+        String value = httpClientResponse.header(name);
+        return value == null ? Collections.emptyList() : Collections.singletonList(value);
+    }
 
 }

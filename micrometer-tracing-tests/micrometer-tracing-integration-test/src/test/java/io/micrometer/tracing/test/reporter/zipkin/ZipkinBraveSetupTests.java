@@ -33,24 +33,24 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 @WireMockTest
 class ZipkinBraveSetupTests {
 
-	private static final InternalLogger log = InternalLoggerFactory.getInstance(ZipkinBraveSetupTests.class);
+    private static final InternalLogger log = InternalLoggerFactory.getInstance(ZipkinBraveSetupTests.class);
 
-	ObservationRegistry registry = ObservationRegistry.create();
+    ObservationRegistry registry = ObservationRegistry.create();
 
-	@Test
-	void should_register_a_span_in_zipkin(WireMockRuntimeInfo wmri) throws InterruptedException {
-		ZipkinBraveSetup setup = ZipkinBraveSetup.builder().zipkinUrl(wmri.getHttpBaseUrl()).register(this.registry);
+    @Test
+    void should_register_a_span_in_zipkin(WireMockRuntimeInfo wmri) throws InterruptedException {
+        ZipkinBraveSetup setup = ZipkinBraveSetup.builder().zipkinUrl(wmri.getHttpBaseUrl()).register(this.registry);
 
-		ZipkinBraveSetup.run(setup, __ -> {
-			Observation sample = Observation.start("the-name", this.registry);
-			try (Observation.Scope scope = sample.openScope()) {
-				log.info("New sample created");
-			}
-			sample.stop();
-		});
+        ZipkinBraveSetup.run(setup, __ -> {
+            Observation sample = Observation.start("the-name", this.registry);
+            try (Observation.Scope scope = sample.openScope()) {
+                log.info("New sample created");
+            }
+            sample.stop();
+        });
 
-		Awaitility.await().atMost(5, TimeUnit.SECONDS)
-				.untilAsserted(() -> wmri.getWireMock().verifyThat(anyRequestedFor(urlPathEqualTo("/api/v2/spans"))));
-	}
+        Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> wmri.getWireMock().verifyThat(anyRequestedFor(urlPathEqualTo("/api/v2/spans"))));
+    }
 
 }

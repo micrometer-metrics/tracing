@@ -23,7 +23,7 @@ import io.micrometer.common.docs.KeyName;
  * interface that returns all the characteristics of a span. In Micrometer Tracing we
  * analyze the sources and reuse this information to build a table of known spans, their
  * names, tags and events.
- *
+ * <p>
  * We can generate documentation for all created spans but certain requirements need to be
  * met
  *
@@ -46,77 +46,77 @@ import io.micrometer.common.docs.KeyName;
  */
 public interface DocumentedSpan {
 
-	/**
-	 * Empty key names.
-	 */
-	KeyName[] EMPTY_KEY_NAMES = new KeyName[0];
+    /**
+     * Empty key names.
+     */
+    KeyName[] EMPTY_KEY_NAMES = new KeyName[0];
 
-	/**
-	 * Empty values.
-	 */
-	EventValue[] EMPTY_VALUES = new EventValue[0];
+    /**
+     * Empty values.
+     */
+    EventValue[] EMPTY_VALUES = new EventValue[0];
 
-	/**
-	 * Span name.
-	 * @return metric name
-	 */
-	String getName();
+    /**
+     * Span name.
+     * @return metric name
+     */
+    String getName();
 
-	/**
-	 * Builds a name from provided vars. Follows the
-	 * {@link String#format(String, Object...)} patterns.
-	 * @param vars variables to pass to {@link String#format(String, Object...)}
-	 * @return constructed name
-	 */
-	default String getName(String... vars) {
-		if (getName().contains("%s")) {
-			return String.format(getName(), (Object[]) vars);
-		}
-		return getName();
-	}
+    /**
+     * Builds a name from provided vars. Follows the
+     * {@link String#format(String, Object...)} patterns.
+     * @param vars variables to pass to {@link String#format(String, Object...)}
+     * @return constructed name
+     */
+    default String getName(String... vars) {
+        if (getName().contains("%s")) {
+            return String.format(getName(), (Object[]) vars);
+        }
+        return getName();
+    }
 
-	/**
-	 * Allowed events.
-	 * @return allowed events
-	 */
-	default EventValue[] getEvents() {
-		return EMPTY_VALUES;
-	}
+    /**
+     * Allowed events.
+     * @return allowed events
+     */
+    default EventValue[] getEvents() {
+        return EMPTY_VALUES;
+    }
 
-	/**
-	 * Allowed key names.
-	 * @return allowed key names - if set will override any key names coming from
-	 * {@link DocumentedSpan#overridesDefaultSpanFrom()}
-	 */
-	default KeyName[] getKeyNames() {
-		return EMPTY_KEY_NAMES;
-	}
+    /**
+     * Allowed key names.
+     * @return allowed key names - if set will override any key names coming from
+     * {@link DocumentedSpan#overridesDefaultSpanFrom()}
+     */
+    default KeyName[] getKeyNames() {
+        return EMPTY_KEY_NAMES;
+    }
 
-	/**
-	 * Additional key names.
-	 * @return additional key names - if set will append any key names coming from
-	 * {@link DocumentedSpan#overridesDefaultSpanFrom()}
-	 */
-	default KeyName[] getAdditionalKeyNames() {
-		return EMPTY_KEY_NAMES;
-	}
+    /**
+     * Additional key names.
+     * @return additional key names - if set will append any key names coming from
+     * {@link DocumentedSpan#overridesDefaultSpanFrom()}
+     */
+    default KeyName[] getAdditionalKeyNames() {
+        return EMPTY_KEY_NAMES;
+    }
 
-	/**
-	 * Override this when custom span should be documented instead of the default one.
-	 * @return {@link io.micrometer.observation.docs.DocumentedObservation} for which you
-	 * don't want to create a default span documentation
-	 */
-	default Enum<?> overridesDefaultSpanFrom() {
-		return null;
-	}
+    /**
+     * Override this when custom span should be documented instead of the default one.
+     * @return {@link io.micrometer.observation.docs.DocumentedObservation} for which you
+     * don't want to create a default span documentation
+     */
+    default Enum<?> overridesDefaultSpanFrom() {
+        return null;
+    }
 
-	/**
-	 * Returns required prefix to be there for tags. For example, {@code foo.} would
-	 * require the tags to have a {@code foo.} prefix like this: {@code foo.bar=true}.
-	 * @return required prefix
-	 */
-	default String getPrefix() {
-		return "";
-	}
+    /**
+     * Returns required prefix to be there for tags. For example, {@code foo.} would
+     * require the tags to have a {@code foo.} prefix like this: {@code foo.bar=true}.
+     * @return required prefix
+     */
+    default String getPrefix() {
+        return "";
+    }
 
 }

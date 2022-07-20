@@ -34,117 +34,117 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
  */
 public class OtelTraceContext implements TraceContext {
 
-	final AtomicReference<Context> context;
+    final AtomicReference<Context> context;
 
-	final SpanContext delegate;
+    final SpanContext delegate;
 
-	final Span span;
+    final Span span;
 
-	OtelTraceContext(Context context, SpanContext delegate, @Nullable Span span) {
-		this(new AtomicReference<>(context), delegate, span);
-	}
+    OtelTraceContext(Context context, SpanContext delegate, @Nullable Span span) {
+        this(new AtomicReference<>(context), delegate, span);
+    }
 
-	OtelTraceContext(AtomicReference<Context> context, SpanContext delegate, @Nullable Span span) {
-		this.context = context;
-		this.delegate = delegate;
-		this.span = span;
-	}
+    OtelTraceContext(AtomicReference<Context> context, SpanContext delegate, @Nullable Span span) {
+        this.context = context;
+        this.delegate = delegate;
+        this.span = span;
+    }
 
-	OtelTraceContext(SpanContext delegate, @Nullable Span span) {
-		this.context = new AtomicReference<>(Context.current());
-		this.delegate = delegate;
-		this.span = span;
-	}
+    OtelTraceContext(SpanContext delegate, @Nullable Span span) {
+        this.context = new AtomicReference<>(Context.current());
+        this.delegate = delegate;
+        this.span = span;
+    }
 
-	OtelTraceContext(Span span) {
-		this(Context.current(), span.getSpanContext(), span);
-	}
+    OtelTraceContext(Span span) {
+        this(Context.current(), span.getSpanContext(), span);
+    }
 
-	OtelTraceContext(SpanFromSpanContext span) {
-		this(span.otelTraceContext.context.get(), span.getSpanContext(), span);
-	}
+    OtelTraceContext(SpanFromSpanContext span) {
+        this(span.otelTraceContext.context.get(), span.getSpanContext(), span);
+    }
 
-	/**
-	 * Converts from Tracing to OTel.
-	 * @param context Tracing version
-	 * @return OTel version
-	 */
-	public static TraceContext fromOtel(SpanContext context) {
-		return new OtelTraceContext(context, null);
-	}
+    /**
+     * Converts from Tracing to OTel.
+     * @param context Tracing version
+     * @return OTel version
+     */
+    public static TraceContext fromOtel(SpanContext context) {
+        return new OtelTraceContext(context, null);
+    }
 
-	/**
-	 * Converts from OTel to Tracing.
-	 * @param context OTel version
-	 * @return Tracing version
-	 */
-	public static Context toOtelContext(TraceContext context) {
-		if (context instanceof OtelTraceContext) {
-			Span span = ((OtelTraceContext) context).span;
-			if (span != null) {
-				return span.storeInContext(Context.current());
-			}
-		}
-		return Context.current();
-	}
+    /**
+     * Converts from OTel to Tracing.
+     * @param context OTel version
+     * @return Tracing version
+     */
+    public static Context toOtelContext(TraceContext context) {
+        if (context instanceof OtelTraceContext) {
+            Span span = ((OtelTraceContext) context).span;
+            if (span != null) {
+                return span.storeInContext(Context.current());
+            }
+        }
+        return Context.current();
+    }
 
-	@Override
-	public String traceId() {
-		return this.delegate.getTraceId();
-	}
+    @Override
+    public String traceId() {
+        return this.delegate.getTraceId();
+    }
 
-	@Override
-	@Nullable
-	public String parentId() {
-		if (this.span instanceof ReadableSpan) {
-			ReadableSpan readableSpan = (ReadableSpan) this.span;
-			return readableSpan.toSpanData().getParentSpanId();
-		}
-		return null;
-	}
+    @Override
+    @Nullable
+    public String parentId() {
+        if (this.span instanceof ReadableSpan) {
+            ReadableSpan readableSpan = (ReadableSpan) this.span;
+            return readableSpan.toSpanData().getParentSpanId();
+        }
+        return null;
+    }
 
-	@Override
-	public String spanId() {
-		return this.delegate.getSpanId();
-	}
+    @Override
+    public String spanId() {
+        return this.delegate.getSpanId();
+    }
 
-	@Override
-	public Boolean sampled() {
-		return this.delegate.isSampled();
-	}
+    @Override
+    public Boolean sampled() {
+        return this.delegate.isSampled();
+    }
 
-	@Override
-	public String toString() {
-		return this.delegate != null ? this.delegate.toString() : "null";
-	}
+    @Override
+    public String toString() {
+        return this.delegate != null ? this.delegate.toString() : "null";
+    }
 
-	Span span() {
-		return this.span;
-	}
+    Span span() {
+        return this.span;
+    }
 
-	Context context() {
-		return this.context.get();
-	}
+    Context context() {
+        return this.context.get();
+    }
 
-	void updateContext(Context context) {
-		this.context.set(context);
-	}
+    void updateContext(Context context) {
+        this.context.set(context);
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		OtelTraceContext context = (OtelTraceContext) o;
-		return Objects.equals(this.delegate, context.delegate);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        OtelTraceContext context = (OtelTraceContext) o;
+        return Objects.equals(this.delegate, context.delegate);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(this.delegate);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.delegate);
+    }
 
 }
