@@ -26,67 +26,64 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleTraceContext implements TraceContext {
 
-    private String traceId = "";
+	private String traceId = "";
 
-    private String parentId = "";
+	private String parentId = "";
 
-    private String spanId = "";
+	private String spanId = "";
 
-    private Boolean sampled = false;
+	private Boolean sampled = false;
 
-    @Override
-    public String traceId() {
-        return this.traceId;
-    }
+	@Override
+	public String traceId() {
+		return this.traceId;
+	}
 
-    @Override
-    public String parentId() {
-        return this.parentId;
-    }
+	@Override
+	public String parentId() {
+		return this.parentId;
+	}
 
-    @Override
-    public String spanId() {
-        return this.spanId;
-    }
+	@Override
+	public String spanId() {
+		return this.spanId;
+	}
 
-    @Override
-    public Boolean sampled() {
-        return this.sampled;
-    }
+	@Override
+	public Boolean sampled() {
+		return this.sampled;
+	}
 
-    /**
-     * Sets the trace id.
-     *
-     * @param traceId trace id
-     */
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
-    }
+	/**
+	 * Sets the trace id.
+	 * @param traceId trace id
+	 */
+	public void setTraceId(String traceId) {
+		this.traceId = traceId;
+	}
 
-    /**
-     * Sets the parent span id.
-     *
-     * @param parentId parent span id
-     */
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
+	/**
+	 * Sets the parent span id.
+	 * @param parentId parent span id
+	 */
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
 
-    /**
-     * Sets the span id.
-     *
-     * @param spanId span id
-     */
-    public void setSpanId(String spanId) {
-        this.spanId = spanId;
-    }
+	/**
+	 * Sets the span id.
+	 * @param spanId span id
+	 */
+	public void setSpanId(String spanId) {
+		this.spanId = spanId;
+	}
 
-    /**
-     * Sets the sampling decision.
-     *
-     * @param sampled sampled, or not?
-     */
-    public void setSampled(Boolean sampled) {
-        this.sampled = sampled;
-    }
+	/**
+	 * Sets the sampling decision.
+	 * @param sampled sampled, or not?
+	 */
+	public void setSampled(Boolean sampled) {
+		this.sampled = sampled;
+	}
+
 }

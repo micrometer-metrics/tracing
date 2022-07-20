@@ -19,7 +19,6 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.tracing.SpanCustomizer;
 import io.opentelemetry.api.trace.Span;
 
-
 /**
  * OpenTelemetry implementation of a {@link SpanCustomizer}.
  *
@@ -28,26 +27,26 @@ import io.opentelemetry.api.trace.Span;
  */
 public class OtelSpanCustomizer implements SpanCustomizer {
 
-    @Override
-    public SpanCustomizer name(String name) {
-        currentSpan().updateName(name);
-        return this;
-    }
+	@Override
+	public SpanCustomizer name(String name) {
+		currentSpan().updateName(name);
+		return this;
+	}
 
-    private Span currentSpan() {
-        return Span.current();
-    }
+	private Span currentSpan() {
+		return Span.current();
+	}
 
-    @Override
-    public SpanCustomizer tag(String key, String value) {
-        currentSpan().setAttribute(key, value);
-        return this;
-    }
+	@Override
+	public SpanCustomizer tag(String key, String value) {
+		currentSpan().setAttribute(key, value);
+		return this;
+	}
 
-    @Override
-    public SpanCustomizer event(String value) {
-        currentSpan().addEvent(value);
-        return this;
-    }
+	@Override
+	public SpanCustomizer event(String value) {
+		currentSpan().addEvent(value);
+		return this;
+	}
 
 }

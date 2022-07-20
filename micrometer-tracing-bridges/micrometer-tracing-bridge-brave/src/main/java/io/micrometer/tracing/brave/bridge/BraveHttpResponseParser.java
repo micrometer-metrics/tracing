@@ -29,35 +29,33 @@ import io.micrometer.tracing.http.HttpResponseParser;
  */
 public class BraveHttpResponseParser implements HttpResponseParser {
 
-    final brave.http.HttpResponseParser delegate;
+	final brave.http.HttpResponseParser delegate;
 
-    /**
-     * Creates a new instance of {@link BraveHttpResponseParser}.
-     *
-     * @param delegate Brave version of {@link HttpResponseParser}
-     */
-    public BraveHttpResponseParser(brave.http.HttpResponseParser delegate) {
-        this.delegate = delegate;
-    }
+	/**
+	 * Creates a new instance of {@link BraveHttpResponseParser}.
+	 * @param delegate Brave version of {@link HttpResponseParser}
+	 */
+	public BraveHttpResponseParser(brave.http.HttpResponseParser delegate) {
+		this.delegate = delegate;
+	}
 
-    /**
-     * Converts from Tracing to Brave.
-     *
-     * @param parser API parser
-     * @return Brave parser
-     */
-    public static brave.http.HttpResponseParser toBrave(HttpResponseParser parser) {
-        if (parser instanceof BraveHttpResponseParser) {
-            return ((BraveHttpResponseParser) parser).delegate;
-        }
-        return (response, context, span) -> parser.parse(BraveHttpResponse.fromBrave(response),
-                BraveTraceContext.fromBrave(context), BraveSpanCustomizer.fromBrave(span));
-    }
+	/**
+	 * Converts from Tracing to Brave.
+	 * @param parser API parser
+	 * @return Brave parser
+	 */
+	public static brave.http.HttpResponseParser toBrave(HttpResponseParser parser) {
+		if (parser instanceof BraveHttpResponseParser) {
+			return ((BraveHttpResponseParser) parser).delegate;
+		}
+		return (response, context, span) -> parser.parse(BraveHttpResponse.fromBrave(response),
+				BraveTraceContext.fromBrave(context), BraveSpanCustomizer.fromBrave(span));
+	}
 
-    @Override
-    public void parse(HttpResponse response, TraceContext context, SpanCustomizer span) {
-        this.delegate.parse(BraveHttpResponse.toBrave(response), BraveTraceContext.toBrave(context),
-                BraveSpanCustomizer.toBrave(span));
-    }
+	@Override
+	public void parse(HttpResponse response, TraceContext context, SpanCustomizer span) {
+		this.delegate.parse(BraveHttpResponse.toBrave(response), BraveTraceContext.toBrave(context),
+				BraveSpanCustomizer.toBrave(span));
+	}
 
 }

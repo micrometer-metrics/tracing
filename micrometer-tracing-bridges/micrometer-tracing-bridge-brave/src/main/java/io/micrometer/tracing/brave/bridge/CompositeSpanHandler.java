@@ -35,55 +35,55 @@ import io.micrometer.tracing.exporter.SpanReporter;
  */
 public class CompositeSpanHandler extends SpanHandler {
 
-    private final List<SpanExportingPredicate> filters;
+	private final List<SpanExportingPredicate> filters;
 
-    private final List<SpanReporter> reporters;
+	private final List<SpanReporter> reporters;
 
-    private final List<SpanFilter> spanFilters;
+	private final List<SpanFilter> spanFilters;
 
-    /**
-     * Creates a new instance of {@link CompositeSpanHandler}.
-     *
-     * @param predicates predicates that decide which spans should be exported
-     * @param reporters reporters that export spans
-     * @param spanFilters filters that mutate spans before reporting them
-     */
-    public CompositeSpanHandler(List<SpanExportingPredicate> predicates, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
-        this.filters = predicates == null ? Collections.emptyList() : predicates;
-        this.reporters = reporters == null ? Collections.emptyList() : reporters;
-        this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
-    }
+	/**
+	 * Creates a new instance of {@link CompositeSpanHandler}.
+	 * @param predicates predicates that decide which spans should be exported
+	 * @param reporters reporters that export spans
+	 * @param spanFilters filters that mutate spans before reporting them
+	 */
+	public CompositeSpanHandler(List<SpanExportingPredicate> predicates, List<SpanReporter> reporters,
+			List<SpanFilter> spanFilters) {
+		this.filters = predicates == null ? Collections.emptyList() : predicates;
+		this.reporters = reporters == null ? Collections.emptyList() : reporters;
+		this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
+	}
 
-    @Override
-    public boolean end(TraceContext context, MutableSpan span, Cause cause) {
-        if (cause != Cause.FINISHED) {
-            return true;
-        }
-        boolean shouldProcess = shouldProcess(span);
-        if (!shouldProcess) {
-            return false;
-        }
-        shouldProcess = super.end(context, span, cause);
-        if (!shouldProcess) {
-            return false;
-        }
-        FinishedSpan modified = BraveFinishedSpan.fromBrave(span);
-        for (SpanFilter spanFilter : this.spanFilters) {
-            modified = spanFilter.map(modified);
-        }
-        for (SpanReporter reporter : this.reporters) {
-            reporter.report(modified);
-        }
-        return true;
-    }
+	@Override
+	public boolean end(TraceContext context, MutableSpan span, Cause cause) {
+		if (cause != Cause.FINISHED) {
+			return true;
+		}
+		boolean shouldProcess = shouldProcess(span);
+		if (!shouldProcess) {
+			return false;
+		}
+		shouldProcess = super.end(context, span, cause);
+		if (!shouldProcess) {
+			return false;
+		}
+		FinishedSpan modified = BraveFinishedSpan.fromBrave(span);
+		for (SpanFilter spanFilter : this.spanFilters) {
+			modified = spanFilter.map(modified);
+		}
+		for (SpanReporter reporter : this.reporters) {
+			reporter.report(modified);
+		}
+		return true;
+	}
 
-    private boolean shouldProcess(MutableSpan span) {
-        for (SpanExportingPredicate exporter : this.filters) {
-            if (!exporter.isExportable(BraveFinishedSpan.fromBrave(span))) {
-                return false;
-            }
-        }
-        return true;
-    }
+	private boolean shouldProcess(MutableSpan span) {
+		for (SpanExportingPredicate exporter : this.filters) {
+			if (!exporter.isExportable(BraveFinishedSpan.fromBrave(span))) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 }

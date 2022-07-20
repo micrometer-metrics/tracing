@@ -25,32 +25,33 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
-
 class PathAttributeExtractor implements AttributesExtractor<HttpRequest, HttpResponse> {
 
-    private static final AttributeKey<String> HTTP_PATH = AttributeKey.stringKey("http.path");
+	private static final AttributeKey<String> HTTP_PATH = AttributeKey.stringKey("http.path");
 
-    @Override
-    public void onStart(AttributesBuilder attributes, Context parentContext, HttpRequest httpRequest) {
-        String path = httpRequest.path();
-        if (StringUtils.isNotEmpty(path)) {
-            // TODO some tests expect this even on client spans, but this goes against
-            // Otel semantic conventions
-            // should fix tests
-            setAttribute(attributes, SemanticAttributes.HTTP_ROUTE, path);
-            // some tests expect http.route attribute and some http.path
-            setAttribute(attributes, HTTP_PATH, path);
-        }
-    }
+	@Override
+	public void onStart(AttributesBuilder attributes, Context parentContext, HttpRequest httpRequest) {
+		String path = httpRequest.path();
+		if (StringUtils.isNotEmpty(path)) {
+			// TODO some tests expect this even on client spans, but this goes against
+			// Otel semantic conventions
+			// should fix tests
+			setAttribute(attributes, SemanticAttributes.HTTP_ROUTE, path);
+			// some tests expect http.route attribute and some http.path
+			setAttribute(attributes, HTTP_PATH, path);
+		}
+	}
 
-    private <T> void setAttribute(AttributesBuilder attributes, AttributeKey<T> key, T value) {
-        if (value != null) {
-            attributes.put(key, value);
-        }
-    }
+	private <T> void setAttribute(AttributesBuilder attributes, AttributeKey<T> key, T value) {
+		if (value != null) {
+			attributes.put(key, value);
+		}
+	}
 
-    @Override
-    public void onEnd(AttributesBuilder attributes, Context context, HttpRequest httpRequest, HttpResponse httpResponse, Throwable error) {
+	@Override
+	public void onEnd(AttributesBuilder attributes, Context context, HttpRequest httpRequest, HttpResponse httpResponse,
+			Throwable error) {
 
-    }
+	}
+
 }

@@ -35,120 +35,118 @@ import io.micrometer.tracing.Tracer;
  */
 public class BraveTracer implements Tracer {
 
-    private final brave.Tracer tracer;
+	private final brave.Tracer tracer;
 
-    private final BraveBaggageManager braveBaggageManager;
+	private final BraveBaggageManager braveBaggageManager;
 
-    private final CurrentTraceContext currentTraceContext;
+	private final CurrentTraceContext currentTraceContext;
 
-    /**
-     * Creates a new instance of {@link BraveTracer}.
-     *
-     * @param tracer Brave Tracer
-     * @param context Brave context
-     * @param braveBaggageManager Brave baggage manager
-     */
-    public BraveTracer(brave.Tracer tracer, CurrentTraceContext context, BraveBaggageManager braveBaggageManager) {
-        this.tracer = tracer;
-        this.braveBaggageManager = braveBaggageManager;
-        this.currentTraceContext = context;
-    }
+	/**
+	 * Creates a new instance of {@link BraveTracer}.
+	 * @param tracer Brave Tracer
+	 * @param context Brave context
+	 * @param braveBaggageManager Brave baggage manager
+	 */
+	public BraveTracer(brave.Tracer tracer, CurrentTraceContext context, BraveBaggageManager braveBaggageManager) {
+		this.tracer = tracer;
+		this.braveBaggageManager = braveBaggageManager;
+		this.currentTraceContext = context;
+	}
 
-    @Override
-    public Span nextSpan(Span parent) {
-        if (parent == null) {
-            return nextSpan();
-        }
-        brave.propagation.TraceContext context = (((BraveTraceContext) parent.context()).traceContext);
-        if (context == null) {
-            return null;
-        }
-        return new BraveSpan(this.tracer.nextSpan(TraceContextOrSamplingFlags.create(context)));
-    }
+	@Override
+	public Span nextSpan(Span parent) {
+		if (parent == null) {
+			return nextSpan();
+		}
+		brave.propagation.TraceContext context = (((BraveTraceContext) parent.context()).traceContext);
+		if (context == null) {
+			return null;
+		}
+		return new BraveSpan(this.tracer.nextSpan(TraceContextOrSamplingFlags.create(context)));
+	}
 
-    @Override
-    public SpanInScope withSpan(Span span) {
-        return new BraveSpanInScope(
-                tracer.withSpanInScope(span == null ? null : ((BraveSpan) span).delegate));
-    }
+	@Override
+	public SpanInScope withSpan(Span span) {
+		return new BraveSpanInScope(tracer.withSpanInScope(span == null ? null : ((BraveSpan) span).delegate));
+	}
 
-    @Override
-    public SpanCustomizer currentSpanCustomizer() {
-        return new BraveSpanCustomizer(this.tracer.currentSpanCustomizer());
-    }
+	@Override
+	public SpanCustomizer currentSpanCustomizer() {
+		return new BraveSpanCustomizer(this.tracer.currentSpanCustomizer());
+	}
 
-    @Override
-    public Span currentSpan() {
-        brave.Span currentSpan = this.tracer.currentSpan();
-        if (currentSpan == null) {
-            return null;
-        }
-        return new BraveSpan(currentSpan);
-    }
+	@Override
+	public Span currentSpan() {
+		brave.Span currentSpan = this.tracer.currentSpan();
+		if (currentSpan == null) {
+			return null;
+		}
+		return new BraveSpan(currentSpan);
+	}
 
-    @Override
-    public Span nextSpan() {
-        return new BraveSpan(this.tracer.nextSpan());
-    }
+	@Override
+	public Span nextSpan() {
+		return new BraveSpan(this.tracer.nextSpan());
+	}
 
-    @Override
-    public ScopedSpan startScopedSpan(String name) {
-        return new BraveScopedSpan(this.tracer.startScopedSpan(name));
-    }
+	@Override
+	public ScopedSpan startScopedSpan(String name) {
+		return new BraveScopedSpan(this.tracer.startScopedSpan(name));
+	}
 
-    @Override
-    public Span.Builder spanBuilder() {
-        return new BraveSpanBuilder(this.tracer);
-    }
+	@Override
+	public Span.Builder spanBuilder() {
+		return new BraveSpanBuilder(this.tracer);
+	}
 
-    @Override
-    public TraceContext.Builder traceContextBuilder() {
-        return new BraveTraceContextBuilder();
-    }
+	@Override
+	public TraceContext.Builder traceContextBuilder() {
+		return new BraveTraceContextBuilder();
+	}
 
-    @Override
-    public Map<String, String> getAllBaggage() {
-        return this.braveBaggageManager.getAllBaggage();
-    }
+	@Override
+	public Map<String, String> getAllBaggage() {
+		return this.braveBaggageManager.getAllBaggage();
+	}
 
-    @Override
-    public BaggageInScope getBaggage(String name) {
-        return this.braveBaggageManager.getBaggage(name);
-    }
+	@Override
+	public BaggageInScope getBaggage(String name) {
+		return this.braveBaggageManager.getBaggage(name);
+	}
 
-    @Override
-    public BaggageInScope getBaggage(TraceContext traceContext, String name) {
-        return this.braveBaggageManager.getBaggage(traceContext, name);
-    }
+	@Override
+	public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+		return this.braveBaggageManager.getBaggage(traceContext, name);
+	}
 
-    @Override
-    public BaggageInScope createBaggage(String name) {
-        return this.braveBaggageManager.createBaggage(name);
-    }
+	@Override
+	public BaggageInScope createBaggage(String name) {
+		return this.braveBaggageManager.createBaggage(name);
+	}
 
-    @Override
-    public BaggageInScope createBaggage(String name, String value) {
-        return this.braveBaggageManager.createBaggage(name).set(value);
-    }
+	@Override
+	public BaggageInScope createBaggage(String name, String value) {
+		return this.braveBaggageManager.createBaggage(name).set(value);
+	}
 
-    @Override
-    public CurrentTraceContext currentTraceContext() {
-        return this.currentTraceContext;
-    }
+	@Override
+	public CurrentTraceContext currentTraceContext() {
+		return this.currentTraceContext;
+	}
 
 }
 
 class BraveSpanInScope implements Tracer.SpanInScope {
 
-    final brave.Tracer.SpanInScope delegate;
+	final brave.Tracer.SpanInScope delegate;
 
-    BraveSpanInScope(brave.Tracer.SpanInScope delegate) {
-        this.delegate = delegate;
-    }
+	BraveSpanInScope(brave.Tracer.SpanInScope delegate) {
+		this.delegate = delegate;
+	}
 
-    @Override
-    public void close() {
-        this.delegate.close();
-    }
+	@Override
+	public void close() {
+		this.delegate.close();
+	}
 
 }

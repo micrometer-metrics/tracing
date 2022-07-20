@@ -30,19 +30,19 @@ import io.micrometer.observation.transport.Kind;
  */
 public interface HttpClientResponse extends HttpResponse {
 
-    @Nullable
-    default HttpClientRequest request() {
-        return null;
-    }
+	@Nullable
+	default HttpClientRequest request() {
+		return null;
+	}
 
-    @Override
-    default Throwable error() {
-        return null;
-    }
+	@Override
+	default Throwable error() {
+		return null;
+	}
 
-    @Override
-    default Kind kind() {
-        return Kind.CLIENT;
-    }
+	@Override
+	default Kind kind() {
+		return Kind.CLIENT;
+	}
 
 }

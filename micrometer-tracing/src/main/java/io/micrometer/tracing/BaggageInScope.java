@@ -34,47 +34,47 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface BaggageInScope extends Closeable {
 
-    /**
-     * @return name of the baggage entry
-     */
-    String name();
+	/**
+	 * @return name of the baggage entry
+	 */
+	String name();
 
-    /**
-     * @return value of the baggage entry or {@code null} if not set.
-     */
-    @Nullable
-    String get();
+	/**
+	 * @return value of the baggage entry or {@code null} if not set.
+	 */
+	@Nullable
+	String get();
 
-    /**
-     * Retrieves baggage from the given {@link TraceContext}.
-     * @param traceContext context containing baggage
-     * @return value of the baggage entry or {@code null} if not set.
-     */
-    @Nullable
-    String get(TraceContext traceContext);
+	/**
+	 * Retrieves baggage from the given {@link TraceContext}.
+	 * @param traceContext context containing baggage
+	 * @return value of the baggage entry or {@code null} if not set.
+	 */
+	@Nullable
+	String get(TraceContext traceContext);
 
-    /**
-     * Sets the baggage value.
-     * @param value to set
-     * @return new scope
-     */
-    BaggageInScope set(String value);
+	/**
+	 * Sets the baggage value.
+	 * @param value to set
+	 * @return new scope
+	 */
+	BaggageInScope set(String value);
 
-    /**
-     * Sets the baggage value for the given {@link TraceContext}.
-     * @param traceContext context containing baggage
-     * @param value to set
-     * @return new scope
-     */
-    BaggageInScope set(TraceContext traceContext, String value);
+	/**
+	 * Sets the baggage value for the given {@link TraceContext}.
+	 * @param traceContext context containing baggage
+	 * @param value to set
+	 * @return new scope
+	 */
+	BaggageInScope set(TraceContext traceContext, String value);
 
-    /**
-     * Sets the current baggage in scope.
-     * @return this in scope
-     */
-    BaggageInScope makeCurrent();
+	/**
+	 * Sets the current baggage in scope.
+	 * @return this in scope
+	 */
+	BaggageInScope makeCurrent();
 
-    @Override
-    void close();
+	@Override
+	void close();
 
 }

@@ -24,11 +24,11 @@ package io.micrometer.tracing.exporter;
  */
 public interface SpanFilter {
 
-    /**
-     * Called to mutate a {@link FinishedSpan} before its filtering.
-     * @param span a finished span to mutate
-     * @return mutated span
-     */
-    FinishedSpan map(FinishedSpan span);
+	/**
+	 * Called to mutate a {@link FinishedSpan} before its filtering.
+	 * @param span a finished span to mutate
+	 * @return mutated span
+	 */
+	FinishedSpan map(FinishedSpan span);
 
 }

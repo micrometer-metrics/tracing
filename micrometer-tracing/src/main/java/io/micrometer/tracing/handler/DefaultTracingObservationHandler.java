@@ -28,48 +28,46 @@ import io.micrometer.tracing.Tracer;
  */
 public class DefaultTracingObservationHandler implements TracingObservationHandler<Observation.Context> {
 
-    private final Tracer tracer;
+	private final Tracer tracer;
 
-    /**
-     * Creates a new instance of {@link DefaultTracingObservationHandler}.
-     *
-     * @param tracer the tracer to use to record events
-     */
-    public DefaultTracingObservationHandler(Tracer tracer) {
-        this.tracer = tracer;
-    }
+	/**
+	 * Creates a new instance of {@link DefaultTracingObservationHandler}.
+	 * @param tracer the tracer to use to record events
+	 */
+	public DefaultTracingObservationHandler(Tracer tracer) {
+		this.tracer = tracer;
+	}
 
-    @Override
-    public void onStart(Observation.Context context) {
-        Span parentSpan = getParentSpan(context);
-        Span childSpan = parentSpan != null ? getTracer().nextSpan(parentSpan)
-                : getTracer().nextSpan();
-        childSpan.start();
-        getTracingContext(context).setSpan(childSpan);
-    }
+	@Override
+	public void onStart(Observation.Context context) {
+		Span parentSpan = getParentSpan(context);
+		Span childSpan = parentSpan != null ? getTracer().nextSpan(parentSpan) : getTracer().nextSpan();
+		childSpan.start();
+		getTracingContext(context).setSpan(childSpan);
+	}
 
-    @Override
-    public void onStop(Observation.Context context) {
-        Span span = getRequiredSpan(context);
-        span.name(getSpanName(context));
-        tagSpan(context, span);
-        span.end();
-    }
+	@Override
+	public void onStop(Observation.Context context) {
+		Span span = getRequiredSpan(context);
+		span.name(getSpanName(context));
+		tagSpan(context, span);
+		span.end();
+	}
 
-    @Override
-    public void onError(Observation.Context context) {
-        Span span = getTracingContext(context).getSpan();
-        context.getError().ifPresent(span::error);
-    }
+	@Override
+	public void onError(Observation.Context context) {
+		Span span = getTracingContext(context).getSpan();
+		context.getError().ifPresent(span::error);
+	}
 
-    @Override
-    public void onEvent(Observation.Event event, Observation.Context context) {
-        getTracingContext(context).getSpan().event(event.getContextualName());
-    }
+	@Override
+	public void onEvent(Observation.Event event, Observation.Context context) {
+		getTracingContext(context).getSpan().event(event.getContextualName());
+	}
 
-    @Override
-    public Tracer getTracer() {
-        return this.tracer;
-    }
+	@Override
+	public Tracer getTracer() {
+		return this.tracer;
+	}
 
 }

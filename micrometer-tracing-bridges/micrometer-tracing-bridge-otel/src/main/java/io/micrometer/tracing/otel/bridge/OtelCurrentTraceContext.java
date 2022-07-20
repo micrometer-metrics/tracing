@@ -37,79 +37,79 @@ import io.opentelemetry.context.Context;
  */
 public class OtelCurrentTraceContext implements CurrentTraceContext {
 
-    @Override
-    public TraceContext context() {
-        Span currentSpan = Span.current();
-        if (Span.getInvalid().equals(currentSpan)) {
-            return null;
-        }
-        if (currentSpan instanceof SpanFromSpanContext) {
-            return new OtelTraceContext((SpanFromSpanContext) currentSpan);
-        }
-        return new OtelTraceContext(currentSpan);
-    }
+	@Override
+	public TraceContext context() {
+		Span currentSpan = Span.current();
+		if (Span.getInvalid().equals(currentSpan)) {
+			return null;
+		}
+		if (currentSpan instanceof SpanFromSpanContext) {
+			return new OtelTraceContext((SpanFromSpanContext) currentSpan);
+		}
+		return new OtelTraceContext(currentSpan);
+	}
 
-    @Override
-    public Scope newScope(TraceContext context) {
-        OtelTraceContext otelTraceContext = (OtelTraceContext) context;
-        if (otelTraceContext == null) {
-            return io.opentelemetry.context.Scope::noop;
-        }
-        Context current = Context.current();
-        Context old = otelTraceContext.context();
+	@Override
+	public Scope newScope(TraceContext context) {
+		OtelTraceContext otelTraceContext = (OtelTraceContext) context;
+		if (otelTraceContext == null) {
+			return io.opentelemetry.context.Scope::noop;
+		}
+		Context current = Context.current();
+		Context old = otelTraceContext.context();
 
-        Span currentSpan = Span.fromContext(current);
-        Span oldSpan = Span.fromContext(otelTraceContext.context());
-        SpanContext spanContext = otelTraceContext.delegate;
-        boolean sameSpan = currentSpan.getSpanContext().equals(oldSpan.getSpanContext())
-                && currentSpan.getSpanContext().equals(spanContext);
-        SpanFromSpanContext fromContext = new SpanFromSpanContext(((OtelTraceContext) context).span, spanContext,
-                otelTraceContext);
+		Span currentSpan = Span.fromContext(current);
+		Span oldSpan = Span.fromContext(otelTraceContext.context());
+		SpanContext spanContext = otelTraceContext.delegate;
+		boolean sameSpan = currentSpan.getSpanContext().equals(oldSpan.getSpanContext())
+				&& currentSpan.getSpanContext().equals(spanContext);
+		SpanFromSpanContext fromContext = new SpanFromSpanContext(((OtelTraceContext) context).span, spanContext,
+				otelTraceContext);
 
-        Baggage currentBaggage = Baggage.fromContext(current);
-        Baggage oldBaggage = Baggage.fromContext(old);
-        boolean sameBaggage = sameBaggage(currentBaggage, oldBaggage);
+		Baggage currentBaggage = Baggage.fromContext(current);
+		Baggage oldBaggage = Baggage.fromContext(old);
+		boolean sameBaggage = sameBaggage(currentBaggage, oldBaggage);
 
-        if (sameSpan && sameBaggage) {
-            return io.opentelemetry.context.Scope::noop;
-        }
+		if (sameSpan && sameBaggage) {
+			return io.opentelemetry.context.Scope::noop;
+		}
 
-        BaggageBuilder baggageBuilder = currentBaggage.toBuilder();
-        oldBaggage.forEach(
-                (key, baggageEntry) -> baggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
-        Baggage updatedBaggage = baggageBuilder.build();
+		BaggageBuilder baggageBuilder = currentBaggage.toBuilder();
+		oldBaggage.forEach(
+				(key, baggageEntry) -> baggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
+		Baggage updatedBaggage = baggageBuilder.build();
 
-        io.opentelemetry.context.Scope attach = old.with(fromContext).with(updatedBaggage).makeCurrent();
-        return attach::close;
-    }
+		io.opentelemetry.context.Scope attach = old.with(fromContext).with(updatedBaggage).makeCurrent();
+		return attach::close;
+	}
 
-    private boolean sameBaggage(Baggage currentBaggage, Baggage oldBaggage) {
-        return currentBaggage.equals(oldBaggage);
-    }
+	private boolean sameBaggage(Baggage currentBaggage, Baggage oldBaggage) {
+		return currentBaggage.equals(oldBaggage);
+	}
 
-    @Override
-    public Scope maybeScope(TraceContext context) {
-        return newScope(context);
-    }
+	@Override
+	public Scope maybeScope(TraceContext context) {
+		return newScope(context);
+	}
 
-    @Override
-    public <C> Callable<C> wrap(Callable<C> task) {
-        return Context.current().wrap(task);
-    }
+	@Override
+	public <C> Callable<C> wrap(Callable<C> task) {
+		return Context.current().wrap(task);
+	}
 
-    @Override
-    public Runnable wrap(Runnable task) {
-        return Context.current().wrap(task);
-    }
+	@Override
+	public Runnable wrap(Runnable task) {
+		return Context.current().wrap(task);
+	}
 
-    @Override
-    public Executor wrap(Executor delegate) {
-        return Context.current().wrap(delegate);
-    }
+	@Override
+	public Executor wrap(Executor delegate) {
+		return Context.current().wrap(delegate);
+	}
 
-    @Override
-    public ExecutorService wrap(ExecutorService delegate) {
-        return Context.current().wrap(delegate);
-    }
+	@Override
+	public ExecutorService wrap(ExecutorService delegate) {
+		return Context.current().wrap(delegate);
+	}
 
 }

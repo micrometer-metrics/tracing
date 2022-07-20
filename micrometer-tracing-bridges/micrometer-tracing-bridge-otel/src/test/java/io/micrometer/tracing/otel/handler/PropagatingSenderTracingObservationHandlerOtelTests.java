@@ -48,53 +48,58 @@ import static org.assertj.core.api.BDDAssertions.then;
 @SuppressWarnings("unchecked")
 class PropagatingSenderTracingObservationHandlerOtelTests {
 
-    ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
+	ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
 
-    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-            .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
+	SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+			.setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+			.addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+	OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
+			.setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
 
-    io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+	io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
-    Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> {
-    }, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
+	Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> {
+	}, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
 
-    PropagatingSenderTracingObservationHandler<?> handler = new PropagatingSenderTracingObservationHandler<>(tracer, new OtelPropagator(ContextPropagators.noop(), otelTracer));
+	PropagatingSenderTracingObservationHandler<?> handler = new PropagatingSenderTracingObservationHandler<>(tracer,
+			new OtelPropagator(ContextPropagators.noop(), otelTracer));
 
-    @Test
-    void should_be_applicable_for_non_null_context() {
-        then(handler.supportsContext(new SenderContext<>((carrier, key, value) -> { }))).isTrue();
-    }
+	@Test
+	void should_be_applicable_for_non_null_context() {
+		then(handler.supportsContext(new SenderContext<>((carrier, key, value) -> {
+		}))).isTrue();
+	}
 
-    @Test
-    void should_not_be_applicable_for_null_context() {
-        then(handler.supportsContext(null)).isFalse();
-    }
+	@Test
+	void should_not_be_applicable_for_null_context() {
+		then(handler.supportsContext(null)).isFalse();
+	}
 
-    @Test
-    void should_create_a_child_span_when_parent_was_present() {
-        TestObservationRegistry registry = TestObservationRegistry.create();
-        registry.observationConfig().observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(handler, new DefaultTracingObservationHandler(tracer)));
+	@Test
+	void should_create_a_child_span_when_parent_was_present() {
+		TestObservationRegistry registry = TestObservationRegistry.create();
+		registry.observationConfig().observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
+				handler, new DefaultTracingObservationHandler(tracer)));
 
-        Observation parent = Observation.start("parent", registry);
-        SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> { });
-        Observation child = Observation.createNotStarted("child", senderContext, registry).parentObservation(parent).start();
+		Observation parent = Observation.start("parent", registry);
+		SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
+		});
+		Observation child = Observation.createNotStarted("child", senderContext, registry).parentObservation(parent)
+				.start();
 
-        child.stop();
-        parent.stop();
+		child.stop();
+		parent.stop();
 
-        List<FinishedSpan> spans = testSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel).collect(Collectors.toList());
-        SpansAssert.then(spans)
-                .haveSameTraceId();
-        FinishedSpan childFinishedSpan = spans.get(0);
-        SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
-        FinishedSpan parentFinishedSpan = spans.get(1);
-        SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
+		List<FinishedSpan> spans = testSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
+				.collect(Collectors.toList());
+		SpansAssert.then(spans).haveSameTraceId();
+		FinishedSpan childFinishedSpan = spans.get(0);
+		SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
+		FinishedSpan parentFinishedSpan = spans.get(1);
+		SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 
-        then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
-    }
+		then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
+	}
 
 }

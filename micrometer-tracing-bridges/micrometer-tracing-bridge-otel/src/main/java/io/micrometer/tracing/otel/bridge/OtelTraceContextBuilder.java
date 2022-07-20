@@ -30,50 +30,50 @@ import io.opentelemetry.api.trace.TraceState;
  */
 public class OtelTraceContextBuilder implements TraceContext.Builder {
 
-    private String traceId;
+	private String traceId;
 
-    private String parentId;
+	private String parentId;
 
-    private String spanId;
+	private String spanId;
 
-    private Boolean sampled;
+	private Boolean sampled;
 
-    @Override
-    public TraceContext.Builder traceId(String traceId) {
-        this.traceId = traceId;
-        return this;
-    }
+	@Override
+	public TraceContext.Builder traceId(String traceId) {
+		this.traceId = traceId;
+		return this;
+	}
 
-    @Override
-    public TraceContext.Builder parentId(String parentId) {
-        this.parentId = parentId;
-        return this;
-    }
+	@Override
+	public TraceContext.Builder parentId(String parentId) {
+		this.parentId = parentId;
+		return this;
+	}
 
-    @Override
-    public TraceContext.Builder spanId(String spanId) {
-        this.spanId = spanId;
-        return this;
-    }
+	@Override
+	public TraceContext.Builder spanId(String spanId) {
+		this.spanId = spanId;
+		return this;
+	}
 
-    @Override
-    public TraceContext.Builder sampled(Boolean sampled) {
-        this.sampled = sampled;
-        return this;
-    }
+	@Override
+	public TraceContext.Builder sampled(Boolean sampled) {
+		this.sampled = sampled;
+		return this;
+	}
 
-    @Override
-    public TraceContext build() {
-        if (StringUtils.isNotEmpty(this.parentId)) {
-            return new OtelTraceContext(
-                    SpanContext.createFromRemoteParent(this.traceId, this.spanId,
-                            this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
-                    null);
-        }
-        return new OtelTraceContext(
-                SpanContext.create(this.traceId, this.spanId,
-                        this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
-                null);
-    }
+	@Override
+	public TraceContext build() {
+		if (StringUtils.isNotEmpty(this.parentId)) {
+			return new OtelTraceContext(
+					SpanContext.createFromRemoteParent(this.traceId, this.spanId,
+							this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
+					null);
+		}
+		return new OtelTraceContext(
+				SpanContext.create(this.traceId, this.spanId,
+						this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
+				null);
+	}
 
 }

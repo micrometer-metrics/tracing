@@ -26,62 +26,59 @@ import java.util.ArrayDeque;
  */
 public class ThreadLocalSpan {
 
-    private final ThreadLocal<ArrayDeque<SpanAndScope>> currentSpanInScopeStack = new ThreadLocal<>();
+	private final ThreadLocal<ArrayDeque<SpanAndScope>> currentSpanInScopeStack = new ThreadLocal<>();
 
-    private final Tracer tracer;
+	private final Tracer tracer;
 
-    /**
-     * Creates a new instance of {@link ThreadLocalSpan}.
-     *
-     * @param tracer tracer
-     */
-    public ThreadLocalSpan(Tracer tracer) {
-        this.tracer = tracer;
-    }
+	/**
+	 * Creates a new instance of {@link ThreadLocalSpan}.
+	 * @param tracer tracer
+	 */
+	public ThreadLocalSpan(Tracer tracer) {
+		this.tracer = tracer;
+	}
 
-    /**
-     * Sets given span and scope.
-     * @param span - span to be put in scope
-     */
-    public void set(Span span) {
-        Tracer.SpanInScope spanInScope = this.tracer.withSpan(span);
-        SpanAndScope newSpanAndScope = new SpanAndScope(span, spanInScope);
-        getCurrentSpanInScopeStack().addFirst(newSpanAndScope);
-    }
+	/**
+	 * Sets given span and scope.
+	 * @param span - span to be put in scope
+	 */
+	public void set(Span span) {
+		Tracer.SpanInScope spanInScope = this.tracer.withSpan(span);
+		SpanAndScope newSpanAndScope = new SpanAndScope(span, spanInScope);
+		getCurrentSpanInScopeStack().addFirst(newSpanAndScope);
+	}
 
-    /**
-     * Returns the currently stored span and scope.
-     *
-     * @return span and scope
-     */
-    public SpanAndScope get() {
-        return getCurrentSpanInScopeStack().peekFirst();
-    }
+	/**
+	 * Returns the currently stored span and scope.
+	 * @return span and scope
+	 */
+	public SpanAndScope get() {
+		return getCurrentSpanInScopeStack().peekFirst();
+	}
 
-    /**
-     * Removes the current span from thread local and brings back the previous span to the
-     * current thread local.
-     *
-     * @return removed span of {@code null} if there was none
-     */
-    public SpanAndScope remove() {
-        SpanAndScope spanAndScope = getCurrentSpanInScopeStack().pollFirst();
-        if (spanAndScope == null) {
-            return null;
-        }
-        if (spanAndScope.getScope() != null) {
-            spanAndScope.getScope().close();
-        }
-        return spanAndScope;
-    }
+	/**
+	 * Removes the current span from thread local and brings back the previous span to the
+	 * current thread local.
+	 * @return removed span of {@code null} if there was none
+	 */
+	public SpanAndScope remove() {
+		SpanAndScope spanAndScope = getCurrentSpanInScopeStack().pollFirst();
+		if (spanAndScope == null) {
+			return null;
+		}
+		if (spanAndScope.getScope() != null) {
+			spanAndScope.getScope().close();
+		}
+		return spanAndScope;
+	}
 
-    private ArrayDeque<SpanAndScope> getCurrentSpanInScopeStack() {
-        ArrayDeque<SpanAndScope> stack = this.currentSpanInScopeStack.get();
-        if (stack == null) {
-            stack = new ArrayDeque<>();
-            this.currentSpanInScopeStack.set(stack);
-        }
-        return stack;
-    }
+	private ArrayDeque<SpanAndScope> getCurrentSpanInScopeStack() {
+		ArrayDeque<SpanAndScope> stack = this.currentSpanInScopeStack.get();
+		if (stack == null) {
+			stack = new ArrayDeque<>();
+			this.currentSpanInScopeStack.set(stack);
+		}
+		return stack;
+	}
 
 }

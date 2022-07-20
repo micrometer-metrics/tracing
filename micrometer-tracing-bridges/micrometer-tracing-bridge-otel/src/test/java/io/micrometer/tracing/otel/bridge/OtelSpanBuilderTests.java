@@ -27,21 +27,21 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelSpanBuilderTests {
 
-    @Test
-    void should_set_child_span_when_using_builders() {
-        SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-                .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn()).build();
-        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
-        io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+	@Test
+	void should_set_child_span_when_using_builders() {
+		SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+				.setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn()).build();
+		OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
+				.setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+		io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
-        Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));
-        Span parentSpan = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
+		Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));
+		Span parentSpan = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
 
-        Span child = builder.setParent(parentSpan.context()).start();
+		Span child = builder.setParent(parentSpan.context()).start();
 
-        then(child.context().traceId()).isEqualTo(parentSpan.context().traceId());
-        then(child.context().parentId()).isEqualTo(parentSpan.context().spanId());
-    }
+		then(child.context().traceId()).isEqualTo(parentSpan.context().traceId());
+		then(child.context().parentId()).isEqualTo(parentSpan.context().spanId());
+	}
 
 }

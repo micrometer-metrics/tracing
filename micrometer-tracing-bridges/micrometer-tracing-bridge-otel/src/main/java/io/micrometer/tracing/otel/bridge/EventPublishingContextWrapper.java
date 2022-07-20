@@ -25,117 +25,116 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 
 /**
- * A context wrapper that publishes events when scope is being attached, closed or restored.
+ * A context wrapper that publishes events when scope is being attached, closed or
+ * restored.
  *
  * @since 1.0.0
  */
 public final class EventPublishingContextWrapper implements Function<ContextStorage, ContextStorage> {
 
-    private final OtelTracer.EventPublisher publisher;
+	private final OtelTracer.EventPublisher publisher;
 
-    /**
-     * Creates a new instance of {@link EventPublishingContextWrapper}.
-     *
-     * @param publisher an event publisher
-     */
-    public EventPublishingContextWrapper(OtelTracer.EventPublisher publisher) {
-        this.publisher = publisher;
-    }
+	/**
+	 * Creates a new instance of {@link EventPublishingContextWrapper}.
+	 * @param publisher an event publisher
+	 */
+	public EventPublishingContextWrapper(OtelTracer.EventPublisher publisher) {
+		this.publisher = publisher;
+	}
 
-    @Override
-    public ContextStorage apply(ContextStorage contextStorage) {
-        return new ContextStorage() {
-            @Override
-            public io.opentelemetry.context.Scope attach(Context context) {
-                Context currentContext = Context.current();
-                io.opentelemetry.context.Scope scope = contextStorage.attach(context);
-                if (scope == io.opentelemetry.context.Scope.noop()) {
-                    return scope;
-                }
-                publisher.publishEvent(new ScopeAttachedEvent(context));
-                return () -> {
-                    scope.close();
-                    publisher.publishEvent(new ScopeClosedEvent());
-                    publisher.publishEvent(new ScopeRestoredEvent(currentContext));
-                };
-            }
+	@Override
+	public ContextStorage apply(ContextStorage contextStorage) {
+		return new ContextStorage() {
+			@Override
+			public io.opentelemetry.context.Scope attach(Context context) {
+				Context currentContext = Context.current();
+				io.opentelemetry.context.Scope scope = contextStorage.attach(context);
+				if (scope == io.opentelemetry.context.Scope.noop()) {
+					return scope;
+				}
+				publisher.publishEvent(new ScopeAttachedEvent(context));
+				return () -> {
+					scope.close();
+					publisher.publishEvent(new ScopeClosedEvent());
+					publisher.publishEvent(new ScopeRestoredEvent(currentContext));
+				};
+			}
 
-            @Override
-            public Context current() {
-                return contextStorage.current();
-            }
-        };
-    }
+			@Override
+			public Context current() {
+				return contextStorage.current();
+			}
+		};
+	}
 
-    /**
-     * An event with context attached.
-     *
-     * @since 1.0.0
-     */
-    public static class ScopeAttachedEvent {
+	/**
+	 * An event with context attached.
+	 *
+	 * @since 1.0.0
+	 */
+	public static class ScopeAttachedEvent {
 
-        /**
-         * Context corresponding to the attached scope. Might be {@code null}.
-         */
-        final Context context;
+		/**
+		 * Context corresponding to the attached scope. Might be {@code null}.
+		 */
+		final Context context;
 
-        /**
-         * Create a new event.
-         *
-         * @param context corresponding otel context
-         */
-        public ScopeAttachedEvent(@Nullable Context context) {
-            this.context = context;
-        }
+		/**
+		 * Create a new event.
+		 * @param context corresponding otel context
+		 */
+		public ScopeAttachedEvent(@Nullable Context context) {
+			this.context = context;
+		}
 
-        Span getSpan() {
-            return Span.fromContextOrNull(context);
-        }
+		Span getSpan() {
+			return Span.fromContextOrNull(context);
+		}
 
-        Baggage getBaggage() {
-            return Baggage.fromContextOrNull(context);
-        }
+		Baggage getBaggage() {
+			return Baggage.fromContextOrNull(context);
+		}
 
-        @Override
-        public String toString() {
-            return "ScopeAttached{context: [span: " + getSpan() + "] [baggage: " + getBaggage() + "]}";
-        }
+		@Override
+		public String toString() {
+			return "ScopeAttached{context: [span: " + getSpan() + "] [baggage: " + getBaggage() + "]}";
+		}
 
-    }
+	}
 
-    public static class ScopeClosedEvent {
+	public static class ScopeClosedEvent {
 
-    }
+	}
 
-    public static class ScopeRestoredEvent {
+	public static class ScopeRestoredEvent {
 
-        /**
-         * {@link Context} corresponding to the scope being restored. Might be
-         * {@code null}.
-         */
-        final Context context;
+		/**
+		 * {@link Context} corresponding to the scope being restored. Might be
+		 * {@code null}.
+		 */
+		final Context context;
 
-        /**
-         * Create a new event.
-         * @param context corresponding otel context
-         */
-        public ScopeRestoredEvent(@Nullable Context context) {
-            this.context = context;
-        }
+		/**
+		 * Create a new event.
+		 * @param context corresponding otel context
+		 */
+		public ScopeRestoredEvent(@Nullable Context context) {
+			this.context = context;
+		}
 
-        Span getSpan() {
-            return Span.fromContextOrNull(context);
-        }
+		Span getSpan() {
+			return Span.fromContextOrNull(context);
+		}
 
-        Baggage getBaggage() {
-            return Baggage.fromContextOrNull(context);
-        }
+		Baggage getBaggage() {
+			return Baggage.fromContextOrNull(context);
+		}
 
-        @Override
-        public String toString() {
-            return "ScopeRestored{context: [span: " + getSpan() + "] [baggage: " + getBaggage() + "]}";
-        }
+		@Override
+		public String toString() {
+			return "ScopeRestored{context: [span: " + getSpan() + "] [baggage: " + getBaggage() + "]}";
+		}
 
-    }
+	}
 
 }

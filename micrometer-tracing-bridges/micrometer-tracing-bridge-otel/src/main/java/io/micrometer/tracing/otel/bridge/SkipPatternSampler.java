@@ -21,7 +21,6 @@ import java.util.regex.Pattern;
 import io.micrometer.tracing.http.HttpRequest;
 import io.micrometer.tracing.SamplerFunction;
 
-
 /**
  * Decides if sampling should take place for the given request.
  *
@@ -30,25 +29,24 @@ import io.micrometer.tracing.SamplerFunction;
  */
 public class SkipPatternSampler implements SamplerFunction<HttpRequest> {
 
-    private final Pattern pattern;
+	private final Pattern pattern;
 
-    /**
-     * Creates a new instance of {@link SkipPatternSampler}.
-     *
-     * @param pattern skip pattern
-     */
-    public SkipPatternSampler(Pattern pattern) {
-        this.pattern = pattern;
-    }
+	/**
+	 * Creates a new instance of {@link SkipPatternSampler}.
+	 * @param pattern skip pattern
+	 */
+	public SkipPatternSampler(Pattern pattern) {
+		this.pattern = pattern;
+	}
 
-    @Override
-    public final Boolean trySample(HttpRequest request) {
-        String url = request.path();
-        boolean shouldSkip = this.pattern.matcher(url).matches();
-        if (shouldSkip) {
-            return false;
-        }
-        return null;
-    }
+	@Override
+	public final Boolean trySample(HttpRequest request) {
+		String url = request.path();
+		boolean shouldSkip = this.pattern.matcher(url).matches();
+		if (shouldSkip) {
+			return false;
+		}
+		return null;
+	}
 
 }

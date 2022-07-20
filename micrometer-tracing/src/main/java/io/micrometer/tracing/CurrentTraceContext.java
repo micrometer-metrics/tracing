@@ -36,67 +36,67 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface CurrentTraceContext {
 
-    /**
-     * @return current {@link TraceContext} or {@code null} if not set.
-     */
-    @Nullable
-    TraceContext context();
+	/**
+	 * @return current {@link TraceContext} or {@code null} if not set.
+	 */
+	@Nullable
+	TraceContext context();
 
-    /**
-     * Sets the current span in scope until the returned object is closed. It is a
-     * programming error to drop or never close the result. Using try-with-resources is
-     * preferred for this reason.
-     * @param context span to place into scope or {@code null} to clear the scope
-     * @return the scope with the span set
-     */
-    CurrentTraceContext.Scope newScope(@Nullable TraceContext context);
+	/**
+	 * Sets the current span in scope until the returned object is closed. It is a
+	 * programming error to drop or never close the result. Using try-with-resources is
+	 * preferred for this reason.
+	 * @param context span to place into scope or {@code null} to clear the scope
+	 * @return the scope with the span set
+	 */
+	CurrentTraceContext.Scope newScope(@Nullable TraceContext context);
 
-    /**
-     * Like {@link #newScope(TraceContext)}, except returns a noop scope if the given
-     * context is already in scope.
-     * @param context span to place into scope or {@code null} to clear the scope
-     * @return the scope with the span set
-     */
-    CurrentTraceContext.Scope maybeScope(@Nullable TraceContext context);
+	/**
+	 * Like {@link #newScope(TraceContext)}, except returns a noop scope if the given
+	 * context is already in scope.
+	 * @param context span to place into scope or {@code null} to clear the scope
+	 * @return the scope with the span set
+	 */
+	CurrentTraceContext.Scope maybeScope(@Nullable TraceContext context);
 
-    /**
-     * Wraps a task in a trace representation.
-     * @param task task to wrap
-     * @param <C> task return type
-     * @return wrapped task
-     */
-    <C> Callable<C> wrap(Callable<C> task);
+	/**
+	 * Wraps a task in a trace representation.
+	 * @param task task to wrap
+	 * @param <C> task return type
+	 * @return wrapped task
+	 */
+	<C> Callable<C> wrap(Callable<C> task);
 
-    /**
-     * Wraps a task in a trace representation.
-     * @param task task to wrap
-     * @return wrapped task
-     */
-    Runnable wrap(Runnable task);
+	/**
+	 * Wraps a task in a trace representation.
+	 * @param task task to wrap
+	 * @return wrapped task
+	 */
+	Runnable wrap(Runnable task);
 
-    /**
-     * Wraps an executor in a trace representation.
-     * @param delegate executor to wrap
-     * @return wrapped executor
-     */
-    Executor wrap(Executor delegate);
+	/**
+	 * Wraps an executor in a trace representation.
+	 * @param delegate executor to wrap
+	 * @return wrapped executor
+	 */
+	Executor wrap(Executor delegate);
 
-    /**
-     * Wraps an executor service in a trace representation.
-     * @param delegate executor service to wrap
-     * @return wrapped executor service
-     */
-    ExecutorService wrap(ExecutorService delegate);
+	/**
+	 * Wraps an executor service in a trace representation.
+	 * @param delegate executor service to wrap
+	 * @return wrapped executor service
+	 */
+	ExecutorService wrap(ExecutorService delegate);
 
-    /**
-     * Scope of a span. Needs to be closed so that resources are let go (e.g. MDC is
-     * cleared).
-     */
-    interface Scope extends Closeable {
+	/**
+	 * Scope of a span. Needs to be closed so that resources are let go (e.g. MDC is
+	 * cleared).
+	 */
+	interface Scope extends Closeable {
 
-        @Override
-        void close();
+		@Override
+		void close();
 
-    }
+	}
 
 }

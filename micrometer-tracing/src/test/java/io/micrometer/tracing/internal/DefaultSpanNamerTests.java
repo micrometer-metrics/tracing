@@ -25,36 +25,37 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class DefaultSpanNamerTests {
 
-    @Test
-    void should_override_default_name_with_one_from_annotation() {
-        then(new DefaultSpanNamer().name(new WithAnnotation(), "default")).isEqualTo("foo");
-    }
+	@Test
+	void should_override_default_name_with_one_from_annotation() {
+		then(new DefaultSpanNamer().name(new WithAnnotation(), "default")).isEqualTo("foo");
+	}
 
-    @Test
-    void should_override_default_name_with_one_from_overridden_to_string() {
-        then(new DefaultSpanNamer().name(new WithToString(), "default")).isEqualTo("foo");
-    }
+	@Test
+	void should_override_default_name_with_one_from_overridden_to_string() {
+		then(new DefaultSpanNamer().name(new WithToString(), "default")).isEqualTo("foo");
+	}
 
-    @Test
-    void should_override_default_name_with_default_when_default_to_string() {
-        then(new DefaultSpanNamer().name(new WithDefaultToString(), "foo")).isEqualTo("foo");
-    }
+	@Test
+	void should_override_default_name_with_default_when_default_to_string() {
+		then(new DefaultSpanNamer().name(new WithDefaultToString(), "foo")).isEqualTo("foo");
+	}
 
-    @SpanName("foo")
-    static class WithAnnotation {
+	@SpanName("foo")
+	static class WithAnnotation {
 
-    }
+	}
 
-    static class WithToString {
+	static class WithToString {
 
-        @Override
-        public String toString() {
-            return "foo";
-        }
-    }
+		@Override
+		public String toString() {
+			return "foo";
+		}
 
+	}
 
-    static class WithDefaultToString {
+	static class WithDefaultToString {
 
-    }
+	}
+
 }

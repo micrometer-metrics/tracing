@@ -28,27 +28,27 @@ import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributes
  */
 class HttpRequestNetClientAttributesExtractor implements NetClientAttributesGetter<HttpRequest, HttpResponse> {
 
-    @Nullable
-    @Override
-    public String transport(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
-        return null;
-    }
+	@Nullable
+	@Override
+	public String transport(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
+		return null;
+	}
 
-    @Nullable
-    @Override
-    public String peerName(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
-        return null;
-    }
+	@Nullable
+	@Override
+	public String peerName(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
+		return null;
+	}
 
-    @Override
-    public Integer peerPort(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
-        return httpRequest == null ? null : httpRequest.remotePort();
-    }
+	@Override
+	public Integer peerPort(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
+		return httpRequest == null ? null : httpRequest.remotePort();
+	}
 
-    @Nullable
-    @Override
-    public String peerIp(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
-        return httpRequest == null ? null : httpRequest.remoteIp();
-    }
+	@Nullable
+	@Override
+	public String peerIp(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
+		return httpRequest == null ? null : httpRequest.remoteIp();
+	}
 
 }

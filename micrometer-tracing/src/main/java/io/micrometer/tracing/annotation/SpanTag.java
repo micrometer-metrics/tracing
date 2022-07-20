@@ -38,33 +38,29 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface SpanTag {
 
-    /**
-     * The name of the key of the tag which should be created.
-     *
-     * @return the tag key
-     */
-    String value() default "";
+	/**
+	 * The name of the key of the tag which should be created.
+	 * @return the tag key
+	 */
+	String value() default "";
 
-    /**
-     * The name of the key of the tag which should be created.
-     *
-     * @return the tag value
-     */
-    String key() default "";
+	/**
+	 * The name of the key of the tag which should be created.
+	 * @return the tag value
+	 */
+	String key() default "";
 
-    /**
-     * Execute this SPEL expression to calculate the tag value. Will be analyzed
-     * if no value of the {@link SpanTag#resolver()} was set.
-     *
-     * @return a SPEL expression
-     */
-    String expression() default "";
+	/**
+	 * Execute this SPEL expression to calculate the tag value. Will be analyzed if no
+	 * value of the {@link SpanTag#resolver()} was set.
+	 * @return a SPEL expression
+	 */
+	String expression() default "";
 
-    /**
-     * Use this bean to resolve the tag value. Has the highest precedence.
-     *
-     * @return {@link TagValueResolver} bean
-     */
-    Class<? extends TagValueResolver> resolver() default NoOpTagValueResolver.class;
+	/**
+	 * Use this bean to resolve the tag value. Has the highest precedence.
+	 * @return {@link TagValueResolver} bean
+	 */
+	Class<? extends TagValueResolver> resolver() default NoOpTagValueResolver.class;
 
 }

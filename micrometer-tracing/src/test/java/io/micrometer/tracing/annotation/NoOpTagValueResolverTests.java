@@ -25,9 +25,9 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 class NoOpTagValueResolverTests {
 
-    @Test
-    void should_return_null() throws Exception {
-        then(new NoOpTagValueResolver().resolve("")).isNull();
-    }
+	@Test
+	void should_return_null() throws Exception {
+		then(new NoOpTagValueResolver().resolve("")).isNull();
+	}
 
 }

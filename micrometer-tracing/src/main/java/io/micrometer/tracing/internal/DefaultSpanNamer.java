@@ -40,29 +40,29 @@ import io.micrometer.tracing.SpanNamer;
  */
 public class DefaultSpanNamer implements SpanNamer {
 
-    private static boolean isDefaultToString(Object delegate, String spanName) {
-        if (delegate instanceof Method) {
-            return delegate.toString().equals(spanName);
-        }
-        return (delegate.getClass().getName() + "@" + Integer.toHexString(delegate.hashCode())).equals(spanName);
-    }
+	private static boolean isDefaultToString(Object delegate, String spanName) {
+		if (delegate instanceof Method) {
+			return delegate.toString().equals(spanName);
+		}
+		return (delegate.getClass().getName() + "@" + Integer.toHexString(delegate.hashCode())).equals(spanName);
+	}
 
-    @Override
-    public String name(Object object, String defaultValue) {
-        SpanName annotation = annotation(object);
-        String spanName = annotation != null ? annotation.value() : object.toString();
-        // If there is no overridden toString method we'll put a constant value
-        if (isDefaultToString(object, spanName)) {
-            return defaultValue;
-        }
-        return spanName;
-    }
+	@Override
+	public String name(Object object, String defaultValue) {
+		SpanName annotation = annotation(object);
+		String spanName = annotation != null ? annotation.value() : object.toString();
+		// If there is no overridden toString method we'll put a constant value
+		if (isDefaultToString(object, spanName)) {
+			return defaultValue;
+		}
+		return spanName;
+	}
 
-    private SpanName annotation(Object o) {
-        if (o instanceof Method) {
-            return ((Method) o).getAnnotation(SpanName.class);
-        }
-        return o.getClass().getAnnotation(SpanName.class);
-    }
+	private SpanName annotation(Object o) {
+		if (o instanceof Method) {
+			return ((Method) o).getAnnotation(SpanName.class);
+		}
+		return o.getClass().getAnnotation(SpanName.class);
+	}
 
 }

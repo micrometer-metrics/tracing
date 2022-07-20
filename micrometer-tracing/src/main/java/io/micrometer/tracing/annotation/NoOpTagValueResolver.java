@@ -24,9 +24,9 @@ package io.micrometer.tracing.annotation;
  */
 public class NoOpTagValueResolver implements TagValueResolver {
 
-    @Override
-    public String resolve(Object parameter) {
-        return null;
-    }
+	@Override
+	public String resolve(Object parameter) {
+		return null;
+	}
 
 }

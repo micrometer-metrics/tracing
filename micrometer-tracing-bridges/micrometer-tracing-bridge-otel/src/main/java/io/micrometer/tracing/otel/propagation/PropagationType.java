@@ -24,34 +24,34 @@ package io.micrometer.tracing.otel.propagation;
  */
 public enum PropagationType {
 
-    /**
-     * AWS propagation type.
-     */
-    AWS,
+	/**
+	 * AWS propagation type.
+	 */
+	AWS,
 
-    /**
-     * B3 propagation type.
-     */
-    B3,
+	/**
+	 * B3 propagation type.
+	 */
+	B3,
 
-    /**
-     * Jaeger propagation type.
-     */
-    JAEGER,
+	/**
+	 * Jaeger propagation type.
+	 */
+	JAEGER,
 
-    /**
-     * Lightstep propagation type.
-     */
-    OT_TRACER,
+	/**
+	 * Lightstep propagation type.
+	 */
+	OT_TRACER,
 
-    /**
-     * W3C propagation type.
-     */
-    W3C,
+	/**
+	 * W3C propagation type.
+	 */
+	W3C,
 
-    /**
-     * Custom propagation type.
-     */
-    CUSTOM
+	/**
+	 * Custom propagation type.
+	 */
+	CUSTOM
 
 }

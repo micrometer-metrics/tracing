@@ -29,154 +29,154 @@ import io.opentelemetry.context.Context;
 
 class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
 
-    final io.opentelemetry.api.trace.Span span;
+	final io.opentelemetry.api.trace.Span span;
 
-    final SpanContext newSpanContext;
+	final SpanContext newSpanContext;
 
-    final OtelTraceContext otelTraceContext;
+	final OtelTraceContext otelTraceContext;
 
-    SpanFromSpanContext(io.opentelemetry.api.trace.Span span, SpanContext newSpanContext,
-            OtelTraceContext otelTraceContext) {
-        this.span = span != null ? span : io.opentelemetry.api.trace.Span.wrap(newSpanContext);
-        this.newSpanContext = newSpanContext;
-        this.otelTraceContext = otelTraceContext;
-    }
+	SpanFromSpanContext(io.opentelemetry.api.trace.Span span, SpanContext newSpanContext,
+			OtelTraceContext otelTraceContext) {
+		this.span = span != null ? span : io.opentelemetry.api.trace.Span.wrap(newSpanContext);
+		this.newSpanContext = newSpanContext;
+		this.otelTraceContext = otelTraceContext;
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span setAttribute(String key, @Nullable String value) {
-        return span.setAttribute(key, value);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span setAttribute(String key, @Nullable String value) {
+		return span.setAttribute(key, value);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span setAttribute(String key, long value) {
-        return span.setAttribute(key, value);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span setAttribute(String key, long value) {
+		return span.setAttribute(key, value);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span setAttribute(String key, double value) {
-        return span.setAttribute(key, value);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span setAttribute(String key, double value) {
+		return span.setAttribute(key, value);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span setAttribute(String key, boolean value) {
-        return span.setAttribute(key, value);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span setAttribute(String key, boolean value) {
+		return span.setAttribute(key, value);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span addEvent(String name) {
-        return span.addEvent(name);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span addEvent(String name) {
+		return span.addEvent(name);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span addEvent(String name, long timestamp, TimeUnit unit) {
-        return span.addEvent(name, timestamp, unit);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span addEvent(String name, long timestamp, TimeUnit unit) {
+		return span.addEvent(name, timestamp, unit);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span addEvent(String name, Instant timestamp) {
-        return span.addEvent(name, timestamp);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span addEvent(String name, Instant timestamp) {
+		return span.addEvent(name, timestamp);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span addEvent(String name, Attributes attributes) {
-        return span.addEvent(name, attributes);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span addEvent(String name, Attributes attributes) {
+		return span.addEvent(name, attributes);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit) {
-        return span.addEvent(name, attributes, timestamp, unit);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit) {
+		return span.addEvent(name, attributes, timestamp, unit);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span addEvent(String name, Attributes attributes, Instant timestamp) {
-        return span.addEvent(name, attributes, timestamp);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span addEvent(String name, Attributes attributes, Instant timestamp) {
+		return span.addEvent(name, attributes, timestamp);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span setStatus(StatusCode canonicalCode) {
-        return span.setStatus(canonicalCode);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span setStatus(StatusCode canonicalCode) {
+		return span.setStatus(canonicalCode);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span setStatus(StatusCode canonicalCode, String description) {
-        return span.setStatus(canonicalCode, description);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span setStatus(StatusCode canonicalCode, String description) {
+		return span.setStatus(canonicalCode, description);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span setAttribute(AttributeKey<Long> key, int value) {
-        return span.setAttribute(key, value);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span setAttribute(AttributeKey<Long> key, int value) {
+		return span.setAttribute(key, value);
+	}
 
-    @Override
-    public <T> io.opentelemetry.api.trace.Span setAttribute(AttributeKey<T> key, T value) {
-        return span.setAttribute(key, value);
-    }
+	@Override
+	public <T> io.opentelemetry.api.trace.Span setAttribute(AttributeKey<T> key, T value) {
+		return span.setAttribute(key, value);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span recordException(Throwable exception) {
-        return span.recordException(exception);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span recordException(Throwable exception) {
+		return span.recordException(exception);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span recordException(Throwable exception, Attributes additionalAttributes) {
-        return span.recordException(exception, additionalAttributes);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span recordException(Throwable exception, Attributes additionalAttributes) {
+		return span.recordException(exception, additionalAttributes);
+	}
 
-    @Override
-    public io.opentelemetry.api.trace.Span updateName(String name) {
-        return span.updateName(name);
-    }
+	@Override
+	public io.opentelemetry.api.trace.Span updateName(String name) {
+		return span.updateName(name);
+	}
 
-    @Override
-    public void end() {
-        span.end();
-    }
+	@Override
+	public void end() {
+		span.end();
+	}
 
-    @Override
-    public void end(long timestamp, TimeUnit unit) {
-        span.end(timestamp, unit);
-    }
+	@Override
+	public void end(long timestamp, TimeUnit unit) {
+		span.end(timestamp, unit);
+	}
 
-    @Override
-    public void end(Instant timestamp) {
-        span.end(timestamp);
-    }
+	@Override
+	public void end(Instant timestamp) {
+		span.end(timestamp);
+	}
 
-    @Override
-    public SpanContext getSpanContext() {
-        return newSpanContext;
-    }
+	@Override
+	public SpanContext getSpanContext() {
+		return newSpanContext;
+	}
 
-    @Override
-    public boolean isRecording() {
-        return span.isRecording();
-    }
+	@Override
+	public boolean isRecording() {
+		return span.isRecording();
+	}
 
-    @Override
-    public Context storeInContext(Context context) {
-        return span.storeInContext(context);
-    }
+	@Override
+	public Context storeInContext(Context context) {
+		return span.storeInContext(context);
+	}
 
-    @Override
-    public String toString() {
-        return "SpanFromSpanContext{" + "span=" + span + ", newSpanContext=" + newSpanContext + '}';
-    }
+	@Override
+	public String toString() {
+		return "SpanFromSpanContext{" + "span=" + span + ", newSpanContext=" + newSpanContext + '}';
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        SpanFromSpanContext that = (SpanFromSpanContext) o;
-        return Objects.equals(span, that.span) && Objects.equals(this.newSpanContext, that.newSpanContext);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		SpanFromSpanContext that = (SpanFromSpanContext) o;
+		return Objects.equals(span, that.span) && Objects.equals(this.newSpanContext, that.newSpanContext);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.span, this.newSpanContext);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.span, this.newSpanContext);
+	}
 
 }

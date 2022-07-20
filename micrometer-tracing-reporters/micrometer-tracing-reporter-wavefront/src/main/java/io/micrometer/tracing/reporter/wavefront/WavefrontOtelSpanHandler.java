@@ -32,56 +32,55 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
  */
 public class WavefrontOtelSpanHandler implements SpanExporter {
 
-    private final WavefrontSpanHandler spanHandler;
+	private final WavefrontSpanHandler spanHandler;
 
-    /**
-     * Creates a new instance of {@link WavefrontOtelSpanHandler}.
-     *
-     * @param spanHandler wavefront span handler
-     */
-    public WavefrontOtelSpanHandler(WavefrontSpanHandler spanHandler) {
-        this.spanHandler = spanHandler;
-    }
+	/**
+	 * Creates a new instance of {@link WavefrontOtelSpanHandler}.
+	 * @param spanHandler wavefront span handler
+	 */
+	public WavefrontOtelSpanHandler(WavefrontSpanHandler spanHandler) {
+		this.spanHandler = spanHandler;
+	}
 
-    @Override
-    public CompletableResultCode export(Collection<SpanData> spans) {
-        spans.forEach(spanData -> spanHandler.end(traceContext(spanData), OtelFinishedSpan.fromOtel(spanData)));
-        return CompletableResultCode.ofSuccess();
-    }
+	@Override
+	public CompletableResultCode export(Collection<SpanData> spans) {
+		spans.forEach(spanData -> spanHandler.end(traceContext(spanData), OtelFinishedSpan.fromOtel(spanData)));
+		return CompletableResultCode.ofSuccess();
+	}
 
-    private TraceContext traceContext(SpanData spanData) {
-        return new TraceContext() {
-            @Override
-            public String traceId() {
-                return spanData.getTraceId();
-            }
+	private TraceContext traceContext(SpanData spanData) {
+		return new TraceContext() {
+			@Override
+			public String traceId() {
+				return spanData.getTraceId();
+			}
 
-            @Override
-            public String parentId() {
-                return spanData.getParentSpanId();
-            }
+			@Override
+			public String parentId() {
+				return spanData.getParentSpanId();
+			}
 
-            @Override
-            public String spanId() {
-                return spanData.getSpanId();
-            }
+			@Override
+			public String spanId() {
+				return spanData.getSpanId();
+			}
 
-            @Override
-            public Boolean sampled() {
-                return spanData.getSpanContext().isSampled();
-            }
-        };
-    }
+			@Override
+			public Boolean sampled() {
+				return spanData.getSpanContext().isSampled();
+			}
+		};
+	}
 
-    @Override
-    public CompletableResultCode flush() {
-        return CompletableResultCode.ofSuccess();
-    }
+	@Override
+	public CompletableResultCode flush() {
+		return CompletableResultCode.ofSuccess();
+	}
 
-    @Override
-    public CompletableResultCode shutdown() {
-        spanHandler.close();
-        return CompletableResultCode.ofSuccess();
-    }
+	@Override
+	public CompletableResultCode shutdown() {
+		spanHandler.close();
+		return CompletableResultCode.ofSuccess();
+	}
 
 }

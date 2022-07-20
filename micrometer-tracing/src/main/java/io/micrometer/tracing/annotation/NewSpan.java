@@ -40,18 +40,18 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface NewSpan {
 
-    /**
-     * The name of the span which will be created. Default is the annotated method's name separated by hyphens.
-     *
-     * @return the name of the span which will be created
-     */
-    String name() default "";
+	/**
+	 * The name of the span which will be created. Default is the annotated method's name
+	 * separated by hyphens.
+	 * @return the name of the span which will be created
+	 */
+	String name() default "";
 
-    /**
-     * The name of the span which will be created. Default is the annotated method's name separated by hyphens.
-     *
-     * @return the name of the span which will be created
-     */
-    String value() default "";
+	/**
+	 * The name of the span which will be created. Default is the annotated method's name
+	 * separated by hyphens.
+	 * @return the name of the span which will be created
+	 */
+	String value() default "";
 
 }

@@ -31,24 +31,23 @@ import brave.sampler.Sampler;
  */
 public class RateLimitingSampler extends Sampler {
 
-    private final Sampler sampler;
+	private final Sampler sampler;
 
-    /**
-     * Creates a new instance of {@link RateLimitingSampler}.
-     *
-     * @param rate supplier of rate
-     */
-    public RateLimitingSampler(Supplier<Integer> rate) {
-        this.sampler = brave.sampler.RateLimitingSampler.create(rateLimit(rate));
-    }
+	/**
+	 * Creates a new instance of {@link RateLimitingSampler}.
+	 * @param rate supplier of rate
+	 */
+	public RateLimitingSampler(Supplier<Integer> rate) {
+		this.sampler = brave.sampler.RateLimitingSampler.create(rateLimit(rate));
+	}
 
-    private Integer rateLimit(Supplier<Integer> rate) {
-        return rate.get() != null ? rate.get() : 0;
-    }
+	private Integer rateLimit(Supplier<Integer> rate) {
+		return rate.get() != null ? rate.get() : 0;
+	}
 
-    @Override
-    public boolean isSampled(long traceId) {
-        return this.sampler.isSampled(traceId);
-    }
+	@Override
+	public boolean isSampled(long traceId) {
+		return this.sampler.isSampled(traceId);
+	}
 
 }

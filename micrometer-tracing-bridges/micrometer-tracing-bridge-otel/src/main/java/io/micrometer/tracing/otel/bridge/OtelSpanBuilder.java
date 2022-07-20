@@ -25,7 +25,6 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.SpanKind;
 
-
 /**
  * OpenTelemetry implementation of a {@link Span.Builder}.
  *
@@ -34,115 +33,115 @@ import io.opentelemetry.api.trace.SpanKind;
  */
 class OtelSpanBuilder implements Span.Builder {
 
-    static final String REMOTE_SERVICE_NAME_KEY = "peer.service";
+	static final String REMOTE_SERVICE_NAME_KEY = "peer.service";
 
-    private final io.opentelemetry.api.trace.SpanBuilder delegate;
+	private final io.opentelemetry.api.trace.SpanBuilder delegate;
 
-    private final List<String> annotations = new LinkedList<>();
+	private final List<String> annotations = new LinkedList<>();
 
-    private String name;
+	private String name;
 
-    private Throwable error;
+	private Throwable error;
 
-    OtelSpanBuilder(io.opentelemetry.api.trace.SpanBuilder delegate) {
-        this.delegate = delegate;
-    }
+	OtelSpanBuilder(io.opentelemetry.api.trace.SpanBuilder delegate) {
+		this.delegate = delegate;
+	}
 
-    static Span.Builder fromOtel(io.opentelemetry.api.trace.SpanBuilder builder) {
-        return new OtelSpanBuilder(builder);
-    }
+	static Span.Builder fromOtel(io.opentelemetry.api.trace.SpanBuilder builder) {
+		return new OtelSpanBuilder(builder);
+	}
 
-    @Override
-    public Span.Builder setParent(TraceContext context) {
-        this.delegate.setParent(OtelTraceContext.toOtelContext(context));
-        return this;
-    }
+	@Override
+	public Span.Builder setParent(TraceContext context) {
+		this.delegate.setParent(OtelTraceContext.toOtelContext(context));
+		return this;
+	}
 
-    @Override
-    public Span.Builder setNoParent() {
-        this.delegate.setNoParent();
-        return this;
-    }
+	@Override
+	public Span.Builder setNoParent() {
+		this.delegate.setNoParent();
+		return this;
+	}
 
-    @Override
-    public Span.Builder name(String name) {
-        this.name = name;
-        return this;
-    }
+	@Override
+	public Span.Builder name(String name) {
+		this.name = name;
+		return this;
+	}
 
-    @Override
-    public Span.Builder event(String value) {
-        this.annotations.add(value);
-        return this;
-    }
+	@Override
+	public Span.Builder event(String value) {
+		this.annotations.add(value);
+		return this;
+	}
 
-    @Override
-    public Span.Builder tag(String key, String value) {
-        this.delegate.setAttribute(key, value);
-        return this;
-    }
+	@Override
+	public Span.Builder tag(String key, String value) {
+		this.delegate.setAttribute(key, value);
+		return this;
+	}
 
-    @Override
-    public Span.Builder error(Throwable throwable) {
-        this.error = throwable;
-        return this;
-    }
+	@Override
+	public Span.Builder error(Throwable throwable) {
+		this.error = throwable;
+		return this;
+	}
 
-    @Override
-    public Span.Builder kind(Span.Kind spanKind) {
-        if (spanKind == null) {
-            this.delegate.setSpanKind(SpanKind.INTERNAL);
-            return this;
-        }
-        SpanKind kind = SpanKind.INTERNAL;
-        switch (spanKind) {
-            case CLIENT:
-                kind = SpanKind.CLIENT;
-                break;
-            case SERVER:
-                kind = SpanKind.SERVER;
-                break;
-            case PRODUCER:
-                kind = SpanKind.PRODUCER;
-                break;
-            case CONSUMER:
-                kind = SpanKind.CONSUMER;
-                break;
-        }
-        this.delegate.setSpanKind(kind);
-        return this;
-    }
+	@Override
+	public Span.Builder kind(Span.Kind spanKind) {
+		if (spanKind == null) {
+			this.delegate.setSpanKind(SpanKind.INTERNAL);
+			return this;
+		}
+		SpanKind kind = SpanKind.INTERNAL;
+		switch (spanKind) {
+			case CLIENT:
+				kind = SpanKind.CLIENT;
+				break;
+			case SERVER:
+				kind = SpanKind.SERVER;
+				break;
+			case PRODUCER:
+				kind = SpanKind.PRODUCER;
+				break;
+			case CONSUMER:
+				kind = SpanKind.CONSUMER;
+				break;
+		}
+		this.delegate.setSpanKind(kind);
+		return this;
+	}
 
-    @Override
-    public Span.Builder remoteServiceName(String remoteServiceName) {
-        this.delegate.setAttribute(REMOTE_SERVICE_NAME_KEY, remoteServiceName);
-        return this;
-    }
+	@Override
+	public Span.Builder remoteServiceName(String remoteServiceName) {
+		this.delegate.setAttribute(REMOTE_SERVICE_NAME_KEY, remoteServiceName);
+		return this;
+	}
 
-    @Override
-    public Span.Builder remoteIpAndPort(String ip, int port) {
-        this.delegate.setAttribute("net.peer.ip", ip);
-        this.delegate.setAttribute("net.peer.port", port);
-        return this;
-    }
+	@Override
+	public Span.Builder remoteIpAndPort(String ip, int port) {
+		this.delegate.setAttribute("net.peer.ip", ip);
+		this.delegate.setAttribute("net.peer.port", port);
+		return this;
+	}
 
-    @Override
-    public Span.Builder startTimestamp(long startTimestamp, TimeUnit unit) {
-        this.delegate.setStartTimestamp(startTimestamp, unit);
-        return this;
-    }
+	@Override
+	public Span.Builder startTimestamp(long startTimestamp, TimeUnit unit) {
+		this.delegate.setStartTimestamp(startTimestamp, unit);
+		return this;
+	}
 
-    @Override
-    public Span start() {
-        io.opentelemetry.api.trace.Span span = this.delegate.startSpan();
-        if (StringUtils.isNotEmpty(this.name)) {
-            span.updateName(this.name);
-        }
-        if (this.error != null) {
-            span.recordException(error);
-        }
-        this.annotations.forEach(span::addEvent);
-        return OtelSpan.fromOtel(span);
-    }
+	@Override
+	public Span start() {
+		io.opentelemetry.api.trace.Span span = this.delegate.startSpan();
+		if (StringUtils.isNotEmpty(this.name)) {
+			span.updateName(this.name);
+		}
+		if (this.error != null) {
+			span.recordException(error);
+		}
+		this.annotations.forEach(span::addEvent);
+		return OtelSpan.fromOtel(span);
+	}
 
 }

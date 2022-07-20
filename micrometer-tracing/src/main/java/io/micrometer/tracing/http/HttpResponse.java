@@ -28,48 +28,48 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface HttpResponse extends Response {
 
-    @Nullable
-    @Override
-    default HttpRequest request() {
-        return null;
-    }
+	@Nullable
+	@Override
+	default HttpRequest request() {
+		return null;
+	}
 
-    /**
-     * Returns an HTTP method.
-     * @return an HTTP method
-     */
-    @Nullable
-    default String method() {
-        HttpRequest request = request();
-        return request != null ? request.method() : null;
-    }
+	/**
+	 * Returns an HTTP method.
+	 * @return an HTTP method
+	 */
+	@Nullable
+	default String method() {
+		HttpRequest request = request();
+		return request != null ? request.method() : null;
+	}
 
-    /**
-     * Returns an expression such as "/items/:itemId" representing an application
-     * endpoint, conventionally associated with the tag key "http.route". If no route
-     * matched, "" (empty string) is returned. {@code null} indicates this instrumentation
-     * doesn't understand http routes.
-     * @return an HTTP route or {@code null} if not set
-     */
-    @Nullable
-    default String route() {
-        HttpRequest request = request();
-        return request != null ? request.route() : null;
-    }
+	/**
+	 * Returns an expression such as "/items/:itemId" representing an application
+	 * endpoint, conventionally associated with the tag key "http.route". If no route
+	 * matched, "" (empty string) is returned. {@code null} indicates this instrumentation
+	 * doesn't understand http routes.
+	 * @return an HTTP route or {@code null} if not set
+	 */
+	@Nullable
+	default String route() {
+		HttpRequest request = request();
+		return request != null ? request.route() : null;
+	}
 
-    /**
-     * Returns the HTTP status code.
-     * @return an HTTP status code or zero if unreadable
-     */
-    int statusCode();
+	/**
+	 * Returns the HTTP status code.
+	 * @return an HTTP status code or zero if unreadable
+	 */
+	int statusCode();
 
-    /**
-     * Returns the header value.
-     * @param header header name
-     * @return an HTTP header or {@code null} if not set.
-     */
-    default String header(String header) {
-        return null;
-    }
+	/**
+	 * Returns the header value.
+	 * @param header header name
+	 * @return an HTTP header or {@code null} if not set.
+	 */
+	default String header(String header) {
+		return null;
+	}
 
 }

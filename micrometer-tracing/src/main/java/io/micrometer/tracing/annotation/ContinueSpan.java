@@ -33,11 +33,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ContinueSpan {
 
-    /**
-     * Log statement to be appended to the span.
-     *
-     * @return value to be logged
-     */
-    String log() default "";
+	/**
+	 * Log statement to be appended to the span.
+	 * @return value to be logged
+	 */
+	String log() default "";
 
 }

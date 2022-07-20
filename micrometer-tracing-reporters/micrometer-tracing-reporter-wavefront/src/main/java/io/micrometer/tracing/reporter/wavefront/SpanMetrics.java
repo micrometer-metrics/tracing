@@ -25,57 +25,57 @@ import java.util.concurrent.BlockingQueue;
  * @since 1.0.0
  */
 public interface SpanMetrics {
-    /**
-     * Is called when a span has been dropped.
-     */
-    void reportDropped();
 
-    /**
-     * Is called when a span is received.
-     */
-    void reportReceived();
+	/**
+	 * Is called when a span has been dropped.
+	 */
+	void reportDropped();
 
-    /**
-     * Is called when a span couldn't be sent.
-     */
-    void reportErrors();
+	/**
+	 * Is called when a span is received.
+	 */
+	void reportReceived();
 
-    /**
-     * Registers the size of the given {@code queue}.
-     *
-     * @param queue queue which size should be registered
-     */
-    void registerQueueSize(BlockingQueue<?> queue);
+	/**
+	 * Is called when a span couldn't be sent.
+	 */
+	void reportErrors();
 
-    /**
-     * Registers the remaining capacity of the given {@code queue}.
-     *
-     * @param queue queue which remaining capacity should be registered
-     */
-    void registerQueueRemainingCapacity(BlockingQueue<?> queue);
+	/**
+	 * Registers the size of the given {@code queue}.
+	 * @param queue queue which size should be registered
+	 */
+	void registerQueueSize(BlockingQueue<?> queue);
 
-    /**
-     * No-op implementation.
-     */
-    SpanMetrics NOOP = new SpanMetrics() {
-        @Override
-        public void reportDropped() {
-        }
+	/**
+	 * Registers the remaining capacity of the given {@code queue}.
+	 * @param queue queue which remaining capacity should be registered
+	 */
+	void registerQueueRemainingCapacity(BlockingQueue<?> queue);
 
-        @Override
-        public void reportReceived() {
-        }
+	/**
+	 * No-op implementation.
+	 */
+	SpanMetrics NOOP = new SpanMetrics() {
+		@Override
+		public void reportDropped() {
+		}
 
-        @Override
-        public void reportErrors() {
-        }
+		@Override
+		public void reportReceived() {
+		}
 
-        @Override
-        public void registerQueueSize(BlockingQueue<?> queue) {
-        }
+		@Override
+		public void reportErrors() {
+		}
 
-        @Override
-        public void registerQueueRemainingCapacity(BlockingQueue<?> queue) {
-        }
-    };
+		@Override
+		public void registerQueueSize(BlockingQueue<?> queue) {
+		}
+
+		@Override
+		public void registerQueueRemainingCapacity(BlockingQueue<?> queue) {
+		}
+	};
+
 }

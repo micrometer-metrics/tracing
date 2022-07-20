@@ -32,30 +32,29 @@ import io.micrometer.tracing.brave.bridge.BraveTraceContext;
  */
 public class WavefrontBraveSpanHandler extends SpanHandler implements Runnable, Closeable {
 
-    private final WavefrontSpanHandler spanHandler;
+	private final WavefrontSpanHandler spanHandler;
 
-    /**
-     * Creates a new instance of {@link WavefrontBraveSpanHandler}.
-     *
-     * @param spanHandler wavefront span handler
-     */
-    public WavefrontBraveSpanHandler(WavefrontSpanHandler spanHandler) {
-        this.spanHandler = spanHandler;
-    }
+	/**
+	 * Creates a new instance of {@link WavefrontBraveSpanHandler}.
+	 * @param spanHandler wavefront span handler
+	 */
+	public WavefrontBraveSpanHandler(WavefrontSpanHandler spanHandler) {
+		this.spanHandler = spanHandler;
+	}
 
-    @Override
-    public boolean end(TraceContext context, MutableSpan span, Cause cause) {
-        return spanHandler.end(BraveTraceContext.fromBrave(context), BraveFinishedSpan.fromBrave(span));
-    }
+	@Override
+	public boolean end(TraceContext context, MutableSpan span, Cause cause) {
+		return spanHandler.end(BraveTraceContext.fromBrave(context), BraveFinishedSpan.fromBrave(span));
+	}
 
-    @Override
-    public void close() {
-        this.spanHandler.close();
-    }
+	@Override
+	public void close() {
+		this.spanHandler.close();
+	}
 
-    @Override
-    public void run() {
-        this.spanHandler.run();
-    }
+	@Override
+	public void run() {
+		this.spanHandler.run();
+	}
 
 }

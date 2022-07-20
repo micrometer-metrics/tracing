@@ -28,27 +28,27 @@ import io.micrometer.observation.transport.Kind;
  */
 public interface HttpServerRequest extends HttpRequest {
 
-    /**
-     * Returns an HTTP attribute.
-     * @param key attribute key
-     * @return attribute with the given key or {@code null} if not set
-     */
-    default Object getAttribute(String key) {
-        return null;
-    }
+	/**
+	 * Returns an HTTP attribute.
+	 * @param key attribute key
+	 * @return attribute with the given key or {@code null} if not set
+	 */
+	default Object getAttribute(String key) {
+		return null;
+	}
 
-    /**
-     * Sets an HTTP attribute.
-     * @param key attribute key
-     * @param value attribute value
-     */
-    default void setAttribute(String key, Object value) {
+	/**
+	 * Sets an HTTP attribute.
+	 * @param key attribute key
+	 * @param value attribute value
+	 */
+	default void setAttribute(String key, Object value) {
 
-    }
+	}
 
-    @Override
-    default Kind kind() {
-        return Kind.SERVER;
-    }
+	@Override
+	default Kind kind() {
+		return Kind.SERVER;
+	}
 
 }

@@ -56,318 +56,323 @@ import io.micrometer.tracing.test.reporter.BuildingBlocks;
  */
 public final class InMemoryBraveSetup implements AutoCloseable {
 
-    private final Consumer<Builder.BraveBuildingBlocks> closingFunction;
+	private final Consumer<Builder.BraveBuildingBlocks> closingFunction;
 
-    private final Builder.BraveBuildingBlocks braveBuildingBlocks;
+	private final Builder.BraveBuildingBlocks braveBuildingBlocks;
 
-    InMemoryBraveSetup(Consumer<Builder.BraveBuildingBlocks> closingFunction, Builder.BraveBuildingBlocks braveBuildingBlocks) {
-        this.closingFunction = closingFunction;
-        this.braveBuildingBlocks = braveBuildingBlocks;
-    }
+	InMemoryBraveSetup(Consumer<Builder.BraveBuildingBlocks> closingFunction,
+			Builder.BraveBuildingBlocks braveBuildingBlocks) {
+		this.closingFunction = closingFunction;
+		this.braveBuildingBlocks = braveBuildingBlocks;
+	}
 
-    @Override
-    public void close() {
-        this.closingFunction.accept(this.braveBuildingBlocks);
-    }
+	@Override
+	public void close() {
+		this.closingFunction.accept(this.braveBuildingBlocks);
+	}
 
-    /**
-     * @return all the Brave building blocks required to communicate with Zipkin
-     */
-    public Builder.BraveBuildingBlocks getBuildingBlocks() {
-        return this.braveBuildingBlocks;
-    }
+	/**
+	 * @return all the Brave building blocks required to communicate with Zipkin
+	 */
+	public Builder.BraveBuildingBlocks getBuildingBlocks() {
+		return this.braveBuildingBlocks;
+	}
 
-    /**
-     * @return builder for the {@link InMemoryBraveSetup}
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
+	/**
+	 * @return builder for the {@link InMemoryBraveSetup}
+	 */
+	public static Builder builder() {
+		return new Builder();
+	}
 
-    /**
-     * Builder for Brave with Zipkin.
-     */
-    public static class Builder {
+	/**
+	 * Builder for Brave with Zipkin.
+	 */
+	public static class Builder {
 
-        private String applicationName = "observability-test";
+		private String applicationName = "observability-test";
 
-        private Function<TestSpanHandler, Tracing> tracing;
+		private Function<TestSpanHandler, Tracing> tracing;
 
-        private Function<Tracing, Tracer> tracer;
+		private Function<Tracing, Tracer> tracer;
 
-        private Function<Tracing, HttpTracing> httpTracing;
+		private Function<Tracing, HttpTracing> httpTracing;
 
-        private Function<HttpTracing, HttpServerHandler> httpServerHandler;
+		private Function<HttpTracing, HttpServerHandler> httpServerHandler;
 
-        private Function<HttpTracing, HttpClientHandler> httpClientHandler;
+		private Function<HttpTracing, HttpClientHandler> httpClientHandler;
 
-        private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
+		private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+		private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-        private Consumer<BraveBuildingBlocks> closingFunction;
+		private Consumer<BraveBuildingBlocks> closingFunction;
 
-        /**
-         * All Brave building blocks.
-         */
-        public static class BraveBuildingBlocks implements BuildingBlocks {
+		/**
+		 * All Brave building blocks.
+		 */
+		public static class BraveBuildingBlocks implements BuildingBlocks {
 
-            private final Tracing tracing;
+			private final Tracing tracing;
 
-            private final Tracer tracer;
+			private final Tracer tracer;
 
-            private final BravePropagator propagator;
+			private final BravePropagator propagator;
 
-            private final HttpTracing httpTracing;
+			private final HttpTracing httpTracing;
 
-            private final HttpServerHandler httpServerHandler;
+			private final HttpServerHandler httpServerHandler;
 
-            private final HttpClientHandler httpClientHandler;
+			private final HttpClientHandler httpClientHandler;
 
-            private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+			private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-            private final TestSpanHandler testSpanHandler;
+			private final TestSpanHandler testSpanHandler;
 
-            /**
-             * Creates a new instance of {@link BraveBuildingBlocks}.
-             *
-             * @param tracing tracing
-             * @param tracer tracer
-             * @param propagator propagator
-             * @param httpTracing http tracing
-             * @param httpServerHandler http server handler
-             * @param httpClientHandler http client handler
-             * @param customizers observation customizers
-             * @param testSpanHandler test span handler
-             */
-            public BraveBuildingBlocks(Tracing tracing, Tracer tracer, BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler, BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers, TestSpanHandler testSpanHandler) {
-                this.tracing = tracing;
-                this.tracer = tracer;
-                this.propagator = propagator;
-                this.httpTracing = httpTracing;
-                this.httpServerHandler = httpServerHandler;
-                this.httpClientHandler = httpClientHandler;
-                this.customizers = customizers;
-                this.testSpanHandler = testSpanHandler;
-            }
+			/**
+			 * Creates a new instance of {@link BraveBuildingBlocks}.
+			 * @param tracing tracing
+			 * @param tracer tracer
+			 * @param propagator propagator
+			 * @param httpTracing http tracing
+			 * @param httpServerHandler http server handler
+			 * @param httpClientHandler http client handler
+			 * @param customizers observation customizers
+			 * @param testSpanHandler test span handler
+			 */
+			public BraveBuildingBlocks(Tracing tracing, Tracer tracer, BravePropagator propagator,
+					HttpTracing httpTracing, HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler,
+					BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers,
+					TestSpanHandler testSpanHandler) {
+				this.tracing = tracing;
+				this.tracer = tracer;
+				this.propagator = propagator;
+				this.httpTracing = httpTracing;
+				this.httpServerHandler = httpServerHandler;
+				this.httpClientHandler = httpClientHandler;
+				this.customizers = customizers;
+				this.testSpanHandler = testSpanHandler;
+			}
 
-            @Override
-            public Tracer getTracer() {
-                return this.tracer;
-            }
+			@Override
+			public Tracer getTracer() {
+				return this.tracer;
+			}
 
-            @Override
-            public Propagator getPropagator() {
-                return this.propagator;
-            }
+			@Override
+			public Propagator getPropagator() {
+				return this.propagator;
+			}
 
-            @Override
-            public HttpServerHandler getHttpServerHandler() {
-                return this.httpServerHandler;
-            }
+			@Override
+			public HttpServerHandler getHttpServerHandler() {
+				return this.httpServerHandler;
+			}
 
-            @Override
-            public HttpClientHandler getHttpClientHandler() {
-                return this.httpClientHandler;
-            }
+			@Override
+			public HttpClientHandler getHttpClientHandler() {
+				return this.httpClientHandler;
+			}
 
-            @Override
-            public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> getCustomizers() {
-                return this.customizers;
-            }
+			@Override
+			public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> getCustomizers() {
+				return this.customizers;
+			}
 
-            @Override
-            public List<FinishedSpan> getFinishedSpans() {
-                return this.testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave).collect(Collectors.toList());
-            }
-        }
+			@Override
+			public List<FinishedSpan> getFinishedSpans() {
+				return this.testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave)
+						.collect(Collectors.toList());
+			}
 
-        /**
-         * Overrides the application name.
-         *
-         * @param applicationName name of the application
-         * @return this for chaining
-         */
-        public Builder applicationName(String applicationName) {
-            this.applicationName = applicationName;
-            return this;
-        }
+		}
 
-        /**
-         * Overrides Tracing.
-         *
-         * @param tracing tracing provider
-         * @return this for chaining
-         */
-        public Builder tracing(Function<TestSpanHandler, Tracing> tracing) {
-            this.tracing = tracing;
-            return this;
-        }
+		/**
+		 * Overrides the application name.
+		 * @param applicationName name of the application
+		 * @return this for chaining
+		 */
+		public Builder applicationName(String applicationName) {
+			this.applicationName = applicationName;
+			return this;
+		}
 
-        /**
-         * Overrides Tracer.
-         *
-         * @param tracer tracer provider
-         * @return this for chaining
-         */
-        public Builder tracer(Function<Tracing, Tracer> tracer) {
-            this.tracer = tracer;
-            return this;
-        }
+		/**
+		 * Overrides Tracing.
+		 * @param tracing tracing provider
+		 * @return this for chaining
+		 */
+		public Builder tracing(Function<TestSpanHandler, Tracing> tracing) {
+			this.tracing = tracing;
+			return this;
+		}
 
-        /**
-         * Overrides Http Tracing.
-         *
-         * @param httpTracing http tracing provider
-         * @return this for chaining
-         */
-        public Builder httpTracing(Function<Tracing, HttpTracing> httpTracing) {
-            this.httpTracing = httpTracing;
-            return this;
-        }
+		/**
+		 * Overrides Tracer.
+		 * @param tracer tracer provider
+		 * @return this for chaining
+		 */
+		public Builder tracer(Function<Tracing, Tracer> tracer) {
+			this.tracer = tracer;
+			return this;
+		}
 
-        /**
-         * Allows customization of Observation Handlers.
-         *
-         * @param customizers customization provider
-         * @return this for chaining
-         */
-        public Builder observationHandlerCustomizer(BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
-            this.customizers = customizers;
-            return this;
-        }
+		/**
+		 * Overrides Http Tracing.
+		 * @param httpTracing http tracing provider
+		 * @return this for chaining
+		 */
+		public Builder httpTracing(Function<Tracing, HttpTracing> httpTracing) {
+			this.httpTracing = httpTracing;
+			return this;
+		}
 
-        /**
-         * Overrides Http Server Handler.
-         *
-         * @param httpServerHandler http server handler provider
-         * @return this for chaining
-         */
-        public Builder httpServerHandler(Function<HttpTracing, HttpServerHandler> httpServerHandler) {
-            this.httpServerHandler = httpServerHandler;
-            return this;
-        }
+		/**
+		 * Allows customization of Observation Handlers.
+		 * @param customizers customization provider
+		 * @return this for chaining
+		 */
+		public Builder observationHandlerCustomizer(
+				BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers) {
+			this.customizers = customizers;
+			return this;
+		}
 
-        /**
-         * Overrides Http Client Handler.
-         *
-         * @param httpClientHandler http client handler provider
-         * @return this for chaining
-         */
-        public Builder httpClientHandler(Function<HttpTracing, HttpClientHandler> httpClientHandler) {
-            this.httpClientHandler = httpClientHandler;
-            return this;
-        }
+		/**
+		 * Overrides Http Server Handler.
+		 * @param httpServerHandler http server handler provider
+		 * @return this for chaining
+		 */
+		public Builder httpServerHandler(Function<HttpTracing, HttpServerHandler> httpServerHandler) {
+			this.httpServerHandler = httpServerHandler;
+			return this;
+		}
 
-        /**
-         * Overrides Observation Handlers
-         *
-         * @param handlers handlers provider
-         * @return this for chaining
-         */
-        public Builder handlers(Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers) {
-            this.handlers = handlers;
-            return this;
-        }
+		/**
+		 * Overrides Http Client Handler.
+		 * @param httpClientHandler http client handler provider
+		 * @return this for chaining
+		 */
+		public Builder httpClientHandler(Function<HttpTracing, HttpClientHandler> httpClientHandler) {
+			this.httpClientHandler = httpClientHandler;
+			return this;
+		}
 
-        /**
-         * Overrides the closing function.
-         *
-         * @param closingFunction closing function provider
-         * @return this for chaining
-         */
-        public Builder closingFunction(Consumer<BraveBuildingBlocks> closingFunction) {
-            this.closingFunction = closingFunction;
-            return this;
-        }
+		/**
+		 * Overrides Observation Handlers
+		 * @param handlers handlers provider
+		 * @return this for chaining
+		 */
+		public Builder handlers(
+				Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers) {
+			this.handlers = handlers;
+			return this;
+		}
 
-        /**
-         * Registers setup.
-         *
-         * @param registry registry to which the {@link ObservationHandler} should be attached
-         * @return setup with all Brave building blocks
-         */
-        public InMemoryBraveSetup register(ObservationRegistry registry) {
-            TestSpanHandler testSpanHandler = new TestSpanHandler();
-            Tracing tracing = this.tracing != null ? this.tracing.apply(testSpanHandler) : tracing(testSpanHandler, this.applicationName);
-            Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
-            HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
-            HttpServerHandler httpServerHandler = this.httpServerHandler != null ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
-            HttpClientHandler httpClientHandler = this.httpClientHandler != null ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
-            BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null ? this.customizers : (t, h) -> {
-            };
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(tracing, tracer, new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers, testSpanHandler);
-            ObservationHandler<? extends Observation.Context> tracingHandlers = this.handlers != null ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
-            registry.observationConfig().observationHandler(tracingHandlers);
-            Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction : closingFunction();
-            return new InMemoryBraveSetup(closingFunction, braveBuildingBlocks);
-        }
+		/**
+		 * Overrides the closing function.
+		 * @param closingFunction closing function provider
+		 * @return this for chaining
+		 */
+		public Builder closingFunction(Consumer<BraveBuildingBlocks> closingFunction) {
+			this.closingFunction = closingFunction;
+			return this;
+		}
 
-        private static Tracer tracer(Tracing tracing) {
-            return new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()), new BraveBaggageManager());
-        }
+		/**
+		 * Registers setup.
+		 * @param registry registry to which the {@link ObservationHandler} should be
+		 * attached
+		 * @return setup with all Brave building blocks
+		 */
+		public InMemoryBraveSetup register(ObservationRegistry registry) {
+			TestSpanHandler testSpanHandler = new TestSpanHandler();
+			Tracing tracing = this.tracing != null ? this.tracing.apply(testSpanHandler)
+					: tracing(testSpanHandler, this.applicationName);
+			Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
+			HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
+			HttpServerHandler httpServerHandler = this.httpServerHandler != null
+					? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
+			HttpClientHandler httpClientHandler = this.httpClientHandler != null
+					? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
+			BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null
+					? this.customizers : (t, h) -> {
+					};
+			BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(tracing, tracer,
+					new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers,
+					testSpanHandler);
+			ObservationHandler<? extends Observation.Context> tracingHandlers = this.handlers != null
+					? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
+			registry.observationConfig().observationHandler(tracingHandlers);
+			Consumer<BraveBuildingBlocks> closingFunction = this.closingFunction != null ? this.closingFunction
+					: closingFunction();
+			return new InMemoryBraveSetup(closingFunction, braveBuildingBlocks);
+		}
 
-        private static Tracing tracing(TestSpanHandler testSpanHandler, String applicationName) {
-            return Tracing.newBuilder()
-                    .localServiceName(applicationName)
-                    .addSpanHandler(testSpanHandler)
-                    .sampler(Sampler.ALWAYS_SAMPLE)
-                    .build();
-        }
+		private static Tracer tracer(Tracing tracing) {
+			return new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()),
+					new BraveBaggageManager());
+		}
 
-        private static HttpTracing httpTracing(Tracing tracing) {
-            return HttpTracing.newBuilder(tracing).build();
-        }
+		private static Tracing tracing(TestSpanHandler testSpanHandler, String applicationName) {
+			return Tracing.newBuilder().localServiceName(applicationName).addSpanHandler(testSpanHandler)
+					.sampler(Sampler.ALWAYS_SAMPLE).build();
+		}
 
-        private static HttpServerHandler httpServerHandler(HttpTracing httpTracing) {
-            return new BraveHttpServerHandler(brave.http.HttpServerHandler.create(httpTracing));
-        }
+		private static HttpTracing httpTracing(Tracing tracing) {
+			return HttpTracing.newBuilder(tracing).build();
+		}
 
-        private static HttpClientHandler httpClientHandler(HttpTracing httpTracing) {
-            return new BraveHttpClientHandler(brave.http.HttpClientHandler.create(httpTracing));
-        }
+		private static HttpServerHandler httpServerHandler(HttpTracing httpTracing) {
+			return new BraveHttpServerHandler(brave.http.HttpServerHandler.create(httpTracing));
+		}
 
-        private static Consumer<BraveBuildingBlocks> closingFunction() {
-            return deps -> {
-                deps.httpTracing.close();
-                deps.tracing.close();
-            };
-        }
+		private static HttpClientHandler httpClientHandler(HttpTracing httpTracing) {
+			return new BraveHttpClientHandler(brave.http.HttpClientHandler.create(httpTracing));
+		}
 
-        @SuppressWarnings("rawtypes")
-        private static ObservationHandler<Observation.Context> tracingHandlers(BraveBuildingBlocks braveBuildingBlocks) {
-            Tracer tracer = braveBuildingBlocks.tracer;
-            LinkedList<ObservationHandler<? extends Observation.Context>> handlers = new LinkedList<>();
-            handlers.add(new PropagatingSenderTracingObservationHandler<>(tracer, braveBuildingBlocks.propagator));
-            handlers.add(new PropagatingReceiverTracingObservationHandler<>(tracer, braveBuildingBlocks.propagator));
-            handlers.add(new DefaultTracingObservationHandler(tracer));
-            braveBuildingBlocks.customizers.accept(braveBuildingBlocks, handlers);
+		private static Consumer<BraveBuildingBlocks> closingFunction() {
+			return deps -> {
+				deps.httpTracing.close();
+				deps.tracing.close();
+			};
+		}
 
-            return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
-        }
+		@SuppressWarnings("rawtypes")
+		private static ObservationHandler<Observation.Context> tracingHandlers(
+				BraveBuildingBlocks braveBuildingBlocks) {
+			Tracer tracer = braveBuildingBlocks.tracer;
+			LinkedList<ObservationHandler<? extends Observation.Context>> handlers = new LinkedList<>();
+			handlers.add(new PropagatingSenderTracingObservationHandler<>(tracer, braveBuildingBlocks.propagator));
+			handlers.add(new PropagatingReceiverTracingObservationHandler<>(tracer, braveBuildingBlocks.propagator));
+			handlers.add(new DefaultTracingObservationHandler(tracer));
+			braveBuildingBlocks.customizers.accept(braveBuildingBlocks, handlers);
 
-    }
+			return new ObservationHandler.FirstMatchingCompositeObservationHandler(handlers);
+		}
 
-    /**
-     * Runs the given lambda with Zipkin setup.
-     *
-     * @param registry registry to register the handlers against
-     * @param consumer      lambda to be executed with the building blocks
-     */
-    public static void run(ObservationRegistry registry, Consumer<Builder.BraveBuildingBlocks> consumer) {
-        run(InMemoryBraveSetup.builder().register(registry), consumer);
-    }
+	}
 
-    /**
-     * @param localZipkinBrave Brave setup with Zipkin
-     * @param consumer         runnable to run
-     */
-    public static void run(InMemoryBraveSetup localZipkinBrave, Consumer<Builder.BraveBuildingBlocks> consumer) {
-        try {
-            consumer.accept(localZipkinBrave.getBuildingBlocks());
-        }
-        finally {
-            localZipkinBrave.close();
-        }
-    }
+	/**
+	 * Runs the given lambda with Zipkin setup.
+	 * @param registry registry to register the handlers against
+	 * @param consumer lambda to be executed with the building blocks
+	 */
+	public static void run(ObservationRegistry registry, Consumer<Builder.BraveBuildingBlocks> consumer) {
+		run(InMemoryBraveSetup.builder().register(registry), consumer);
+	}
+
+	/**
+	 * @param localZipkinBrave Brave setup with Zipkin
+	 * @param consumer runnable to run
+	 */
+	public static void run(InMemoryBraveSetup localZipkinBrave, Consumer<Builder.BraveBuildingBlocks> consumer) {
+		try {
+			consumer.accept(localZipkinBrave.getBuildingBlocks());
+		}
+		finally {
+			localZipkinBrave.close();
+		}
+	}
+
 }

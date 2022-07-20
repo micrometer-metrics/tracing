@@ -33,37 +33,37 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 class BaggageTaggingSpanProcessorTest {
 
-    @Test
-    void interfaceMethods() {
-        BaggageTaggingSpanProcessor spanProcessor = new BaggageTaggingSpanProcessor(Collections.emptyList());
-        assertThat(spanProcessor.isEndRequired()).isFalse();
-        assertThat(spanProcessor.isStartRequired()).isTrue();
-    }
+	@Test
+	void interfaceMethods() {
+		BaggageTaggingSpanProcessor spanProcessor = new BaggageTaggingSpanProcessor(Collections.emptyList());
+		assertThat(spanProcessor.isEndRequired()).isFalse();
+		assertThat(spanProcessor.isStartRequired()).isTrue();
+	}
 
-    @Test
-    void onStart_emptyBaggage() {
-        BaggageTaggingSpanProcessor spanProcessor = new BaggageTaggingSpanProcessor(Arrays.asList("tagOne", "tagTwo"));
+	@Test
+	void onStart_emptyBaggage() {
+		BaggageTaggingSpanProcessor spanProcessor = new BaggageTaggingSpanProcessor(Arrays.asList("tagOne", "tagTwo"));
 
-        Baggage baggage = Baggage.builder().build();
-        ReadWriteSpan span = mock(ReadWriteSpan.class);
+		Baggage baggage = Baggage.builder().build();
+		ReadWriteSpan span = mock(ReadWriteSpan.class);
 
-        spanProcessor.onStart(Context.root().with(baggage), span);
-        verifyNoInteractions(span);
-    }
+		spanProcessor.onStart(Context.root().with(baggage), span);
+		verifyNoInteractions(span);
+	}
 
-    @Test
-    void onStart_withBaggage() {
-        BaggageTaggingSpanProcessor spanProcessor = new BaggageTaggingSpanProcessor(Arrays.asList("tagOne", "tagTwo"));
+	@Test
+	void onStart_withBaggage() {
+		BaggageTaggingSpanProcessor spanProcessor = new BaggageTaggingSpanProcessor(Arrays.asList("tagOne", "tagTwo"));
 
-        Baggage baggage = Baggage.builder().put("tagOne", "valueOne").put("tagTwo", "valueTwo")
-                .put("otherTag", "otherValue").build();
-        ReadWriteSpan span = mock(ReadWriteSpan.class);
+		Baggage baggage = Baggage.builder().put("tagOne", "valueOne").put("tagTwo", "valueTwo")
+				.put("otherTag", "otherValue").build();
+		ReadWriteSpan span = mock(ReadWriteSpan.class);
 
-        spanProcessor.onStart(Context.root().with(baggage), span);
-        verify(span).setAttribute(stringKey("tagOne"), "valueOne");
-        verify(span).setAttribute(stringKey("tagTwo"), "valueTwo");
+		spanProcessor.onStart(Context.root().with(baggage), span);
+		verify(span).setAttribute(stringKey("tagOne"), "valueOne");
+		verify(span).setAttribute(stringKey("tagTwo"), "valueTwo");
 
-        verifyNoMoreInteractions(span);
-    }
+		verifyNoMoreInteractions(span);
+	}
 
 }

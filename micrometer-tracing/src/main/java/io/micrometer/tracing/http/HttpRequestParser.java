@@ -31,13 +31,13 @@ import io.micrometer.tracing.TraceContext;
  */
 public interface HttpRequestParser {
 
-    /**
-     * Implement to choose what data from the http request are parsed into the span
-     * representing it.
-     * @param request current request
-     * @param context corresponding trace context
-     * @param span customizer for the current span
-     */
-    void parse(HttpRequest request, TraceContext context, SpanCustomizer span);
+	/**
+	 * Implement to choose what data from the http request are parsed into the span
+	 * representing it.
+	 * @param request current request
+	 * @param context corresponding trace context
+	 * @param span customizer for the current span
+	 */
+	void parse(HttpRequest request, TraceContext context, SpanCustomizer span);
 
 }

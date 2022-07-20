@@ -29,34 +29,34 @@ import io.micrometer.tracing.http.HttpServerHandler;
  */
 public class SimpleHttpServerHandler implements HttpServerHandler {
 
-    private final SimpleTracer simpleTracer;
+	private final SimpleTracer simpleTracer;
 
-    private boolean receiveHandled;
+	private boolean receiveHandled;
 
-    /**
-     * Creates a new instance of {@link SimpleHttpServerHandler}.
-     *
-     * @param simpleTracer simple tracer
-     */
-    public SimpleHttpServerHandler(SimpleTracer simpleTracer) {
-        this.simpleTracer = simpleTracer;
-    }
+	/**
+	 * Creates a new instance of {@link SimpleHttpServerHandler}.
+	 * @param simpleTracer simple tracer
+	 */
+	public SimpleHttpServerHandler(SimpleTracer simpleTracer) {
+		this.simpleTracer = simpleTracer;
+	}
 
-    @Override
-    public Span handleReceive(HttpServerRequest request) {
-        return this.simpleTracer.nextSpan().start();
-    }
+	@Override
+	public Span handleReceive(HttpServerRequest request) {
+		return this.simpleTracer.nextSpan().start();
+	}
 
-    @Override
-    public void handleSend(HttpServerResponse response, Span span) {
-        span.end();
-        this.receiveHandled = true;
-    }
+	@Override
+	public void handleSend(HttpServerResponse response, Span span) {
+		span.end();
+		this.receiveHandled = true;
+	}
 
-    /**
-     * @return was the handle receive method called?
-     */
-    public boolean isReceiveHandled() {
-        return receiveHandled;
-    }
+	/**
+	 * @return was the handle receive method called?
+	 */
+	public boolean isReceiveHandled() {
+		return receiveHandled;
+	}
+
 }

@@ -26,67 +26,66 @@ import org.slf4j.MDC;
 
 public class Slf4JBaggageEventListener implements EventListener {
 
-    private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JBaggageEventListener.class);
+	private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JBaggageEventListener.class);
 
-    private final List<String> lowerCaseCorrelationFields;
+	private final List<String> lowerCaseCorrelationFields;
 
-    private final List<String> correlationFields;
+	private final List<String> correlationFields;
 
-    /**
-     * Creates a new instance of {@link Slf4JBaggageEventListener}.
-     *
-     * @param correlationFields correlation fields
-     */
-    public Slf4JBaggageEventListener(List<String> correlationFields) {
-        this.lowerCaseCorrelationFields = correlationFields.stream().map(String::toLowerCase)
-                .collect(Collectors.toList());
-        this.correlationFields = correlationFields;
-    }
+	/**
+	 * Creates a new instance of {@link Slf4JBaggageEventListener}.
+	 * @param correlationFields correlation fields
+	 */
+	public Slf4JBaggageEventListener(List<String> correlationFields) {
+		this.lowerCaseCorrelationFields = correlationFields.stream().map(String::toLowerCase)
+				.collect(Collectors.toList());
+		this.correlationFields = correlationFields;
+	}
 
-    private void onScopeAttached(EventPublishingContextWrapper.ScopeAttachedEvent event) {
-        if (log.isTraceEnabled()) {
-            log.trace("Got scope attached event [" + event + "]");
-        }
-        if (event.getBaggage() != null) {
-            putEntriesIntoMdc(event.getBaggage());
-        }
-    }
+	private void onScopeAttached(EventPublishingContextWrapper.ScopeAttachedEvent event) {
+		if (log.isTraceEnabled()) {
+			log.trace("Got scope attached event [" + event + "]");
+		}
+		if (event.getBaggage() != null) {
+			putEntriesIntoMdc(event.getBaggage());
+		}
+	}
 
-    private void onScopeRestored(EventPublishingContextWrapper.ScopeRestoredEvent event) {
-        if (log.isTraceEnabled()) {
-            log.trace("Got scope restored event [" + event + "]");
-        }
-        if (event.getBaggage() != null) {
-            putEntriesIntoMdc(event.getBaggage());
-        }
-    }
+	private void onScopeRestored(EventPublishingContextWrapper.ScopeRestoredEvent event) {
+		if (log.isTraceEnabled()) {
+			log.trace("Got scope restored event [" + event + "]");
+		}
+		if (event.getBaggage() != null) {
+			putEntriesIntoMdc(event.getBaggage());
+		}
+	}
 
-    private void putEntriesIntoMdc(Baggage baggage) {
-        baggage.forEach((key, baggageEntry) -> {
-            if (lowerCaseCorrelationFields.contains(key.toLowerCase())) {
-                MDC.put(key, baggageEntry.getValue());
-            }
-        });
-    }
+	private void putEntriesIntoMdc(Baggage baggage) {
+		baggage.forEach((key, baggageEntry) -> {
+			if (lowerCaseCorrelationFields.contains(key.toLowerCase())) {
+				MDC.put(key, baggageEntry.getValue());
+			}
+		});
+	}
 
-    private void onScopeClosed(EventPublishingContextWrapper.ScopeClosedEvent event) {
-        if (log.isTraceEnabled()) {
-            log.trace("Got scope closed event [" + event + "]");
-        }
-        correlationFields.forEach(MDC::remove);
-    }
+	private void onScopeClosed(EventPublishingContextWrapper.ScopeClosedEvent event) {
+		if (log.isTraceEnabled()) {
+			log.trace("Got scope closed event [" + event + "]");
+		}
+		correlationFields.forEach(MDC::remove);
+	}
 
-    @Override
-    public void onEvent(Object event) {
-        if (event instanceof EventPublishingContextWrapper.ScopeAttachedEvent) {
-            onScopeAttached((EventPublishingContextWrapper.ScopeAttachedEvent) event);
-        }
-        else if (event instanceof EventPublishingContextWrapper.ScopeClosedEvent) {
-            onScopeClosed((EventPublishingContextWrapper.ScopeClosedEvent) event);
-        }
-        else if (event instanceof EventPublishingContextWrapper.ScopeRestoredEvent) {
-            onScopeRestored((EventPublishingContextWrapper.ScopeRestoredEvent) event);
-        }
-    }
+	@Override
+	public void onEvent(Object event) {
+		if (event instanceof EventPublishingContextWrapper.ScopeAttachedEvent) {
+			onScopeAttached((EventPublishingContextWrapper.ScopeAttachedEvent) event);
+		}
+		else if (event instanceof EventPublishingContextWrapper.ScopeClosedEvent) {
+			onScopeClosed((EventPublishingContextWrapper.ScopeClosedEvent) event);
+		}
+		else if (event instanceof EventPublishingContextWrapper.ScopeRestoredEvent) {
+			onScopeRestored((EventPublishingContextWrapper.ScopeRestoredEvent) event);
+		}
+	}
 
 }

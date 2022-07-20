@@ -28,43 +28,43 @@ import org.slf4j.MDC;
  */
 public class Slf4JEventListener implements EventListener {
 
-    private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JEventListener.class);
+	private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JEventListener.class);
 
-    private void onScopeAttached(EventPublishingContextWrapper.ScopeAttachedEvent event) {
-        log.trace("Got scope changed event [{}]", event);
-        Span span = event.getSpan();
-        if (span != null) {
-            MDC.put("traceId", span.getSpanContext().getTraceId());
-            MDC.put("spanId", span.getSpanContext().getSpanId());
-        }
-    }
+	private void onScopeAttached(EventPublishingContextWrapper.ScopeAttachedEvent event) {
+		log.trace("Got scope changed event [{}]", event);
+		Span span = event.getSpan();
+		if (span != null) {
+			MDC.put("traceId", span.getSpanContext().getTraceId());
+			MDC.put("spanId", span.getSpanContext().getSpanId());
+		}
+	}
 
-    private void onScopeRestored(EventPublishingContextWrapper.ScopeRestoredEvent event) {
-        log.trace("Got scope restored event [{}]", event);
-        Span span = event.getSpan();
-        if (span != null) {
-            MDC.put("traceId", span.getSpanContext().getTraceId());
-            MDC.put("spanId", span.getSpanContext().getSpanId());
-        }
-    }
+	private void onScopeRestored(EventPublishingContextWrapper.ScopeRestoredEvent event) {
+		log.trace("Got scope restored event [{}]", event);
+		Span span = event.getSpan();
+		if (span != null) {
+			MDC.put("traceId", span.getSpanContext().getTraceId());
+			MDC.put("spanId", span.getSpanContext().getSpanId());
+		}
+	}
 
-    private void onScopeClosed(EventPublishingContextWrapper.ScopeClosedEvent event) {
-        log.trace("Got scope closed event [{}]", event);
-        MDC.remove("traceId");
-        MDC.remove("spanId");
-    }
+	private void onScopeClosed(EventPublishingContextWrapper.ScopeClosedEvent event) {
+		log.trace("Got scope closed event [{}]", event);
+		MDC.remove("traceId");
+		MDC.remove("spanId");
+	}
 
-    @Override
-    public void onEvent(Object event) {
-        if (event instanceof EventPublishingContextWrapper.ScopeAttachedEvent) {
-            onScopeAttached((EventPublishingContextWrapper.ScopeAttachedEvent) event);
-        }
-        else if (event instanceof EventPublishingContextWrapper.ScopeClosedEvent) {
-            onScopeClosed((EventPublishingContextWrapper.ScopeClosedEvent) event);
-        }
-        else if (event instanceof EventPublishingContextWrapper.ScopeRestoredEvent) {
-            onScopeRestored((EventPublishingContextWrapper.ScopeRestoredEvent) event);
-        }
-    }
+	@Override
+	public void onEvent(Object event) {
+		if (event instanceof EventPublishingContextWrapper.ScopeAttachedEvent) {
+			onScopeAttached((EventPublishingContextWrapper.ScopeAttachedEvent) event);
+		}
+		else if (event instanceof EventPublishingContextWrapper.ScopeClosedEvent) {
+			onScopeClosed((EventPublishingContextWrapper.ScopeClosedEvent) event);
+		}
+		else if (event instanceof EventPublishingContextWrapper.ScopeRestoredEvent) {
+			onScopeRestored((EventPublishingContextWrapper.ScopeRestoredEvent) event);
+		}
+	}
 
 }

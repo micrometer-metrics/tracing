@@ -36,43 +36,42 @@ import static java.util.stream.Collectors.toMap;
  */
 public class BaggageTaggingSpanProcessor implements SpanProcessor {
 
-    private final Map<String, AttributeKey<String>> tagsToApply;
+	private final Map<String, AttributeKey<String>> tagsToApply;
 
-    /**
-     * Creates a new instance of {@link BaggageTaggingSpanProcessor}.
-     *
-     * @param tagsToApply tags to apply from the baggage on the span
-     */
-    public BaggageTaggingSpanProcessor(List<String> tagsToApply) {
-        this.tagsToApply = tagsToApply.stream().map(tag -> stringKey(tag))
-                .collect(toMap(AttributeKey::getKey, key -> key));
-    }
+	/**
+	 * Creates a new instance of {@link BaggageTaggingSpanProcessor}.
+	 * @param tagsToApply tags to apply from the baggage on the span
+	 */
+	public BaggageTaggingSpanProcessor(List<String> tagsToApply) {
+		this.tagsToApply = tagsToApply.stream().map(tag -> stringKey(tag))
+				.collect(toMap(AttributeKey::getKey, key -> key));
+	}
 
-    @Override
-    public void onStart(Context context, ReadWriteSpan readWriteSpan) {
-        Baggage baggage = Baggage.fromContext(context);
+	@Override
+	public void onStart(Context context, ReadWriteSpan readWriteSpan) {
+		Baggage baggage = Baggage.fromContext(context);
 
-        baggage.forEach((key, baggageEntry) -> {
-            AttributeKey<String> attributeKey = tagsToApply.get(key);
-            if (attributeKey != null) {
-                readWriteSpan.setAttribute(attributeKey, baggageEntry.getValue());
-            }
-        });
-    }
+		baggage.forEach((key, baggageEntry) -> {
+			AttributeKey<String> attributeKey = tagsToApply.get(key);
+			if (attributeKey != null) {
+				readWriteSpan.setAttribute(attributeKey, baggageEntry.getValue());
+			}
+		});
+	}
 
-    @Override
-    public boolean isStartRequired() {
-        return true;
-    }
+	@Override
+	public boolean isStartRequired() {
+		return true;
+	}
 
-    @Override
-    public void onEnd(ReadableSpan readableSpan) {
-        // no-op
-    }
+	@Override
+	public void onEnd(ReadableSpan readableSpan) {
+		// no-op
+	}
 
-    @Override
-    public boolean isEndRequired() {
-        return false;
-    }
+	@Override
+	public boolean isEndRequired() {
+		return false;
+	}
 
 }

@@ -28,16 +28,16 @@ import io.micrometer.observation.transport.Kind;
  */
 public interface HttpClientRequest extends HttpRequest {
 
-    /**
-     * Adds a new header.
-     * @param name header name
-     * @param value header value
-     */
-    void header(String name, String value);
+	/**
+	 * Adds a new header.
+	 * @param name header name
+	 * @param value header value
+	 */
+	void header(String name, String value);
 
-    @Override
-    default Kind kind() {
-        return Kind.CLIENT;
-    }
+	@Override
+	default Kind kind() {
+		return Kind.CLIENT;
+	}
 
 }

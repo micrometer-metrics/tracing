@@ -26,72 +26,72 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface TraceContext {
 
-    /**
-     * Trace id.
-     * @return trace id of a span
-     */
-    String traceId();
+	/**
+	 * Trace id.
+	 * @return trace id of a span
+	 */
+	String traceId();
 
-    /**
-     * Parent span id.
-     * @return parent span id or {@code null} if one is not set
-     */
-    @Nullable
-    String parentId();
+	/**
+	 * Parent span id.
+	 * @return parent span id or {@code null} if one is not set
+	 */
+	@Nullable
+	String parentId();
 
-    /**
-     * Span id.
-     * @return span id
-     */
-    String spanId();
+	/**
+	 * Span id.
+	 * @return span id
+	 */
+	String spanId();
 
-    /**
-     * @return {@code true} when sampled, {@code false} when not sampled and {@code null}
-     * when sampling decision should be deferred
-     */
-    Boolean sampled();
+	/**
+	 * @return {@code true} when sampled, {@code false} when not sampled and {@code null}
+	 * when sampling decision should be deferred
+	 */
+	Boolean sampled();
 
-    /**
-     * Builder for {@link TraceContext}.
-     *
-     * @since 1.0.0
-     */
-    interface Builder {
+	/**
+	 * Builder for {@link TraceContext}.
+	 *
+	 * @since 1.0.0
+	 */
+	interface Builder {
 
-        /**
-         * Sets trace id on the trace context.
-         * @param traceId trace id
-         * @return this
-         */
-        TraceContext.Builder traceId(String traceId);
+		/**
+		 * Sets trace id on the trace context.
+		 * @param traceId trace id
+		 * @return this
+		 */
+		TraceContext.Builder traceId(String traceId);
 
-        /**
-         * Sets parent id on the trace context.
-         * @param parentId parent trace id
-         * @return this
-         */
-        TraceContext.Builder parentId(String parentId);
+		/**
+		 * Sets parent id on the trace context.
+		 * @param parentId parent trace id
+		 * @return this
+		 */
+		TraceContext.Builder parentId(String parentId);
 
-        /**
-         * Sets span id on the trace context.
-         * @param spanId span id
-         * @return this
-         */
-        TraceContext.Builder spanId(String spanId);
+		/**
+		 * Sets span id on the trace context.
+		 * @param spanId span id
+		 * @return this
+		 */
+		TraceContext.Builder spanId(String spanId);
 
-        /**
-         * Sets sampled on the trace context.
-         * @param sampled if span is sampled
-         * @return this
-         */
-        TraceContext.Builder sampled(Boolean sampled);
+		/**
+		 * Sets sampled on the trace context.
+		 * @param sampled if span is sampled
+		 * @return this
+		 */
+		TraceContext.Builder sampled(Boolean sampled);
 
-        /**
-         * Builds the trace context.
-         * @return trace context
-         */
-        TraceContext build();
+		/**
+		 * Builds the trace context.
+		 * @return trace context
+		 */
+		TraceContext build();
 
-    }
+	}
 
 }

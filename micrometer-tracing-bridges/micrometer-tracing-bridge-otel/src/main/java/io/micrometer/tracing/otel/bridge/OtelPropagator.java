@@ -28,7 +28,6 @@ import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 
-
 /**
  * OpenTelemetry implementation of a {@link Propagator}.
  *
@@ -37,51 +36,50 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
  */
 public class OtelPropagator implements Propagator {
 
-    private final TextMapPropagator propagator;
+	private final TextMapPropagator propagator;
 
-    private final Tracer tracer;
+	private final Tracer tracer;
 
-    /**
-     * Creates a new instance of {@link OtelPropagator}.
-     *
-     * @param propagation propagation
-     * @param tracer tracer
-     */
-    public OtelPropagator(ContextPropagators propagation, Tracer tracer) {
-        this.propagator = propagation.getTextMapPropagator();
-        this.tracer = tracer;
-    }
+	/**
+	 * Creates a new instance of {@link OtelPropagator}.
+	 * @param propagation propagation
+	 * @param tracer tracer
+	 */
+	public OtelPropagator(ContextPropagators propagation, Tracer tracer) {
+		this.propagator = propagation.getTextMapPropagator();
+		this.tracer = tracer;
+	}
 
-    @Override
-    public List<String> fields() {
-        // TODO: We should make Propagator::fields returning Collection<String>
-        return new ArrayList<>(this.propagator.fields());
-    }
+	@Override
+	public List<String> fields() {
+		// TODO: We should make Propagator::fields returning Collection<String>
+		return new ArrayList<>(this.propagator.fields());
+	}
 
-    @Override
-    public <C> void inject(TraceContext traceContext, C carrier, Setter<C> setter) {
-        Context context = OtelTraceContext.toOtelContext(traceContext);
-        this.propagator.inject(context, carrier, setter::set);
-    }
+	@Override
+	public <C> void inject(TraceContext traceContext, C carrier, Setter<C> setter) {
+		Context context = OtelTraceContext.toOtelContext(traceContext);
+		this.propagator.inject(context, carrier, setter::set);
+	}
 
-    @Override
-    public <C> Span.Builder extract(C carrier, Getter<C> getter) {
-        Context extracted = this.propagator.extract(Context.current(), carrier, new TextMapGetter<C>() {
-            @Override
-            public Iterable<String> keys(C carrier) {
-                return fields();
-            }
+	@Override
+	public <C> Span.Builder extract(C carrier, Getter<C> getter) {
+		Context extracted = this.propagator.extract(Context.current(), carrier, new TextMapGetter<C>() {
+			@Override
+			public Iterable<String> keys(C carrier) {
+				return fields();
+			}
 
-            @Override
-            public String get(C carrier, String key) {
-                return getter.get(carrier, key);
-            }
-        });
-        io.opentelemetry.api.trace.Span span = io.opentelemetry.api.trace.Span.fromContextOrNull(extracted);
-        if (span == null || span.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
-            return OtelSpanBuilder.fromOtel(tracer.spanBuilder(""));
-        }
-        return OtelSpanBuilder.fromOtel(this.tracer.spanBuilder("").setParent(extracted));
-    }
+			@Override
+			public String get(C carrier, String key) {
+				return getter.get(carrier, key);
+			}
+		});
+		io.opentelemetry.api.trace.Span span = io.opentelemetry.api.trace.Span.fromContextOrNull(extracted);
+		if (span == null || span.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
+			return OtelSpanBuilder.fromOtel(tracer.spanBuilder(""));
+		}
+		return OtelSpanBuilder.fromOtel(this.tracer.spanBuilder("").setParent(extracted));
+	}
 
 }

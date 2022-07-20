@@ -24,24 +24,24 @@ package io.micrometer.tracing.brave.propagation;
  */
 public enum PropagationType {
 
-    /**
-     * AWS propagation type.
-     */
-    AWS,
+	/**
+	 * AWS propagation type.
+	 */
+	AWS,
 
-    /**
-     * B3 propagation type.
-     */
-    B3,
+	/**
+	 * B3 propagation type.
+	 */
+	B3,
 
-    /**
-     * W3C propagation type.
-     */
-    W3C,
+	/**
+	 * W3C propagation type.
+	 */
+	W3C,
 
-    /**
-     * Custom propagation type.
-     */
-    CUSTOM
+	/**
+	 * Custom propagation type.
+	 */
+	CUSTOM
 
 }

@@ -33,61 +33,63 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
-    private final SimpleTracer simpleTracer;
+	private final SimpleTracer simpleTracer;
 
-    /**
-     * Creates a new instance of {@link SimpleCurrentTraceContext}.
-     *
-     * @param simpleTracer simple tracer
-     */
-    public SimpleCurrentTraceContext(SimpleTracer simpleTracer) {
-        this.simpleTracer = simpleTracer;
-    }
+	/**
+	 * Creates a new instance of {@link SimpleCurrentTraceContext}.
+	 * @param simpleTracer simple tracer
+	 */
+	public SimpleCurrentTraceContext(SimpleTracer simpleTracer) {
+		this.simpleTracer = simpleTracer;
+	}
 
-    @Override
-    public TraceContext context() {
-        Span span = this.simpleTracer.currentSpan();
-        if (span != null) {
-            return span.context();
-        }
-        return null;
-    }
+	@Override
+	public TraceContext context() {
+		Span span = this.simpleTracer.currentSpan();
+		if (span != null) {
+			return span.context();
+		}
+		return null;
+	}
 
-    @Override
-    public Scope newScope(TraceContext context) {
-        Span span = Objects.requireNonNull(SimpleSpanAndScope.traceContextsToSpans.get(context), "You must create a span with this context before");
-        SimpleSpanInScope inScope = this.simpleTracer.withSpan(span);
-        return inScope::close;
-    }
+	@Override
+	public Scope newScope(TraceContext context) {
+		Span span = Objects.requireNonNull(SimpleSpanAndScope.traceContextsToSpans.get(context),
+				"You must create a span with this context before");
+		SimpleSpanInScope inScope = this.simpleTracer.withSpan(span);
+		return inScope::close;
+	}
 
-    @Override
-    public Scope maybeScope(TraceContext context) {
-        Span span = Objects.requireNonNull(SimpleSpanAndScope.traceContextsToSpans.get(context), "You must create a span with this context before");
-        if (this.simpleTracer.currentSpan() == span) {
-            return () -> {
+	@Override
+	public Scope maybeScope(TraceContext context) {
+		Span span = Objects.requireNonNull(SimpleSpanAndScope.traceContextsToSpans.get(context),
+				"You must create a span with this context before");
+		if (this.simpleTracer.currentSpan() == span) {
+			return () -> {
 
-            };
-        }
-        return newScope(span.context());
-    }
+			};
+		}
+		return newScope(span.context());
+	}
 
-    @Override
-    public <C> Callable<C> wrap(Callable<C> task) {
-        return task;
-    }
+	@Override
+	public <C> Callable<C> wrap(Callable<C> task) {
+		return task;
+	}
 
-    @Override
-    public Runnable wrap(Runnable task) {
-        return task;
-    }
+	@Override
+	public Runnable wrap(Runnable task) {
+		return task;
+	}
 
-    @Override
-    public Executor wrap(Executor delegate) {
-        return delegate;
-    }
+	@Override
+	public Executor wrap(Executor delegate) {
+		return delegate;
+	}
 
-    @Override
-    public ExecutorService wrap(ExecutorService delegate) {
-        return delegate;
-    }
+	@Override
+	public ExecutorService wrap(ExecutorService delegate) {
+		return delegate;
+	}
+
 }

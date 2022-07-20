@@ -29,26 +29,25 @@ import io.micrometer.tracing.http.HttpServerHandler;
  */
 public class BraveHttpServerHandler implements HttpServerHandler {
 
-    final brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate;
+	final brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate;
 
-    /**
-     * Creates a new instance of {@link HttpServerHandler}.
-     *
-     * @param delegate Brave version of {@link HttpServerHandler}
-     */
-    public BraveHttpServerHandler(
-            brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
-        this.delegate = delegate;
-    }
+	/**
+	 * Creates a new instance of {@link HttpServerHandler}.
+	 * @param delegate Brave version of {@link HttpServerHandler}
+	 */
+	public BraveHttpServerHandler(
+			brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
+		this.delegate = delegate;
+	}
 
-    @Override
-    public Span handleReceive(HttpServerRequest request) {
-        return BraveSpan.fromBrave(this.delegate.handleReceive(BraveHttpServerRequest.toBrave(request)));
-    }
+	@Override
+	public Span handleReceive(HttpServerRequest request) {
+		return BraveSpan.fromBrave(this.delegate.handleReceive(BraveHttpServerRequest.toBrave(request)));
+	}
 
-    @Override
-    public void handleSend(HttpServerResponse response, Span span) {
-        this.delegate.handleSend(BraveHttpServerResponse.toBrave(response), BraveSpan.toBrave(span));
-    }
+	@Override
+	public void handleSend(HttpServerResponse response, Span span) {
+		this.delegate.handleSend(BraveHttpServerResponse.toBrave(response), BraveSpan.toBrave(span));
+	}
 
 }

@@ -26,13 +26,13 @@ package io.micrometer.tracing;
  */
 public interface SpanNamer {
 
-    /**
-     * Retrieves the span name for the given object.
-     * @param object - object for which span name should be picked
-     * @param defaultValue - the default valued to be returned if span name can't be
-     * calculated
-     * @return span name
-     */
-    String name(Object object, String defaultValue);
+	/**
+	 * Retrieves the span name for the given object.
+	 * @param object - object for which span name should be picked
+	 * @param defaultValue - the default valued to be returned if span name can't be
+	 * calculated
+	 * @return span name
+	 */
+	String name(Object object, String defaultValue);
 
 }

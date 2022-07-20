@@ -31,157 +31,154 @@ import io.micrometer.tracing.exporter.FinishedSpan;
  */
 public class BraveFinishedSpan implements FinishedSpan {
 
-    private final MutableSpan mutableSpan;
+	private final MutableSpan mutableSpan;
 
-    /**
-     * Creates a new instance of {@link BraveFinishedSpan}.
-     *
-     * @param mutableSpan Brave version of {@link FinishedSpan}
-     */
-    public BraveFinishedSpan(MutableSpan mutableSpan) {
-        this.mutableSpan = mutableSpan;
-    }
+	/**
+	 * Creates a new instance of {@link BraveFinishedSpan}.
+	 * @param mutableSpan Brave version of {@link FinishedSpan}
+	 */
+	public BraveFinishedSpan(MutableSpan mutableSpan) {
+		this.mutableSpan = mutableSpan;
+	}
 
-    /**
-     * Converts from Brave to Tracing.
-     *
-     * @param mutableSpan Brave version of {@link FinishedSpan}
-     * @return Tracing version of a {@link FinishedSpan}
-     */
-    public static FinishedSpan fromBrave(MutableSpan mutableSpan) {
-        return new BraveFinishedSpan(mutableSpan);
-    }
+	/**
+	 * Converts from Brave to Tracing.
+	 * @param mutableSpan Brave version of {@link FinishedSpan}
+	 * @return Tracing version of a {@link FinishedSpan}
+	 */
+	public static FinishedSpan fromBrave(MutableSpan mutableSpan) {
+		return new BraveFinishedSpan(mutableSpan);
+	}
 
-    /**
-     * Converts from Tracing to Brave.
-     *
-     * @param finishedSpan Tracing version of a {@link FinishedSpan}
-     * @return Brave version of {@link FinishedSpan}
-     */
-    public static MutableSpan toBrave(FinishedSpan finishedSpan) {
-        return ((BraveFinishedSpan) finishedSpan).mutableSpan;
-    }
+	/**
+	 * Converts from Tracing to Brave.
+	 * @param finishedSpan Tracing version of a {@link FinishedSpan}
+	 * @return Brave version of {@link FinishedSpan}
+	 */
+	public static MutableSpan toBrave(FinishedSpan finishedSpan) {
+		return ((BraveFinishedSpan) finishedSpan).mutableSpan;
+	}
 
-    @Override
-    public FinishedSpan setName(String name) {
-        this.mutableSpan.name(name);
-        return this;
-    }
+	@Override
+	public FinishedSpan setName(String name) {
+		this.mutableSpan.name(name);
+		return this;
+	}
 
-    @Override
-    public String getName() {
-        return this.mutableSpan.name();
-    }
+	@Override
+	public String getName() {
+		return this.mutableSpan.name();
+	}
 
-    @Override
-    public long getStartTimestamp() {
-        return this.mutableSpan.startTimestamp();
-    }
+	@Override
+	public long getStartTimestamp() {
+		return this.mutableSpan.startTimestamp();
+	}
 
-    @Override
-    public long getEndTimestamp() {
-        return this.mutableSpan.finishTimestamp();
-    }
+	@Override
+	public long getEndTimestamp() {
+		return this.mutableSpan.finishTimestamp();
+	}
 
-    @Override
-    public FinishedSpan setTags(Map<String, String> tags) {
-        this.mutableSpan.tags().clear();
-        tags.forEach(this.mutableSpan::tag);
-        return this;
-    }
+	@Override
+	public FinishedSpan setTags(Map<String, String> tags) {
+		this.mutableSpan.tags().clear();
+		tags.forEach(this.mutableSpan::tag);
+		return this;
+	}
 
-    @Override
-    public Map<String, String> getTags() {
-        return this.mutableSpan.tags();
-    }
+	@Override
+	public Map<String, String> getTags() {
+		return this.mutableSpan.tags();
+	}
 
-    @Override
-    public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
-        this.mutableSpan.annotations().clear();
-        events.forEach(e -> this.mutableSpan.annotate(e.getKey(), e.getValue()));
-        return this;
-    }
+	@Override
+	public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
+		this.mutableSpan.annotations().clear();
+		events.forEach(e -> this.mutableSpan.annotate(e.getKey(), e.getValue()));
+		return this;
+	}
 
-    @Override
-    public Collection<Map.Entry<Long, String>> getEvents() {
-        return this.mutableSpan.annotations();
-    }
+	@Override
+	public Collection<Map.Entry<Long, String>> getEvents() {
+		return this.mutableSpan.annotations();
+	}
 
-    @Override
-    public String getSpanId() {
-        return this.mutableSpan.id();
-    }
+	@Override
+	public String getSpanId() {
+		return this.mutableSpan.id();
+	}
 
-    @Override
-    public String getParentId() {
-        return this.mutableSpan.parentId();
-    }
+	@Override
+	public String getParentId() {
+		return this.mutableSpan.parentId();
+	}
 
-    @Override
-    public String getRemoteIp() {
-        return this.mutableSpan.remoteIp();
-    }
+	@Override
+	public String getRemoteIp() {
+		return this.mutableSpan.remoteIp();
+	}
 
-    @Override
-    public String getLocalIp() {
-        return this.mutableSpan.localIp();
-    }
+	@Override
+	public String getLocalIp() {
+		return this.mutableSpan.localIp();
+	}
 
-    @Override
-    public FinishedSpan setLocalIp(String ip) {
-        this.mutableSpan.localIp(ip);
-        return this;
-    }
+	@Override
+	public FinishedSpan setLocalIp(String ip) {
+		this.mutableSpan.localIp(ip);
+		return this;
+	}
 
-    @Override
-    public int getRemotePort() {
-        return this.mutableSpan.remotePort();
-    }
+	@Override
+	public int getRemotePort() {
+		return this.mutableSpan.remotePort();
+	}
 
-    @Override
-    public FinishedSpan setRemotePort(int port) {
-        this.mutableSpan.remotePort(port);
-        return this;
-    }
+	@Override
+	public FinishedSpan setRemotePort(int port) {
+		this.mutableSpan.remotePort(port);
+		return this;
+	}
 
-    @Override
-    public String getTraceId() {
-        return this.mutableSpan.traceId();
-    }
+	@Override
+	public String getTraceId() {
+		return this.mutableSpan.traceId();
+	}
 
-    @Override
-    public Throwable getError() {
-        return this.mutableSpan.error();
-    }
+	@Override
+	public Throwable getError() {
+		return this.mutableSpan.error();
+	}
 
-    @Override
-    public FinishedSpan setError(Throwable error) {
-        this.mutableSpan.error(error);
-        return this;
-    }
+	@Override
+	public FinishedSpan setError(Throwable error) {
+		this.mutableSpan.error(error);
+		return this;
+	}
 
-    @Override
-    public Span.Kind getKind() {
-        if (this.mutableSpan.kind() == null) {
-            return null;
-        }
-        return Span.Kind.valueOf(this.mutableSpan.kind().name());
-    }
+	@Override
+	public Span.Kind getKind() {
+		if (this.mutableSpan.kind() == null) {
+			return null;
+		}
+		return Span.Kind.valueOf(this.mutableSpan.kind().name());
+	}
 
-    @Override
-    public String getRemoteServiceName() {
-        return this.mutableSpan.remoteServiceName();
-    }
+	@Override
+	public String getRemoteServiceName() {
+		return this.mutableSpan.remoteServiceName();
+	}
 
-    @Override
-    public FinishedSpan setRemoteServiceName(String remoteServiceName) {
-        this.mutableSpan.remoteServiceName(remoteServiceName);
-        return this;
-    }
+	@Override
+	public FinishedSpan setRemoteServiceName(String remoteServiceName) {
+		this.mutableSpan.remoteServiceName(remoteServiceName);
+		return this;
+	}
 
-    @Override
-    public String toString() {
-        return "BraveFinishedSpan{" + "mutableSpan=" + mutableSpan + '}';
-    }
+	@Override
+	public String toString() {
+		return "BraveFinishedSpan{" + "mutableSpan=" + mutableSpan + '}';
+	}
 
 }

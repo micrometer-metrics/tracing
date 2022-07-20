@@ -31,96 +31,96 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface SamplerFunction<T> {
 
-    /**
-     * Always deferring {@link SamplerFunction}.
-     * @param <T> type of the input, for example a request or method
-     * @return decision deferring sampler function
-     */
-    @SuppressWarnings("unchecked")
-    static <T> SamplerFunction<T> deferDecision() {
-        return (SamplerFunction<T>) Constants.DEFER_DECISION;
-    }
+	/**
+	 * Always deferring {@link SamplerFunction}.
+	 * @param <T> type of the input, for example a request or method
+	 * @return decision deferring sampler function
+	 */
+	@SuppressWarnings("unchecked")
+	static <T> SamplerFunction<T> deferDecision() {
+		return (SamplerFunction<T>) Constants.DEFER_DECISION;
+	}
 
-    /**
-     * Never sampling {@link SamplerFunction}.
-     * @param <T> type of the input, for example a request or method
-     * @return never sampling sampler function
-     */
-    @SuppressWarnings("unchecked")
-    static <T> SamplerFunction<T> neverSample() {
-        return (SamplerFunction<T>) Constants.NEVER_SAMPLE;
-    }
+	/**
+	 * Never sampling {@link SamplerFunction}.
+	 * @param <T> type of the input, for example a request or method
+	 * @return never sampling sampler function
+	 */
+	@SuppressWarnings("unchecked")
+	static <T> SamplerFunction<T> neverSample() {
+		return (SamplerFunction<T>) Constants.NEVER_SAMPLE;
+	}
 
-    /**
-     * Always sampling {@link SamplerFunction}.
-     * @param <T> type of the input, for example a request or method
-     * @return always sampling sampler function
-     */
-    @SuppressWarnings("unchecked")
-    static <T> SamplerFunction<T> alwaysSample() {
-        return (SamplerFunction<T>) Constants.ALWAYS_SAMPLE;
-    }
+	/**
+	 * Always sampling {@link SamplerFunction}.
+	 * @param <T> type of the input, for example a request or method
+	 * @return always sampling sampler function
+	 */
+	@SuppressWarnings("unchecked")
+	static <T> SamplerFunction<T> alwaysSample() {
+		return (SamplerFunction<T>) Constants.ALWAYS_SAMPLE;
+	}
 
-    /**
-     * Returns an overriding sampling decision for a new trace.
-     * @param arg parameter to evaluate for a sampling decision. {@code null} input
-     * results in a {@code null} result
-     * @return {@code true} to sample a new trace or {@code false} to deny. {@code null}
-     * defers the decision.
-     */
-    @Nullable
-    Boolean trySample(@Nullable T arg);
+	/**
+	 * Returns an overriding sampling decision for a new trace.
+	 * @param arg parameter to evaluate for a sampling decision. {@code null} input
+	 * results in a {@code null} result
+	 * @return {@code true} to sample a new trace or {@code false} to deny. {@code null}
+	 * defers the decision.
+	 */
+	@Nullable
+	Boolean trySample(@Nullable T arg);
 
-    /**
-     * Constant {@link SamplerFunction}s.
-     */
-    enum Constants implements SamplerFunction<Object> {
+	/**
+	 * Constant {@link SamplerFunction}s.
+	 */
+	enum Constants implements SamplerFunction<Object> {
 
-        /**
-         * Always defers sampling decision.
-         */
-        DEFER_DECISION {
-            @Override
-            public Boolean trySample(Object request) {
-                return null;
-            }
+		/**
+		 * Always defers sampling decision.
+		 */
+		DEFER_DECISION {
+			@Override
+			public Boolean trySample(Object request) {
+				return null;
+			}
 
-            @Override
-            public String toString() {
-                return "DeferDecision";
-            }
-        },
+			@Override
+			public String toString() {
+				return "DeferDecision";
+			}
+		},
 
-        /**
-         * Will never sample this trace.
-         */
-        NEVER_SAMPLE {
-            @Override
-            public Boolean trySample(Object request) {
-                return false;
-            }
+		/**
+		 * Will never sample this trace.
+		 */
+		NEVER_SAMPLE {
+			@Override
+			public Boolean trySample(Object request) {
+				return false;
+			}
 
-            @Override
-            public String toString() {
-                return "NeverSample";
-            }
-        },
+			@Override
+			public String toString() {
+				return "NeverSample";
+			}
+		},
 
-        /**
-         * Will always sample this trace.
-         */
-        ALWAYS_SAMPLE {
-            @Override
-            public Boolean trySample(Object request) {
-                return true;
-            }
+		/**
+		 * Will always sample this trace.
+		 */
+		ALWAYS_SAMPLE {
+			@Override
+			public Boolean trySample(Object request) {
+				return true;
+			}
 
-            @Override
-            public String toString() {
-                return "AlwaysSample";
-            }
-        }
+			@Override
+			public String toString() {
+				return "AlwaysSample";
+			}
+		}
 
-    }
+	}
 
 }

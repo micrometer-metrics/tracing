@@ -30,43 +30,43 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface BaggageManager {
 
-    /**
-     * @return mapping of all baggage entries from the given scope
-     */
-    Map<String, String> getAllBaggage();
+	/**
+	 * @return mapping of all baggage entries from the given scope
+	 */
+	Map<String, String> getAllBaggage();
 
-    /**
-     * Retrieves {@link BaggageInScope} for the given name.
-     * @param name baggage name
-     * @return baggage or {@code null} if not present
-     */
-    @Nullable
-    BaggageInScope getBaggage(String name);
+	/**
+	 * Retrieves {@link BaggageInScope} for the given name.
+	 * @param name baggage name
+	 * @return baggage or {@code null} if not present
+	 */
+	@Nullable
+	BaggageInScope getBaggage(String name);
 
-    /**
-     * Retrieves {@link BaggageInScope} for the given name.
-     * @param traceContext trace context with baggage attached to it
-     * @param name baggage name
-     * @return baggage or {@code null} if not present
-     */
-    @Nullable
-    BaggageInScope getBaggage(TraceContext traceContext, String name);
+	/**
+	 * Retrieves {@link BaggageInScope} for the given name.
+	 * @param traceContext trace context with baggage attached to it
+	 * @param name baggage name
+	 * @return baggage or {@code null} if not present
+	 */
+	@Nullable
+	BaggageInScope getBaggage(TraceContext traceContext, String name);
 
-    /**
-     * Creates a new {@link BaggageInScope} entry for the given name or returns an
-     * existing one if it's already present.
-     * @param name baggage name
-     * @return new or already created baggage
-     */
-    BaggageInScope createBaggage(String name);
+	/**
+	 * Creates a new {@link BaggageInScope} entry for the given name or returns an
+	 * existing one if it's already present.
+	 * @param name baggage name
+	 * @return new or already created baggage
+	 */
+	BaggageInScope createBaggage(String name);
 
-    /**
-     * Creates a new {@link BaggageInScope} entry for the given name or returns an
-     * existing one if it's already present.
-     * @param name baggage name
-     * @param value baggage value
-     * @return new or already created baggage
-     */
-    BaggageInScope createBaggage(String name, String value);
+	/**
+	 * Creates a new {@link BaggageInScope} entry for the given name or returns an
+	 * existing one if it's already present.
+	 * @param name baggage name
+	 * @param value baggage value
+	 * @return new or already created baggage
+	 */
+	BaggageInScope createBaggage(String name, String value);
 
 }

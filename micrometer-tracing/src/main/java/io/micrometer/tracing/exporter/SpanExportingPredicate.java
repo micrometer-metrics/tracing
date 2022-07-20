@@ -25,11 +25,11 @@ package io.micrometer.tracing.exporter;
  */
 public interface SpanExportingPredicate {
 
-    /**
-     * Called to export sampled {@code Span}s.
-     * @param span the collection of sampled Spans to be exported.
-     * @return whether should export spans
-     */
-    boolean isExportable(FinishedSpan span);
+	/**
+	 * Called to export sampled {@code Span}s.
+	 * @param span the collection of sampled Spans to be exported.
+	 * @return whether should export spans
+	 */
+	boolean isExportable(FinishedSpan span);
 
 }

@@ -26,43 +26,45 @@ import io.micrometer.tracing.reporter.wavefront.SpanMetrics;
  * @author Moritz Halbritter
  */
 class MeterRegistrySpanMetrics implements SpanMetrics {
-    private final Counter spansReceived;
 
-    private final Counter spansDropped;
+	private final Counter spansReceived;
 
-    private final Counter reportErrors;
+	private final Counter spansDropped;
 
-    private final MeterRegistry meterRegistry;
+	private final Counter reportErrors;
 
-    MeterRegistrySpanMetrics(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-        this.spansReceived = meterRegistry.counter("reporter.spans.received");
-        this.spansDropped = meterRegistry.counter("reporter.spans.dropped");
-        this.reportErrors = meterRegistry.counter("reporter.errors");
-    }
+	private final MeterRegistry meterRegistry;
 
-    @Override
-    public void reportDropped() {
-        spansDropped.increment();
-    }
+	MeterRegistrySpanMetrics(MeterRegistry meterRegistry) {
+		this.meterRegistry = meterRegistry;
+		this.spansReceived = meterRegistry.counter("reporter.spans.received");
+		this.spansDropped = meterRegistry.counter("reporter.spans.dropped");
+		this.reportErrors = meterRegistry.counter("reporter.errors");
+	}
 
-    @Override
-    public void reportReceived() {
-        spansReceived.increment();
-    }
+	@Override
+	public void reportDropped() {
+		spansDropped.increment();
+	}
 
-    @Override
-    public void reportErrors() {
-        reportErrors.increment();
-    }
+	@Override
+	public void reportReceived() {
+		spansReceived.increment();
+	}
 
-    @Override
-    public void registerQueueSize(BlockingQueue<?> queue) {
-        meterRegistry.gauge("reporter.queue.size", queue, q -> (double) q.size());
-    }
+	@Override
+	public void reportErrors() {
+		reportErrors.increment();
+	}
 
-    @Override
-    public void registerQueueRemainingCapacity(BlockingQueue<?> queue) {
-        meterRegistry.gauge("reporter.queue.remaining_capacity", queue, q -> (double) q.remainingCapacity());
-    }
+	@Override
+	public void registerQueueSize(BlockingQueue<?> queue) {
+		meterRegistry.gauge("reporter.queue.size", queue, q -> (double) q.size());
+	}
+
+	@Override
+	public void registerQueueRemainingCapacity(BlockingQueue<?> queue) {
+		meterRegistry.gauge("reporter.queue.remaining_capacity", queue, q -> (double) q.remainingCapacity());
+	}
+
 }

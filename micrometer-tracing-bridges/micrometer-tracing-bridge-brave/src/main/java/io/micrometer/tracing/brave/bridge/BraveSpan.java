@@ -30,139 +30,136 @@ import io.micrometer.tracing.TraceContext;
  */
 public class BraveSpan implements Span {
 
-    final brave.Span delegate;
+	final brave.Span delegate;
 
-    /**
-     * Creates a new instance of {@link BraveSpan}.
-     *
-     * @param delegate Brave {@link BraveSpan}
-     */
-    public BraveSpan(brave.Span delegate) {
-        this.delegate = delegate;
-    }
+	/**
+	 * Creates a new instance of {@link BraveSpan}.
+	 * @param delegate Brave {@link BraveSpan}
+	 */
+	public BraveSpan(brave.Span delegate) {
+		this.delegate = delegate;
+	}
 
-    /**
-     * Converts from Tracing to Brave.
-     *
-     * @param span Tracing version
-     * @return Brave's version
-     */
-    public static brave.Span toBrave(Span span) {
-        BraveSpan braveSpan = (BraveSpan) span;
-        if (braveSpan == null) {
-            return null;
-        }
-        return braveSpan.delegate;
-    }
+	/**
+	 * Converts from Tracing to Brave.
+	 * @param span Tracing version
+	 * @return Brave's version
+	 */
+	public static brave.Span toBrave(Span span) {
+		BraveSpan braveSpan = (BraveSpan) span;
+		if (braveSpan == null) {
+			return null;
+		}
+		return braveSpan.delegate;
+	}
 
-    /**
-     * Converts from Brave to Tracing.
-     *
-     * @param span Brave version
-     * @return Tracing version
-     */
-    public static Span fromBrave(brave.Span span) {
-        return new BraveSpan(span);
-    }
+	/**
+	 * Converts from Brave to Tracing.
+	 * @param span Brave version
+	 * @return Tracing version
+	 */
+	public static Span fromBrave(brave.Span span) {
+		return new BraveSpan(span);
+	}
 
-    @Override
-    public boolean isNoop() {
-        return this.delegate.isNoop();
-    }
+	@Override
+	public boolean isNoop() {
+		return this.delegate.isNoop();
+	}
 
-    @Override
-    public TraceContext context() {
-        if (this.delegate == null) {
-            return null;
-        }
-        return new BraveTraceContext(this.delegate.context());
-    }
+	@Override
+	public TraceContext context() {
+		if (this.delegate == null) {
+			return null;
+		}
+		return new BraveTraceContext(this.delegate.context());
+	}
 
-    @Override
-    public Span start() {
-        this.delegate.start();
-        return this;
-    }
+	@Override
+	public Span start() {
+		this.delegate.start();
+		return this;
+	}
 
-    @Override
-    public Span name(String name) {
-        this.delegate.name(name);
-        return this;
-    }
+	@Override
+	public Span name(String name) {
+		this.delegate.name(name);
+		return this;
+	}
 
-    @Override
-    public Span event(String value) {
-        this.delegate.annotate(value);
-        return this;
-    }
+	@Override
+	public Span event(String value) {
+		this.delegate.annotate(value);
+		return this;
+	}
 
-    @Override
-    public Span event(String value, long time, TimeUnit timeUnit) {
-        this.delegate.annotate(timeUnit.toMicros(time), value);
-        return this;
-    }
+	@Override
+	public Span event(String value, long time, TimeUnit timeUnit) {
+		this.delegate.annotate(timeUnit.toMicros(time), value);
+		return this;
+	}
 
-    @Override
-    public Span tag(String key, String value) {
-        this.delegate.tag(key, value);
-        return this;
-    }
+	@Override
+	public Span tag(String key, String value) {
+		this.delegate.tag(key, value);
+		return this;
+	}
 
-    @Override
-    public Span error(Throwable throwable) {
-        String message = throwable.getMessage() == null ? throwable.getClass().getSimpleName() : throwable.getMessage();
-        this.delegate.tag("error", message);
-        this.delegate.error(throwable);
-        return this;
-    }
+	@Override
+	public Span error(Throwable throwable) {
+		String message = throwable.getMessage() == null ? throwable.getClass().getSimpleName() : throwable.getMessage();
+		this.delegate.tag("error", message);
+		this.delegate.error(throwable);
+		return this;
+	}
 
-    @Override
-    public void end() {
-        this.delegate.finish();
-    }
+	@Override
+	public void end() {
+		this.delegate.finish();
+	}
 
-    @Override
-    public void end(long time, TimeUnit timeUnit) {
-        this.delegate.finish(timeUnit.toMicros(time));
-    }
+	@Override
+	public void end(long time, TimeUnit timeUnit) {
+		this.delegate.finish(timeUnit.toMicros(time));
+	}
 
-    @Override
-    public void abandon() {
-        this.delegate.abandon();
-    }
+	@Override
+	public void abandon() {
+		this.delegate.abandon();
+	}
 
-    @Override
-    public Span remoteServiceName(String remoteServiceName) {
-        this.delegate.remoteServiceName(remoteServiceName);
-        return this;
-    }
+	@Override
+	public Span remoteServiceName(String remoteServiceName) {
+		this.delegate.remoteServiceName(remoteServiceName);
+		return this;
+	}
 
-    @Override
-    public Span remoteIpAndPort(String ip, int port) {
-        this.delegate.remoteIpAndPort(ip, port);
-        return this;
-    }
+	@Override
+	public Span remoteIpAndPort(String ip, int port) {
+		this.delegate.remoteIpAndPort(ip, port);
+		return this;
+	}
 
-    @Override
-    public String toString() {
-        return this.delegate != null ? this.delegate.toString() : "null";
-    }
+	@Override
+	public String toString() {
+		return this.delegate != null ? this.delegate.toString() : "null";
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        BraveSpan braveSpan = (BraveSpan) o;
-        return Objects.equals(this.delegate, braveSpan.delegate);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		BraveSpan braveSpan = (BraveSpan) o;
+		return Objects.equals(this.delegate, braveSpan.delegate);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.delegate);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.delegate);
+	}
 
 }

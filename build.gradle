@@ -16,6 +16,7 @@ buildscript {
 		classpath 'io.spring.nohttp:nohttp-gradle:0.0.10'
 		classpath 'org.gradle:test-retry-gradle-plugin:1.3.1'
 		classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
+		classpath 'io.spring.javaformat:spring-javaformat-gradle-plugin:0.0.34'
 
 		constraints {
 			classpath('org.ow2.asm:asm:7.3.1') {
@@ -51,6 +52,7 @@ subprojects {
 		apply plugin: 'checkstyle'
 		apply plugin: 'io.spring.nohttp'
 		apply plugin: 'org.gradle.test-retry'
+		apply plugin: 'io.spring.javaformat'
 
 		java {
 			// It is more idiomatic to define different features for different sets of optional

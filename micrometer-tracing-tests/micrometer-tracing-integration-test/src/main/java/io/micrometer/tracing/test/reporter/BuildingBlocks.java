@@ -37,45 +37,40 @@ import io.micrometer.tracing.propagation.Propagator;
 @SuppressWarnings("rawtypes")
 public interface BuildingBlocks {
 
-    /**
-     * Returns a {@link Tracer}.
-     *
-     * @return tracer
-     */
-    Tracer getTracer();
+	/**
+	 * Returns a {@link Tracer}.
+	 * @return tracer
+	 */
+	Tracer getTracer();
 
-    /**
-     * Returns a {@link Propagator}.
-     *
-     * @return propagator
-     */
-    Propagator getPropagator();
+	/**
+	 * Returns a {@link Propagator}.
+	 * @return propagator
+	 */
+	Propagator getPropagator();
 
-    /**
-     * Returns an {@link HttpServerHandler}.
-     *
-     * @return http server handler
-     */
-    HttpServerHandler getHttpServerHandler();
+	/**
+	 * Returns an {@link HttpServerHandler}.
+	 * @return http server handler
+	 */
+	HttpServerHandler getHttpServerHandler();
 
-    /**
-     * Returns an {@link HttpClientHandler}.
-     *
-     * @return http client handler
-     */
-    HttpClientHandler getHttpClientHandler();
+	/**
+	 * Returns an {@link HttpClientHandler}.
+	 * @return http client handler
+	 */
+	HttpClientHandler getHttpClientHandler();
 
-    /**
-     * Returns a collection of default {@link ObservationHandler} customizers.
-     *
-     * @return customizers
-     */
-    BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> getCustomizers();
+	/**
+	 * Returns a collection of default {@link ObservationHandler} customizers.
+	 * @return customizers
+	 */
+	BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> getCustomizers();
 
-    /**
-     * Returns a list of finished spans.
-     *
-     * @return finished spans
-     */
-    List<FinishedSpan> getFinishedSpans();
+	/**
+	 * Returns a list of finished spans.
+	 * @return finished spans
+	 */
+	List<FinishedSpan> getFinishedSpans();
+
 }

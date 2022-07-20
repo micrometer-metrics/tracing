@@ -54,127 +54,126 @@ import static org.assertj.core.api.BDDAssertions.then;
 @Tag("docker")
 class SampleTestRunnerTests extends SampleTestRunner {
 
-    private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(SampleTestRunnerTests.class);
+	private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(SampleTestRunnerTests.class);
 
-    @Container
-    private static final GenericContainer zipkin = new GenericContainer(DockerImageName.parse("openzipkin/zipkin"))
-            .withExposedPorts(9411)
-            .waitingFor(Wait.forHttp("/").forStatusCode(200));
+	@Container
+	private static final GenericContainer zipkin = new GenericContainer(DockerImageName.parse("openzipkin/zipkin"))
+			.withExposedPorts(9411).waitingFor(Wait.forHttp("/").forStatusCode(200));
 
-    private static final Queue<String> traces = new LinkedList<>();
+	private static final Queue<String> traces = new LinkedList<>();
 
-    @Override
-    protected SampleRunnerConfig getSampleRunnerConfig() {
-        return SampleRunnerConfig.builder()
-                .wavefrontUrl("http://localhost:1234")
-                .zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort())
-                .wavefrontToken("foo")
-                .build();
-    }
+	@Override
+	protected SampleRunnerConfig getSampleRunnerConfig() {
+		return SampleRunnerConfig.builder().wavefrontUrl("http://localhost:1234")
+				.zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort()).wavefrontToken("foo").build();
+	}
 
-    WavefrontSpanHandler braveSpanHandler = WavefrontAccessor.setMockForBrave();
+	WavefrontSpanHandler braveSpanHandler = WavefrontAccessor.setMockForBrave();
 
-    WavefrontSpanHandler otelSpanHandler = WavefrontAccessor.setMockForOTel();
+	WavefrontSpanHandler otelSpanHandler = WavefrontAccessor.setMockForOTel();
 
-    @Override
-    protected SimpleMeterRegistry getMeterRegistry() {
-        return new SimpleMeterRegistry();
-    }
+	@Override
+	protected SimpleMeterRegistry getMeterRegistry() {
+		return new SimpleMeterRegistry();
+	}
 
-    ObservationRegistry registry = ObservationRegistry.create();
+	ObservationRegistry registry = ObservationRegistry.create();
 
-    @Override
-    protected ObservationRegistry getObservationRegistry() {
-        return registry;
-    }
+	@Override
+	protected ObservationRegistry getObservationRegistry() {
+		return registry;
+	}
 
-    Deque<ObservationHandler<? extends Observation.Context>> handlers;
+	Deque<ObservationHandler<? extends Observation.Context>> handlers;
 
-    @Override
-    public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizeObservationHandlers() {
-        return (buildingBlocks, observationHandlers) -> {
-            observationHandlers.addFirst(new MyRecordingHandler());
-            this.handlers = observationHandlers;
-        };
-    }
+	@Override
+	public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizeObservationHandlers() {
+		return (buildingBlocks, observationHandlers) -> {
+			observationHandlers.addFirst(new MyRecordingHandler());
+			this.handlers = observationHandlers;
+		};
+	}
 
-    @BeforeAll
-    static void setup() {
-        zipkin.start();
-    }
+	@BeforeAll
+	static void setup() {
+		zipkin.start();
+	}
 
-    @AfterAll
-    static void cleanup() {
-        zipkin.stop();
-    }
+	@AfterAll
+	static void cleanup() {
+		zipkin.stop();
+	}
 
-    @AfterEach
-    void assertions(TestInfo testInfo) throws Throwable {
-        String testName = testInfo.getDisplayName().toLowerCase();
-        String lastTrace = traces.remove();
-        if (testName.contains("zipkin")) {
-            assertThatZipkinRegisteredATrace(lastTrace);
-        }
-        else if (testName.contains("wavefront")) {
-            WavefrontSpanHandler handler = testName.toLowerCase(Locale.ROOT).contains("brave") ? braveSpanHandler : otelSpanHandler;
-            Awaitility.await()
-                    .atMost(1, TimeUnit.SECONDS)
-                    .untilAsserted(() -> BDDMockito.then(handler).should(BDDMockito.atLeastOnce()).end(BDDMockito.any(), BDDMockito.any()));
-        }
-        then(handlers.getFirst()).isInstanceOf(MyRecordingHandler.class);
-        then(handlers.getLast()).isInstanceOf(DefaultTracingObservationHandler.class);
-    }
+	@AfterEach
+	void assertions(TestInfo testInfo) throws Throwable {
+		String testName = testInfo.getDisplayName().toLowerCase();
+		String lastTrace = traces.remove();
+		if (testName.contains("zipkin")) {
+			assertThatZipkinRegisteredATrace(lastTrace);
+		}
+		else if (testName.contains("wavefront")) {
+			WavefrontSpanHandler handler = testName.toLowerCase(Locale.ROOT).contains("brave") ? braveSpanHandler
+					: otelSpanHandler;
+			Awaitility.await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> BDDMockito.then(handler)
+					.should(BDDMockito.atLeastOnce()).end(BDDMockito.any(), BDDMockito.any()));
+		}
+		then(handlers.getFirst()).isInstanceOf(MyRecordingHandler.class);
+		then(handlers.getLast()).isInstanceOf(DefaultTracingObservationHandler.class);
+	}
 
-    @AfterEach
-    void clean() {
-        WavefrontAccessor.resetMocks();
-    }
+	@AfterEach
+	void clean() {
+		WavefrontAccessor.resetMocks();
+	}
 
-    private void assertThatZipkinRegisteredATrace(String lastTrace) throws Throwable {
-        HttpSender httpSender = new HttpUrlConnectionSender();
-        HttpSender.Response response = httpSender.get(getSampleRunnerConfig().zipkinUrl + "/api/v2/trace/" + lastTrace).send();
+	private void assertThatZipkinRegisteredATrace(String lastTrace) throws Throwable {
+		HttpSender httpSender = new HttpUrlConnectionSender();
+		HttpSender.Response response = httpSender.get(getSampleRunnerConfig().zipkinUrl + "/api/v2/trace/" + lastTrace)
+				.send();
 
-        BDDAssertions.then(response.isSuccessful()).isTrue();
-        BDDAssertions.then(response.body()).isNotEmpty();
-    }
+		BDDAssertions.then(response.isSuccessful()).isTrue();
+		BDDAssertions.then(response.body()).isNotEmpty();
+	}
 
-    @Override
-    public SampleTestRunnerConsumer yourCode() {
-        return (bb, meterRegistry) -> {
-            Tracer tracer = bb.getTracer();
+	@Override
+	public SampleTestRunnerConsumer yourCode() {
+		return (bb, meterRegistry) -> {
+			Tracer tracer = bb.getTracer();
 
-            BDDAssertions.then(tracer.currentSpan()).isNotNull();
-            traces.add(tracer.currentSpan().context().traceId());
+			BDDAssertions.then(tracer.currentSpan()).isNotNull();
+			traces.add(tracer.currentSpan().context().traceId());
 
-            Observation start = Observation.start("name", registry);
-            try (Observation.Scope scope = start.openScope()) {
-                LOGGER.info("Hello");
-            }
-            start.stop();
-        };
-    }
+			Observation start = Observation.start("name", registry);
+			try (Observation.Scope scope = start.openScope()) {
+				LOGGER.info("Hello");
+			}
+			start.stop();
+		};
+	}
 
-    static class MyRecordingHandler implements ObservationHandler<CustomContext> {
+	static class MyRecordingHandler implements ObservationHandler<CustomContext> {
 
-        @Override
-        public void onStart(CustomContext context) {
-        }
+		@Override
+		public void onStart(CustomContext context) {
+		}
 
-        @Override
-        public void onError(CustomContext context) {
-        }
+		@Override
+		public void onError(CustomContext context) {
+		}
 
-        @Override
-        public void onStop(CustomContext context) {
-        }
+		@Override
+		public void onStop(CustomContext context) {
+		}
 
-        @Override
-        public boolean supportsContext(Observation.Context handlerContext) {
-            return false;
-        }
-    }
+		@Override
+		public boolean supportsContext(Observation.Context handlerContext) {
+			return false;
+		}
 
-    static class CustomContext extends Observation.Context {
-    }
+	}
+
+	static class CustomContext extends Observation.Context {
+
+	}
 
 }

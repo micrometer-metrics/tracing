@@ -31,36 +31,36 @@ import io.micrometer.observation.transport.Kind;
  */
 public interface Response {
 
-    /**
-     * Returns the header names.
-     * @return collection of header names
-     */
-    Collection<String> headerNames();
+	/**
+	 * Returns the header names.
+	 * @return collection of header names
+	 */
+	Collection<String> headerNames();
 
-    /**
-     * Returns the HTTP request.
-     * @return corresponding request
-     */
-    @Nullable
-    Request request();
+	/**
+	 * Returns the HTTP request.
+	 * @return corresponding request
+	 */
+	@Nullable
+	Request request();
 
-    /**
-     * Returns the exception.
-     * @return exception that occurred or {@code null} if there was none.
-     */
-    @Nullable
-    Throwable error();
+	/**
+	 * Returns the exception.
+	 * @return exception that occurred or {@code null} if there was none.
+	 */
+	@Nullable
+	Throwable error();
 
-    /**
-     * Returns the underlying response object.
-     * @return the underlying response object or {@code null} if there is none.
-     */
-    Object unwrap();
+	/**
+	 * Returns the underlying response object.
+	 * @return the underlying response object or {@code null} if there is none.
+	 */
+	Object unwrap();
 
-    /**
-     * Returns the transport kind.
-     * @return the remote kind describing the direction and type of the response
-     */
-    Kind kind();
+	/**
+	 * Returns the transport kind.
+	 * @return the remote kind describing the direction and type of the response
+	 */
+	Kind kind();
 
 }

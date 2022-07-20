@@ -28,51 +28,51 @@ import io.micrometer.tracing.TraceContext;
  */
 class BraveBaggageInScope implements BaggageInScope {
 
-    private final BaggageField delegate;
+	private final BaggageField delegate;
 
-    BraveBaggageInScope(BaggageField delegate) {
-        this.delegate = delegate;
-    }
+	BraveBaggageInScope(BaggageField delegate) {
+		this.delegate = delegate;
+	}
 
-    @Override
-    public String name() {
-        return this.delegate.name();
-    }
+	@Override
+	public String name() {
+		return this.delegate.name();
+	}
 
-    @Override
-    public String get() {
-        return this.delegate.getValue();
-    }
+	@Override
+	public String get() {
+		return this.delegate.getValue();
+	}
 
-    @Override
-    public String get(TraceContext traceContext) {
-        return this.delegate.getValue(BraveTraceContext.toBrave(traceContext));
-    }
+	@Override
+	public String get(TraceContext traceContext) {
+		return this.delegate.getValue(BraveTraceContext.toBrave(traceContext));
+	}
 
-    @Override
-    public BraveBaggageInScope set(String value) {
-        this.delegate.updateValue(value);
-        return this;
-    }
+	@Override
+	public BraveBaggageInScope set(String value) {
+		this.delegate.updateValue(value);
+		return this;
+	}
 
-    BaggageField unwrap() {
-        return this.delegate;
-    }
+	BaggageField unwrap() {
+		return this.delegate;
+	}
 
-    @Override
-    public BraveBaggageInScope set(TraceContext traceContext, String value) {
-        this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
-        return this;
-    }
+	@Override
+	public BraveBaggageInScope set(TraceContext traceContext, String value) {
+		this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
+		return this;
+	}
 
-    @Override
-    public BaggageInScope makeCurrent() {
-        return this;
-    }
+	@Override
+	public BaggageInScope makeCurrent() {
+		return this;
+	}
 
-    @Override
-    public void close() {
+	@Override
+	public void close() {
 
-    }
+	}
 
 }
