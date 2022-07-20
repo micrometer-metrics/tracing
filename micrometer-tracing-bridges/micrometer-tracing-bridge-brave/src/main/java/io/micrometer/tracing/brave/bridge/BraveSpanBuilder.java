@@ -16,6 +16,10 @@
 
 package io.micrometer.tracing.brave.bridge;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import brave.Tracer;
@@ -39,6 +43,22 @@ class BraveSpanBuilder implements Span.Builder {
 
     private long startTimestamp;
 
+    private String name;
+
+    private List<String> events = new ArrayList<>();
+
+    private Map<String, String> tags = new HashMap<>();
+
+    private Throwable error;
+
+    private brave.Span.Kind kind;
+
+    private String remoteServiceName;
+
+    private String ip;
+
+    private int port;
+
     BraveSpanBuilder(Tracer tracer) {
         this.tracer = tracer;
     }
@@ -52,17 +72,23 @@ class BraveSpanBuilder implements Span.Builder {
         return new BraveSpanBuilder(tracer, context);
     }
 
-    brave.Span span() {
-        if (this.delegate != null) {
-            return this.delegate;
-        }
-        else if (this.parentContext != null) {
-            this.delegate = this.tracer.nextSpan(this.parentContext);
+    private brave.Span span() {
+        brave.Span span;
+        if (this.parentContext != null) {
+            span = this.tracer.nextSpan(this.parentContext);
         }
         else {
-            this.delegate = this.tracer.nextSpan();
+            span = this.tracer.nextSpan();
         }
-        return this.delegate;
+        span.name(this.name);
+        this.events.forEach(span::annotate);
+        this.tags.forEach(span::tag);
+        span.error(this.error);
+        span.kind(this.kind);
+        span.remoteServiceName(this.remoteServiceName);
+        span.remoteIpAndPort(this.ip, this.port);
+        this.delegate = span;
+        return span;
     }
 
     @Override
@@ -78,43 +104,44 @@ class BraveSpanBuilder implements Span.Builder {
 
     @Override
     public Span.Builder name(String name) {
-        span().name(name);
+        this.name = name;
         return this;
     }
 
     @Override
     public Span.Builder event(String value) {
-        span().annotate(value);
+        this.events.add(value);
         return this;
     }
 
     @Override
     public Span.Builder tag(String key, String value) {
-        span().tag(key, value);
+        this.tags.put(key, value);
         return this;
     }
 
     @Override
     public Span.Builder error(Throwable throwable) {
-        span().error(throwable);
+        this.error = throwable;
         return this;
     }
 
     @Override
     public Span.Builder kind(Span.Kind kind) {
-        span().kind(kind != null ? brave.Span.Kind.valueOf(kind.toString()) : null);
+        this.kind = kind != null ? brave.Span.Kind.valueOf(kind.toString()) : null;
         return this;
     }
 
     @Override
     public Span.Builder remoteServiceName(String remoteServiceName) {
-        span().remoteServiceName(remoteServiceName);
+        this.remoteServiceName = remoteServiceName;
         return this;
     }
 
     @Override
     public Span.Builder remoteIpAndPort(String ip, int port) {
-        span().remoteIpAndPort(ip, port);
+        this.ip = ip;
+        this.port = port;
         return this;
     }
 
@@ -126,13 +153,14 @@ class BraveSpanBuilder implements Span.Builder {
 
     @Override
     public Span start() {
+        brave.Span span = span();
         if (this.startTimestamp > 0) {
-            span().start(this.startTimestamp);
+            span.start(this.startTimestamp);
         }
         else {
-            span().start();
+            span.start();
         }
-        return BraveSpan.fromBrave(this.delegate);
+        return BraveSpan.fromBrave(span);
     }
 
     @Override
