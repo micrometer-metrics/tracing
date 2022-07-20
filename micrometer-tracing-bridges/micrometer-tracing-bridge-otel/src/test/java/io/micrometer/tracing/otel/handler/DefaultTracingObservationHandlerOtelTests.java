@@ -16,6 +16,7 @@
 
 package io.micrometer.tracing.otel.handler;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -33,10 +34,12 @@ import io.micrometer.tracing.otel.bridge.OtelFinishedSpan;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
@@ -130,6 +133,38 @@ class DefaultTracingObservationHandlerOtelTests {
 
         SpanData data = takeOnlySpan();
         then(data.getName()).isEqualTo("bar");
+    }
+
+    @Test
+    void should_signal_errors() {
+        Exception error = new IOException("simulated");
+        Observation.Context context = new Observation.Context().setName("foo").setError(error);
+
+        handler.onStart(context);
+        handler.onError(context);
+        handler.onStop(context);
+
+        SpanData data = takeOnlySpan();
+        then(data.getEvents())
+                .hasSize(1)
+                .element(0).extracting(EventData::getName).isEqualTo("exception");
+        then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.type"))).isEqualTo("java.io.IOException");
+        then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.message"))).isEqualTo("simulated");
+    }
+
+    @Test
+    void should_signal_events() {
+        Observation.Event event = new Observation.Event("foo", "bar");
+        Observation.Context context = new Observation.Context().setName("foo");
+
+        handler.onStart(context);
+        handler.onEvent(event, context);
+        handler.onStop(context);
+
+        SpanData data = takeOnlySpan();
+        then(data.getEvents())
+                .hasSize(1)
+                .element(0).extracting(EventData::getName).isEqualTo("bar");
     }
 
     private SpanData takeOnlySpan() {
