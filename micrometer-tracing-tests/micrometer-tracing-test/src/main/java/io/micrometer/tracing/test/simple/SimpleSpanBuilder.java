@@ -133,8 +133,10 @@ public class SimpleSpanBuilder implements Span.Builder {
         span.setSpanKind(this.getSpanKind());
         span.name(this.getName());
         span.remoteIpAndPort(this.getIp(), this.getPort());
-        span.setStartMillis(this.startTimestampUnit.toMillis(this.startTimestamp));
         span.start();
+        if (this.startTimestampUnit != null) {
+            span.setStartMillis(this.startTimestampUnit.toMillis(this.startTimestamp));
+        }
         this.simpleTracer.getSpans().add(span);
         return span;
     }
