@@ -16,7 +16,9 @@
 
 package io.micrometer.tracing.brave.handler;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import brave.Tracing;
@@ -118,6 +120,35 @@ class DefaultTracingObservationHandlerBraveTests {
 
         MutableSpan data = takeOnlySpan();
         then(data.name()).isEqualTo("bar");
+    }
+
+    @Test
+    void should_signal_errors() {
+        Exception error = new IOException("simulated");
+        Observation.Context context = new Observation.Context().setName("foo").setError(error);
+
+        handler.onStart(context);
+        handler.onError(context);
+        handler.onStop(context);
+
+        MutableSpan data = takeOnlySpan();
+        then(data.error()).isSameAs(error);
+    }
+
+    @Test
+    void should_signal_events() {
+        Observation.Event event = new Observation.Event("foo", "bar");
+        Observation.Context context = new Observation.Context().setName("foo");
+
+        handler.onStart(context);
+        handler.onEvent(event, context);
+        handler.onStop(context);
+
+        MutableSpan data = takeOnlySpan();
+        then(data.annotations()).hasSize(1);
+        then(data.annotations().stream().findFirst())
+                .isPresent()
+                .get().extracting(Map.Entry::getValue).isSameAs("bar");
     }
 
     private void thenSpanStartedAndStopped(long currentMillis) {

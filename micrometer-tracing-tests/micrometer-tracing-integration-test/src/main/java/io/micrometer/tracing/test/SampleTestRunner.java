@@ -28,7 +28,7 @@ import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.observation.TimerObservationHandler;
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
@@ -104,7 +104,7 @@ public abstract class SampleTestRunner {
      */
     public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig) {
         this(sampleRunnerConfig, ObservationRegistry.create(), new SimpleMeterRegistry());
-        getObservationRegistry().observationConfig().observationHandler(new TimerObservationHandler(getMeterRegistry()));
+        getObservationRegistry().observationConfig().observationHandler(new DefaultMeterObservationHandler(getMeterRegistry()));
     }
 
     /**
