@@ -16,11 +16,12 @@
 
 package io.micrometer.tracing.exporter;
 
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.Span;
+
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
-
-import io.micrometer.tracing.Span;
-import io.micrometer.common.lang.Nullable;
 
 /**
  * This API is inspired by OpenZipkin Brave (from {code MutableSpan}).
@@ -47,12 +48,12 @@ public interface FinishedSpan {
     /**
      * @return span's start timestamp
      */
-    long getStartTimestamp();
+    Instant getStartTimestamp();
 
     /**
      * @return span's end timestamp
      */
-    long getEndTimestamp();
+    Instant getEndTimestamp();
 
     /**
      * @return this

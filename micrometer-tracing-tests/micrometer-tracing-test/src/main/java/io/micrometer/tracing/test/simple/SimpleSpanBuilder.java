@@ -16,14 +16,14 @@
 
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * A test implementation of a span builder.
@@ -133,7 +133,7 @@ public class SimpleSpanBuilder implements Span.Builder {
         span.setSpanKind(this.getSpanKind());
         span.name(this.getName());
         span.remoteIpAndPort(this.getIp(), this.getPort());
-        span.setStartMicros(this.startTimestamp);
+        span.setStartMillis(this.startTimestampUnit.toMillis(this.startTimestamp));
         span.start();
         this.simpleTracer.getSpans().add(span);
         return span;

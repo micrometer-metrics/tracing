@@ -16,13 +16,6 @@
 
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
@@ -35,6 +28,9 @@ import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import org.junit.jupiter.api.Test;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -115,7 +111,31 @@ class OtelFinishedSpanTests {
         then(span.getRemoteServiceName()).isEqualTo("bar");
     }
 
+    @Test
+    void should_calculate_instant_from_otel_timestamps() {
+        long startMicros = System.nanoTime();
+        long endMicros = System.nanoTime();
+
+        FinishedSpan finishedSpan = OtelFinishedSpan.fromOtel(new CustomSpanData(startMicros, endMicros));
+
+        then(finishedSpan.getStartTimestamp().toEpochMilli()).isEqualTo(TimeUnit.NANOSECONDS.toMillis(startMicros));
+        then(finishedSpan.getEndTimestamp().toEpochMilli()).isEqualTo(TimeUnit.NANOSECONDS.toMillis(endMicros));
+    }
+
     static class CustomSpanData implements SpanData {
+
+        private final long startNanos;
+
+        private final long endNanos;
+
+        CustomSpanData(long startNanos, long endNanos) {
+            this.startNanos = startNanos;
+            this.endNanos = endNanos;
+        }
+
+        CustomSpanData() {
+            this(System.nanoTime(), System.nanoTime());
+        }
 
         @Override
         public String getName() {
@@ -144,7 +164,7 @@ class OtelFinishedSpanTests {
 
         @Override
         public long getStartEpochNanos() {
-            return 100;
+            return this.startNanos;
         }
 
         @Override
@@ -164,7 +184,7 @@ class OtelFinishedSpanTests {
 
         @Override
         public long getEndEpochNanos() {
-            return 200;
+            return this.endNanos;
         }
 
         @Override

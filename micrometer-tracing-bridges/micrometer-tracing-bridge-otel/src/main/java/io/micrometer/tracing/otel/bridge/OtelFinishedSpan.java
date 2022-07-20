@@ -16,17 +16,6 @@
 
 package io.micrometer.tracing.otel.bridge;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.opentelemetry.api.common.AttributeKey;
@@ -36,6 +25,12 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.trace.data.DelegatingSpanData;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
+
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * OpenTelemetry implementation of a {@link FinishedSpan}.
@@ -83,13 +78,13 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public long getStartTimestamp() {
-        return this.spanData.getStartEpochNanos();
+    public Instant getStartTimestamp() {
+        return Instant.ofEpochSecond(0L, this.spanData.getStartEpochNanos());
     }
 
     @Override
-    public long getEndTimestamp() {
-        return this.spanData.getEndEpochNanos();
+    public Instant getEndTimestamp() {
+        return Instant.ofEpochSecond(0L, this.spanData.getEndEpochNanos());
     }
 
     @Override

@@ -16,16 +16,12 @@
 
 package io.micrometer.tracing.test.simple;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
+
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A test implementation of a span.
@@ -39,9 +35,9 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     private boolean abandoned;
 
-    private long startMicros;
+    long startMillis;
 
-    private long endMicros;
+    long endMillis;
 
     private Throwable throwable;
 
@@ -82,7 +78,7 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public SimpleSpan start() {
-        this.startMicros = this.clock.wallTime();
+        this.startMillis = this.clock.wallTime();
         return this;
     }
 
@@ -125,12 +121,12 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public void end() {
-        this.endMicros = this.clock.wallTime();
+        this.endMillis = this.clock.wallTime();
     }
 
     @Override
     public void end(long time, TimeUnit timeUnit) {
-        this.endMicros = timeUnit.toMicros(time);
+        this.endMillis = timeUnit.toMicros(time);
     }
 
     @Override
@@ -163,8 +159,8 @@ public class SimpleSpan implements Span, FinishedSpan {
         return this.events;
     }
 
-    void setStartMicros(long startMicros) {
-        this.startMicros = startMicros;
+    void setStartMillis(long startMillis) {
+        this.startMillis = startMillis;
     }
 
     /**
@@ -257,13 +253,13 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public long getStartTimestamp() {
-        return this.startMicros;
+    public Instant getStartTimestamp() {
+        return Instant.ofEpochMilli(this.startMillis);
     }
 
     @Override
-    public long getEndTimestamp() {
-        return this.endMicros;
+    public Instant getEndTimestamp() {
+        return Instant.ofEpochMilli(this.endMillis);
     }
 
     @Override
@@ -281,8 +277,8 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public String toString() {
-        return "SimpleSpan{" + "tags=" + tags + ", abandoned=" + abandoned + ", startMicros=" + startMicros
-                + ", endMicros=" + endMicros + ", throwable=" + throwable + ", remoteServiceName='" + remoteServiceName
+        return "SimpleSpan{" + "tags=" + tags + ", abandoned=" + abandoned + ", startMillis=" + startMillis
+                + ", endMillis=" + endMillis + ", throwable=" + throwable + ", remoteServiceName='" + remoteServiceName
                 + '\'' + ", spanKind=" + spanKind + ", events=" + events + ", name='" + name + '\'' + ", ip='" + ip
                 + '\'' + ", port=" + port + ", noOp=" + noOp + ", clock=" + clock + ", context=" + context + '}';
     }

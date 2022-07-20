@@ -15,16 +15,16 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.micrometer.common.docs.KeyName;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.AbstractThrowableAssert;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Assertion methods for {@code SimpleSpan}s.
@@ -274,7 +274,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF isStarted() {
         isNotNull();
-        if (this.actual.getStartTimestamp() == 0) {
+        if (this.actual.getStartTimestamp().getEpochSecond() == 0) {
             failWithMessage("Span should be started");
         }
         return (SELF) this;
@@ -295,7 +295,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF isNotStarted() {
         isNotNull();
-        if (this.actual.getStartTimestamp() != 0) {
+        if (this.actual.getStartTimestamp().getEpochSecond() != 0) {
             failWithMessage("Span should not be started");
         }
         return (SELF) this;
@@ -316,7 +316,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF isEnded() {
         isNotNull();
-        if (this.actual.getEndTimestamp() == 0) {
+        if (this.actual.getEndTimestamp().getEpochSecond() == 0) {
             failWithMessage("Span should be ended");
         }
         return (SELF) this;
@@ -337,7 +337,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF isNotEnded() {
         isNotNull();
-        if (this.actual.getEndTimestamp() != 0) {
+        if (this.actual.getEndTimestamp().getEpochSecond() != 0) {
             failWithMessage("Span should not be ended");
         }
         return (SELF) this;

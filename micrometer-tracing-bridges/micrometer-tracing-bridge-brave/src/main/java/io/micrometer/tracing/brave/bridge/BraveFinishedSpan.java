@@ -16,12 +16,14 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.Collection;
-import java.util.Map;
-
 import brave.handler.MutableSpan;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Brave implementation of a {@link FinishedSpan}.
@@ -71,13 +73,17 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public long getStartTimestamp() {
-        return this.mutableSpan.startTimestamp();
+    public Instant getStartTimestamp() {
+        return microsToInstant(this.mutableSpan.startTimestamp());
+    }
+
+    private Instant microsToInstant(long micros) {
+        return Instant.EPOCH.plus(micros, ChronoUnit.MICROS);
     }
 
     @Override
-    public long getEndTimestamp() {
-        return this.mutableSpan.finishTimestamp();
+    public Instant getEndTimestamp() {
+        return microsToInstant(this.mutableSpan.finishTimestamp());
     }
 
     @Override

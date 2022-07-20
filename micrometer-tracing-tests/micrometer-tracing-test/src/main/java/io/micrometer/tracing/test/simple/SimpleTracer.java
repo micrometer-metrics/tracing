@@ -16,16 +16,11 @@
 
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.*;
+
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
-
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.ScopedSpan;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanAndScope;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
 
 /**
  * A test tracer implementation. Puts started span in a list.
@@ -64,8 +59,8 @@ public class SimpleTracer implements Tracer {
     public SimpleSpan onlySpan() {
         assertTrue(this.spans.size() == 1, "There must be only one span");
         SimpleSpan span = this.spans.getFirst();
-        assertTrue(span.getStartTimestamp() > 0, "Span must be started");
-        assertTrue(span.getEndTimestamp() > 0, "Span must be finished");
+        assertTrue(span.getStartTimestamp().getNano() > 0, "Span must be started");
+        assertTrue(span.getEndTimestamp().getNano() > 0, "Span must be finished");
         return span;
     }
 
@@ -84,7 +79,7 @@ public class SimpleTracer implements Tracer {
     public SimpleSpan lastSpan() {
         assertTrue(!this.spans.isEmpty(), "There must be at least one span");
         SimpleSpan span = this.spans.getLast();
-        assertTrue(span.getStartTimestamp() > 0, "Span must be started");
+        assertTrue(span.getStartTimestamp().getNano() > 0, "Span must be started");
         return span;
     }
 

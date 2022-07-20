@@ -16,25 +16,6 @@
 
 package io.micrometer.tracing.reporter.wavefront;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
@@ -49,19 +30,20 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 
-import static com.wavefront.internal.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
-import static com.wavefront.internal.SpanDerivedMetricsUtils.reportHeartbeats;
-import static com.wavefront.internal.SpanDerivedMetricsUtils.reportWavefrontGeneratedData;
-import static com.wavefront.sdk.common.Constants.APPLICATION_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.CLUSTER_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.COMPONENT_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.DEBUG_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.ERROR_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.NULL_TAG_VAL;
-import static com.wavefront.sdk.common.Constants.SERVICE_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.SHARD_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.SOURCE_KEY;
-import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
+import java.io.Closeable;
+import java.io.IOException;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+
+import static com.wavefront.internal.SpanDerivedMetricsUtils.*;
+import static com.wavefront.sdk.common.Constants.*;
 
 /**
  * This converts a span recorded by Micrometer Tracing and invokes
@@ -332,9 +314,9 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         // Start and duration become 0L if unset. Any positive duration rounds up to 1
         // millis.
-        long startMillis = span.getStartTimestamp() / 1000L;
-        long finishMillis = span.getEndTimestamp() / 1000L;
-        long durationMicros = span.getEndTimestamp() - span.getStartTimestamp();
+        long startMillis = span.getStartTimestamp().toEpochMilli();
+        long finishMillis = span.getEndTimestamp().toEpochMilli();
+        long durationMicros = ChronoUnit.MICROS.between(span.getStartTimestamp(), span.getEndTimestamp());
         long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
 
         List<SpanLog> spanLogs = convertAnnotationsToSpanLogs(span);
