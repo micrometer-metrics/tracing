@@ -32,7 +32,7 @@ def PLATFORM_VERSIONS = [
 		// opentelemetry-instrumentation-api dependency above with this
 		'io.opentelemetry:opentelemetry-bom:1.+',
 		'io.opentelemetry:opentelemetry-bom-alpha:1.+',
-		'org.junit:junit-bom:5.8.2'
+		'org.junit:junit-bom:5.8.+'
 ]
 
 subprojects {
