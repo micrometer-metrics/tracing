@@ -531,7 +531,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @since 1.0.0
      */
     public SpansAssert hasASpanWithATag(KeyName key, String value) {
-        return hasASpanWithATag(key.getKeyName(), value);
+        return hasASpanWithATag(key.asString(), value);
     }
 
     /**
@@ -549,7 +549,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @since 1.0.0
      */
     public SpansAssert hasASpanWithATagKey(KeyName key) {
-        return hasASpanWithATagKey(key.getKeyName());
+        return hasASpanWithATagKey(key.asString());
     }
 
     /**

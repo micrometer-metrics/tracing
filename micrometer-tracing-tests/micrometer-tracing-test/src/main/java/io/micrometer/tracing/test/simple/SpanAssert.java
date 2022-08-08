@@ -124,7 +124,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * @since 1.0.0
      */
     public SELF hasTagWithKey(KeyName key) {
-        return hasTagWithKey(key.getKeyName());
+        return hasTagWithKey(key.asString());
     }
 
     /**
@@ -171,7 +171,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * @since 1.0.0
      */
     public SELF hasTag(KeyName key, String value) {
-        return hasTag(key.getKeyName(), value);
+        return hasTag(key.asString(), value);
     }
 
     /**
@@ -211,7 +211,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * @since 1.0.0
      */
     public SELF doesNotHaveTagWithKey(KeyName key) {
-        return doesNotHaveTagWithKey(key.getKeyName());
+        return doesNotHaveTagWithKey(key.asString());
     }
 
     /**
@@ -256,7 +256,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * @since 1.0.0
      */
     public SELF doesNotHaveTag(KeyName key, String value) {
-        return doesNotHaveTag(key.getKeyName(), value);
+        return doesNotHaveTag(key.asString(), value);
     }
 
     /**

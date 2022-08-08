@@ -63,7 +63,8 @@ class DefaultTracingObservationHandlerBraveTests {
 
     @Test
     void should_put_and_remove_trace_from_thread_local_on_scope_change() {
-        Observation.Context context = new Observation.Context().setName("foo");
+        Observation.Context context = new Observation.Context();
+        context.setName("foo");
         long currentMillis = System.currentTimeMillis();
 
         handler.onStart(context);
@@ -113,7 +114,9 @@ class DefaultTracingObservationHandlerBraveTests {
 
     @Test
     void should_use_contextual_name() {
-        Observation.Context context = new Observation.Context().setName("foo").setContextualName("bar");
+        Observation.Context context = new Observation.Context();
+        context.setName("foo");
+        context.setContextualName("bar");
 
         handler.onStart(context);
         handler.onStop(context);
@@ -125,7 +128,9 @@ class DefaultTracingObservationHandlerBraveTests {
     @Test
     void should_signal_errors() {
         Exception error = new IOException("simulated");
-        Observation.Context context = new Observation.Context().setName("foo").setError(error);
+        Observation.Context context = new Observation.Context();
+        context.setName("foo");
+        context.setError(error);
 
         handler.onStart(context);
         handler.onError(context);
@@ -138,7 +143,8 @@ class DefaultTracingObservationHandlerBraveTests {
     @Test
     void should_signal_events() {
         Observation.Event event = new Observation.Event("foo", "bar");
-        Observation.Context context = new Observation.Context().setName("foo");
+        Observation.Context context = new Observation.Context();
+        context.setName("foo");
 
         handler.onStart(context);
         handler.onEvent(event, context);
