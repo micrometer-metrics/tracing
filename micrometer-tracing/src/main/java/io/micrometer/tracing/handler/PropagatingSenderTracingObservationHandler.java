@@ -65,6 +65,9 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         Span.Builder builder = getTracer().spanBuilder().kind(Span.Kind.valueOf(context.getKind().name()));
         builder = parentSpan != null ? builder.setParent(parentSpan.context()) : builder.setNoParent();
         String name = context.getContextualName() != null ? context.getContextualName() : context.getName();
+        if (context.getRemoteServiceName() != null) {
+            builder = builder.remoteServiceName(context.getRemoteServiceName());
+        }
         return builder.name(name).start();
     }
 
