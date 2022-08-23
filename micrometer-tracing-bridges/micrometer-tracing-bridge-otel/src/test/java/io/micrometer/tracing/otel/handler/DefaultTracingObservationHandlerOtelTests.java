@@ -16,22 +16,13 @@
 
 package io.micrometer.tracing.otel.handler;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.stream.Collectors;
-
+import io.micrometer.common.Event;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
-import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
-import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
-import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
-import io.micrometer.tracing.otel.bridge.OtelFinishedSpan;
-import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.micrometer.tracing.otel.bridge.*;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import io.opentelemetry.api.common.AttributeKey;
@@ -43,6 +34,12 @@ import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -160,7 +157,7 @@ class DefaultTracingObservationHandlerOtelTests {
 
     @Test
     void should_signal_events() {
-        Observation.Event event = new Observation.Event("foo", "bar");
+        Event event = Event.of("foo", "bar");
         Observation.Context context = new Observation.Context();
         context.setName("foo");
 

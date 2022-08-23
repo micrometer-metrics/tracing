@@ -16,6 +16,7 @@
 
 package io.micrometer.tracing.docs;
 
+import io.micrometer.common.Event;
 import io.micrometer.common.docs.KeyName;
 
 /**
@@ -32,7 +33,7 @@ import io.micrometer.common.docs.KeyName;
  * interface</li>
  * <li>If the span contains {@link KeyName} then those need to be declared as nested
  * enums</li>
- * <li>If the span contains {@link EventValue} then those need to be declared as nested
+ * <li>If the span contains {@link Event} then those need to be declared as nested
  * enums</li>
  * <li>The {@link DocumentedSpan#getKeyNames()} need to call the nested enum's
  * {@code values()} method to retrieve the array of allowed keys</li>
@@ -54,7 +55,7 @@ public interface DocumentedSpan {
     /**
      * Empty values.
      */
-    EventValue[] EMPTY_VALUES = new EventValue[0];
+    Event[] EMPTY_VALUES = new Event[0];
 
     /**
      * Span name.
@@ -79,7 +80,7 @@ public interface DocumentedSpan {
      * Allowed events.
      * @return allowed events
      */
-    default EventValue[] getEvents() {
+    default Event[] getEvents() {
         return EMPTY_VALUES;
     }
 

@@ -16,14 +16,10 @@
 
 package io.micrometer.tracing.brave.handler;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
+import io.micrometer.common.Event;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.Tracer;
@@ -36,6 +32,11 @@ import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -142,7 +143,7 @@ class DefaultTracingObservationHandlerBraveTests {
 
     @Test
     void should_signal_events() {
-        Observation.Event event = new Observation.Event("foo", "bar");
+        Event event = Event.of("foo", "bar");
         Observation.Context context = new Observation.Context();
         context.setName("foo");
 
