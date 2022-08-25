@@ -16,7 +16,6 @@
 
 package io.micrometer.tracing.handler;
 
-import io.micrometer.common.Event;
 import io.micrometer.observation.Observation;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -62,7 +61,7 @@ public class DefaultTracingObservationHandler implements TracingObservationHandl
     }
 
     @Override
-    public void onEvent(Event event, Observation.Context context) {
+    public void onEvent(Observation.Event event, Observation.Context context) {
         getTracingContext(context).getSpan().event(event.getContextualName());
     }
 

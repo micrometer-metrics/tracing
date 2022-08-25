@@ -16,7 +16,6 @@
 
 package io.micrometer.tracing.otel.handler;
 
-import io.micrometer.common.Event;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.Tracer;
@@ -157,7 +156,7 @@ class DefaultTracingObservationHandlerOtelTests {
 
     @Test
     void should_signal_events() {
-        Event event = Event.of("foo", "bar");
+        Observation.Event event = Observation.Event.of("foo", "bar");
         Observation.Context context = new Observation.Context();
         context.setName("foo");
 
