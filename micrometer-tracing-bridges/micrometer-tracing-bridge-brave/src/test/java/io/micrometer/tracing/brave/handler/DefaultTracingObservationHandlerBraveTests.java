@@ -20,6 +20,7 @@ import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
@@ -142,7 +143,7 @@ class DefaultTracingObservationHandlerBraveTests {
 
     @Test
     void should_signal_events() {
-        Observation.Event event = Observation.Event.of("foo", "bar");
+        Event event = Event.of("foo", "bar");
         Observation.Context context = new Observation.Context();
         context.setName("foo");
 
