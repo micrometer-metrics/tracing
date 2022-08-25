@@ -301,6 +301,7 @@ subprojects {
 	description = 'Facade over tracing concepts'
 
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url 'https://repo.spring.io/snapshot' }
 		maven { url 'https://repo.spring.io/milestone' }
