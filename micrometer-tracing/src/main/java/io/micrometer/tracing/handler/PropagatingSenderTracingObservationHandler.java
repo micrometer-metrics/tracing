@@ -66,11 +66,10 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         if (parentSpan != null) {
             builder = builder.setParent(parentSpan.context());
         }
-        String name = context.getContextualName() != null ? context.getContextualName() : context.getName();
         if (context.getRemoteServiceName() != null) {
             builder = builder.remoteServiceName(context.getRemoteServiceName());
         }
-        return builder.name(name).start();
+        return builder.start();
     }
 
     @Override
@@ -83,6 +82,7 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeSenderSpan(context, span);
+        span.name(getSpanName(context));
         span.end();
     }
 
