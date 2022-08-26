@@ -52,14 +52,13 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
         Span.Builder extractedSpan = this.propagator.extract(context.getCarrier(),
                 (carrier, key) -> context.getGetter().get(carrier, key));
         extractedSpan.kind(Span.Kind.valueOf(context.getKind().name()));
-        String name = context.getContextualName() != null ? context.getContextualName() : context.getName();
-        extractedSpan.name(name);
         getTracingContext(context).setSpan(customizeExtractedSpan(context, extractedSpan).start());
     }
 
     /**
      * Customizes the extracted span (e.g. you can set the {@link Span.Kind} via
      * {@link Span.Builder#kind(Span.Kind)}).
+     * @param context context
      * @param builder span builder
      * @return span builder
      */
@@ -77,6 +76,7 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeReceiverSpan(context, span);
+        span.name(getSpanName(context));
         span.end();
     }
 
