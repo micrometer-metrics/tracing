@@ -16,10 +16,6 @@
 
 package io.micrometer.tracing.otel.handler;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.tck.TestObservationRegistry;
@@ -28,12 +24,7 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
-import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
-import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
-import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
-import io.micrometer.tracing.otel.bridge.OtelFinishedSpan;
-import io.micrometer.tracing.otel.bridge.OtelPropagator;
-import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.micrometer.tracing.otel.bridge.*;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import io.opentelemetry.context.propagation.ContextPropagators;
@@ -42,6 +33,10 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -85,6 +80,7 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
         Observation parent = Observation.start("parent", registry);
         SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
         });
+        senderContext.setContextualName("HTTP GET");
         Observation child = Observation.createNotStarted("child", senderContext, registry).parentObservation(parent)
                 .start();
 
@@ -95,7 +91,7 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
                 .collect(Collectors.toList());
         SpansAssert.then(spans).haveSameTraceId();
         FinishedSpan childFinishedSpan = spans.get(0);
-        SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
+        SpanAssert.then(childFinishedSpan).hasNameEqualTo("HTTP GET");
         FinishedSpan parentFinishedSpan = spans.get(1);
         SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 

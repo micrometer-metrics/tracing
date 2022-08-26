@@ -76,7 +76,7 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeReceiverSpan(context, span);
-        span.name(getSpanName(context));
+        span.name(context.getContextualName() != null ? context.getContextualName() : context.getName());
         span.end();
     }
 

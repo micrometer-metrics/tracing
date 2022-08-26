@@ -16,9 +16,6 @@
 
 package io.micrometer.tracing.brave.handler;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
@@ -27,17 +24,16 @@ import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.transport.SenderContext;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
-import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
-import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
-import io.micrometer.tracing.brave.bridge.BravePropagator;
-import io.micrometer.tracing.brave.bridge.BraveTracer;
+import io.micrometer.tracing.brave.bridge.*;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -74,6 +70,7 @@ class PropagatingSenderTracingObservationHandlerBraveTests {
         Observation parent = Observation.start("parent", registry);
         SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
         });
+        senderContext.setContextualName("HTTP GET");
         Observation child = Observation.createNotStarted("child", senderContext, registry).parentObservation(parent)
                 .start();
 
@@ -84,7 +81,7 @@ class PropagatingSenderTracingObservationHandlerBraveTests {
                 .collect(Collectors.toList());
         SpansAssert.then(spans).haveSameTraceId();
         FinishedSpan childFinishedSpan = spans.get(0);
-        SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
+        SpanAssert.then(childFinishedSpan).hasNameEqualTo("HTTP GET");
         FinishedSpan parentFinishedSpan = spans.get(1);
         SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 

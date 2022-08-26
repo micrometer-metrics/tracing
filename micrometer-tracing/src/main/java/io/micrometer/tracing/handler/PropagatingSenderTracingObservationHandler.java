@@ -82,7 +82,7 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeSenderSpan(context, span);
-        span.name(getSpanName(context));
+        span.name(context.getContextualName() != null ? context.getContextualName() : context.getName());
         span.end();
     }
 
