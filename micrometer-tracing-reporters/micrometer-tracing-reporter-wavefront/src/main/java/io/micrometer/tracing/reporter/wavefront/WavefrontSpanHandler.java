@@ -394,7 +394,8 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         }
 
         try {
-            // It seems WavefrontClient does not support graceful shutdown, so we need to flush manually, and
+            // It seems WavefrontClient does not support graceful shutdown, so we need to
+            // flush manually, and
             // send should not be called after flush
             wavefrontSender.flush();
             wavefrontSender.close();
