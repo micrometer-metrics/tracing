@@ -392,6 +392,16 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         catch (InterruptedException ex) {
             // no-op
         }
+
+        try {
+            // It seems WavefrontClient does not support graceful shutdown, so we need to flush manually, and
+            // send should not be called after flush
+            wavefrontSender.flush();
+            wavefrontSender.close();
+        }
+        catch (IOException e) {
+            LOG.warn("Unable to close Wavefront Client", e);
+        }
     }
 
     private static class SpanToSend {

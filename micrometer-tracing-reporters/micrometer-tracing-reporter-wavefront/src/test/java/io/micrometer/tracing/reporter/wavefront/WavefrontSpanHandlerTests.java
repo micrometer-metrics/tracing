@@ -16,6 +16,7 @@
 
 package io.micrometer.tracing.reporter.wavefront;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.UUID;
@@ -71,11 +72,14 @@ class WavefrontSpanHandlerTests {
     }
 
     @Test
-    void stopsInTime() {
+    void stopsInTime() throws IOException {
         await().pollDelay(Duration.ofMillis(10)).atMost(Duration.ofMillis(100)).until(() -> {
             sut.close();
             return true;
         });
+
+        verify(sender).flush();
+        verify(sender).close();
     }
 
     static class DummyTraceContext implements TraceContext {
