@@ -102,7 +102,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
 
     private final BraveBaggageManager braveBaggageManager;
 
-    W3CPropagation(BraveBaggageManager braveBaggageManager, List<String> localFields) {
+    public W3CPropagation(BraveBaggageManager braveBaggageManager, List<String> localFields) {
         this.baggagePropagator = new W3CBaggagePropagator(braveBaggageManager, localFields);
         this.braveBaggageManager = braveBaggageManager;
     }
