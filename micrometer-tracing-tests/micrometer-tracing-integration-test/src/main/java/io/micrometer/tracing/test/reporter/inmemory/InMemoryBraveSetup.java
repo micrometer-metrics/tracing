@@ -111,7 +111,7 @@ public final class InMemoryBraveSetup implements AutoCloseable {
         /**
          * All Brave building blocks.
          */
-        public static class BraveBuildingBlocks implements BuildingBlocks {
+        public static class BraveBuildingBlocks implements BuildingBlocks.BraveBuildingBlocks {
 
             private final Tracing tracing;
 

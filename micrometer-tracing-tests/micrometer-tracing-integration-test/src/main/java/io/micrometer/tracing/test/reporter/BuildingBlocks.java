@@ -73,4 +73,18 @@ public interface BuildingBlocks {
      */
     List<FinishedSpan> getFinishedSpans();
 
+    /**
+     * Sub interface for Brave based {@link BuildingBlocks}.
+     */
+    interface BraveBuildingBlocks extends BuildingBlocks {
+
+    }
+
+    /**
+     * Sub interface for OTel based {@link BuildingBlocks}.
+     */
+    interface OtelBuildingBlocks extends BuildingBlocks {
+
+    }
+
 }

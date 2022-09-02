@@ -153,7 +153,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
          * All OTel building blocks required to communicate with Zipkin.
          */
         @SuppressWarnings("rawtypes")
-        public static class OtelBuildingBlocks implements BuildingBlocks {
+        public static class OtelBuildingBlocks implements BuildingBlocks.OtelBuildingBlocks {
 
             private final WavefrontOtelSpanHandler wavefrontOTelSpanHandler;
 

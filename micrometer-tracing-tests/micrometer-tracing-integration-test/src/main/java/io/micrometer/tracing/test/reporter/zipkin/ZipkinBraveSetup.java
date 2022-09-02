@@ -124,7 +124,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         /**
          * All Brave building blocks required to communicate with Zipkin.
          */
-        public static class BraveBuildingBlocks implements BuildingBlocks {
+        public static class BraveBuildingBlocks implements BuildingBlocks.BraveBuildingBlocks {
 
             private final Sender sender;
 

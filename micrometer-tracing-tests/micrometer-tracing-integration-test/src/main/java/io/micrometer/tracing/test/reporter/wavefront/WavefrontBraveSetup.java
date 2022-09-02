@@ -143,7 +143,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
          * All Brave building blocks required to communicate with Zipkin.
          */
         @SuppressWarnings("rawtypes")
-        public static class BraveBuildingBlocks implements BuildingBlocks {
+        public static class BraveBuildingBlocks implements BuildingBlocks.BraveBuildingBlocks {
 
             private final WavefrontSpanHandler wavefrontSpanHandler;
 

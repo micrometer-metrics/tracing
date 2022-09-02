@@ -134,7 +134,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         /**
          * All OTel building blocks required to communicate with Zipkin.
          */
-        public static class OtelBuildingBlocks implements BuildingBlocks {
+        public static class OtelBuildingBlocks implements BuildingBlocks.OtelBuildingBlocks {
 
             private final Sender sender;
 
