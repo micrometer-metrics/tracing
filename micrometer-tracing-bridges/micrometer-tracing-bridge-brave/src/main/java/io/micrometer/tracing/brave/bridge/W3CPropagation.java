@@ -16,17 +16,6 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
 import brave.baggage.BaggagePropagationConfig;
@@ -41,6 +30,9 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.internal.EncodingUtils;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 import static java.util.Collections.singletonList;
 
 /**
@@ -54,7 +46,7 @@ import static java.util.Collections.singletonList;
  * @since 1.0.0
  */
 @SuppressWarnings({ "unchecked", "deprecation" })
-class W3CPropagation extends Propagation.Factory implements Propagation<String> {
+public class W3CPropagation extends Propagation.Factory implements Propagation<String> {
 
     static final String TRACE_PARENT = "traceparent";
 

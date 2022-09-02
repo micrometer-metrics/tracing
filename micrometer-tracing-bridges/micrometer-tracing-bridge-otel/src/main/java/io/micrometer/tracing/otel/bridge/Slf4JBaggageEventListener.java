@@ -16,13 +16,14 @@
 
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.opentelemetry.api.baggage.Baggage;
 import org.slf4j.MDC;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Slf4JBaggageEventListener implements EventListener {
 
@@ -62,7 +63,8 @@ public class Slf4JBaggageEventListener implements EventListener {
 
     private void putEntriesIntoMdc(Baggage baggage) {
         baggage.forEach((key, baggageEntry) -> {
-            if (lowerCaseCorrelationFields.contains(key.toLowerCase())) {
+            if (StringUtils.isNotBlank(baggageEntry.getValue())
+                    && lowerCaseCorrelationFields.contains(key.toLowerCase())) {
                 MDC.put(key, baggageEntry.getValue());
             }
         });
