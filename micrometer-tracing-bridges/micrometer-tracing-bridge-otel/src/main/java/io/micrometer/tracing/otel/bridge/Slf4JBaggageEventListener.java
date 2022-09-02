@@ -63,7 +63,8 @@ public class Slf4JBaggageEventListener implements EventListener {
 
     private void putEntriesIntoMdc(Baggage baggage) {
         baggage.forEach((key, baggageEntry) -> {
-            if (StringUtils.isNotBlank(baggageEntry.getValue()) && lowerCaseCorrelationFields.contains(key.toLowerCase())) {
+            if (StringUtils.isNotBlank(baggageEntry.getValue())
+                    && lowerCaseCorrelationFields.contains(key.toLowerCase())) {
                 MDC.put(key, baggageEntry.getValue());
             }
         });
