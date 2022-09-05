@@ -16,12 +16,13 @@
 
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.tracing.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
+
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import io.micrometer.tracing.Span;
-import io.opentelemetry.context.Context;
 
 /**
  * OpenTelemetry implementation of a {@link Span}.
@@ -121,6 +122,7 @@ class OtelSpan implements Span {
     @Override
     public Span error(Throwable throwable) {
         this.delegate.recordException(throwable);
+        this.delegate.setStatus(StatusCode.ERROR, throwable.getMessage());
         return new OtelSpan(this.delegate);
     }
 
