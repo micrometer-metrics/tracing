@@ -20,6 +20,7 @@ import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.transport.SenderContext;
@@ -33,6 +34,7 @@ import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -47,8 +49,8 @@ class PropagatingSenderTracingObservationHandlerBraveTests {
     Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()),
             new BraveBaggageManager());
 
-    PropagatingSenderTracingObservationHandler<?> handler = new PropagatingSenderTracingObservationHandler<>(tracer,
-            new BravePropagator(tracing));
+    PropagatingSenderTracingObservationHandler<? super SenderContext<?>> handler = new PropagatingSenderTracingObservationHandler<>(
+            tracer, new BravePropagator(tracing));
 
     @Test
     void should_be_applicable_for_non_null_context() {
@@ -86,6 +88,23 @@ class PropagatingSenderTracingObservationHandlerBraveTests {
         SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 
         then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
+    }
+
+    @Test
+    void should_signal_events() {
+        Event event = Event.of("foo", "bar");
+        SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
+            // no-op
+        });
+        senderContext.setName("foo");
+
+        handler.onStart(senderContext);
+        handler.onEvent(event, senderContext);
+        handler.onStop(senderContext);
+
+        MutableSpan data = takeOnlySpan();
+        then(data.annotations()).hasSize(1);
+        then(data.annotations().stream().findFirst()).isPresent().get().extracting(Map.Entry::getValue).isSameAs("bar");
     }
 
     private MutableSpan takeOnlySpan() {

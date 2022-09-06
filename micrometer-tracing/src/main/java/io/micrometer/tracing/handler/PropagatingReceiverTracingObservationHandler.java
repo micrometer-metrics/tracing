@@ -17,6 +17,7 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.transport.ReceiverContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -64,6 +65,11 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
      */
     public Span.Builder customizeExtractedSpan(T context, Span.Builder builder) {
         return builder;
+    }
+
+    @Override
+    public void onEvent(Event event, T context) {
+        getTracingContext(context).getSpan().event(event.getContextualName());
     }
 
     @Override
