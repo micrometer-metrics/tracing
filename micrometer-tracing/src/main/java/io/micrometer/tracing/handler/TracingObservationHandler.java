@@ -21,6 +21,7 @@ import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
@@ -78,6 +79,11 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         }
         CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(span.context());
         getTracingContext(context).setSpanAndScope(span, scope);
+    }
+
+    @Override
+    default void onEvent(Event event, T context) {
+        getTracingContext(context).getSpan().event(event.getContextualName());
     }
 
     @Override
