@@ -61,11 +61,6 @@ public class DefaultTracingObservationHandler implements TracingObservationHandl
     }
 
     @Override
-    public void onEvent(Observation.Event event, Observation.Context context) {
-        getTracingContext(context).getSpan().event(event.getContextualName());
-    }
-
-    @Override
     public Tracer getTracer() {
         return this.tracer;
     }

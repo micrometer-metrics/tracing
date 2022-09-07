@@ -17,7 +17,6 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.observation.Observation;
-import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.transport.SenderContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -76,11 +75,6 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
     @Override
     public void onError(T context) {
         context.getError().ifPresent(throwable -> getRequiredSpan(context).error(throwable));
-    }
-
-    @Override
-    public void onEvent(Event event, T context) {
-        getTracingContext(context).getSpan().event(event.getContextualName());
     }
 
     @Override
