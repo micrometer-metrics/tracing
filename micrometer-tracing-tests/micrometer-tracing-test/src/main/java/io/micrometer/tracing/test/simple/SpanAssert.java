@@ -316,7 +316,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF isEnded() {
         isNotNull();
-        if (this.actual.getEndTimestamp().getEpochSecond() == 0) {
+        if (this.actual.getEndTimestamp().toEpochMilli() == 0) {
             failWithMessage("Span should be ended");
         }
         return (SELF) this;
@@ -337,7 +337,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF isNotEnded() {
         isNotNull();
-        if (this.actual.getEndTimestamp().getEpochSecond() != 0) {
+        if (this.actual.getEndTimestamp().toEpochMilli() != 0) {
             failWithMessage("Span should not be ended");
         }
         return (SELF) this;
