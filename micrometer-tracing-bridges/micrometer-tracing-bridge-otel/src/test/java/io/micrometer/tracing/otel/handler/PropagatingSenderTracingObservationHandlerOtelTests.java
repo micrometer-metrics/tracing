@@ -17,6 +17,7 @@
 package io.micrometer.tracing.otel.handler;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.transport.SenderContext;
@@ -31,11 +32,14 @@ import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.EventData;
+import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -57,8 +61,8 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
     Tracer tracer = new OtelTracer(otelTracer, new OtelCurrentTraceContext(), event -> {
     }, new OtelBaggageManager(new OtelCurrentTraceContext(), Collections.emptyList(), Collections.emptyList()));
 
-    PropagatingSenderTracingObservationHandler<?> handler = new PropagatingSenderTracingObservationHandler<>(tracer,
-            new OtelPropagator(ContextPropagators.noop(), otelTracer));
+    PropagatingSenderTracingObservationHandler<? super SenderContext<?>> handler = new PropagatingSenderTracingObservationHandler<>(
+            tracer, new OtelPropagator(ContextPropagators.noop(), otelTracer));
 
     @Test
     void should_be_applicable_for_non_null_context() {
@@ -96,6 +100,28 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
         SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 
         then(childFinishedSpan.getParentId()).isEqualTo(parentFinishedSpan.getSpanId());
+    }
+
+    @Test
+    void should_signal_events() {
+        Event event = Event.of("foo", "bar");
+        SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
+            // no-op
+        });
+        senderContext.setName("foo");
+
+        handler.onStart(senderContext);
+        handler.onEvent(event, senderContext);
+        handler.onStop(senderContext);
+
+        SpanData data = takeOnlySpan();
+        then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("bar");
+    }
+
+    private SpanData takeOnlySpan() {
+        Queue<SpanData> spans = testSpanProcessor.spans();
+        then(spans).hasSize(1);
+        return testSpanProcessor.takeLocalSpan();
     }
 
 }
