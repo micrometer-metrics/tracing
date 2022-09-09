@@ -20,6 +20,7 @@ import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.trace.Span;
 import org.slf4j.MDC;
 
 import java.util.List;
@@ -47,7 +48,8 @@ public class Slf4JBaggageEventListener implements EventListener {
         if (log.isTraceEnabled()) {
             log.trace("Got scope attached event [" + event + "]");
         }
-        if (event.getBaggage() != null) {
+        Span span = event.getSpan();
+        if (event.getBaggage() != null && span != null && span.getSpanContext().isValid()) {
             putEntriesIntoMdc(event.getBaggage());
         }
     }
