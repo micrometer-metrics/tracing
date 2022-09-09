@@ -16,14 +16,6 @@
 
 package io.micrometer.tracing.test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
-
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
@@ -33,6 +25,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.ObservationRegistry.ObservationConfig;
 import io.micrometer.observation.TestConfigAccessor;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler;
@@ -43,7 +36,6 @@ import io.micrometer.tracing.test.reporter.wavefront.WavefrontBraveSetup;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontOtelSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinBraveSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -53,6 +45,13 @@ import org.junit.jupiter.params.provider.EnumSource;
 import zipkin2.CheckResult;
 import zipkin2.reporter.Sender;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.BiConsumer;
+
 /**
  * Prepares the required tracing setup and reporters / exporters. The user needs to just
  * provide the code to test and that way all the combinations of tracers and exporters
@@ -60,12 +59,10 @@ import zipkin2.reporter.Sender;
  * that it consists all {@link TracingObservationHandler} injected into
  * {@link ObservationRegistry#observationConfig()}.
  * <p>
- * When extending this class you can either eagerly pass the {@link MeterRegistry} and
- * {@link SampleRunnerConfig} by calling this class' constructors. Another option is to
- * lazilly load those objects. To do it use the default constructor but override
- * {@link SampleTestRunner#getMeterRegistry()} and
- * {@link SampleTestRunner#getSampleRunnerConfig()} methods and provide your own ways of
- * retrieving {@link MeterRegistry} and {@link SampleRunnerConfig}.
+ * When extending this class you can eagerly pass the {@link SampleRunnerConfig} by
+ * calling this class' constructors. Different registry instances can be provided by
+ * overriding {@link SampleTestRunner#createMeterRegistry()} and/or
+ * {@link SampleTestRunner#createObservationRegistry()}.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -74,57 +71,40 @@ public abstract class SampleTestRunner {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(SampleTestRunner.class);
 
-    private static final List<MeterRegistry> meterRegistries = new CopyOnWriteArrayList<>();
-
     private SampleRunnerConfig sampleRunnerConfig;
 
     private ObservationRegistry observationRegistry;
 
     private MeterRegistry meterRegistry;
 
-    private final List<ObservationHandler<?>> observationHandlersCopy;
-
     /**
-     * Creates a new instance of the {@link SampleTestRunner} with a pre-created
-     * configuration and {@link MeterRegistry}.
-     * @param sampleRunnerConfig configuration for the SampleTestRunner
-     * @param observationRegistry provided {@link ObservationRegistry} instance
-     * @param meterRegistry provided {@link MeterRegistry} instance
-     */
-    public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
-            MeterRegistry meterRegistry) {
-        this.sampleRunnerConfig = sampleRunnerConfig;
-        this.observationRegistry = observationRegistry;
-        this.meterRegistry = meterRegistry;
-        this.observationHandlersCopy = new ArrayList<>();
-    }
-
-    /**
-     * Creates a new instance of the {@link SampleTestRunner} with a pre-created
-     * configuration and a default {@link MeterRegistry}.
+     * Creates a new instance of the {@link SampleTestRunner}.
      * @param sampleRunnerConfig configuration for the SampleTestRunner
      */
     public SampleTestRunner(SampleRunnerConfig sampleRunnerConfig) {
-        this(sampleRunnerConfig, ObservationRegistry.create(), new SimpleMeterRegistry());
-        getObservationRegistry().observationConfig()
-                .observationHandler(new DefaultMeterObservationHandler(getMeterRegistry()));
+        this.sampleRunnerConfig = sampleRunnerConfig;
     }
 
     /**
-     * Creates a new instance of the {@link SampleTestRunner} that will have configuration
-     * and {@link MeterRegistry} resolved lazilly at runtime. Remember that if you don't
-     * override the {@link SampleTestRunner#getMeterRegistry()} and
-     * {@link SampleTestRunner#getSampleRunnerConfig()} methods you will get NPEs.
+     * Creates a new instance of the {@link SampleTestRunner} with a default
+     * configuration.
      */
     public SampleTestRunner() {
         this.sampleRunnerConfig = SampleRunnerConfig.builder().build();
-        this.meterRegistry = null;
-        this.observationHandlersCopy = new ArrayList<>();
     }
 
     /**
-     * Override this to resolve the {@link MeterRegistry} at runtime. If not overridden
-     * will return the passed {@link MeterRegistry} from the constructor.
+     * Create a new instance of {@link MeterRegistry}. Each parameterized test run calls
+     * this method to create a new instance. Override this method to use different
+     * {@link MeterRegistry} implementation.
+     * @return a new meter registry
+     */
+    protected MeterRegistry createMeterRegistry() {
+        return new SimpleMeterRegistry();
+    }
+
+    /**
+     * Returns the {@link MeterRegistry} instance used during each parameterized test run.
      * @return meter registry to be used in tests
      */
     protected MeterRegistry getMeterRegistry() {
@@ -134,8 +114,19 @@ public abstract class SampleTestRunner {
     }
 
     /**
-     * Override this to resolve the {@link ObservationRegistry} at runtime. If not
-     * overridden will return the passed {@link ObservationRegistry} from the constructor.
+     * Create a new instance of {@link ObservationRegistry}. Override this method to use
+     * different {@link ObservationRegistry} implementation.
+     * @return a new observation registry
+     */
+    protected ObservationRegistry createObservationRegistry() {
+        ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(new DefaultMeterObservationHandler(getMeterRegistry()));
+        return registry;
+    }
+
+    /**
+     * Returns the {@link ObservationRegistry} instance used during each parameterized
+     * test run.
      * @return observation registry to be used in tests
      */
     protected ObservationRegistry getObservationRegistry() {
@@ -160,18 +151,14 @@ public abstract class SampleTestRunner {
     }
 
     @BeforeEach
-    void setupRegistry() {
-        this.observationHandlersCopy
-                .addAll(TestConfigAccessor.getHandlers(getObservationRegistry().observationConfig()));
+    protected void setupRegistry() {
+        this.meterRegistry = createMeterRegistry();
+        this.observationRegistry = createObservationRegistry();
     }
 
     @AfterEach
-    void clearMeterRegistry() {
-        TestConfigAccessor.clearHandlers(getObservationRegistry().observationConfig());
-        this.observationHandlersCopy
-                .forEach(handler -> getObservationRegistry().observationConfig().observationHandler(handler));
-        getMeterRegistry().clear();
-        meterRegistries.add(getMeterRegistry());
+    protected void closeMeterRegistry() {
+        getMeterRegistry().close();
     }
 
     private void printMetrics() {
@@ -181,11 +168,6 @@ public abstract class SampleTestRunner {
                 .append(">").append(" has the following measurements \n\t\t<").append(meter.measure()).append(">")
                 .append(" \n\t\tand has the following tags <").append(meter.getId().getTags()).append(">\n"));
         log.info("Gathered the following metrics\n" + stringBuilder);
-    }
-
-    @AfterAll
-    static void closeAll() {
-        meterRegistries.forEach(MeterRegistry::close);
     }
 
     /**
@@ -258,12 +240,14 @@ public abstract class SampleTestRunner {
             void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(IN_MEMORY_OTEL, sampleTestRunner.getTracingSetup());
-                InMemoryOtelSetup setup = InMemoryOtelSetup.builder()
-                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                        .register(observationRegistry);
-                InMemoryOtelSetup.run(setup,
-                        __ -> runTraced(sampleRunnerConfig, IN_MEMORY_OTEL, setup.getBuildingBlocks(),
-                                observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                scopeObservationHandlers(observationRegistry, () -> {
+                    InMemoryOtelSetup setup = InMemoryOtelSetup.builder()
+                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
+                            .register(observationRegistry);
+                    InMemoryOtelSetup.run(setup,
+                            __ -> runTraced(sampleRunnerConfig, IN_MEMORY_OTEL, setup.getBuildingBlocks(),
+                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                });
             }
 
             @Override
@@ -280,12 +264,14 @@ public abstract class SampleTestRunner {
             void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(IN_MEMORY_BRAVE, sampleTestRunner.getTracingSetup());
-                InMemoryBraveSetup setup = InMemoryBraveSetup.builder()
-                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                        .register(observationRegistry);
-                InMemoryBraveSetup.run(setup,
-                        __ -> runTraced(sampleRunnerConfig, IN_MEMORY_BRAVE, setup.getBuildingBlocks(),
-                                observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                scopeObservationHandlers(observationRegistry, () -> {
+                    InMemoryBraveSetup setup = InMemoryBraveSetup.builder()
+                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
+                            .register(observationRegistry);
+                    InMemoryBraveSetup.run(setup,
+                            __ -> runTraced(sampleRunnerConfig, IN_MEMORY_BRAVE, setup.getBuildingBlocks(),
+                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                });
             }
 
             @Override
@@ -302,12 +288,15 @@ public abstract class SampleTestRunner {
             void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(ZIPKIN_OTEL, sampleTestRunner.getTracingSetup());
-                ZipkinOtelSetup setup = ZipkinOtelSetup.builder()
-                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                        .zipkinUrl(sampleRunnerConfig.zipkinUrl).register(observationRegistry);
-                checkZipkinAssumptions(setup.getBuildingBlocks().getSender());
-                ZipkinOtelSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks(),
-                        observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                scopeObservationHandlers(observationRegistry, () -> {
+                    ZipkinOtelSetup setup = ZipkinOtelSetup.builder()
+                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
+                            .zipkinUrl(sampleRunnerConfig.zipkinUrl).register(observationRegistry);
+                    checkZipkinAssumptions(setup.getBuildingBlocks().getSender());
+                    ZipkinOtelSetup.run(setup,
+                            __ -> runTraced(sampleRunnerConfig, ZIPKIN_OTEL, setup.getBuildingBlocks(),
+                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                });
             }
 
             @Override
@@ -325,12 +314,15 @@ public abstract class SampleTestRunner {
             void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(ZIPKIN_BRAVE, sampleTestRunner.getTracingSetup());
-                ZipkinBraveSetup setup = ZipkinBraveSetup.builder()
-                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                        .zipkinUrl(sampleRunnerConfig.zipkinUrl).register(observationRegistry);
-                checkZipkinAssumptions(setup.getBuildingBlocks().getSender());
-                ZipkinBraveSetup.run(setup, __ -> runTraced(sampleRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks(),
-                        observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                scopeObservationHandlers(observationRegistry, () -> {
+                    ZipkinBraveSetup setup = ZipkinBraveSetup.builder()
+                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
+                            .zipkinUrl(sampleRunnerConfig.zipkinUrl).register(observationRegistry);
+                    checkZipkinAssumptions(setup.getBuildingBlocks().getSender());
+                    ZipkinBraveSetup.run(setup,
+                            __ -> runTraced(sampleRunnerConfig, ZIPKIN_BRAVE, setup.getBuildingBlocks(),
+                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                });
             }
 
             @Override
@@ -349,15 +341,18 @@ public abstract class SampleTestRunner {
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(WAVEFRONT_OTEL, sampleTestRunner.getTracingSetup());
                 checkWavefrontAssumptions(sampleRunnerConfig);
-                WavefrontOtelSetup setup = WavefrontOtelSetup
-                        .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
-                        .applicationName(sampleRunnerConfig.wavefrontApplicationName)
-                        .serviceName(sampleRunnerConfig.wavefrontServiceName).source(sampleRunnerConfig.wavefrontSource)
-                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                        .register(observationRegistry, meterRegistry);
-                WavefrontOtelSetup.run(setup,
-                        __ -> runTraced(sampleRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks(),
-                                observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                scopeObservationHandlers(observationRegistry, () -> {
+                    WavefrontOtelSetup setup = WavefrontOtelSetup
+                            .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
+                            .applicationName(sampleRunnerConfig.wavefrontApplicationName)
+                            .serviceName(sampleRunnerConfig.wavefrontServiceName)
+                            .source(sampleRunnerConfig.wavefrontSource)
+                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
+                            .register(observationRegistry, meterRegistry);
+                    WavefrontOtelSetup.run(setup,
+                            __ -> runTraced(sampleRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks(),
+                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                });
             }
 
             @Override
@@ -380,15 +375,18 @@ public abstract class SampleTestRunner {
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(WAVEFRONT_BRAVE, sampleTestRunner.getTracingSetup());
                 checkWavefrontAssumptions(sampleRunnerConfig);
-                WavefrontBraveSetup setup = WavefrontBraveSetup
-                        .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
-                        .applicationName(sampleRunnerConfig.wavefrontApplicationName)
-                        .serviceName(sampleRunnerConfig.wavefrontServiceName).source(sampleRunnerConfig.wavefrontSource)
-                        .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                        .register(meterRegistry, observationRegistry);
-                WavefrontBraveSetup.run(setup,
-                        __ -> runTraced(sampleRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks(),
-                                observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                scopeObservationHandlers(observationRegistry, () -> {
+                    WavefrontBraveSetup setup = WavefrontBraveSetup
+                            .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
+                            .applicationName(sampleRunnerConfig.wavefrontApplicationName)
+                            .serviceName(sampleRunnerConfig.wavefrontServiceName)
+                            .source(sampleRunnerConfig.wavefrontSource)
+                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
+                            .register(meterRegistry, observationRegistry);
+                    WavefrontBraveSetup.run(setup,
+                            __ -> runTraced(sampleRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks(),
+                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
+                });
             }
 
             @Override
@@ -401,6 +399,19 @@ public abstract class SampleTestRunner {
                 log.info("{}/tracing/search?sortBy=MOST_RECENT&traceID={}", wavefrontUrl, traceId);
             }
         };
+
+        private static void scopeObservationHandlers(ObservationRegistry observationRegistry, Runnable runnable) {
+            ObservationConfig observationConfig = observationRegistry.observationConfig();
+            List<ObservationHandler<?>> originalHandlers = new ArrayList<>(
+                    TestConfigAccessor.getHandlers(observationConfig));
+            try {
+                runnable.run();
+            }
+            finally {
+                TestConfigAccessor.clearHandlers(observationConfig);
+                originalHandlers.forEach(observationConfig::observationHandler);
+            }
+        }
 
         private static void runTraced(SampleRunnerConfig sampleRunnerConfig, TracingSetup tracingSetup,
                 BuildingBlocks bb, ObservationRegistry observationRegistry, MeterRegistry meterRegistry,
