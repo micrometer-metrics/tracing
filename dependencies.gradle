@@ -2,7 +2,7 @@ def VERSIONS = [
 		'javax.servlet:javax.servlet-api:4.0.+',
 		'jakarta.platform:jakarta.jakartaee-web-api:9.1.+',
 
-		'io.micrometer:context-propagation:1.0.0-SNAPSHOT',
+		'io.micrometer:context-propagation:1.0.0-M5',
 
 		'aopalliance:aopalliance:1.0',
 		// logging
@@ -27,7 +27,7 @@ def VERSIONS = [
 ]
 
 def PLATFORM_VERSIONS = [
-		'io.micrometer:micrometer-bom:1.10.0-SNAPSHOT',
+		'io.micrometer:micrometer-bom:1.10.0-M5',
 		'io.zipkin.brave:brave-bom:5.13.+',
 		// opentelemetry-instrumentation-api dependency above with this
 		'io.opentelemetry:opentelemetry-bom:1.+',
