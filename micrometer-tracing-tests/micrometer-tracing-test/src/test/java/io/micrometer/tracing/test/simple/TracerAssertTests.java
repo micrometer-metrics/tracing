@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 VMware, Inc.
+ * Copyright 2021-2022 VMware, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,20 @@ class TracerAssertTests {
         simpleTracer.nextSpan().name("foo").start().end();
 
         thenThrownBy(() -> assertThat(simpleTracer).reportedSpans().hasSize(2)).isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void should_satisfy_reported_spans() {
+        SimpleTracer simpleTracer = new SimpleTracer();
+
+        simpleTracer.nextSpan().name("foo").start().end();
+
+        assertThat(simpleTracer)
+                .reportedSpans()
+                .hasSize(1)
+                .satisfies(simpleSpans ->
+                        SpansAssert.assertThat(simpleSpans)
+                                .hasASpanWithName("foo"));
     }
 
 }

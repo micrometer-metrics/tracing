@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 VMware, Inc.
+ * Copyright 2021-2022 VMware, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.assertj.core.api.CollectionAssert;
  * {@link SpansAssert#assertThat(Collection)} or {@link SpansAssert#then(Collection)}.
  *
  * @author Marcin Grzejszczak
+ * @author Artem Bilan
  * @since 1.0.0
  */
 public class SpansAssert extends CollectionAssert<FinishedSpan> {
@@ -39,7 +40,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * Creates a new instance of {@link SpansAssert}.
      * @param actual actual object to assert
      */
-    protected SpansAssert(Collection<FinishedSpan> actual) {
+    protected SpansAssert(Collection<? extends FinishedSpan> actual) {
         super(actual);
     }
 
@@ -48,7 +49,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @param actual span to assert against
      * @return span collection assertions
      */
-    public static SpansAssert assertThat(Collection<FinishedSpan> actual) {
+    public static SpansAssert assertThat(Collection<? extends FinishedSpan> actual) {
         return new SpansAssert(actual);
     }
 
@@ -57,7 +58,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @param actual span to assert against
      * @return span collection assertions
      */
-    public static SpansAssert then(Collection<FinishedSpan> actual) {
+    public static SpansAssert then(Collection<? extends FinishedSpan> actual) {
         return new SpansAssert(actual);
     }
 
@@ -125,12 +126,14 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @throws AssertionError if the span assertion is not met
      * @since 1.0.0
      */
+    @SuppressWarnings("rawtypes")
     public SpansAssert hasASpanWithName(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
         atLeastOneSpanPassesTheAssertion(name, spanConsumer);
         return this;
     }
 
+    @SuppressWarnings("rawtypes")
     private void atLeastOneSpanPassesTheAssertion(String name, Consumer<SpanAssert> spanConsumer) {
         FinishedSpan finishedSpan = this.actual.stream().filter(f -> name.equals(f.getName())).filter(f -> {
             try {
@@ -165,12 +168,14 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @throws AssertionError if the span assertion is not met
      * @since 1.0.0
      */
+    @SuppressWarnings("rawtypes")
     public SpansAssert hasASpanWithNameIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
         atLeastOneSpanPassesTheAssertionIgnoreCase(name, spanConsumer);
         return this;
     }
 
+    @SuppressWarnings("rawtypes")
     private void atLeastOneSpanPassesTheAssertionIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
         FinishedSpan finishedSpan = this.actual.stream().filter(f -> name.equalsIgnoreCase(f.getName())).filter(f -> {
             try {
@@ -248,6 +253,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * assertion is not successful
      * @since 1.0.0
      */
+    @SuppressWarnings("rawtypes")
     public SpansAssert forAllSpansWithNameEqualTo(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
         hasASpanWithName(name);
@@ -273,6 +279,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * the additional assertion is not successful
      * @since 1.0.0
      */
+    @SuppressWarnings("rawtypes")
     public SpansAssert forAllSpansWithNameEqualToIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
         hasASpanWithNameIgnoreCase(name);
