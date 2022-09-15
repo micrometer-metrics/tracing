@@ -85,12 +85,8 @@ class TracerAssertTests {
 
         simpleTracer.nextSpan().name("foo").start().end();
 
-        assertThat(simpleTracer)
-                .reportedSpans()
-                .hasSize(1)
-                .satisfies(simpleSpans ->
-                        SpansAssert.assertThat(simpleSpans)
-                                .hasASpanWithName("foo"));
+        assertThat(simpleTracer).reportedSpans().hasSize(1)
+                .satisfies(simpleSpans -> SpansAssert.assertThat(simpleSpans).hasASpanWithName("foo"));
     }
 
 }
