@@ -16,6 +16,8 @@
 
 package io.micrometer.tracing.otel.bridge;
 
+import java.net.URI;
+
 import io.micrometer.tracing.http.HttpRequest;
 import io.micrometer.common.lang.Nullable;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetServerAttributesGetter;
@@ -30,18 +32,40 @@ class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGett
     @Nullable
     @Override
     public String transport(HttpRequest httpRequest) {
-        return null;
+        String url = httpRequest.url();
+        if (url == null) {
+            return null;
+        }
+        URI uri = URI.create(url);
+        return uri.getScheme();
+    }
+
+    @Nullable
+    @Override
+    public String hostName(HttpRequest httpRequest) {
+        String url = httpRequest.url();
+        if (url == null) {
+            return null;
+        }
+        URI uri = URI.create(url);
+        return uri.getHost();
     }
 
     @Override
-    public Integer peerPort(HttpRequest httpRequest) {
+    public Integer hostPort(HttpRequest httpRequest) {
         return httpRequest.remotePort();
     }
 
     @Nullable
     @Override
-    public String peerIp(HttpRequest httpRequest) {
+    public String sockPeerAddr(HttpRequest httpRequest) {
         return httpRequest.remoteIp();
+    }
+
+    @Nullable
+    @Override
+    public Integer sockPeerPort(HttpRequest httpRequest) {
+        return httpRequest.remotePort();
     }
 
 }

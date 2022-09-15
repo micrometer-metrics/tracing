@@ -40,6 +40,7 @@ class HttpRequestNetClientAttributesExtractor implements NetClientAttributesGett
         return null;
     }
 
+    @Nullable
     @Override
     public Integer peerPort(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
         return httpRequest == null ? null : httpRequest.remotePort();
@@ -47,8 +48,14 @@ class HttpRequestNetClientAttributesExtractor implements NetClientAttributesGett
 
     @Nullable
     @Override
-    public String peerIp(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
+    public String sockPeerAddr(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
         return httpRequest == null ? null : httpRequest.remoteIp();
+    }
+
+    @Nullable
+    @Override
+    public Integer sockPeerPort(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
+        return httpRequest == null ? null : httpRequest.remotePort();
     }
 
 }

@@ -52,47 +52,36 @@ public class DefaultHttpClientAttributesGetter
 
     @Override
     public List<String> requestHeader(HttpClientRequest httpClientRequest, String name) {
+        if (httpClientRequest == null) {
+            return Collections.emptyList();
+        }
         String value = httpClientRequest.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
 
     @Nullable
     @Override
-    public Long requestContentLength(HttpClientRequest httpClientRequest,
-            @Nullable HttpClientResponse httpClientResponse) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public Long requestContentLengthUncompressed(HttpClientRequest httpClientRequest,
-            @Nullable HttpClientResponse httpClientResponse) {
-        return null;
-    }
-
-    @Override
-    public Integer statusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
+    public Integer statusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+            Throwable error) {
+        if (httpClientResponse == null) {
+            return null;
+        }
         return httpClientResponse.statusCode();
-    }
-
-    @Nullable
-    @Override
-    public Long responseContentLength(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public Long responseContentLengthUncompressed(HttpClientRequest httpClientRequest,
-            HttpClientResponse httpClientResponse) {
-        return null;
     }
 
     @Override
     public List<String> responseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
             String name) {
-        String value = httpClientResponse.header(name);
-        return value == null ? Collections.emptyList() : Collections.singletonList(value);
+        if (httpClientResponse == null) {
+            return Collections.emptyList();
+        }
+        try {
+            String value = httpClientResponse.header(name);
+            return value == null ? Collections.emptyList() : Collections.singletonList(value);
+        }
+        catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
 }

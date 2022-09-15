@@ -19,6 +19,7 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.tracing.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -114,8 +115,8 @@ class OtelSpan implements Span {
 
     @Override
     public Span remoteIpAndPort(String ip, int port) {
-        this.delegate.setAttribute("net.peer.ip", ip);
-        this.delegate.setAttribute("net.peer.port", port);
+        this.delegate.setAttribute(SemanticAttributes.NET_PEER_IP, ip);
+        this.delegate.setAttribute(SemanticAttributes.NET_PEER_PORT, port);
         return this;
     }
 

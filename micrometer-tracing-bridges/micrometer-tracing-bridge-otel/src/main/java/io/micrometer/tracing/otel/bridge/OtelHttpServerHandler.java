@@ -84,7 +84,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
                 .addAttributesExtractor(
                         NetServerAttributesExtractor.create(new HttpRequestNetServerAttributesExtractor()))
                 .addAttributesExtractor(HttpServerAttributesExtractor.create(httpAttributesExtractor))
-                .addAttributesExtractor(new PathAttributeExtractor()).newServerInstrumenter(getGetter());
+                .addAttributesExtractor(new PathAttributeExtractor()).buildServerInstrumenter(getGetter());
     }
 
     @Override

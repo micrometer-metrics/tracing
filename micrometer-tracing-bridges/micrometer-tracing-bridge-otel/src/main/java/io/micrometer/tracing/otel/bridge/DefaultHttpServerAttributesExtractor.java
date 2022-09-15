@@ -102,35 +102,9 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    public Long requestContentLength(HttpServerRequest httpServerRequest,
-            @Nullable HttpServerResponse httpServerResponse) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public Long requestContentLengthUncompressed(HttpServerRequest httpServerRequest,
-            @Nullable HttpServerResponse httpServerResponse) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public Integer statusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
+    public Integer statusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+            Throwable error) {
         return httpServerResponse.statusCode();
-    }
-
-    @Nullable
-    @Override
-    public Long responseContentLength(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public Long responseContentLengthUncompressed(HttpServerRequest httpServerRequest,
-            HttpServerResponse httpServerResponse) {
-        return null;
     }
 
     @Override

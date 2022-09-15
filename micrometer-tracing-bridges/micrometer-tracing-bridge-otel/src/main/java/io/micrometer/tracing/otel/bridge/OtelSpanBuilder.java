@@ -20,6 +20,7 @@ import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -120,8 +121,8 @@ class OtelSpanBuilder implements Span.Builder {
 
     @Override
     public Span.Builder remoteIpAndPort(String ip, int port) {
-        this.delegate.setAttribute("net.peer.ip", ip);
-        this.delegate.setAttribute("net.peer.port", port);
+        this.delegate.setAttribute(SemanticAttributes.NET_PEER_IP, ip);
+        this.delegate.setAttribute(SemanticAttributes.NET_PEER_PORT, (long) port);
         return this;
     }
 
