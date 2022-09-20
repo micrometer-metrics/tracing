@@ -23,6 +23,7 @@ import io.micrometer.common.util.StringUtils;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationView;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -111,9 +112,9 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         // This would mean that the user has manually created a tracing context
         TracingContext tracingContext = context.get(TracingContext.class);
         if (tracingContext == null) {
-            Observation observation = context.getParentObservation();
+            ObservationView observation = context.getParentObservation();
             if (observation != null) {
-                tracingContext = observation.getContext().get(TracingContext.class);
+                tracingContext = observation.getContextView().get(TracingContext.class);
                 if (tracingContext != null) {
                     return tracingContext.getSpan();
                 }
