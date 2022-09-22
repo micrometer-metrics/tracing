@@ -66,6 +66,9 @@ public class BravePropagator implements Propagator {
     }
 
     private void updateExistingBaggageFieldsWithUpdatedValues(TraceContextOrSamplingFlags extract) {
+        if (extract.context() == null) {
+            return;
+        }
         List<Object> extra = extract.context().extra();
         extra.stream().filter(BraveBaggageFields.class::isInstance).forEach(o -> {
             BraveBaggageFields fields = (BraveBaggageFields) o;
