@@ -16,14 +16,16 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.List;
-
 import brave.Tracing;
+import brave.baggage.BaggageField;
+import brave.internal.baggage.BaggageFields;
 import brave.propagation.SamplingFlags;
 import brave.propagation.TraceContextOrSamplingFlags;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.propagation.Propagator;
+
+import java.util.List;
 
 /**
  * Brave implementation of a {@link Propagator}.
@@ -59,7 +61,28 @@ public class BravePropagator implements Propagator {
         if (extract.samplingFlags() == SamplingFlags.EMPTY) {
             return new BraveSpanBuilder(this.tracing.tracer());
         }
+        updateExistingBaggageFieldsWithUpdatedValues(extract);
         return BraveSpanBuilder.toBuilder(this.tracing.tracer(), extract);
+    }
+
+    private void updateExistingBaggageFieldsWithUpdatedValues(TraceContextOrSamplingFlags extract) {
+        if (extract.context() == null) {
+            return;
+        }
+        List<Object> extra = extract.context().extra();
+        extra.stream().filter(BraveBaggageFields.class::isInstance).forEach(o -> {
+            BraveBaggageFields fields = (BraveBaggageFields) o;
+            extra.stream().filter(BaggageFields.class::isInstance).forEach(bf -> {
+                BaggageFields baggageFields = (BaggageFields) bf;
+                List<BaggageField> allFields = baggageFields.getAllFields();
+                fields.getEntries().forEach(e -> {
+                    String key = e.getKey().name();
+                    String value = e.getValue();
+                    allFields.stream().filter(allField -> allField.name().equals(key))
+                            .forEach(allField -> allField.updateValue(extract, value));
+                });
+            });
+        });
     }
 
 }

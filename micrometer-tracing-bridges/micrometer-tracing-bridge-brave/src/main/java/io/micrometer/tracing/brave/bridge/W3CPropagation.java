@@ -18,7 +18,6 @@ package io.micrometer.tracing.brave.bridge;
 
 import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
-import brave.baggage.BaggagePropagationConfig;
 import brave.internal.baggage.BaggageFields;
 import brave.internal.propagation.StringPropagationAdapter;
 import brave.propagation.Propagation;
@@ -31,7 +30,6 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.internal.EncodingUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 
@@ -355,31 +353,10 @@ class W3CBaggagePropagator {
 
     <R> TraceContextOrSamplingFlags contextWithBaggage(R carrier, TraceContextOrSamplingFlags flags,
             Propagation.Getter<R, String> getter) {
-        BaggagePropagation.FactoryBuilder factoryBuilder = factory();
-        String traceState = getter.get(carrier, TRACE_STATE);
-        boolean hasTraceState = StringUtils.isNotBlank(traceState);
-        if (hasTraceState) {
-            factoryBuilder = factoryBuilder
-                    .add(BaggagePropagationConfig.SingleBaggageField.remote(TRACE_STATE_BAGGAGE));
-        }
         String baggageHeader = getter.get(carrier, FIELD);
         List<AbstractMap.SimpleEntry<BaggageInScope, String>> pairs = baggageHeader == null || baggageHeader.isEmpty()
                 ? Collections.emptyList() : addBaggageToContext(baggageHeader);
-        Set<String> names = pairs.stream().map(e -> e.getKey().name()).collect(Collectors.toSet());
-        for (String name : names) {
-            factoryBuilder = factoryBuilder.add(BaggagePropagationConfig.SingleBaggageField
-                    .remote(((BraveBaggageInScope) this.braveBaggageManager.createBaggage(name)).unwrap()));
-        }
-        TraceContext decoratedContext = factoryBuilder.build().decorate(flags.context());
-        if (hasTraceState) {
-            BaggageInScope baggageInScope = this.braveBaggageManager.createBaggage(TRACE_STATE);
-            baggageInScope.set(new BraveTraceContext(decoratedContext), traceState);
-        }
-        pairs.forEach(e -> {
-            BaggageField baggage = ((BraveBaggageInScope) e.getKey()).unwrap();
-            baggage.updateValue(decoratedContext, e.getValue());
-        });
-        return TraceContextOrSamplingFlags.create(decoratedContext);
+        return flags.toBuilder().addExtra(new BraveBaggageFields(pairs)).build();
     }
 
     List<AbstractMap.SimpleEntry<BaggageInScope, String>> addBaggageToContext(String baggageHeader) {

@@ -16,13 +16,6 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import brave.baggage.BaggageField;
 import brave.internal.baggage.BaggageFields;
 import brave.propagation.Propagation;
@@ -30,6 +23,9 @@ import brave.propagation.TraceContext;
 import brave.propagation.TraceContextOrSamplingFlags;
 import io.micrometer.tracing.internal.EncodingUtils;
 import org.junit.jupiter.api.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.micrometer.tracing.brave.bridge.W3CPropagation.TRACE_PARENT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -190,8 +186,17 @@ class W3CPropagationTest {
 
         TraceContext context = w3CPropagation.extractor(getter).extract(carrier).context();
 
-        assertThat(BaggageField.getByName(context, TRACE_STATE)).isNotNull();
-        assertThat(BaggageField.getByName(context, "mybaggage").getValue(context)).isEqualTo("mybaggagevalue");
+        Map<String, String> baggageEntries = baggageEntries(context);
+        assertThat(baggageEntries).doesNotContainKey(TRACE_STATE).containsEntry("mybaggage", "mybaggagevalue");
+    }
+
+    private Map<String, String> baggageEntries(TraceContext flags) {
+        if (flags.extra().isEmpty() || !(flags.extra().get(0) instanceof BraveBaggageFields)) {
+            throw new AssertionError("Extra doesn't contain BraveBaggageFields as first entry");
+        }
+        BraveBaggageFields fields = (BraveBaggageFields) flags.extra().get(0);
+        return fields.getEntries().stream()
+                .collect(Collectors.toMap(e -> e.getKey().name(), AbstractMap.SimpleEntry::getValue, (o, o2) -> o2));
     }
 
     @Test
