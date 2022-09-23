@@ -16,13 +16,12 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import brave.baggage.BaggageField;
-import brave.baggage.BaggagePropagation;
 import brave.internal.baggage.BaggageFields;
 import brave.internal.propagation.StringPropagationAdapter;
 import brave.propagation.Propagation;
 import brave.propagation.TraceContext;
 import brave.propagation.TraceContextOrSamplingFlags;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
@@ -96,13 +95,28 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
 
     private static final String VERSION_00 = "00";
 
+    @Nullable
     private final W3CBaggagePropagator baggagePropagator;
 
+    @Nullable
     private final BraveBaggageManager braveBaggageManager;
 
+    /**
+     * Creates an instance of {@link W3CPropagation} with baggage support.
+     * @param braveBaggageManager Brave baggage manager
+     * @param localFields local fields to be registered as baggage
+     */
     public W3CPropagation(BraveBaggageManager braveBaggageManager, List<String> localFields) {
         this.baggagePropagator = new W3CBaggagePropagator(braveBaggageManager, localFields);
         this.braveBaggageManager = braveBaggageManager;
+    }
+
+    /**
+     * Creates an instance of {@link W3CPropagation} without baggage support.
+     */
+    public W3CPropagation() {
+        this.baggagePropagator = null;
+        this.braveBaggageManager = null;
     }
 
     private static boolean isTraceIdValid(CharSequence traceId) {
@@ -190,12 +204,14 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
             copyTraceFlagsHexTo(chars, TRACE_OPTION_OFFSET, context);
             setter.put(carrier, TRACE_PARENT, new String(chars, 0, TRACEPARENT_HEADER_SIZE));
             addTraceState(setter, context, carrier);
-            this.baggagePropagator.injector(setter).inject(context, carrier);
+            if (this.baggagePropagator != null) {
+                this.baggagePropagator.injector(setter).inject(context, carrier);
+            }
         };
     }
 
     private <R> void addTraceState(Setter<R, String> setter, TraceContext context, R carrier) {
-        if (carrier != null) {
+        if (carrier != null && this.braveBaggageManager != null) {
             BaggageInScope baggage = this.braveBaggageManager.getBaggage(BraveTraceContext.fromBrave(context),
                     TRACE_STATE);
             if (baggage == null) {
@@ -240,7 +256,11 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
                 return withBaggage(TraceContextOrSamplingFlags.EMPTY, carrier, getter);
             }
             String traceStateHeader = getter.get(carrier, TRACE_STATE);
-            return withBaggage(context(contextFromParentHeader, traceStateHeader), carrier, getter);
+            TraceContextOrSamplingFlags context = context(contextFromParentHeader, traceStateHeader);
+            if (this.baggagePropagator == null || this.braveBaggageManager == null) {
+                return context;
+            }
+            return withBaggage(context, carrier, getter);
         };
     }
 
@@ -294,8 +314,6 @@ class W3CBaggagePropagator {
 
     private static final String TRACE_STATE = "tracestate";
 
-    private static final BaggageField TRACE_STATE_BAGGAGE = BaggageField.create(TRACE_STATE);
-
     private static final String FIELD = "baggage";
 
     private static final List<String> FIELDS = singletonList(FIELD);
@@ -307,15 +325,6 @@ class W3CBaggagePropagator {
     W3CBaggagePropagator(BraveBaggageManager braveBaggageManager, List<String> localFields) {
         this.braveBaggageManager = braveBaggageManager;
         this.localFields = localFields;
-    }
-
-    private BaggagePropagation.FactoryBuilder factory() {
-        return BaggagePropagation.newFactoryBuilder(new Propagation.Factory() {
-            @Override
-            public <K> Propagation<K> create(Propagation.KeyFactory<K> keyFactory) {
-                return null;
-            }
-        });
     }
 
     public List<String> keys() {
