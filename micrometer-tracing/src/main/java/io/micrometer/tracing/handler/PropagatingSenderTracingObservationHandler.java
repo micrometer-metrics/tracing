@@ -74,7 +74,9 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
 
     @Override
     public void onError(T context) {
-        context.getError().ifPresent(throwable -> getRequiredSpan(context).error(throwable));
+        if (context.getError() != null) {
+            getRequiredSpan(context).error(context.getError());
+        }
     }
 
     @Override
