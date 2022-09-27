@@ -28,15 +28,15 @@ import io.micrometer.common.docs.KeyName;
  * met
  *
  * <ul>
- * <li>Metrics are grouped within an enum - the enum implements the {@link DocumentedSpan}
- * interface</li>
+ * <li>Metrics are grouped within an enum - the enum implements the
+ * {@link SpanDocumentation} interface</li>
  * <li>If the span contains {@link KeyName} then those need to be declared as nested
  * enums</li>
  * <li>If the span contains {@link EventValue} then those need to be declared as nested
  * enums</li>
- * <li>The {@link DocumentedSpan#getKeyNames()} need to call the nested enum's
+ * <li>The {@link SpanDocumentation#getKeyNames()} need to call the nested enum's
  * {@code values()} method to retrieve the array of allowed keys</li>
- * <li>The {@link DocumentedSpan#getEvents()} need to call the nested enum's
+ * <li>The {@link SpanDocumentation#getEvents()} need to call the nested enum's
  * {@code values()} method to retrieve the array of allowed events</li>
  * <li>Javadocs around enums will be used as description</li>
  * </ul>
@@ -44,7 +44,7 @@ import io.micrometer.common.docs.KeyName;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public interface DocumentedSpan {
+public interface SpanDocumentation {
 
     /**
      * Empty key names.
@@ -86,7 +86,7 @@ public interface DocumentedSpan {
     /**
      * Allowed key names.
      * @return allowed key names - if set will override any key names coming from
-     * {@link DocumentedSpan#overridesDefaultSpanFrom()}
+     * {@link SpanDocumentation#overridesDefaultSpanFrom()}
      */
     default KeyName[] getKeyNames() {
         return EMPTY_KEY_NAMES;
@@ -95,7 +95,7 @@ public interface DocumentedSpan {
     /**
      * Additional key names.
      * @return additional key names - if set will append any key names coming from
-     * {@link DocumentedSpan#overridesDefaultSpanFrom()}
+     * {@link SpanDocumentation#overridesDefaultSpanFrom()}
      */
     default KeyName[] getAdditionalKeyNames() {
         return EMPTY_KEY_NAMES;
