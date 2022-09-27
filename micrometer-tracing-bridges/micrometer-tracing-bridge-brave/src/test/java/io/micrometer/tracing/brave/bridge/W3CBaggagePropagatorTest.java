@@ -230,8 +230,55 @@ class W3CBaggagePropagatorTest {
 
     }
 
+    @Test
+    void works_with_scopes_and_observations_and_ignores_baggage() {
+        // Baggage
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "key=value,key2=value2");
+        carrier.put("traceparent", "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
+        // carrier.put("key", "value");
+        // carrier.put("key2", "value2");
+        // carrier.put("b3", "00f067aa0ba902b7-00f067aa0ba902b7-1");
+
+        // Brave with W3C
+        ThreadLocalCurrentTraceContext currentTraceContext = ThreadLocalCurrentTraceContext.newBuilder()
+                .addScopeDecorator(correlationScopeDecorator(mdcCorrelationScopeDecoratorBuilder())).build();
+        Tracing tracing = Tracing.newBuilder()
+                .propagationFactory(micrometerTracingPropagationWithBaggage(w3cPropagationFactoryWithoutBaggage()))
+                // .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
+                .currentTraceContext(currentTraceContext).build();
+        Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()));
+        BravePropagator bravePropagator = new BravePropagator(tracing);
+
+        // Observation
+        TestObservationRegistry registry = TestObservationRegistry.create();
+        registry.observationConfig()
+                .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
+                        new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
+                        new DefaultTracingObservationHandler(tracer)));
+
+        ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
+        receiverContext.setCarrier(carrier);
+        Observation parent = Observation.start("foo", receiverContext, registry);
+        parent.scoped(() -> {
+            assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
+                    .doesNotContainEntry("key2", "value2").containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+            Observation child = Observation.start("bar", registry);
+            child.scoped(() -> {
+                assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
+                        .doesNotContainEntry("key2", "value2")
+                        .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+            });
+        });
+
+    }
+
     private BaggagePropagation.FactoryBuilder w3cPropagationFactory(BraveBaggageManager baggageManager) {
         return BaggagePropagation.newFactoryBuilder(new W3CPropagation(baggageManager, Collections.emptyList()));
+    }
+
+    private BaggagePropagation.FactoryBuilder w3cPropagationFactoryWithoutBaggage() {
+        return BaggagePropagation.newFactoryBuilder(new W3CPropagation());
     }
 
     private BaggagePropagation.FactoryBuilder b3PropagationFactory() {

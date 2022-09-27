@@ -16,9 +16,10 @@
 
 package io.micrometer.tracing;
 
-import java.util.Map;
-
 import io.micrometer.common.lang.Nullable;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Manages {@link BaggageInScope} entries. Upon retrieval / creation of a baggage entry
@@ -29,6 +30,36 @@ import io.micrometer.common.lang.Nullable;
  * @since 1.0.0
  */
 public interface BaggageManager {
+
+    /**
+     * A noop implementation.
+     */
+    BaggageManager NOOP = new BaggageManager() {
+        @Override
+        public Map<String, String> getAllBaggage() {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public BaggageInScope getBaggage(String name) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope createBaggage(String name) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope createBaggage(String name, String value) {
+            return BaggageInScope.NOOP;
+        }
+    };
 
     /**
      * @return mapping of all baggage entries from the given scope

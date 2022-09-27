@@ -16,9 +16,9 @@
 
 package io.micrometer.tracing;
 
-import java.io.Closeable;
-
 import io.micrometer.common.lang.Nullable;
+
+import java.io.Closeable;
 
 /**
  * Inspired by OpenZipkin Brave's {@code BaggageField}. Since some tracer implementations
@@ -33,6 +33,46 @@ import io.micrometer.common.lang.Nullable;
  * @since 1.0.0
  */
 public interface BaggageInScope extends Closeable {
+
+    /**
+     * A noop implementation.
+     */
+    BaggageInScope NOOP = new BaggageInScope() {
+        @Override
+        public String name() {
+            return null;
+        }
+
+        @Override
+        public String get() {
+            return null;
+        }
+
+        @Override
+        public String get(TraceContext traceContext) {
+            return null;
+        }
+
+        @Override
+        public BaggageInScope set(String value) {
+            return this;
+        }
+
+        @Override
+        public BaggageInScope set(TraceContext traceContext, String value) {
+            return this;
+        }
+
+        @Override
+        public BaggageInScope makeCurrent() {
+            return this;
+        }
+
+        @Override
+        public void close() {
+
+        }
+    };
 
     /**
      * @return name of the baggage entry

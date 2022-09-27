@@ -16,11 +16,7 @@
 
 package io.micrometer.tracing.otel;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
@@ -37,11 +33,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
 import static org.assertj.core.api.BDDAssertions.then;
 
 /**
- * Test class to be embedded in the docs. They use Tracing's API with Brave as tracer
+ * Test class to be embedded in the docs. They use Tracing's API with OTel as tracer
  * implementation.
  *
  * @author Marcin Grzejszczak
@@ -173,6 +174,26 @@ class BaseTests {
         then(calculateTax.get().getAttributes().asMap()).containsEntry(AttributeKey.stringKey("commissionValue"), "10");
         then(calculateTax.get().getEvents()).hasSize(1);
         executorService.shutdown();
+    }
+
+    @Test
+    void should_not_fail_when_baggage_manager_is_noop() throws Exception {
+        tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
+        });
+
+        BaggageInScope foo = tracer.createBaggage("foo");
+        then(foo).isSameAs(BaggageInScope.NOOP);
+        then(foo.get()).isNull();
+        then(foo.get()).isNull();
+        then(foo.get(null)).isNull();
+        then(foo.set(null, "baz")).isSameAs(BaggageInScope.NOOP);
+        then(foo.get(null)).isNull();
+        foo.close();
+        then(foo.makeCurrent()).isSameAs(BaggageInScope.NOOP);
+
+        then(tracer.getBaggage("foo")).isSameAs(BaggageInScope.NOOP);
+        then(tracer.getAllBaggage()).isEmpty();
+        then(tracer.createBaggage("foo", "bar")).isSameAs(BaggageInScope.NOOP);
     }
 
 }
