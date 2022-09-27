@@ -16,16 +16,9 @@
 
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Map;
+import io.micrometer.tracing.*;
 
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.BaggageManager;
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.ScopedSpan;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanCustomizer;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
+import java.util.Map;
 
 /**
  * OpenTelemetry implementation of a {@link Tracer}.
@@ -56,6 +49,17 @@ public class OtelTracer implements Tracer {
         this.publisher = publisher;
         this.otelBaggageManager = otelBaggageManager;
         this.otelCurrentTraceContext = otelCurrentTraceContext;
+    }
+
+    /**
+     * Creates a new instance of {@link OtelTracer} with no baggage support.
+     * @param tracer tracer
+     * @param otelCurrentTraceContext current trace context
+     * @param publisher event publisher
+     */
+    public OtelTracer(io.opentelemetry.api.trace.Tracer tracer, OtelCurrentTraceContext otelCurrentTraceContext,
+            EventPublisher publisher) {
+        this(tracer, otelCurrentTraceContext, publisher, NOOP);
     }
 
     @Override

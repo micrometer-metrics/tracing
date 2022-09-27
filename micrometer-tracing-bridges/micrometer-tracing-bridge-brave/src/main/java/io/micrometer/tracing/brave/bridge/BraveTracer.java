@@ -16,16 +16,10 @@
 
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.Map;
-
 import brave.propagation.TraceContextOrSamplingFlags;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.ScopedSpan;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanCustomizer;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.*;
+
+import java.util.Map;
 
 /**
  * Brave implementation of a {@link Tracer}.
@@ -37,7 +31,7 @@ public class BraveTracer implements Tracer {
 
     private final brave.Tracer tracer;
 
-    private final BraveBaggageManager braveBaggageManager;
+    private final BaggageManager braveBaggageManager;
 
     private final CurrentTraceContext currentTraceContext;
 
@@ -47,10 +41,19 @@ public class BraveTracer implements Tracer {
      * @param context Brave context
      * @param braveBaggageManager Brave baggage manager
      */
-    public BraveTracer(brave.Tracer tracer, CurrentTraceContext context, BraveBaggageManager braveBaggageManager) {
+    public BraveTracer(brave.Tracer tracer, CurrentTraceContext context, BaggageManager braveBaggageManager) {
         this.tracer = tracer;
         this.braveBaggageManager = braveBaggageManager;
         this.currentTraceContext = context;
+    }
+
+    /**
+     * Creates a new instance of {@link BraveTracer} with no baggage support.
+     * @param tracer Brave Tracer
+     * @param context Brave context
+     */
+    public BraveTracer(brave.Tracer tracer, CurrentTraceContext context) {
+        this(tracer, context, NOOP);
     }
 
     @Override

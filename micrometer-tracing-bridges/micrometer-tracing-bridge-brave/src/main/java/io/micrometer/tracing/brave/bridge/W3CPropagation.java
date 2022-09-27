@@ -26,6 +26,7 @@ import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.internal.EncodingUtils;
 
 import java.util.*;
@@ -99,16 +100,16 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
     private final W3CBaggagePropagator baggagePropagator;
 
     @Nullable
-    private final BraveBaggageManager braveBaggageManager;
+    private final BaggageManager braveBaggageManager;
 
     /**
      * Creates an instance of {@link W3CPropagation} with baggage support.
-     * @param braveBaggageManager Brave baggage manager
+     * @param baggageManager baggage manager
      * @param localFields local fields to be registered as baggage
      */
-    public W3CPropagation(BraveBaggageManager braveBaggageManager, List<String> localFields) {
-        this.baggagePropagator = new W3CBaggagePropagator(braveBaggageManager, localFields);
-        this.braveBaggageManager = braveBaggageManager;
+    public W3CPropagation(BaggageManager baggageManager, List<String> localFields) {
+        this.baggagePropagator = new W3CBaggagePropagator(baggageManager, localFields);
+        this.braveBaggageManager = baggageManager;
     }
 
     /**
@@ -318,12 +319,12 @@ class W3CBaggagePropagator {
 
     private static final List<String> FIELDS = singletonList(FIELD);
 
-    private final BraveBaggageManager braveBaggageManager;
+    private final BaggageManager braveBaggageManager;
 
     private final List<String> localFields;
 
-    W3CBaggagePropagator(BraveBaggageManager braveBaggageManager, List<String> localFields) {
-        this.braveBaggageManager = braveBaggageManager;
+    W3CBaggagePropagator(BaggageManager baggageManager, List<String> localFields) {
+        this.braveBaggageManager = baggageManager;
         this.localFields = localFields;
     }
 
