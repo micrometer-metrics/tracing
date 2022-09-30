@@ -19,7 +19,7 @@ package io.micrometer.tracing.test;
 class SampleTestRunnerTraceSetupTests extends SampleTestRunner {
 
     SampleTestRunnerTraceSetupTests() {
-        super(SampleRunnerConfig.builder().wavefrontUrl("foo").wavefrontToken("bar").build());
+        super(SampleRunnerConfig.builder().build());
     }
 
     @Override

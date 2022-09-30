@@ -16,7 +16,6 @@
 
 package io.micrometer.tracing.test;
 
-import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -32,8 +31,6 @@ import io.micrometer.tracing.handler.TracingObservationHandler;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.reporter.inmemory.InMemoryBraveSetup;
 import io.micrometer.tracing.test.reporter.inmemory.InMemoryOtelSetup;
-import io.micrometer.tracing.test.reporter.wavefront.WavefrontBraveSetup;
-import io.micrometer.tracing.test.reporter.wavefront.WavefrontOtelSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinBraveSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup;
 import org.junit.jupiter.api.AfterEach;
@@ -330,74 +327,6 @@ public abstract class SampleTestRunner {
                 log.info("Below you can find the link to the trace in Zipkin with id <{}>", traceId);
                 log.info("{}/zipkin/traces/{}", sampleRunnerConfig.zipkinUrl, traceId);
             }
-        },
-
-        /**
-         * Wavefront Exporter with OTel Tracer.
-         */
-        WAVEFRONT_OTEL {
-            @Override
-            void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
-                    MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
-                checkTracingSetupAssumptions(WAVEFRONT_OTEL, sampleTestRunner.getTracingSetup());
-                checkWavefrontAssumptions(sampleRunnerConfig);
-                scopeObservationHandlers(observationRegistry, () -> {
-                    WavefrontOtelSetup setup = WavefrontOtelSetup
-                            .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
-                            .applicationName(sampleRunnerConfig.wavefrontApplicationName)
-                            .serviceName(sampleRunnerConfig.wavefrontServiceName)
-                            .source(sampleRunnerConfig.wavefrontSource)
-                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                            .register(observationRegistry, meterRegistry);
-                    WavefrontOtelSetup.run(setup,
-                            __ -> runTraced(sampleRunnerConfig, WAVEFRONT_OTEL, setup.getBuildingBlocks(),
-                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
-                });
-            }
-
-            @Override
-            void printTracingLink(SampleRunnerConfig sampleRunnerConfig, String traceId) {
-                log.info("Below you can find the link to the trace in Wavefront with id <{}>", traceId);
-                String wavefrontUrl = sampleRunnerConfig.wavefrontServerUrl.endsWith("/")
-                        ? sampleRunnerConfig.wavefrontServerUrl.substring(0,
-                                sampleRunnerConfig.wavefrontServerUrl.length() - 1)
-                        : sampleRunnerConfig.wavefrontServerUrl;
-                log.info("{}/tracing/search?sortBy=MOST_RECENT&traceID={}", wavefrontUrl, traceId);
-            }
-        },
-
-        /**
-         * Wavefront Exporter with Brave Tracer.
-         */
-        WAVEFRONT_BRAVE {
-            @Override
-            void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
-                    MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
-                checkTracingSetupAssumptions(WAVEFRONT_BRAVE, sampleTestRunner.getTracingSetup());
-                checkWavefrontAssumptions(sampleRunnerConfig);
-                scopeObservationHandlers(observationRegistry, () -> {
-                    WavefrontBraveSetup setup = WavefrontBraveSetup
-                            .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
-                            .applicationName(sampleRunnerConfig.wavefrontApplicationName)
-                            .serviceName(sampleRunnerConfig.wavefrontServiceName)
-                            .source(sampleRunnerConfig.wavefrontSource)
-                            .observationHandlerCustomizer(sampleTestRunner.customizeObservationHandlers())
-                            .register(meterRegistry, observationRegistry);
-                    WavefrontBraveSetup.run(setup,
-                            __ -> runTraced(sampleRunnerConfig, WAVEFRONT_BRAVE, setup.getBuildingBlocks(),
-                                    observationRegistry, meterRegistry, sampleTestRunner.runWithMetricsPrinting()));
-                });
-            }
-
-            @Override
-            void printTracingLink(SampleRunnerConfig sampleRunnerConfig, String traceId) {
-                log.info("Below you can find the link to the trace in Wavefront with id <{}>", traceId);
-                String wavefrontUrl = sampleRunnerConfig.wavefrontServerUrl.endsWith("/")
-                        ? sampleRunnerConfig.wavefrontServerUrl.substring(0,
-                                sampleRunnerConfig.wavefrontServerUrl.length() - 1)
-                        : sampleRunnerConfig.wavefrontServerUrl;
-                log.info("{}/tracing/search?sortBy=MOST_RECENT&traceID={}", wavefrontUrl, traceId);
-            }
         };
 
         private static void scopeObservationHandlers(ObservationRegistry observationRegistry, Runnable runnable) {
@@ -444,13 +373,6 @@ public abstract class SampleTestRunner {
                     "There was a problem with connecting to Zipkin. Will NOT run any tests");
         }
 
-        private static void checkWavefrontAssumptions(SampleRunnerConfig sampleRunnerConfig) {
-            Assumptions.assumeTrue(StringUtils.isNotBlank(sampleRunnerConfig.wavefrontServerUrl),
-                    "To run tests against Tanzu Observability by Wavefront you need to set the Wavefront server url");
-            Assumptions.assumeTrue(StringUtils.isNotBlank(sampleRunnerConfig.wavefrontToken),
-                    "To run tests against Tanzu Observability by Wavefront you need to set the Wavefront token");
-        }
-
         abstract void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
                 MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner);
 
@@ -463,26 +385,9 @@ public abstract class SampleTestRunner {
      */
     public static class SampleRunnerConfig {
 
-        private String wavefrontToken;
-
-        private String wavefrontServerUrl;
-
         String zipkinUrl;
 
-        private String wavefrontApplicationName;
-
-        private String wavefrontServiceName;
-
-        private String wavefrontSource;
-
-        SampleRunnerConfig(String wavefrontToken, String wavefrontServerUrl, String wavefrontApplicationName,
-                String wavefrontServiceName, String wavefrontSource, String zipkinUrl) {
-            this.wavefrontToken = wavefrontToken;
-            this.wavefrontServerUrl = wavefrontServerUrl != null ? wavefrontServerUrl : "https://vmware.wavefront.com";
-            this.wavefrontApplicationName = wavefrontApplicationName != null ? wavefrontApplicationName
-                    : "test-application";
-            this.wavefrontServiceName = wavefrontServiceName != null ? wavefrontServiceName : "test-service";
-            this.wavefrontSource = wavefrontSource != null ? wavefrontSource : "test-source";
+        SampleRunnerConfig(String zipkinUrl) {
             this.zipkinUrl = zipkinUrl != null ? zipkinUrl : "http://localhost:9411";
         }
 
@@ -498,37 +403,7 @@ public abstract class SampleTestRunner {
          */
         public static class Builder {
 
-            private String wavefrontToken;
-
-            private String wavefrontUrl;
-
-            private String wavefrontApplicationName;
-
-            private String wavefrontServiceName;
-
-            private String wavefrontSource;
-
             private String zipkinUrl;
-
-            /**
-             * Token required to connect to Tanzu Observability by Wavefront.
-             * @param wavefrontToken wavefront token
-             * @return this
-             */
-            public Builder wavefrontToken(String wavefrontToken) {
-                this.wavefrontToken = wavefrontToken;
-                return this;
-            }
-
-            /**
-             * URL of your Tanzu Observability by Wavefront installation.
-             * @param wavefrontUrl wavefront URL.
-             * @return this
-             */
-            public Builder wavefrontUrl(String wavefrontUrl) {
-                this.wavefrontUrl = wavefrontUrl;
-                return this;
-            }
 
             /**
              * URL of your Zipkin installation.
@@ -541,42 +416,11 @@ public abstract class SampleTestRunner {
             }
 
             /**
-             * Name of the application grouping in Tanzu Observability by Wavefront.
-             * @param wavefrontApplicationName wavefront application name
-             * @return this
-             */
-            public Builder wavefrontApplicationName(String wavefrontApplicationName) {
-                this.wavefrontApplicationName = wavefrontApplicationName;
-                return this;
-            }
-
-            /**
-             * Name of this service in Tanzu Observability by Wavefront.
-             * @param wavefrontServiceName wavefront service name
-             * @return this
-             */
-            public Builder wavefrontServiceName(String wavefrontServiceName) {
-                this.wavefrontServiceName = wavefrontServiceName;
-                return this;
-            }
-
-            /**
-             * Name of the source to be presented in Tanzu Observability by Wavefront.
-             * @param wavefrontSource wavefront source
-             * @return this
-             */
-            public Builder wavefrontSource(String wavefrontSource) {
-                this.wavefrontSource = wavefrontSource;
-                return this;
-            }
-
-            /**
              * Builds the configuration.
              * @return built configuration
              */
             public SampleRunnerConfig build() {
-                return new SampleRunnerConfig(this.wavefrontToken, this.wavefrontUrl, this.wavefrontApplicationName,
-                        this.wavefrontServiceName, this.wavefrontSource, this.zipkinUrl);
+                return new SampleRunnerConfig(this.zipkinUrl);
             }
 
         }

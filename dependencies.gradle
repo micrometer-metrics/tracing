@@ -13,9 +13,6 @@ def VERSIONS = [
 		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.+',
 		// zipkin
 		'io.zipkin.aws:brave-propagation-aws:latest.release',
-		// wavefront
-		'com.wavefront:wavefront-sdk-java:3.0.+',
-		'com.wavefront:wavefront-internal-reporter-java:1.7.+',
 		// test
 		'org.assertj:assertj-core:latest.release',
 		'org.awaitility:awaitility:latest.release',
