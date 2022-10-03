@@ -52,6 +52,9 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
         Span.Builder extractedSpan = this.propagator.extract(context.getCarrier(),
                 (carrier, key) -> context.getGetter().get(carrier, key));
         extractedSpan.kind(Span.Kind.valueOf(context.getKind().name()));
+        if (context.getRemoteServiceName() != null) {
+            extractedSpan.remoteServiceName(context.getRemoteServiceName());
+        }
         getTracingContext(context).setSpan(customizeExtractedSpan(context, extractedSpan).start());
     }
 
