@@ -73,6 +73,20 @@ class PropagatingReceiverTracingObservationHandlerBraveTests {
         then(data.annotations().stream().findFirst()).isPresent().get().extracting(Map.Entry::getValue).isSameAs("bar");
     }
 
+    @Test
+    void should_set_remote_service_name() {
+        ReceiverContext<Object> receiverContext = new ReceiverContext<>((carrier, key) -> "val");
+        receiverContext.setCarrier(new Object());
+        receiverContext.setName("foo");
+        receiverContext.setRemoteServiceName("a-remote-service");
+
+        handler.onStart(receiverContext);
+        handler.onStop(receiverContext);
+
+        MutableSpan data = takeOnlySpan();
+        then(data.remoteServiceName()).isEqualTo("a-remote-service");
+    }
+
     private MutableSpan takeOnlySpan() {
         List<MutableSpan> spans = testSpanHandler.spans();
         then(spans).hasSize(1);
