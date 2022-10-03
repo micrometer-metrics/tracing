@@ -85,8 +85,8 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
         SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
         });
         senderContext.setContextualName("HTTP GET");
-        Observation child = Observation.createNotStarted("child", senderContext, registry).parentObservation(parent)
-                .start();
+        Observation child = Observation.createNotStarted("child", () -> senderContext, registry)
+                .parentObservation(parent).start();
 
         child.stop();
         parent.stop();

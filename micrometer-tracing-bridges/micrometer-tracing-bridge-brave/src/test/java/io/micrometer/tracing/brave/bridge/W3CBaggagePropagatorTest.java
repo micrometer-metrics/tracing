@@ -217,7 +217,7 @@ class W3CBaggagePropagatorTest {
 
         ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
         receiverContext.setCarrier(carrier);
-        Observation parent = Observation.start("foo", receiverContext, registry);
+        Observation parent = Observation.start("foo", () -> receiverContext, registry);
         parent.scoped(() -> {
             assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value").containsEntry("key2", "value2")
                     .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
@@ -259,7 +259,7 @@ class W3CBaggagePropagatorTest {
 
         ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
         receiverContext.setCarrier(carrier);
-        Observation parent = Observation.start("foo", receiverContext, registry);
+        Observation parent = Observation.start("foo", () -> receiverContext, registry);
         parent.scoped(() -> {
             assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
                     .doesNotContainEntry("key2", "value2").containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
