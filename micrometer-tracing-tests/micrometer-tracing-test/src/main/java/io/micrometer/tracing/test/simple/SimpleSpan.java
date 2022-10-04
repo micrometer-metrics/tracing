@@ -21,7 +21,10 @@ import io.micrometer.tracing.exporter.FinishedSpan;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * A test implementation of a span.
@@ -31,44 +34,44 @@ import java.util.concurrent.TimeUnit;
  */
 public class SimpleSpan implements Span, FinishedSpan {
 
-    private Map<String, String> tags = new HashMap<>();
+    private final Map<String, String> tags = new ConcurrentHashMap<>();
 
-    private boolean abandoned;
+    private volatile boolean abandoned;
 
-    long startMillis;
+    private volatile long startMillis;
 
-    long endMillis;
+    private volatile long endMillis;
 
-    private Throwable throwable;
+    private volatile Throwable throwable;
 
-    private String remoteServiceName;
+    private volatile String remoteServiceName;
 
-    private Span.Kind spanKind;
+    private volatile Span.Kind spanKind;
 
-    private List<Map.Entry<Long, String>> events = new ArrayList<>();
+    private final Map<Long, String> events = new ConcurrentHashMap<>();
 
-    private String name;
+    private volatile String name;
 
-    private String ip;
+    private volatile String ip;
 
-    private int port;
+    private volatile int port;
 
-    private boolean noOp;
+    private volatile boolean noop;
 
-    private Clock clock = Clock.SYSTEM;
+    private final Clock clock = Clock.SYSTEM;
 
-    private SimpleTraceContext context = new SimpleTraceContext();
+    private final SimpleTraceContext context = new SimpleTraceContext();
 
     /**
      * Creates a new instance of {@link SimpleSpan}.
      */
     public SimpleSpan() {
-        SimpleSpanAndScope.traceContextsToSpans.put(context(), this);
+        SimpleSpanAndScope.bindSpanToTraceContext(context(), this);
     }
 
     @Override
     public boolean isNoop() {
-        return this.noOp;
+        return this.noop;
     }
 
     @Override
@@ -90,13 +93,13 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public SimpleSpan event(String value) {
-        this.events.add(new AbstractMap.SimpleEntry<>(this.clock.wallTime(), value));
+        this.events.put(MILLISECONDS.toMicros(this.clock.wallTime()), value);
         return this;
     }
 
     @Override
     public Span event(String value, long time, TimeUnit timeUnit) {
-        this.events.add(new AbstractMap.SimpleEntry<>(timeUnit.toMicros(time), value));
+        this.events.put(timeUnit.toMicros(time), value);
         return this;
     }
 
@@ -156,7 +159,7 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public Collection<Map.Entry<Long, String>> getEvents() {
-        return this.events;
+        return this.events.entrySet();
     }
 
     void setStartMillis(long startMillis) {
@@ -280,7 +283,7 @@ public class SimpleSpan implements Span, FinishedSpan {
         return "SimpleSpan{" + "tags=" + tags + ", abandoned=" + abandoned + ", startMillis=" + startMillis
                 + ", endMillis=" + endMillis + ", throwable=" + throwable + ", remoteServiceName='" + remoteServiceName
                 + '\'' + ", spanKind=" + spanKind + ", events=" + events + ", name='" + name + '\'' + ", ip='" + ip
-                + '\'' + ", port=" + port + ", noOp=" + noOp + ", clock=" + clock + ", context=" + context + '}';
+                + '\'' + ", port=" + port + ", noop=" + noop + ", clock=" + clock + ", context=" + context + '}';
     }
 
 }

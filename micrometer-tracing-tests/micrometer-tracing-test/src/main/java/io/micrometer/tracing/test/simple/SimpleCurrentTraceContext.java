@@ -54,7 +54,7 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope newScope(TraceContext context) {
-        Span span = Objects.requireNonNull(SimpleSpanAndScope.traceContextsToSpans.get(context),
+        Span span = Objects.requireNonNull(SimpleSpanAndScope.getSpanForTraceContext(context),
                 "You must create a span with this context before");
         SimpleSpanInScope inScope = this.simpleTracer.withSpan(span);
         return inScope::close;
@@ -62,7 +62,7 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope maybeScope(TraceContext context) {
-        Span span = Objects.requireNonNull(SimpleSpanAndScope.traceContextsToSpans.get(context),
+        Span span = Objects.requireNonNull(SimpleSpanAndScope.getSpanForTraceContext(context),
                 "You must create a span with this context before");
         if (this.simpleTracer.currentSpan() == span) {
             return () -> {

@@ -32,7 +32,7 @@ public class SimpleHttpClientHandler implements HttpClientHandler {
 
     private final SimpleTracer simpleTracer;
 
-    private boolean receiveHandled;
+    private volatile boolean receiveHandled;
 
     /**
      * Creates a new instance of {@link SimpleHttpClientHandler}.

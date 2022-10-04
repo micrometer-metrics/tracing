@@ -29,9 +29,9 @@ public class SimpleBaggageInScope implements BaggageInScope {
 
     private final SimpleBaggageManager.Baggage baggage;
 
-    private boolean inScope;
+    private volatile boolean inScope;
 
-    private boolean closed;
+    private volatile boolean closed;
 
     /**
      * Creates a new instance of {@link SimpleBaggageInScope}.
@@ -43,28 +43,28 @@ public class SimpleBaggageInScope implements BaggageInScope {
 
     @Override
     public String name() {
-        return this.baggage.name;
+        return this.baggage.getName();
     }
 
     @Override
     public String get() {
-        return this.baggage.value;
+        return this.baggage.getValue();
     }
 
     @Override
     public String get(TraceContext traceContext) {
-        return baggage.value;
+        return baggage.getValue();
     }
 
     @Override
     public BaggageInScope set(String value) {
-        this.baggage.value = value;
+        this.baggage.setValue(value);
         return this;
     }
 
     @Override
     public BaggageInScope set(TraceContext traceContext, String value) {
-        baggage.value = value;
+        this.baggage.setValue(value);
         return this;
     }
 

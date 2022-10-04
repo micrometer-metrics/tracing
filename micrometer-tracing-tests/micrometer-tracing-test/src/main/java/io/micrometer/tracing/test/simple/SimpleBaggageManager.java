@@ -17,11 +17,11 @@
 package io.micrometer.tracing.test.simple;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import io.micrometer.tracing.BaggageInScope;
@@ -36,7 +36,7 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleBaggageManager implements BaggageManager {
 
-    final Map<TraceContext, Set<Baggage>> baggage = new HashMap<>();
+    private final Map<TraceContext, Set<Baggage>> baggage = new ConcurrentHashMap<>();
 
     private final SimpleTracer simpleTracer;
 
@@ -98,18 +98,30 @@ public class SimpleBaggageManager implements BaggageManager {
     @Override
     public BaggageInScope createBaggage(String name, String value) {
         Baggage bag = createdBaggage(name);
-        bag.value = value;
+        bag.setValue(value);
         return new SimpleBaggageInScope(bag);
     }
 
     static class Baggage {
 
-        String name;
+        private final String name;
 
-        String value;
+        private volatile String value = null;
 
         Baggage(String name) {
             this.name = name;
+        }
+
+        String getName() {
+            return this.name;
+        }
+
+        String getValue() {
+            return this.value;
+        }
+
+        void setValue(String value) {
+            this.value = value;
         }
 
         @Override

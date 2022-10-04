@@ -30,7 +30,7 @@ import io.micrometer.tracing.Tracer;
  */
 public class SimpleSpanInScope implements Tracer.SpanInScope {
 
-    private boolean closed;
+    private volatile boolean closed;
 
     private final Deque<SpanAndScope> scopedSpans;
 

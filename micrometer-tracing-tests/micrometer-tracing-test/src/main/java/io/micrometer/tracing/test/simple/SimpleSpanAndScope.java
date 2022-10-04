@@ -35,7 +35,7 @@ import io.micrometer.tracing.Tracer;
  */
 public class SimpleSpanAndScope extends SpanAndScope {
 
-    static final Map<TraceContext, Span> traceContextsToSpans = new ConcurrentHashMap<>();
+    private static final Map<TraceContext, Span> traceContextToSpans = new ConcurrentHashMap<>();
 
     private final TraceContext traceContext;
 
@@ -55,7 +55,7 @@ public class SimpleSpanAndScope extends SpanAndScope {
      * @param scope scope
      */
     public SimpleSpanAndScope(TraceContext traceContext, @Nullable Tracer.SpanInScope scope) {
-        super(Objects.requireNonNull(traceContextsToSpans.get(traceContext),
+        super(Objects.requireNonNull(traceContextToSpans.get(traceContext),
                 "You must create a span with this context before"), scope);
         this.traceContext = traceContext;
     }
@@ -66,6 +66,24 @@ public class SimpleSpanAndScope extends SpanAndScope {
      */
     public TraceContext getTraceContext() {
         return traceContext;
+    }
+
+    /**
+     * Binds the given {@link Span} to the given {@link TraceContext}.
+     * @param traceContext the traceContext to use to bind this span to
+     * @param span the span that needs to be bounded to the traceContext
+     */
+    public static void bindSpanToTraceContext(TraceContext traceContext, Span span) {
+        traceContextToSpans.put(traceContext, span);
+    }
+
+    /**
+     * Returns the {@link Span} that is bounded to the given {@link TraceContext}.
+     * @param traceContext the traceContext to use to fetch the span
+     * @return the span that is bounded to the given traceContext (null if none)
+     */
+    public static Span getSpanForTraceContext(TraceContext traceContext) {
+        return traceContextToSpans.get(traceContext);
     }
 
 }

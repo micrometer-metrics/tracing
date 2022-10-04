@@ -31,7 +31,7 @@ public class SimpleHttpServerHandler implements HttpServerHandler {
 
     private final SimpleTracer simpleTracer;
 
-    private boolean receiveHandled;
+    private volatile boolean receiveHandled;
 
     /**
      * Creates a new instance of {@link SimpleHttpServerHandler}.
@@ -56,7 +56,7 @@ public class SimpleHttpServerHandler implements HttpServerHandler {
      * @return was the handle receive method called?
      */
     public boolean isReceiveHandled() {
-        return receiveHandled;
+        return this.receiveHandled;
     }
 
 }

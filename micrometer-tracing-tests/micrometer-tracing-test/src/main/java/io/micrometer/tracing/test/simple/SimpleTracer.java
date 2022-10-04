@@ -19,8 +19,8 @@ package io.micrometer.tracing.test.simple;
 import io.micrometer.tracing.*;
 
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * A test tracer implementation. Puts started span in a list.
@@ -34,9 +34,9 @@ public class SimpleTracer implements Tracer {
 
     private final SimpleBaggageManager simpleBaggageManager = new SimpleBaggageManager(this);
 
-    private final Deque<SimpleSpan> spans = new LinkedList<>();
+    private final Deque<SimpleSpan> spans = new LinkedBlockingDeque<>();
 
-    private final Deque<SpanAndScope> scopedSpans = new LinkedList<>();
+    private final Deque<SpanAndScope> scopedSpans = new LinkedBlockingDeque<>();
 
     /**
      * Creates a new instance of {@link SimpleTracer}.
@@ -96,15 +96,12 @@ public class SimpleTracer implements Tracer {
     @Override
     public SimpleSpan currentSpan() {
         SpanAndScope first = this.scopedSpans.peekFirst();
-        if (first == null) {
-            return null;
-        }
-        return (SimpleSpan) first.getSpan();
+        return first != null ? (SimpleSpan) first.getSpan() : null;
     }
 
     @Override
     public SimpleSpan nextSpan() {
-        final SimpleSpan span = new SimpleSpan();
+        SimpleSpan span = new SimpleSpan();
         this.spans.add(span);
         return span;
     }

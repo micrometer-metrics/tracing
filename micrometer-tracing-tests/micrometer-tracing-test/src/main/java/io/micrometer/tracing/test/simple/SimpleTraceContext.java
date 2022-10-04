@@ -26,13 +26,13 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleTraceContext implements TraceContext {
 
-    private String traceId = "";
+    private volatile String traceId = "";
 
-    private String parentId = "";
+    private volatile String parentId = "";
 
-    private String spanId = "";
+    private volatile String spanId = "";
 
-    private Boolean sampled = false;
+    private volatile Boolean sampled = false;
 
     @Override
     public String traceId() {
