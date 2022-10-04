@@ -73,7 +73,7 @@ public class SimpleSpanAndScope extends SpanAndScope {
      * @param traceContext the traceContext to use to bind this span to
      * @param span the span that needs to be bounded to the traceContext
      */
-    public static void bindSpanToTraceContext(TraceContext traceContext, Span span) {
+    static void bindSpanToTraceContext(TraceContext traceContext, Span span) {
         traceContextToSpans.put(traceContext, span);
     }
 
@@ -82,7 +82,7 @@ public class SimpleSpanAndScope extends SpanAndScope {
      * @param traceContext the traceContext to use to fetch the span
      * @return the span that is bounded to the given traceContext (null if none)
      */
-    public static Span getSpanForTraceContext(TraceContext traceContext) {
+    static Span getSpanForTraceContext(TraceContext traceContext) {
         return traceContextToSpans.get(traceContext);
     }
 
