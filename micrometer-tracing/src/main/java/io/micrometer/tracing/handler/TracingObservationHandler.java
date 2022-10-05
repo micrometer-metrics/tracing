@@ -84,7 +84,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
     @Override
     default void onEvent(Event event, T context) {
-        getTracingContext(context).getSpan().event(event.getContextualName());
+        getRequiredSpan(context).event(event.getContextualName());
     }
 
     @Override
