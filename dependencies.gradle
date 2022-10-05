@@ -27,8 +27,11 @@ def VERSIONS = [
 	'org.testcontainers:junit-jupiter:latest.release'
 ]
 
+def MICROMETER_PLATFORM_VERSIONS = [
+	'io.micrometer:micrometer-bom:1.10.0-SNAPSHOT'
+]
+
 def PLATFORM_VERSIONS = [
-	'io.micrometer:micrometer-bom:1.10.0-SNAPSHOT',
 	'io.zipkin.brave:brave-bom:5.13.+',
 	// opentelemetry-instrumentation-api dependency above with this
 	'io.opentelemetry:opentelemetry-bom:1.+',
@@ -49,26 +52,22 @@ subprojects {
 					runtimeOnly version
 				}
 			}
-			PLATFORM_VERSIONS.each {
-				implementation platform(it)
+			(MICROMETER_PLATFORM_VERSIONS + PLATFORM_VERSIONS).each { bom ->
+				api platform(bom)
+				compileOnly platform(bom)
+				runtimeOnly platform(bom)
 			}
 		}
 	}
 	plugins.withId('java-platform') {
 		dependencies {
 			constraints {
-				rootProject.subprojects.findAll {
-					!it.name.contains('micrometer-tracing-bom')
-				}.each {
-					api(group: it.group,
-							name: it.name,
-							version: it.version.toString())
-				}
+				rootProject.subprojects
+					.findAll { !it.name.contains('micrometer-tracing-bom') }
+					.each { api(group: it.group, name: it.name, version: it.version.toString()) }
 			}
 			javaPlatform.allowDependencies()
-			PLATFORM_VERSIONS.each {
-				api platform(it)
-			}
+			MICROMETER_PLATFORM_VERSIONS.each { api platform(it) }
 		}
 	}
 }
