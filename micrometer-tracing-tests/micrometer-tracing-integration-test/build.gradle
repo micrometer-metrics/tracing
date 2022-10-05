@@ -11,37 +11,36 @@ dependencies {
 
 	// Brave
 	api project(':micrometer-tracing-bridge-brave')
-	api("io.zipkin.brave:brave")
-	api("io.zipkin.brave:brave-context-slf4j")
-	api("io.zipkin.brave:brave-instrumentation-http")
-	api("io.zipkin.brave:brave-tests")
-	api("io.zipkin.aws:brave-propagation-aws")
-	api("io.zipkin.reporter2:zipkin-reporter-brave")
+	api 'io.zipkin.brave:brave'
+	api 'io.zipkin.brave:brave-context-slf4j'
+	api 'io.zipkin.brave:brave-instrumentation-http'
+	api 'io.zipkin.brave:brave-tests'
+	api 'io.zipkin.aws:brave-propagation-aws'
+	api 'io.zipkin.reporter2:zipkin-reporter-brave'
 
 	// OTel
 	api project(':micrometer-tracing-bridge-otel')
-	api("io.opentelemetry:opentelemetry-exporter-zipkin")
-	api("io.opentelemetry:opentelemetry-sdk-trace")
-	api("io.opentelemetry:opentelemetry-extension-trace-propagators")
-	api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv")
+	api 'io.opentelemetry:opentelemetry-exporter-zipkin'
+	api 'io.opentelemetry:opentelemetry-sdk-trace'
+	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
+	api 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv'
 
 	// Zipkin
-	api("io.zipkin.zipkin2:zipkin")
-	api("io.zipkin.reporter2:zipkin-reporter")
-	api("io.zipkin.reporter2:zipkin-sender-urlconnection")
-	api("io.zipkin.reporter2:zipkin-sender-kafka") {
-		exclude group: "org.apache.kafka", module: "kafka-clients"
+	api 'io.zipkin.zipkin2:zipkin'
+	api 'io.zipkin.reporter2:zipkin-reporter'
+	api 'io.zipkin.reporter2:zipkin-sender-urlconnection'
+	api('io.zipkin.reporter2:zipkin-sender-kafka') {
+		exclude group: 'org.apache.kafka', module: 'kafka-clients'
 	}
-	api("io.zipkin.reporter2:zipkin-sender-activemq-client") {
-		exclude group: "org.apache.activemq", module: "activemq-client"
+	api('io.zipkin.reporter2:zipkin-sender-activemq-client') {
+		exclude group: 'org.apache.activemq', module: 'activemq-client'
 	}
-	api("io.zipkin.reporter2:zipkin-sender-amqp-client") {
-		exclude group: "com.rabbitmq", module: "amqp-client"
+	api('io.zipkin.reporter2:zipkin-sender-amqp-client') {
+		exclude group: 'com.rabbitmq', module: 'amqp-client'
 	}
 
 	// Wavefront
-	api("com.wavefront:wavefront-sdk-java")
-	api("com.wavefront:wavefront-internal-reporter-java")
+	api 'com.wavefront:wavefront-internal-reporter-java'
 
 	// Tests
 	api 'org.junit.jupiter:junit-jupiter'
@@ -55,4 +54,3 @@ dependencies {
 	testImplementation 'org.testcontainers:testcontainers'
 	testImplementation 'org.testcontainers:junit-jupiter'
 }
-

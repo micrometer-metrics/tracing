@@ -7,16 +7,16 @@ dependencies {
 	api 'org.slf4j:slf4j-api'
 	api 'io.micrometer:micrometer-observation'
 
-	api("io.opentelemetry:opentelemetry-api")
-	api("io.opentelemetry:opentelemetry-extension-aws")
-	api("io.opentelemetry:opentelemetry-semconv")
-	api("io.opentelemetry:opentelemetry-sdk-common")
-	api("io.opentelemetry:opentelemetry-sdk-trace")
-	api("io.opentelemetry:opentelemetry-sdk")
-	api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv")
-	optionalApi("io.opentelemetry:opentelemetry-exporter-logging")
-	api("io.opentelemetry:opentelemetry-extension-trace-propagators")
-	optionalApi("io.opentelemetry:opentelemetry-opentracing-shim")
+	api 'io.opentelemetry:opentelemetry-api'
+	api 'io.opentelemetry:opentelemetry-extension-aws'
+	api 'io.opentelemetry:opentelemetry-semconv'
+	api 'io.opentelemetry:opentelemetry-sdk-common'
+	api 'io.opentelemetry:opentelemetry-sdk-trace'
+	api 'io.opentelemetry:opentelemetry-sdk'
+	api 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv'
+	optionalApi 'io.opentelemetry:opentelemetry-exporter-logging'
+	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
+	optionalApi 'io.opentelemetry:opentelemetry-opentracing-shim'
 
 	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation project(':micrometer-tracing-test')
@@ -24,4 +24,3 @@ dependencies {
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'org.mockito:mockito-core'
 }
-

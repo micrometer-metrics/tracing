@@ -23,4 +23,3 @@ dependencies {
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
 	testImplementation 'ch.qos.logback:logback-classic'
 }
-

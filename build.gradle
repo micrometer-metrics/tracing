@@ -34,7 +34,7 @@ apply plugin: 'nebula.release'
 release.defaultVersionStrategy = nebula.plugin.release.git.opinion.Strategies.SNAPSHOT
 
 apply plugin: 'io.github.gradle-nexus.publish-plugin'
-apply from: "dependencies.gradle"
+apply from: 'dependencies.gradle'
 
 allprojects {
 	group = 'io.micrometer'
@@ -70,8 +70,8 @@ subprojects {
 		// have to add the dependency in every project, which is tedious so just do it here.
 		dependencies {
 			// JSR-305 only used for non-required meta-annotations
-			optionalApi "com.google.code.findbugs:jsr305:latest.release"
-			checkstyle("io.spring.javaformat:spring-javaformat-checkstyle:latest.release")
+			optionalApi 'com.google.code.findbugs:jsr305:latest.release'
+			checkstyle 'io.spring.javaformat:spring-javaformat-checkstyle:latest.release'
 		}
 
 		tasks {
@@ -131,7 +131,7 @@ subprojects {
 		//noinspection GroovyAssignabilityCheck
 		test {
 			// set heap size for the test JVM(s)
-			maxHeapSize = "1500m"
+			maxHeapSize = '1500m'
 
 			useJUnitPlatform {
 				excludeTags 'docker'
@@ -145,7 +145,7 @@ subprojects {
 
 		task dockerTest(type: Test) {
 			// set heap size for the test JVM(s)
-			maxHeapSize = "1500m"
+			maxHeapSize = '1500m'
 
 			useJUnitPlatform {
 				includeTags 'docker'

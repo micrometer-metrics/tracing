@@ -1,39 +1,39 @@
 def VERSIONS = [
-		'javax.servlet:javax.servlet-api:4.0.+',
-		'jakarta.platform:jakarta.jakartaee-web-api:9.1.+',
+	'javax.servlet:javax.servlet-api:4.0.+',
+	'jakarta.platform:jakarta.jakartaee-web-api:9.1.+',
 
-		'io.micrometer:context-propagation:1.0.0-M5',
+	'io.micrometer:context-propagation:1.0.0-M5',
 
-		'aopalliance:aopalliance:1.0',
-		// logging
-		'ch.qos.logback:logback-classic:1.2.+',
-		'org.apache.logging.log4j:log4j-core:2.+',
-		'org.slf4j:slf4j-api:1.7.+',
-		// otel
-		'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.+',
-		// zipkin
-		'io.zipkin.aws:brave-propagation-aws:latest.release',
-		// wavefront
-		'com.wavefront:wavefront-sdk-java:3.0.+',
-		'com.wavefront:wavefront-internal-reporter-java:1.7.+',
-		// test
-		'org.assertj:assertj-core:latest.release',
-		'org.awaitility:awaitility:latest.release',
-		'org.mockito:mockito-core:latest.release',
-		'org.mockito:mockito-inline:latest.release',
-		'org.mockito:mockito-junit-jupiter:latest.release',
-		'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
-		'org.testcontainers:testcontainers:latest.release',
-		'org.testcontainers:junit-jupiter:latest.release'
+	'aopalliance:aopalliance:1.0',
+	// logging
+	'ch.qos.logback:logback-classic:1.2.+',
+	'org.apache.logging.log4j:log4j-core:2.+',
+	'org.slf4j:slf4j-api:1.7.+',
+	// otel
+	'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.+',
+	// zipkin
+	'io.zipkin.aws:brave-propagation-aws:latest.release',
+	// wavefront
+	'com.wavefront:wavefront-sdk-java:3.0.+',
+	'com.wavefront:wavefront-internal-reporter-java:1.7.+',
+	// test
+	'org.assertj:assertj-core:latest.release',
+	'org.awaitility:awaitility:latest.release',
+	'org.mockito:mockito-core:latest.release',
+	'org.mockito:mockito-inline:latest.release',
+	'org.mockito:mockito-junit-jupiter:latest.release',
+	'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
+	'org.testcontainers:testcontainers:latest.release',
+	'org.testcontainers:junit-jupiter:latest.release'
 ]
 
 def PLATFORM_VERSIONS = [
-		'io.micrometer:micrometer-bom:1.10.0-SNAPSHOT',
-		'io.zipkin.brave:brave-bom:5.13.+',
-		// opentelemetry-instrumentation-api dependency above with this
-		'io.opentelemetry:opentelemetry-bom:1.+',
-		'io.opentelemetry:opentelemetry-bom-alpha:1.+',
-		'org.junit:junit-bom:5.9.+'
+	'io.micrometer:micrometer-bom:1.10.0-SNAPSHOT',
+	'io.zipkin.brave:brave-bom:5.13.+',
+	// opentelemetry-instrumentation-api dependency above with this
+	'io.opentelemetry:opentelemetry-bom:1.+',
+	'io.opentelemetry:opentelemetry-bom-alpha:1.+',
+	'org.junit:junit-bom:5.9.+'
 ]
 
 subprojects {

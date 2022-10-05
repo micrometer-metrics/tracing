@@ -7,26 +7,25 @@ dependencies {
 	api 'io.micrometer:micrometer-observation'
 
 	// Brave
-	optionalImplementation("io.zipkin.brave:brave") {
-		exclude group: "io.zipkin.reporter2"
-		exclude group: "io.zipkin.zipkin2"
+	optionalImplementation('io.zipkin.brave:brave') {
+		exclude group: 'io.zipkin.reporter2'
+		exclude group: 'io.zipkin.zipkin2'
 	}
 	optionalImplementation project(':micrometer-tracing-bridge-brave')
-	optionalImplementation("io.zipkin.brave:brave-instrumentation-http") {
+	optionalImplementation('io.zipkin.brave:brave-instrumentation-http') {
 		exclude group: "io.zipkin.reporter2"
 		exclude group: "io.zipkin.zipkin2"
 	}
 
 	// OTel
 	optionalImplementation project(':micrometer-tracing-bridge-otel')
-	optionalImplementation("io.opentelemetry:opentelemetry-sdk")
-	optionalImplementation("io.opentelemetry:opentelemetry-sdk-trace")
-	optionalImplementation("io.opentelemetry:opentelemetry-extension-trace-propagators")
-	optionalImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv")
+	optionalImplementation 'io.opentelemetry:opentelemetry-sdk'
+	optionalImplementation 'io.opentelemetry:opentelemetry-sdk-trace'
+	optionalImplementation 'io.opentelemetry:opentelemetry-extension-trace-propagators'
+	optionalImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv'
 
 	// Wavefront
-	implementation("com.wavefront:wavefront-sdk-java")
-	implementation("com.wavefront:wavefront-internal-reporter-java")
+	implementation 'com.wavefront:wavefront-internal-reporter-java'
 
 	// Tests
 	testImplementation project(':micrometer-tracing-test')
@@ -36,4 +35,3 @@ dependencies {
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'org.mockito:mockito-core'
 }
-
