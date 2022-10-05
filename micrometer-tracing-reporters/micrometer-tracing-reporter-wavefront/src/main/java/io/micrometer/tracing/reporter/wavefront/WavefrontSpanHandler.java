@@ -16,8 +16,6 @@
 
 package io.micrometer.tracing.reporter.wavefront;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
@@ -34,10 +32,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -138,7 +133,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             String source, ApplicationTags applicationTags, Set<String> redMetricsCustomTagKeys) {
         this.wavefrontSender = wavefrontSender;
         this.applicationTags = applicationTags;
-        this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
+        this.discoveredHeartbeatMetrics = ConcurrentHashMap.newKeySet();
         this.spanMetrics = spanMetrics;
 
         this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
@@ -216,7 +211,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         }
         List<SpanLog> spanLogs = new ArrayList<>(annotationCount);
         for (int i = 0; i < annotationCount; i++) {
-            Map.Entry<Long, String> entry = Iterators.get(span.getEvents().iterator(), i);
+            Map.Entry<Long, String> entry = getAt(span.getEvents().iterator(), i);
             long epochMicros = entry.getKey();
             String value = entry.getValue();
             spanLogs.add(new SpanLog(epochMicros, Collections.singletonMap("annotation", value)));
@@ -237,6 +232,33 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             applicationTags.getCustomTags().forEach((k, v) -> result.add(Pair.of(k, v)));
         }
         return result;
+    }
+
+    // Mostly from Guava
+    private static <T> T getAt(Iterator<T> iterator, int position) {
+        Objects.requireNonNull(iterator);
+        if (position < 0) {
+            throw new IndexOutOfBoundsException("position (" + position + ") must not be negative");
+        }
+
+        int skipped = advance(iterator, position);
+        if (!iterator.hasNext()) {
+            throw new IndexOutOfBoundsException("position (" + position
+                    + ") must be less than the number of elements that remained (" + skipped + ")");
+        }
+        else {
+            return iterator.next();
+        }
+    }
+
+    // From Guava
+    private static int advance(Iterator<?> iterator, int numberToAdvance) {
+        int i;
+        for (i = 0; i < numberToAdvance && iterator.hasNext(); ++i) {
+            iterator.next();
+        }
+
+        return i;
     }
 
     /**
@@ -466,8 +488,8 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             int tagCount = span.getTags().size();
             addAll(defaultTags);
             for (int i = 0; i < tagCount; i++) {
-                String tagKey = Iterators.get(span.getTags().keySet().iterator(), i);
-                String tagValue = Iterators.get(span.getTags().values().iterator(), i);
+                String tagKey = getAt(span.getTags().keySet().iterator(), i);
+                String tagValue = getAt(span.getTags().values().iterator(), i);
                 String key = tagKey;
                 String value = tagValue;
                 String lcKey = key.toLowerCase(Locale.ROOT);
