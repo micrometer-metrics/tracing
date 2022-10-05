@@ -62,9 +62,9 @@ import static com.wavefront.sdk.common.Constants.*;
  * Wavefront. Ex.
  * https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/6babf2ff95daa37452e1e8c35ae54b58b6abb50f/src/main/java/com/wavefront/opentracing/propagation/JaegerWavefrontPropagator.java#L191-L204
  * While in practice this is not a problem, it is worth mentioning that this convention
- * will only only result in RFC 4122 timestamp (version 1) format by accident. In other
- * words, don't call {@link UUID#timestamp()} on UUIDs converted here, or in other
- * Wavefront code, as it might throw an exception.
+ * will only result in RFC 4122 timestamp (version 1) format by accident. In other words,
+ * don't call {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront
+ * code, as it might throw an exception.
  *
  * @since 1.0.0
  */
@@ -205,18 +205,9 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L397-L402
     static List<SpanLog> convertAnnotationsToSpanLogs(FinishedSpan span) {
-        int annotationCount = span.getEvents().size();
-        if (annotationCount == 0) {
-            return Collections.emptyList();
-        }
-        List<SpanLog> spanLogs = new ArrayList<>(annotationCount);
-        for (int i = 0; i < annotationCount; i++) {
-            Map.Entry<Long, String> entry = getAt(span.getEvents().iterator(), i);
-            long epochMicros = entry.getKey();
-            String value = entry.getValue();
-            spanLogs.add(new SpanLog(epochMicros, Collections.singletonMap("annotation", value)));
-        }
-        return spanLogs;
+        return span.getEvents().stream()
+                .map(entry -> new SpanLog(entry.getKey(), Collections.singletonMap("annotation", entry.getValue())))
+                .collect(Collectors.toList());
     }
 
     // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/WavefrontTracer.java#L275-L280
@@ -232,33 +223,6 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             applicationTags.getCustomTags().forEach((k, v) -> result.add(Pair.of(k, v)));
         }
         return result;
-    }
-
-    // Mostly from Guava
-    private static <T> T getAt(Iterator<T> iterator, int position) {
-        Objects.requireNonNull(iterator);
-        if (position < 0) {
-            throw new IndexOutOfBoundsException("position (" + position + ") must not be negative");
-        }
-
-        int skipped = advance(iterator, position);
-        if (!iterator.hasNext()) {
-            throw new IndexOutOfBoundsException("position (" + position
-                    + ") must be less than the number of elements that remained (" + skipped + ")");
-        }
-        else {
-            return iterator.next();
-        }
-    }
-
-    // From Guava
-    private static int advance(Iterator<?> iterator, int numberToAdvance) {
-        int i;
-        for (i = 0; i < numberToAdvance && iterator.hasNext(); ++i) {
-            iterator.next();
-        }
-
-        return i;
     }
 
     /**
@@ -475,8 +439,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         String componentTagValue = NULL_TAG_VAL;
 
         boolean isError; // See explanation here:
-
-        // https://github.com/openzipkin/brave/pull/1221
+                         // https://github.com/openzipkin/brave/pull/1221
 
         TagList(Set<String> defaultTagKeys, List<Pair<String, String>> defaultTags, FinishedSpan span) {
             super(defaultTags.size() + span.getTags().size());
@@ -485,33 +448,28 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
             boolean hasAnnotations = span.getEvents().size() > 0;
             isError = span.getError() != null;
 
-            int tagCount = span.getTags().size();
             addAll(defaultTags);
-            for (int i = 0; i < tagCount; i++) {
-                String tagKey = getAt(span.getTags().keySet().iterator(), i);
-                String tagValue = getAt(span.getTags().values().iterator(), i);
-                String key = tagKey;
-                String value = tagValue;
-                String lcKey = key.toLowerCase(Locale.ROOT);
-                if (lcKey.equals(ERROR_TAG_KEY)) {
+            for (Map.Entry<String, String> tag : span.getTags().entrySet()) {
+                String lowerCaseKey = tag.getKey().toLowerCase(Locale.ROOT);
+                if (lowerCaseKey.equals(ERROR_TAG_KEY)) {
                     isError = true;
                     continue; // We later replace whatever the potentially empty value was
-                    // with "true"
+                              // with "true"
                 }
-                if (value.isEmpty()) {
+                if (tag.getValue().isEmpty()) {
                     continue;
                 }
-                if (defaultTagKeys.contains(lcKey)) {
+                if (defaultTagKeys.contains(lowerCaseKey)) {
                     continue;
                 }
-                if (lcKey.equals(DEBUG_TAG_KEY)) {
+                if (lowerCaseKey.equals(DEBUG_TAG_KEY)) {
                     debug = true; // This tag is set out-of-band
                     continue;
                 }
-                if (lcKey.equals(COMPONENT_TAG_KEY)) {
-                    componentTagValue = value;
+                if (lowerCaseKey.equals(COMPONENT_TAG_KEY)) {
+                    componentTagValue = tag.getValue();
                 }
-                add(Pair.of(key, value));
+                add(Pair.of(tag.getKey(), tag.getValue()));
             }
 
             // Check for span.error() for uncaught exception in request mapping and add it
