@@ -204,6 +204,16 @@ subprojects {
 				nebula(MavenPublication) {
 					// Nebula converts dynamic versions to static ones so it's ok.
 					suppressAllPomMetadataWarnings()
+
+					if (project.name == 'micrometer-tracing-bom') {
+						pom.withXml {
+							asNode().dependencyManagement.dependencies.dependency.each {
+								if (!it.artifactId.text().equals("micrometer-bom") && it.type.text().equals("pom")) {
+									it.parent().remove(it)
+								}
+							}
+						}
+					}
 				}
 			}
 			repositories {
