@@ -75,7 +75,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
     private static final String DEFAULT_SPAN_NAME = "defaultOperation";
 
-    private static final String DEFAULT_SOURCE = "wavefront-spring-boot";
+    private static final String DEFAULT_SOURCE = "micrometer-tracing";
 
     private static final String WAVEFRONT_GENERATED_COMPONENT = "wavefront-generated";
 
@@ -137,7 +137,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
         this.spanMetrics = spanMetrics;
 
         this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
-                new NamedThreadFactory("observability-heart-beater").setDaemon(true));
+                new NamedThreadFactory("micrometer-heart-beater").setDaemon(true));
 
         // Emit Heartbeats Metrics every 1 min.
         heartbeatMetricsScheduledExecutorService.scheduleAtFixedRate(() -> {
