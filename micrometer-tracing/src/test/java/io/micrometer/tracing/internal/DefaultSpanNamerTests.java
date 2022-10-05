@@ -19,8 +19,6 @@ package io.micrometer.tracing.internal;
 import io.micrometer.tracing.SpanName;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.autoconfigure.observability.tracing.internal.DefaultSpanNamer;
-
 import static org.assertj.core.api.BDDAssertions.then;
 
 class DefaultSpanNamerTests {

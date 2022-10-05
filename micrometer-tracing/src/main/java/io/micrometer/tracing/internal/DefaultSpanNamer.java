@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.autoconfigure.observability.tracing.internal;
+package io.micrometer.tracing.internal;
 
 import java.lang.reflect.Method;
 
