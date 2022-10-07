@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import brave.Tracing;
 import brave.http.HttpTracing;
+import brave.propagation.ThreadLocalCurrentTraceContext;
 import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
 import io.micrometer.observation.Observation;
@@ -316,7 +317,8 @@ public final class InMemoryBraveSetup implements AutoCloseable {
 
         private static Tracing tracing(TestSpanHandler testSpanHandler, String applicationName) {
             return Tracing.newBuilder().localServiceName(applicationName).addSpanHandler(testSpanHandler)
-                    .sampler(Sampler.ALWAYS_SAMPLE).build();
+                    .currentTraceContext(ThreadLocalCurrentTraceContext.create()).sampler(Sampler.ALWAYS_SAMPLE)
+                    .build();
         }
 
         private static HttpTracing httpTracing(Tracing tracing) {
