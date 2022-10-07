@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import brave.Tracing;
 import brave.handler.SpanHandler;
 import brave.http.HttpTracing;
+import brave.propagation.ThreadLocalCurrentTraceContext;
 import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
 import com.wavefront.sdk.common.application.ApplicationTags;
@@ -404,7 +405,8 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private static Tracing tracing(SpanHandler spanHandler, TestSpanHandler testSpanHandler) {
             return Tracing.newBuilder().traceId128Bit(true).addSpanHandler(spanHandler).addSpanHandler(testSpanHandler)
-                    .sampler(Sampler.ALWAYS_SAMPLE).build();
+                    .currentTraceContext(ThreadLocalCurrentTraceContext.create()).sampler(Sampler.ALWAYS_SAMPLE)
+                    .build();
         }
 
         private static HttpTracing httpTracing(Tracing tracing) {
