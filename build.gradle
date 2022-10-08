@@ -111,6 +111,7 @@ subprojects {
 				metaInf {
 					[
 							'Build-Date',
+							'Build-Date-UTC',
 							'Built-By',
 							'Built-OS',
 							'Build-Host',
@@ -120,7 +121,9 @@ subprojects {
 							'Change',
 							'Full-Change',
 							'Branch',
-							'Module-Origin'
+							'Module-Origin',
+							'Created-By',
+							'Build-Java-Version'
 					].each {
 						ignoreAttribute it
 						ignoreProperty it
