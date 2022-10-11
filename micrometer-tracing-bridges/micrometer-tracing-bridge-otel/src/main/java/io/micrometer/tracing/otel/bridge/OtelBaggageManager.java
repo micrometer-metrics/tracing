@@ -15,17 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.CurrentTraceContext;
@@ -35,6 +24,9 @@ import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.baggage.BaggageEntry;
 import io.opentelemetry.api.baggage.BaggageEntryMetadata;
 import io.opentelemetry.context.Context;
+
+import java.util.*;
+import java.util.function.BiConsumer;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
@@ -48,6 +40,11 @@ import static java.util.stream.Collectors.toMap;
  * @since 1.0.0
  */
 public class OtelBaggageManager implements BaggageManager {
+
+    /**
+     * Taken from one of the W3C OTel tests. Can't find it in a spec.
+     */
+    private static final String PROPAGATION_UNLIMITED = "propagation=unlimited";
 
     private final CurrentTraceContext currentTraceContext;
 
@@ -106,7 +103,6 @@ public class OtelBaggageManager implements BaggageManager {
     @Override
     public BaggageInScope getBaggage(TraceContext traceContext, String name) {
         OtelTraceContext context = (OtelTraceContext) traceContext;
-        // TODO: Refactor
         Deque<Context> stack = new ArrayDeque<>();
         stack.addFirst(Context.current());
         stack.addFirst(context.context());
@@ -159,10 +155,9 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     private String propagationString(boolean remoteField) {
-        // TODO: [OTEL] Magic strings
         String propagation = "";
         if (remoteField) {
-            propagation = "propagation=unlimited";
+            propagation = PROPAGATION_UNLIMITED;
         }
         return propagation;
     }
@@ -171,8 +166,6 @@ public class OtelBaggageManager implements BaggageManager {
 
 class CompositeBaggage implements io.opentelemetry.api.baggage.Baggage {
 
-    // TODO: Try to use a Map of BaggageEntry only: delete the Entry class
-    // (might need a bigger refactor)
     private final Collection<Entry> entries;
 
     private final Map<String, BaggageEntry> baggageEntries;

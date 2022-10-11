@@ -443,8 +443,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         TagList(Set<String> defaultTagKeys, List<Pair<String, String>> defaultTags, FinishedSpan span) {
             super(defaultTags.size() + span.getTags().size());
-            // TODO: OTel doesn't have a notion of debug
-            boolean debug = false;
+            boolean debug = false; // OTel doesn't have a notion of debug
             boolean hasAnnotations = span.getEvents().size() > 0;
             isError = span.getError() != null;
 

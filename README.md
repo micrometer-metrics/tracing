@@ -8,10 +8,6 @@
 
 A application tracing facade.
 
-## Supported versions
-
-TODO
-
 ## Join the discussion
 
 Join the [Micrometer Slack](https://slack.micrometer.io) to share your questions, concerns, and feature requests.
@@ -40,7 +36,7 @@ production use.
 
 ## Documentation
 
-TODO
+The documentation is available at https://micrometer.io/docs/tracing.
 
 ## Contributing
 

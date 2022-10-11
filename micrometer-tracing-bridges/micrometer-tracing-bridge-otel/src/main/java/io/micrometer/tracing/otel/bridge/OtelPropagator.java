@@ -15,9 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.propagation.Propagator;
@@ -26,6 +23,9 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OpenTelemetry implementation of a {@link Propagator}.
@@ -51,7 +51,6 @@ public class OtelPropagator implements Propagator {
 
     @Override
     public List<String> fields() {
-        // TODO: We should make Propagator::fields returning Collection<String>
         return new ArrayList<>(this.propagator.fields());
     }
 

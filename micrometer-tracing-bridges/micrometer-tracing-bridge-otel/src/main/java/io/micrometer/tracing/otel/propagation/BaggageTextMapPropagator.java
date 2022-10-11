@@ -15,11 +15,6 @@
  */
 package io.micrometer.tracing.otel.propagation;
 
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageManager;
@@ -31,6 +26,11 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * {@link TextMapPropagator} that adds compatible baggage entries (name of the field means
  * an HTTP header entry).
@@ -39,6 +39,11 @@ import io.opentelemetry.context.propagation.TextMapSetter;
  * @since 1.0.0
  */
 public class BaggageTextMapPropagator implements TextMapPropagator {
+
+    /**
+     * Taken from one of the W3C OTel tests. Can't find it in a spec.
+     */
+    private static final String PROPAGATION_UNLIMITED = "propagation=unlimited";
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(BaggageTextMapPropagator.class);
 
@@ -80,9 +85,8 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
                 .map(s -> new AbstractMap.SimpleEntry<>(s, getter.get(c, s))).filter(e -> e.getValue() != null)
                 .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()));
         BaggageBuilder builder = Baggage.current().toBuilder();
-        // TODO: [OTEL] magic string
         baggageEntries
-                .forEach((key, value) -> builder.put(key, value, BaggageEntryMetadata.create("propagation=unlimited")));
+                .forEach((key, value) -> builder.put(key, value, BaggageEntryMetadata.create(PROPAGATION_UNLIMITED)));
         Baggage baggage = builder.build();
         Context withBaggage = context.with(baggage);
         if (log.isDebugEnabled()) {

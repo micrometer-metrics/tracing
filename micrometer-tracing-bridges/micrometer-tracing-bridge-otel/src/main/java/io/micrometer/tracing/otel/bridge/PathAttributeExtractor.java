@@ -32,11 +32,7 @@ class PathAttributeExtractor implements AttributesExtractor<HttpRequest, HttpRes
     public void onStart(AttributesBuilder attributes, Context parentContext, HttpRequest httpRequest) {
         String path = httpRequest.path();
         if (StringUtils.isNotEmpty(path)) {
-            // TODO some tests expect this even on client spans, but this goes against
-            // Otel semantic conventions
-            // should fix tests
             setAttribute(attributes, SemanticAttributes.HTTP_ROUTE, path);
-            // some tests expect http.route attribute and some http.path
             setAttribute(attributes, HTTP_PATH, path);
         }
     }

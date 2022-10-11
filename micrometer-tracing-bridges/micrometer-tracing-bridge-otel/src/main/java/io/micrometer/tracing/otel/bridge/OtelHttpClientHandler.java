@@ -73,8 +73,6 @@ public class OtelHttpClientHandler implements HttpClientHandler {
         this.httpClientRequestParser = httpClientRequestParser;
         this.httpClientResponseParser = httpClientResponseParser;
         this.samplerFunction = samplerFunction;
-        // TODO: This builder should have a customizer of some sort that provides some
-        // defaults but can be changed
         this.instrumenter = Instrumenter
                 .<HttpClientRequest, HttpClientResponse>builder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))
@@ -141,10 +139,7 @@ public class OtelHttpClientHandler implements HttpClientHandler {
         }
         OtelTraceContext traceContext = otelSpanWrapper.context();
         Context otelContext = traceContext.context();
-        // TODO this must be otelContext, but OpenTelemetry context handling is not
-        // entirely correct here atm
         Context contextToEnd = Context.current().with(otelSpanWrapper.delegate);
-        // response.getRequest() too often returns null
         instrumenter.end(contextToEnd, otelContext.get(REQUEST_CONTEXT_KEY), response, response.error());
     }
 

@@ -133,7 +133,7 @@ class OtelSpan implements Span {
 
     @Override
     public void abandon() {
-        // TODO: [OTEL] doesn't seem to have this notion yet
+        // Do nothing
     }
 
     @Override

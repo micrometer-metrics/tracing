@@ -15,18 +15,12 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.regex.Pattern;
-
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.common.lang.Nullable;
-import io.micrometer.tracing.http.HttpServerRequest;
-import io.micrometer.tracing.http.HttpServerResponse;
 import io.micrometer.tracing.Span;
-import io.micrometer.tracing.http.HttpRequestParser;
-import io.micrometer.tracing.http.HttpResponseParser;
-import io.micrometer.tracing.http.HttpServerHandler;
+import io.micrometer.tracing.http.*;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
@@ -37,6 +31,8 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttribut
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetServerAttributesExtractor;
+
+import java.util.regex.Pattern;
 
 /**
  * OpenTelemetry implementation of a {@link HttpServerHandler}.
@@ -74,8 +70,6 @@ public class OtelHttpServerHandler implements HttpServerHandler {
         this.httpServerRequestParser = httpServerRequestParser;
         this.httpServerResponseParser = httpServerResponseParser;
         this.pattern = skipPattern;
-        // TODO: This builder should have a customizer of some sort that provides some
-        // defaults but can be changed
         this.instrumenter = Instrumenter
                 .<HttpServerRequest, HttpServerResponse>builder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))
@@ -127,7 +121,6 @@ public class OtelHttpServerHandler implements HttpServerHandler {
         }
         OtelTraceContext traceContext = otelSpanWrapper.context();
         Context otelContext = traceContext.context();
-        // response.getRequest() too often returns null
         instrumenter.end(otelContext, otelContext.get(REQUEST_CONTEXT_KEY), response, response.error());
     }
 

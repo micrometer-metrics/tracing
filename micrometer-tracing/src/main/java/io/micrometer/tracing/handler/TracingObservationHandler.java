@@ -48,7 +48,6 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
                 span.tag(keyValue.getKey(), keyValue.getValue());
             }
             else {
-                // TODO: Does this make sense?
                 span.error(new RuntimeException(keyValue.getValue()));
             }
         }
