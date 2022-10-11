@@ -15,13 +15,13 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.function.Function;
-
 import io.micrometer.common.lang.Nullable;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
+
+import java.util.function.Function;
 
 /**
  * A context wrapper that publishes events when scope is being attached, closed or
@@ -101,10 +101,16 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
 
     }
 
+    /**
+     * Event related to closing a scope.
+     */
     public static class ScopeClosedEvent {
 
     }
 
+    /**
+     * Event related to restoring a scope.
+     */
     public static class ScopeRestoredEvent {
 
         /**

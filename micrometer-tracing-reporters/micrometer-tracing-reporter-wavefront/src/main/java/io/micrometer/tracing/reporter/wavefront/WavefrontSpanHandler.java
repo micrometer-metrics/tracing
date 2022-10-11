@@ -124,6 +124,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
      * Creates a new instance of {@link WavefrontSpanHandler}.
      * @param maxQueueSize maximal span queue size
      * @param wavefrontSender wavefront server
+     * @param spanMetrics span metrics
      * @param source source of metrics and spans
      * @param applicationTags additional application tags
      * @param redMetricsCustomTagKeys RED metrics custom tag keys

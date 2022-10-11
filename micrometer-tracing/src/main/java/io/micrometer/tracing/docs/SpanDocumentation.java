@@ -102,8 +102,8 @@ public interface SpanDocumentation {
 
     /**
      * Override this when custom span should be documented instead of the default one.
-     * @return {@link io.micrometer.observation.docs.DocumentedObservation} for which you
-     * don't want to create a default span documentation
+     * @return {@link io.micrometer.observation.docs.ObservationDocumentation} for which
+     * you don't want to create a default span documentation
      */
     default Enum<?> overridesDefaultSpanFrom() {
         return null;

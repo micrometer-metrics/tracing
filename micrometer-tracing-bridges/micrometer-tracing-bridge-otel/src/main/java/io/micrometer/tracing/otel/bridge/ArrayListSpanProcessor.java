@@ -15,10 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Collection;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -26,6 +22,10 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
+
+import java.util.Collection;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -85,14 +85,25 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
         shutdown().join(10, SECONDS);
     }
 
+    /**
+     * Returns the first collected span.
+     * @return the first span
+     */
     public SpanData takeLocalSpan() {
         return this.spans.poll();
     }
 
+    /**
+     * Returns collected spans.
+     * @return collected spans
+     */
     public Queue<SpanData> spans() {
         return this.spans;
     }
 
+    /**
+     * Clears the stored spans.
+     */
     public void clear() {
         this.spans.clear();
     }

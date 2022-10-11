@@ -25,6 +25,12 @@ import org.slf4j.MDC;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * {@link EventListener} to set baggage entries on {@link MDC}.
+ *
+ * @author Marcin Grzejszczak
+ * @since 1.0.0
+ */
 public class Slf4JBaggageEventListener implements EventListener {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JBaggageEventListener.class);

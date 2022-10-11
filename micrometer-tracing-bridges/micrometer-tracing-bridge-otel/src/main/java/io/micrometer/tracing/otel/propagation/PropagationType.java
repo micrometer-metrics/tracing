@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.propagation;
 
-/*
+/**
  * Supported propagation types.
  *
  * @author Marcin Grzejszczak

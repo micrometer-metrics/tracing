@@ -149,12 +149,18 @@ public abstract class SampleTestRunner {
         tracingSetup.run(getSampleRunnerConfig(), getObservationRegistry(), getMeterRegistry(), this);
     }
 
+    /**
+     * Sets up registries before each test.
+     */
     @BeforeEach
     protected void setupRegistry() {
         this.meterRegistry = createMeterRegistry();
         this.observationRegistry = createObservationRegistry();
     }
 
+    /**
+     * Closes meter registry after each test.
+     */
     @AfterEach
     protected void closeMeterRegistry() {
         getMeterRegistry().close();

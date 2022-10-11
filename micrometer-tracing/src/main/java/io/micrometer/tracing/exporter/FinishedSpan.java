@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * This API is inspired by OpenZipkin Brave (from {code MutableSpan}).
- * <p>
+ *
  * Represents a span that has been finished and is ready to be sent to an external
  * location (e.g. Zipkin).
  *
@@ -35,6 +35,8 @@ import java.util.Map;
 public interface FinishedSpan {
 
     /**
+     * Sets the name.
+     * @param name name to set
      * @return this
      */
     FinishedSpan setName(String name);
@@ -55,6 +57,8 @@ public interface FinishedSpan {
     Instant getEndTimestamp();
 
     /**
+     * Sets the tags.
+     * @param tags tags to set
      * @return this
      */
     FinishedSpan setTags(Map<String, String> tags);
@@ -65,6 +69,8 @@ public interface FinishedSpan {
     Map<String, String> getTags();
 
     /**
+     * Sets the events.
+     * @param events events to set
      * @return this
      */
     FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events);
@@ -100,7 +106,8 @@ public interface FinishedSpan {
     }
 
     /**
-     * @param ip
+     * Sets the local ip.
+     * @param ip ip to set
      * @return this
      */
     FinishedSpan setLocalIp(String ip);
@@ -111,6 +118,8 @@ public interface FinishedSpan {
     int getRemotePort();
 
     /**
+     * Sets the remote port.
+     * @param port port to set
      * @return this
      */
     FinishedSpan setRemotePort(int port);
@@ -127,7 +136,8 @@ public interface FinishedSpan {
     Throwable getError();
 
     /**
-     * @param error
+     * Sets the error.
+     * @param error error to set
      * @return this
      */
     FinishedSpan setError(Throwable error);
@@ -144,7 +154,8 @@ public interface FinishedSpan {
     String getRemoteServiceName();
 
     /**
-     * @param remoteServiceName
+     * Sets the remote service name.
+     * @param remoteServiceName remote service name
      * @return this
      */
     FinishedSpan setRemoteServiceName(String remoteServiceName);

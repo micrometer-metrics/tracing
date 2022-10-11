@@ -38,6 +38,11 @@ public class TracingAwareMeterObservationHandler<T extends Observation.Context> 
 
     private final Tracer tracer;
 
+    /**
+     * Creates a new instance of {@link TracingAwareMeterObservationHandler}.
+     * @param delegate a {@link MeterObservationHandler} delegate
+     * @param tracer tracer
+     */
     public TracingAwareMeterObservationHandler(MeterObservationHandler<T> delegate, Tracer tracer) {
         this.delegate = delegate;
         this.tracer = tracer;

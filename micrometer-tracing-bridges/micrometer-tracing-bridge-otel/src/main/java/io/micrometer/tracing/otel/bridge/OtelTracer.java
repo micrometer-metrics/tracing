@@ -151,8 +151,15 @@ public class OtelTracer implements Tracer {
         return this.otelBaggageManager.createBaggage(name, value);
     }
 
+    /**
+     * Publisher of events.
+     */
     public interface EventPublisher {
 
+        /**
+         * Publishes an event.
+         * @param event event to publish
+         */
         void publishEvent(Object event);
 
     }
