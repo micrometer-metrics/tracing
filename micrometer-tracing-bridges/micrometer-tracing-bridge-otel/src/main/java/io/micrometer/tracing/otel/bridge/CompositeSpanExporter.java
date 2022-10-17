@@ -23,20 +23,22 @@ import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Creates a {@link SpanExporter} with additional predicate, reporting and filtering logic.
+ * Creates a {@link SpanExporter} with additional predicate, reporting and filtering
+ * logic.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
 public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.SpanExporter {
 
-    private final io.opentelemetry.sdk.trace.export.SpanExporter delegate;
+    private final Collection<io.opentelemetry.sdk.trace.export.SpanExporter> exporters;
 
     private final List<SpanExportingPredicate> predicates;
 
@@ -46,14 +48,14 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
 
     /**
      * Creates a new instance of {@link CompositeSpanExporter}.
-     * @param delegate a {@link SpanExporter} delegate
+     * @param exporters {@link SpanExporter} exporters
      * @param predicates predicates that decide which spans should be exported
      * @param reporters reporters that export spans
      * @param spanFilters filters that mutate spans before reporting them
      */
-    public CompositeSpanExporter(SpanExporter delegate, List<SpanExportingPredicate> predicates,
-            List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
-        this.delegate = delegate;
+    public CompositeSpanExporter(Collection<io.opentelemetry.sdk.trace.export.SpanExporter> exporters,
+            List<SpanExportingPredicate> predicates, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
+        this.exporters = exporters;
         this.predicates = predicates == null ? Collections.emptyList() : predicates;
         this.reporters = reporters == null ? Collections.emptyList() : reporters;
         this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
@@ -61,14 +63,27 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
 
     @Override
     public CompletableResultCode export(Collection<SpanData> spans) {
-        return this.delegate.export(spans.stream().filter(this::shouldProcess).map(spanData -> {
+        List<SpanData> changedSpanData = spans.stream().filter(this::shouldProcess).map(spanData -> {
             FinishedSpan finishedSpan = OtelFinishedSpan.fromOtel(spanData);
             for (SpanFilter spanFilter : spanFilters) {
                 finishedSpan = spanFilter.map(finishedSpan);
             }
             return OtelFinishedSpan.toOtel(finishedSpan);
-        }).peek(spanData -> this.reporters.forEach(reporter -> reporter.report(OtelFinishedSpan.fromOtel(spanData))))
-                .collect(Collectors.toList()));
+        }).collect(Collectors.toList());
+        List<CompletableResultCode> results = new ArrayList<>();
+        changedSpanData.forEach(spanData -> {
+            this.reporters.forEach(reporter -> {
+                try {
+                    reporter.report(OtelFinishedSpan.fromOtel(spanData));
+                    results.add(CompletableResultCode.ofSuccess());
+                }
+                catch (Exception ex) {
+                    results.add(CompletableResultCode.ofFailure());
+                }
+            });
+        });
+        this.exporters.forEach(spanExporter -> results.add(spanExporter.export(changedSpanData)));
+        return CompletableResultCode.ofAll(results);
     }
 
     private boolean shouldProcess(SpanData span) {
@@ -82,12 +97,24 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
 
     @Override
     public CompletableResultCode flush() {
-        return this.delegate.flush();
+        return CompletableResultCode
+                .ofAll(this.exporters.stream().map(SpanExporter::flush).collect(Collectors.toList()));
     }
 
     @Override
     public CompletableResultCode shutdown() {
-        return this.delegate.shutdown();
+        List<CompletableResultCode> results = new ArrayList<>();
+        for (SpanReporter reporter : this.reporters) {
+            try {
+                reporter.close();
+                results.add(CompletableResultCode.ofSuccess());
+            }
+            catch (Exception ex) {
+                results.add(CompletableResultCode.ofFailure());
+            }
+        }
+        results.addAll(this.exporters.stream().map(SpanExporter::shutdown).collect(Collectors.toList()));
+        return CompletableResultCode.ofAll(results);
     }
 
 }
