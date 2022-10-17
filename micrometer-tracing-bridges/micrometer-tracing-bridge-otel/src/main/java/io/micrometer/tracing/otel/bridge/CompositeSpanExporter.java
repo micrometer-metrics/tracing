@@ -15,11 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.exporter.SpanExportingPredicate;
 import io.micrometer.tracing.exporter.SpanFilter;
@@ -28,9 +23,13 @@ import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
- * Wraps the {@link SpanExporter} delegate with additional predicate, reporting and
- * filtering logic.
+ * Creates a {@link SpanExporter} with additional predicate, reporting and filtering logic.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
