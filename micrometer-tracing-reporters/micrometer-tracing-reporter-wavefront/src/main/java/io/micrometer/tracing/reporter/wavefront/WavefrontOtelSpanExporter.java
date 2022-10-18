@@ -15,13 +15,13 @@
  */
 package io.micrometer.tracing.reporter.wavefront;
 
-import java.util.Collection;
-
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.otel.bridge.OtelFinishedSpan;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
+
+import java.util.Collection;
 
 /**
  * A {@link SpanExporter} that sends spans to Wavefront.
@@ -29,15 +29,15 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public class WavefrontOtelSpanHandler implements SpanExporter {
+public class WavefrontOtelSpanExporter implements SpanExporter {
 
     private final WavefrontSpanHandler spanHandler;
 
     /**
-     * Creates a new instance of {@link WavefrontOtelSpanHandler}.
+     * Creates a new instance of {@link WavefrontOtelSpanExporter}.
      * @param spanHandler wavefront span handler
      */
-    public WavefrontOtelSpanHandler(WavefrontSpanHandler spanHandler) {
+    public WavefrontOtelSpanExporter(WavefrontSpanHandler spanHandler) {
         this.spanHandler = spanHandler;
     }
 
