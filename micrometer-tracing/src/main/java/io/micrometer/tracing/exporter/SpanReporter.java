@@ -21,12 +21,17 @@ package io.micrometer.tracing.exporter;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-public interface SpanReporter {
+public interface SpanReporter extends AutoCloseable {
 
     /**
      * Reports the finished span.
      * @param span a span that was ended and is ready to be reported.
      */
     void report(FinishedSpan span);
+
+    @Override
+    default void close() throws Exception {
+
+    }
 
 }
