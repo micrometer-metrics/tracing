@@ -27,6 +27,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -66,6 +67,34 @@ class PropagatingReceiverTracingObservationHandlerOtelTests {
 
         SpanData data = takeOnlySpan();
         then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("bar");
+    }
+
+    @Test
+    void should_set_remote_service_name() {
+        ReceiverContext<Object> receiverContext = new ReceiverContext<>((carrier, key) -> "val");
+        receiverContext.setCarrier(new Object());
+        receiverContext.setName("foo");
+        receiverContext.setRemoteServiceName("a-remote-service");
+
+        handler.onStart(receiverContext);
+        handler.onStop(receiverContext);
+
+        SpanData data = takeOnlySpan();
+        then(data.getAttributes().get(SemanticAttributes.PEER_SERVICE)).isEqualTo("a-remote-service");
+    }
+
+    @Test
+    void should_set_ip_and_port_name() {
+        ReceiverContext<Object> receiverContext = new ReceiverContext<>((carrier, key) -> "val");
+        receiverContext.setCarrier(new Object());
+        receiverContext.setRemoteServiceAddress("http://127.0.0.1:1234");
+
+        handler.onStart(receiverContext);
+        handler.onStop(receiverContext);
+
+        SpanData data = takeOnlySpan();
+        then(data.getAttributes().get(SemanticAttributes.NET_SOCK_PEER_ADDR)).isEqualTo("127.0.0.1");
+        then(data.getAttributes().get(SemanticAttributes.NET_PEER_PORT)).isEqualTo(1234L);
     }
 
     private SpanData takeOnlySpan() {
