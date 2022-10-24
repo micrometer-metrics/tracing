@@ -86,6 +86,20 @@ class PropagatingReceiverTracingObservationHandlerBraveTests {
         then(data.remoteServiceName()).isEqualTo("a-remote-service");
     }
 
+    @Test
+    void should_set_ip_and_port_name() {
+        ReceiverContext<Object> receiverContext = new ReceiverContext<>((carrier, key) -> "val");
+        receiverContext.setCarrier(new Object());
+        receiverContext.setRemoteServiceAddress("http://127.0.0.1:1234");
+
+        handler.onStart(receiverContext);
+        handler.onStop(receiverContext);
+
+        MutableSpan data = takeOnlySpan();
+        then(data.remoteIp()).isEqualTo("127.0.0.1");
+        then(data.remotePort()).isEqualTo(1234);
+    }
+
     private MutableSpan takeOnlySpan() {
         List<MutableSpan> spans = testSpanHandler.spans();
         then(spans).hasSize(1);

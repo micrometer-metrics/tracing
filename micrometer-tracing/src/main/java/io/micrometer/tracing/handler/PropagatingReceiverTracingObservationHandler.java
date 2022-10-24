@@ -15,11 +15,15 @@
  */
 package io.micrometer.tracing.handler;
 
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.ReceiverContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
+
+import java.net.URI;
 
 /**
  * A {@link TracingObservationHandler} called when receiving occurred - e.g. of messages
@@ -31,6 +35,9 @@ import io.micrometer.tracing.propagation.Propagator;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class PropagatingReceiverTracingObservationHandler<T extends ReceiverContext>
         implements TracingObservationHandler<T> {
+
+    private static final InternalLogger log = InternalLoggerFactory
+            .getInstance(PropagatingReceiverTracingObservationHandler.class);
 
     private final Tracer tracer;
 
@@ -53,6 +60,16 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
         extractedSpan.kind(Span.Kind.valueOf(context.getKind().name()));
         if (context.getRemoteServiceName() != null) {
             extractedSpan.remoteServiceName(context.getRemoteServiceName());
+        }
+        if (context.getRemoteServiceAddress() != null) {
+            try {
+                URI uri = URI.create(context.getRemoteServiceAddress());
+                extractedSpan = extractedSpan.remoteIpAndPort(uri.getHost(), uri.getPort());
+            }
+            catch (Exception ex) {
+                log.warn("Exception [{}], occurred while trying to parse the uri [{}] to host and port.", ex,
+                        context.getRemoteServiceAddress());
+            }
         }
         getTracingContext(context).setSpan(customizeExtractedSpan(context, extractedSpan).start());
     }

@@ -72,6 +72,8 @@ class PropagatingSenderTracingObservationHandlerBraveTests {
         SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
         });
         senderContext.setContextualName("HTTP GET");
+        senderContext.setRemoteServiceName("remote service");
+        senderContext.setRemoteServiceAddress("http://127.0.0.1:1234");
         Observation child = Observation.createNotStarted("child", () -> senderContext, registry)
                 .parentObservation(parent).start();
 
@@ -82,7 +84,8 @@ class PropagatingSenderTracingObservationHandlerBraveTests {
                 .collect(Collectors.toList());
         SpansAssert.then(spans).haveSameTraceId();
         FinishedSpan childFinishedSpan = spans.get(0);
-        SpanAssert.then(childFinishedSpan).hasNameEqualTo("HTTP GET");
+        SpanAssert.then(childFinishedSpan).hasNameEqualTo("HTTP GET").hasRemoteServiceNameEqualTo("remote service")
+                .hasIpEqualTo("127.0.0.1").hasPortEqualTo(1234);
         FinishedSpan parentFinishedSpan = spans.get(1);
         SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 
