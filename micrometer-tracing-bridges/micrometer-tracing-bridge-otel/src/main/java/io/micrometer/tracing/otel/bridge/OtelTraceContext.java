@@ -15,15 +15,15 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-
-import io.micrometer.tracing.TraceContext;
 import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadableSpan;
+
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * OpenTelemetry implementation of a {@link TraceContext}.
@@ -95,8 +95,9 @@ public class OtelTraceContext implements TraceContext {
     @Override
     @Nullable
     public String parentId() {
-        if (this.span instanceof ReadableSpan) {
-            ReadableSpan readableSpan = (ReadableSpan) this.span;
+        Span span = this.span instanceof SpanFromSpanContext ? ((SpanFromSpanContext) this.span).span : this.span;
+        if (span instanceof ReadableSpan) {
+            ReadableSpan readableSpan = (ReadableSpan) span;
             return readableSpan.toSpanData().getParentSpanId();
         }
         return null;

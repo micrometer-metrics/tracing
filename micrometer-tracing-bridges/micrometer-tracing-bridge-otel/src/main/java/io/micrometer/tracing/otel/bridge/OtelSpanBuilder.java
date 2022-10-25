@@ -43,6 +43,8 @@ class OtelSpanBuilder implements Span.Builder {
 
     private Throwable error;
 
+    private TraceContext parentContext;
+
     OtelSpanBuilder(io.opentelemetry.api.trace.SpanBuilder delegate) {
         this.delegate = delegate;
     }
@@ -54,6 +56,7 @@ class OtelSpanBuilder implements Span.Builder {
     @Override
     public Span.Builder setParent(TraceContext context) {
         this.delegate.setParent(OtelTraceContext.toOtelContext(context));
+        this.parentContext = context;
         return this;
     }
 
@@ -141,7 +144,12 @@ class OtelSpanBuilder implements Span.Builder {
             span.recordException(error);
         }
         this.annotations.forEach(span::addEvent);
-        return OtelSpan.fromOtel(span);
+        Span otelSpan = OtelSpan.fromOtel(span);
+        if (this.parentContext != null) {
+            return OtelSpan.fromOtel(
+                    new SpanFromSpanContext(span, span.getSpanContext(), (OtelTraceContext) this.parentContext));
+        }
+        return otelSpan;
     }
 
 }

@@ -77,7 +77,8 @@ public class OtelPropagator implements Propagator {
         if (span == null || span.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
             return OtelSpanBuilder.fromOtel(tracer.spanBuilder(""));
         }
-        return OtelSpanBuilder.fromOtel(this.tracer.spanBuilder("").setParent(extracted));
+        OtelTraceContext otelTraceContext = new OtelTraceContext(extracted, span.getSpanContext(), span);
+        return OtelSpanBuilder.fromOtel(this.tracer.spanBuilder("")).setParent(otelTraceContext);
     }
 
 }
