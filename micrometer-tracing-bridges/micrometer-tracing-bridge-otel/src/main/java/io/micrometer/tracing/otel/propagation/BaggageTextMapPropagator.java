@@ -33,7 +33,9 @@ import java.util.stream.Collectors;
 
 /**
  * {@link TextMapPropagator} that adds compatible baggage entries (name of the field means
- * an HTTP header entry).
+ * an HTTP header entry). If existing baggage is present in the context, this will append
+ * entries to the existing one. Preferably this {@link TextMapPropagator} should be added
+ * as last.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -87,6 +89,8 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
         BaggageBuilder builder = Baggage.current().toBuilder();
         baggageEntries
                 .forEach((key, value) -> builder.put(key, value, BaggageEntryMetadata.create(PROPAGATION_UNLIMITED)));
+        Baggage.fromContext(context)
+                .forEach((s, baggageEntry) -> builder.put(s, baggageEntry.getValue(), baggageEntry.getMetadata()));
         Baggage baggage = builder.build();
         Context withBaggage = context.with(baggage);
         if (log.isDebugEnabled()) {
