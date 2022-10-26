@@ -15,27 +15,25 @@
  */
 package io.micrometer.tracing;
 
-import java.io.Closeable;
-
 /**
  * Inspired by OpenZipkin Brave's {@code BaggageField}. Since some tracer implementations
  * require a scope to be wrapped around baggage, baggage must be closed so that the scope
- * does not leak. Some tracer implementations make baggage immutable (e.g. OpenTelemetry),
- * so when the value gets updated they might create new scope (others will return the same
- * one - e.g. OpenZipkin Brave).
+ * does not leak, see {@link BaggageInScope}. Some tracer implementations make baggage
+ * immutable (e.g. OpenTelemetry), so when the value gets updated they might create new
+ * scope (others will return the same one - e.g. OpenZipkin Brave).
  * <p>
- * Represents a single baggage entry.
+ * Represents a single mutable baggage entry.
  *
  * @author Marcin Grzejszczak
  * @author Jonatan Ivanov
  * @since 1.0.0
  */
-public interface BaggageInScope extends BaggageView, Closeable {
+public interface Baggage extends BaggageView {
 
     /**
      * A noop implementation.
      */
-    BaggageInScope NOOP = new BaggageInScope() {
+    Baggage NOOP = new Baggage() {
         @Override
         public String name() {
             return null;
@@ -52,11 +50,40 @@ public interface BaggageInScope extends BaggageView, Closeable {
         }
 
         @Override
-        public void close() {
+        public Baggage set(String value) {
+            return this;
+        }
+
+        @Override
+        public Baggage set(TraceContext traceContext, String value) {
+            return this;
+        }
+
+        @Override
+        public BaggageInScope makeCurrent() {
+            return BaggageInScope.NOOP;
         }
     };
 
-    @Override
-    void close();
+    /**
+     * Sets the baggage value.
+     * @param value to set
+     * @return itself
+     */
+    Baggage set(String value);
+
+    /**
+     * Sets the baggage value for the given {@link TraceContext}.
+     * @param traceContext context containing baggage
+     * @param value to set
+     * @return itself
+     */
+    Baggage set(TraceContext traceContext, String value);
+
+    /**
+     * Sets the current baggage in scope.
+     * @return a {@link BaggageInScope} instance
+     */
+    BaggageInScope makeCurrent();
 
 }

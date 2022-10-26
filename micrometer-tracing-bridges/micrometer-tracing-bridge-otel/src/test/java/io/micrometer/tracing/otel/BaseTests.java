@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel;
 
+import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -180,19 +181,21 @@ class BaseTests {
         tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
         });
 
-        BaggageInScope foo = tracer.createBaggage("foo");
-        then(foo).isSameAs(BaggageInScope.NOOP);
+        Baggage foo = tracer.createBaggage("foo");
+        then(foo).isSameAs(Baggage.NOOP);
         then(foo.get()).isNull();
         then(foo.get()).isNull();
         then(foo.get(null)).isNull();
-        then(foo.set(null, "baz")).isSameAs(BaggageInScope.NOOP);
+        then(foo.set(null, "baz")).isSameAs(Baggage.NOOP);
         then(foo.get(null)).isNull();
-        foo.close();
-        then(foo.makeCurrent()).isSameAs(BaggageInScope.NOOP);
 
-        then(tracer.getBaggage("foo")).isSameAs(BaggageInScope.NOOP);
+        BaggageInScope fooInScope = foo.makeCurrent();
+        then(fooInScope).isSameAs(BaggageInScope.NOOP);
+        fooInScope.close();
+
+        then(tracer.getBaggage("foo")).isSameAs(Baggage.NOOP);
         then(tracer.getAllBaggage()).isEmpty();
-        then(tracer.createBaggage("foo", "bar")).isSameAs(BaggageInScope.NOOP);
+        then(tracer.createBaggage("foo", "bar")).isSameAs(Baggage.NOOP);
     }
 
 }

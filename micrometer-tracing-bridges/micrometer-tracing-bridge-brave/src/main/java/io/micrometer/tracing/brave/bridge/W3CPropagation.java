@@ -24,7 +24,7 @@ import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.internal.EncodingUtils;
 
@@ -212,8 +212,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
 
     private <R> void addTraceState(Setter<R, String> setter, TraceContext context, R carrier) {
         if (carrier != null && this.braveBaggageManager != null) {
-            BaggageInScope baggage = this.braveBaggageManager.getBaggage(BraveTraceContext.fromBrave(context),
-                    TRACE_STATE);
+            Baggage baggage = this.braveBaggageManager.getBaggage(BraveTraceContext.fromBrave(context), TRACE_STATE);
             if (baggage == null) {
                 return;
             }
@@ -363,13 +362,13 @@ class W3CBaggagePropagator {
     <R> TraceContextOrSamplingFlags contextWithBaggage(R carrier, TraceContextOrSamplingFlags flags,
             Propagation.Getter<R, String> getter) {
         String baggageHeader = getter.get(carrier, FIELD);
-        List<AbstractMap.SimpleEntry<BaggageInScope, String>> pairs = baggageHeader == null || baggageHeader.isEmpty()
+        List<AbstractMap.SimpleEntry<Baggage, String>> pairs = baggageHeader == null || baggageHeader.isEmpty()
                 ? Collections.emptyList() : addBaggageToContext(baggageHeader);
         return flags.toBuilder().addExtra(new BraveBaggageFields(pairs)).build();
     }
 
-    List<AbstractMap.SimpleEntry<BaggageInScope, String>> addBaggageToContext(String baggageHeader) {
-        List<AbstractMap.SimpleEntry<BaggageInScope, String>> pairs = new ArrayList<>();
+    List<AbstractMap.SimpleEntry<Baggage, String>> addBaggageToContext(String baggageHeader) {
+        List<AbstractMap.SimpleEntry<Baggage, String>> pairs = new ArrayList<>();
         String[] entries = baggageHeader.split(",");
         for (String entry : entries) {
             int beginningOfMetadata = entry.indexOf(";");
@@ -381,7 +380,7 @@ class W3CBaggagePropagator {
                 try {
                     String key = keyAndValue[i].trim();
                     String value = keyAndValue[i + 1].trim();
-                    BaggageInScope baggage = this.braveBaggageManager.createBaggage(key);
+                    Baggage baggage = this.braveBaggageManager.createBaggage(key);
                     pairs.add(new AbstractMap.SimpleEntry<>(baggage, value));
                 }
                 catch (Exception e) {

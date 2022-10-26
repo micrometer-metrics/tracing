@@ -15,14 +15,14 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.baggage.BaggageField;
+import io.micrometer.tracing.Baggage;
+import io.micrometer.tracing.BaggageManager;
+import io.micrometer.tracing.TraceContext;
+
 import java.io.Closeable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import brave.baggage.BaggageField;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.BaggageManager;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * Brave implementation of a {@link BaggageManager}.
@@ -32,7 +32,7 @@ import io.micrometer.tracing.TraceContext;
  */
 public class BraveBaggageManager implements Closeable, BaggageManager {
 
-    private static final Map<String, BaggageInScope> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Baggage> CACHE = new ConcurrentHashMap<>();
 
     @Override
     public Map<String, String> getAllBaggage() {
@@ -40,12 +40,12 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     @Override
-    public BaggageInScope getBaggage(String name) {
+    public Baggage getBaggage(String name) {
         return createBaggage(name);
     }
 
     @Override
-    public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+    public Baggage getBaggage(TraceContext traceContext, String name) {
         BaggageField baggageField = BaggageField.getByName(BraveTraceContext.toBrave(traceContext), name);
         if (baggageField == null) {
             return null;
@@ -54,12 +54,12 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     @Override
-    public BaggageInScope createBaggage(String name) {
+    public Baggage createBaggage(String name) {
         return CACHE.computeIfAbsent(name, s -> new BraveBaggageInScope(BaggageField.create(s)));
     }
 
     @Override
-    public BaggageInScope createBaggage(String name, String value) {
+    public Baggage createBaggage(String name, String value) {
         return createBaggage(name).set(value);
     }
 

@@ -52,7 +52,7 @@ class OtelPropagatorTests {
         Span span = extract.start();
 
         BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
-                Collections.emptyList()).getBaggage(span.context(), "foo");
+                Collections.emptyList()).getBaggage(span.context(), "foo").makeCurrent();
         try {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }

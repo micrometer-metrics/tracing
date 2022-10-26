@@ -16,6 +16,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.baggage.BaggageField;
+import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.TraceContext;
 
@@ -25,7 +26,7 @@ import io.micrometer.tracing.TraceContext;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-class BraveBaggageInScope implements BaggageInScope {
+class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     private final BaggageField delegate;
 
@@ -49,17 +50,13 @@ class BraveBaggageInScope implements BaggageInScope {
     }
 
     @Override
-    public BraveBaggageInScope set(String value) {
+    public Baggage set(String value) {
         this.delegate.updateValue(value);
         return this;
     }
 
-    BaggageField unwrap() {
-        return this.delegate;
-    }
-
     @Override
-    public BraveBaggageInScope set(TraceContext traceContext, String value) {
+    public Baggage set(TraceContext traceContext, String value) {
         this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
         return this;
     }
@@ -71,7 +68,6 @@ class BraveBaggageInScope implements BaggageInScope {
 
     @Override
     public void close() {
-
     }
 
 }

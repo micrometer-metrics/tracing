@@ -21,8 +21,8 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Manages {@link BaggageInScope} entries. Upon retrieval / creation of a baggage entry
- * puts it in scope. Scope must be closed.
+ * Manages {@link Baggage} entries. Upon retrieval / creation of a baggage entry puts it
+ * in scope. Scope must be closed.
  *
  * @author OpenTelemetry Authors
  * @author Marcin Grzejszczak
@@ -40,23 +40,23 @@ public interface BaggageManager {
         }
 
         @Override
-        public BaggageInScope getBaggage(String name) {
-            return BaggageInScope.NOOP;
+        public Baggage getBaggage(String name) {
+            return Baggage.NOOP;
         }
 
         @Override
-        public BaggageInScope getBaggage(TraceContext traceContext, String name) {
-            return BaggageInScope.NOOP;
+        public Baggage getBaggage(TraceContext traceContext, String name) {
+            return Baggage.NOOP;
         }
 
         @Override
-        public BaggageInScope createBaggage(String name) {
-            return BaggageInScope.NOOP;
+        public Baggage createBaggage(String name) {
+            return Baggage.NOOP;
         }
 
         @Override
-        public BaggageInScope createBaggage(String name, String value) {
-            return BaggageInScope.NOOP;
+        public Baggage createBaggage(String name, String value) {
+            return Baggage.NOOP;
         }
     };
 
@@ -66,37 +66,37 @@ public interface BaggageManager {
     Map<String, String> getAllBaggage();
 
     /**
-     * Retrieves {@link BaggageInScope} for the given name.
+     * Retrieves {@link Baggage} for the given name.
      * @param name baggage name
      * @return baggage or {@code null} if not present
      */
     @Nullable
-    BaggageInScope getBaggage(String name);
+    Baggage getBaggage(String name);
 
     /**
-     * Retrieves {@link BaggageInScope} for the given name.
+     * Retrieves {@link Baggage} for the given name.
      * @param traceContext trace context with baggage attached to it
      * @param name baggage name
      * @return baggage or {@code null} if not present
      */
     @Nullable
-    BaggageInScope getBaggage(TraceContext traceContext, String name);
+    Baggage getBaggage(TraceContext traceContext, String name);
 
     /**
-     * Creates a new {@link BaggageInScope} entry for the given name or returns an
-     * existing one if it's already present.
+     * Creates a new {@link Baggage} entry for the given name or returns an existing one
+     * if it's already present.
      * @param name baggage name
      * @return new or already created baggage
      */
-    BaggageInScope createBaggage(String name);
+    Baggage createBaggage(String name);
 
     /**
-     * Creates a new {@link BaggageInScope} entry for the given name or returns an
-     * existing one if it's already present.
+     * Creates a new {@link Baggage} entry for the given name or returns an existing one
+     * if it's already present.
      * @param name baggage name
      * @param value baggage value
      * @return new or already created baggage
      */
-    BaggageInScope createBaggage(String name, String value);
+    Baggage createBaggage(String name, String value);
 
 }
