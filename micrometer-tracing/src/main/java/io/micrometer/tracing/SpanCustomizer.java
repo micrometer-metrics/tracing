@@ -25,6 +25,26 @@ package io.micrometer.tracing;
 public interface SpanCustomizer {
 
     /**
+     * A noop implementation.
+     */
+    SpanCustomizer NOOP = new SpanCustomizer() {
+        @Override
+        public SpanCustomizer name(String name) {
+            return this;
+        }
+
+        @Override
+        public SpanCustomizer tag(String key, String value) {
+            return this;
+        }
+
+        @Override
+        public SpanCustomizer event(String value) {
+            return this;
+        }
+    };
+
+    /**
      * Sets a name on a span.
      * @param name name to set on a span
      * @return this, for chaining

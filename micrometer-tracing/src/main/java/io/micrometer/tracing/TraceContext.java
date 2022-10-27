@@ -26,6 +26,31 @@ import io.micrometer.common.lang.Nullable;
 public interface TraceContext {
 
     /**
+     * A noop implementation.
+     */
+    TraceContext NOOP = new TraceContext() {
+        @Override
+        public String traceId() {
+            return "";
+        }
+
+        @Override
+        public String parentId() {
+            return null;
+        }
+
+        @Override
+        public String spanId() {
+            return "";
+        }
+
+        @Override
+        public Boolean sampled() {
+            return null;
+        }
+    };
+
+    /**
      * Trace id.
      * @return trace id of a span
      */
@@ -56,6 +81,36 @@ public interface TraceContext {
      * @since 1.0.0
      */
     interface Builder {
+
+        /**
+         * A noop implementation.
+         */
+        Builder NOOP = new Builder() {
+            @Override
+            public Builder traceId(String traceId) {
+                return this;
+            }
+
+            @Override
+            public Builder parentId(String parentId) {
+                return this;
+            }
+
+            @Override
+            public Builder spanId(String spanId) {
+                return this;
+            }
+
+            @Override
+            public Builder sampled(Boolean sampled) {
+                return this;
+            }
+
+            @Override
+            public TraceContext build() {
+                return TraceContext.NOOP;
+            }
+        };
 
         /**
          * Sets trace id on the trace context.

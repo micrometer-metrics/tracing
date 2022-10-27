@@ -15,10 +15,11 @@
  */
 package io.micrometer.tracing;
 
-import java.io.Closeable;
-
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.propagation.Propagator;
+
+import java.io.Closeable;
+import java.util.Map;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken
@@ -66,6 +67,80 @@ import io.micrometer.tracing.propagation.Propagator;
  * @since 1.0.0
  */
 public interface Tracer extends BaggageManager {
+
+    Tracer NOOP = new Tracer() {
+        @Override
+        public Span nextSpan() {
+            return Span.NOOP;
+        }
+
+        @Override
+        public Span nextSpan(Span parent) {
+            return Span.NOOP;
+        }
+
+        @Override
+        public SpanInScope withSpan(Span span) {
+            return () -> {
+
+            };
+        }
+
+        @Override
+        public ScopedSpan startScopedSpan(String name) {
+            return ScopedSpan.NOOP;
+        }
+
+        @Override
+        public Span.Builder spanBuilder() {
+            return Span.Builder.NOOP;
+        }
+
+        @Override
+        public TraceContext.Builder traceContextBuilder() {
+            return TraceContext.Builder.NOOP;
+        }
+
+        @Override
+        public CurrentTraceContext currentTraceContext() {
+            return CurrentTraceContext.NOOP;
+        }
+
+        @Override
+        public SpanCustomizer currentSpanCustomizer() {
+            return SpanCustomizer.NOOP;
+        }
+
+        @Override
+        public Span currentSpan() {
+            return Span.NOOP;
+        }
+
+        @Override
+        public Map<String, String> getAllBaggage() {
+            return BaggageManager.NOOP.getAllBaggage();
+        }
+
+        @Override
+        public BaggageInScope getBaggage(String name) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope createBaggage(String name) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope createBaggage(String name, String value) {
+            return BaggageInScope.NOOP;
+        }
+    };
 
     /**
      * This creates a new span based on the current span in scope. If there's no such span
