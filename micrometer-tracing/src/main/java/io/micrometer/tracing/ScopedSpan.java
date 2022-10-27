@@ -25,6 +25,46 @@ package io.micrometer.tracing;
 public interface ScopedSpan {
 
     /**
+     * A noop implementation.
+     */
+    ScopedSpan NOOP = new ScopedSpan() {
+        @Override
+        public boolean isNoop() {
+            return true;
+        }
+
+        @Override
+        public TraceContext context() {
+            return TraceContext.NOOP;
+        }
+
+        @Override
+        public ScopedSpan name(String name) {
+            return this;
+        }
+
+        @Override
+        public ScopedSpan tag(String key, String value) {
+            return this;
+        }
+
+        @Override
+        public ScopedSpan event(String value) {
+            return this;
+        }
+
+        @Override
+        public ScopedSpan error(Throwable throwable) {
+            return this;
+        }
+
+        @Override
+        public void end() {
+
+        }
+    };
+
+    /**
      * @return {@code true} when no recording is done and nothing is reported to an
      * external system. However, this span should still be injected into outgoing
      * requests. Use this flag to avoid performing expensive computation.

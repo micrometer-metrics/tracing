@@ -15,12 +15,12 @@
  */
 package io.micrometer.tracing;
 
+import io.micrometer.common.lang.Nullable;
+
 import java.io.Closeable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-
-import io.micrometer.common.lang.Nullable;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken
@@ -34,6 +34,50 @@ import io.micrometer.common.lang.Nullable;
  * @since 1.0.0
  */
 public interface CurrentTraceContext {
+
+    /**
+     * A noop implementation.
+     */
+    CurrentTraceContext NOOP = new CurrentTraceContext() {
+        @Override
+        public TraceContext context() {
+            return TraceContext.NOOP;
+        }
+
+        @Override
+        public Scope newScope(TraceContext context) {
+            return () -> {
+
+            };
+        }
+
+        @Override
+        public Scope maybeScope(TraceContext context) {
+            return () -> {
+
+            };
+        }
+
+        @Override
+        public <C> Callable<C> wrap(Callable<C> task) {
+            return task;
+        }
+
+        @Override
+        public Runnable wrap(Runnable task) {
+            return task;
+        }
+
+        @Override
+        public Executor wrap(Executor delegate) {
+            return delegate;
+        }
+
+        @Override
+        public ExecutorService wrap(ExecutorService delegate) {
+            return delegate;
+        }
+    };
 
     /**
      * @return current {@link TraceContext} or {@code null} if not set.

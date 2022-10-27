@@ -15,9 +15,9 @@
  */
 package io.micrometer.tracing;
 
-import java.util.concurrent.TimeUnit;
-
 import io.micrometer.tracing.propagation.Propagator;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken
@@ -31,6 +31,76 @@ import io.micrometer.tracing.propagation.Propagator;
  * @since 1.0.0
  */
 public interface Span extends io.micrometer.tracing.SpanCustomizer {
+
+    /**
+     * A noop implementation.
+     */
+    Span NOOP = new Span() {
+        @Override
+        public boolean isNoop() {
+            return true;
+        }
+
+        @Override
+        public TraceContext context() {
+            return TraceContext.NOOP;
+        }
+
+        @Override
+        public Span start() {
+            return this;
+        }
+
+        @Override
+        public Span name(String name) {
+            return this;
+        }
+
+        @Override
+        public Span event(String value) {
+            return this;
+        }
+
+        @Override
+        public Span event(String value, long time, TimeUnit timeUnit) {
+            return this;
+        }
+
+        @Override
+        public Span tag(String key, String value) {
+            return this;
+        }
+
+        @Override
+        public Span error(Throwable throwable) {
+            return this;
+        }
+
+        @Override
+        public void end() {
+
+        }
+
+        @Override
+        public void end(long time, TimeUnit timeUnit) {
+
+        }
+
+        @Override
+        public void abandon() {
+
+        }
+
+        @Override
+        public Span remoteServiceName(String remoteServiceName) {
+            return this;
+        }
+
+        @Override
+        public Span remoteIpAndPort(String ip, int port) {
+            return this;
+        }
+    };
 
     /**
      * @return {@code true} when no recording is done and nothing is reported to an
@@ -167,6 +237,66 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
      * Inspired by OpenZipkin Brave and OpenTelemetry API.
      */
     interface Builder {
+
+        /**
+         * A noop implementation.
+         */
+        Builder NOOP = new Builder() {
+            @Override
+            public Builder setParent(TraceContext context) {
+                return this;
+            }
+
+            @Override
+            public Builder setNoParent() {
+                return this;
+            }
+
+            @Override
+            public Builder name(String name) {
+                return this;
+            }
+
+            @Override
+            public Builder event(String value) {
+                return this;
+            }
+
+            @Override
+            public Builder tag(String key, String value) {
+                return this;
+            }
+
+            @Override
+            public Builder error(Throwable throwable) {
+                return this;
+            }
+
+            @Override
+            public Builder kind(Kind spanKind) {
+                return this;
+            }
+
+            @Override
+            public Builder remoteServiceName(String remoteServiceName) {
+                return this;
+            }
+
+            @Override
+            public Builder remoteIpAndPort(String ip, int port) {
+                return this;
+            }
+
+            @Override
+            public Builder startTimestamp(long startTimestamp, TimeUnit unit) {
+                return this;
+            }
+
+            @Override
+            public Span start() {
+                return Span.NOOP;
+            }
+        };
 
         /**
          * Sets the parent of the built span.
