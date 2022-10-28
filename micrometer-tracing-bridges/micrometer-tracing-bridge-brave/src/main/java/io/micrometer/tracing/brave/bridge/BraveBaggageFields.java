@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.Baggage;
 
 import java.util.AbstractMap;
 import java.util.List;
@@ -23,13 +23,13 @@ import java.util.Objects;
 
 class BraveBaggageFields {
 
-    private final List<AbstractMap.SimpleEntry<BaggageInScope, String>> entries;
+    private final List<AbstractMap.SimpleEntry<Baggage, String>> entries;
 
-    BraveBaggageFields(List<AbstractMap.SimpleEntry<BaggageInScope, String>> entries) {
+    BraveBaggageFields(List<AbstractMap.SimpleEntry<Baggage, String>> entries) {
         this.entries = entries;
     }
 
-    List<AbstractMap.SimpleEntry<BaggageInScope, String>> getEntries() {
+    List<AbstractMap.SimpleEntry<Baggage, String>> getEntries() {
         return entries;
     }
 

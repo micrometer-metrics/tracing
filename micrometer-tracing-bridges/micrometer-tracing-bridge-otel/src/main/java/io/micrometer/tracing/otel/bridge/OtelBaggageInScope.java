@@ -15,9 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
@@ -27,13 +24,16 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * OpenTelemetry implementation of a {@link BaggageInScope}.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-class OtelBaggageInScope implements BaggageInScope {
+class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScope {
 
     private final OtelBaggageManager otelBaggageManager;
 
@@ -73,11 +73,11 @@ class OtelBaggageInScope implements BaggageInScope {
     }
 
     @Override
-    public BaggageInScope set(String value) {
+    public io.micrometer.tracing.Baggage set(String value) {
         return doSet(this.currentTraceContext.context(), value);
     }
 
-    private BaggageInScope doSet(TraceContext context, String value) {
+    private io.micrometer.tracing.Baggage doSet(TraceContext context, String value) {
         Context current = Context.current();
         Span currentSpan = Span.current();
         io.opentelemetry.api.baggage.Baggage baggage;
@@ -112,7 +112,7 @@ class OtelBaggageInScope implements BaggageInScope {
     }
 
     @Override
-    public BaggageInScope set(TraceContext traceContext, String value) {
+    public io.micrometer.tracing.Baggage set(TraceContext traceContext, String value) {
         return doSet(traceContext, value);
     }
 

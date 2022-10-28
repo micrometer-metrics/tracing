@@ -131,22 +131,22 @@ public class SimpleTracer implements Tracer {
     }
 
     @Override
-    public BaggageInScope getBaggage(String name) {
+    public Baggage getBaggage(String name) {
         return this.simpleBaggageManager.getBaggage(name);
     }
 
     @Override
-    public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+    public Baggage getBaggage(TraceContext traceContext, String name) {
         return this.simpleBaggageManager.getBaggage(traceContext, name);
     }
 
     @Override
-    public BaggageInScope createBaggage(String name) {
+    public Baggage createBaggage(String name) {
         return this.simpleBaggageManager.createBaggage(name);
     }
 
     @Override
-    public BaggageInScope createBaggage(String name, String value) {
+    public Baggage createBaggage(String name, String value) {
         return this.simpleBaggageManager.createBaggage(name, value);
     }
 

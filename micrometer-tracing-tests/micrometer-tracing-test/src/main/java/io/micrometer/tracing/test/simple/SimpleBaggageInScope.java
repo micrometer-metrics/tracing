@@ -15,55 +15,61 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.TraceContext;
 
+import java.util.Objects;
+
 /**
- * A test implementation of a baggage in scope.
+ * A test implementation of a baggage/baggage in scope.
  *
  * @author Marcin Grzejszczak
+ * @author Jonatan Ivanov
  * @since 1.0.0
  */
-public class SimpleBaggageInScope implements BaggageInScope {
+public class SimpleBaggageInScope implements Baggage, BaggageInScope {
 
-    private final SimpleBaggageManager.Baggage baggage;
+    private final String name;
 
-    private volatile boolean inScope;
+    private volatile String value = null;
 
-    private volatile boolean closed;
+    private volatile boolean inScope = false;
+
+    private volatile boolean closed = false;
 
     /**
      * Creates a new instance of {@link SimpleBaggageInScope}.
-     * @param baggage baggage
+     * @param name name
      */
-    public SimpleBaggageInScope(SimpleBaggageManager.Baggage baggage) {
-        this.baggage = baggage;
+    public SimpleBaggageInScope(String name) {
+        this.name = name;
     }
 
     @Override
     public String name() {
-        return this.baggage.getName();
+        return this.name;
     }
 
     @Override
     public String get() {
-        return this.baggage.getValue();
+        return this.value;
     }
 
     @Override
     public String get(TraceContext traceContext) {
-        return baggage.getValue();
+        return this.value;
     }
 
     @Override
-    public BaggageInScope set(String value) {
-        this.baggage.setValue(value);
+    public Baggage set(String value) {
+        this.value = value;
         return this;
     }
 
     @Override
-    public BaggageInScope set(TraceContext traceContext, String value) {
-        this.baggage.setValue(value);
+    public Baggage set(TraceContext traceContext, String value) {
+        this.value = value;
         return this;
     }
 
@@ -84,7 +90,7 @@ public class SimpleBaggageInScope implements BaggageInScope {
      * @return {@code true} when baggage in scope
      */
     public boolean isInScope() {
-        return inScope;
+        return this.inScope;
     }
 
     /**
@@ -92,7 +98,24 @@ public class SimpleBaggageInScope implements BaggageInScope {
      * @return {@code true} when baggage was closed
      */
     public boolean isClosed() {
-        return closed;
+        return this.closed;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SimpleBaggageInScope baggage = (SimpleBaggageInScope) o;
+        return Objects.equals(this.name, baggage.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.name);
     }
 
 }

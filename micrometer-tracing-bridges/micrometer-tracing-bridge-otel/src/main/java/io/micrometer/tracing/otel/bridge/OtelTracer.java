@@ -132,22 +132,22 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    public BaggageInScope getBaggage(String name) {
+    public Baggage getBaggage(String name) {
         return this.otelBaggageManager.getBaggage(name);
     }
 
     @Override
-    public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+    public Baggage getBaggage(TraceContext traceContext, String name) {
         return this.otelBaggageManager.getBaggage(traceContext, name);
     }
 
     @Override
-    public BaggageInScope createBaggage(String name) {
+    public Baggage createBaggage(String name) {
         return this.otelBaggageManager.createBaggage(name);
     }
 
     @Override
-    public BaggageInScope createBaggage(String name, String value) {
+    public Baggage createBaggage(String name, String value) {
         return this.otelBaggageManager.createBaggage(name, value);
     }
 

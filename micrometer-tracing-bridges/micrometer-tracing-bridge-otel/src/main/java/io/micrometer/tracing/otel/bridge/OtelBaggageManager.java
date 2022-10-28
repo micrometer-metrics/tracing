@@ -15,7 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
@@ -84,12 +83,12 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     @Override
-    public BaggageInScope getBaggage(String name) {
+    public io.micrometer.tracing.Baggage getBaggage(String name) {
         Entry entry = getBaggage(name, currentBaggage());
         return createNewEntryIfMissing(name, entry);
     }
 
-    BaggageInScope createNewEntryIfMissing(String name, Entry entry) {
+    io.micrometer.tracing.Baggage createNewEntryIfMissing(String name, Entry entry) {
         if (entry == null) {
             return createBaggage(name);
         }
@@ -101,7 +100,7 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     @Override
-    public BaggageInScope getBaggage(TraceContext traceContext, String name) {
+    public io.micrometer.tracing.Baggage getBaggage(TraceContext traceContext, String name) {
         OtelTraceContext context = (OtelTraceContext) traceContext;
         Deque<Context> stack = new ArrayDeque<>();
         stack.addFirst(Context.current());
@@ -130,24 +129,23 @@ public class OtelBaggageManager implements BaggageManager {
                 .findFirst().orElse(null);
     }
 
-    private BaggageInScope otelBaggage(Entry entry) {
+    private io.micrometer.tracing.Baggage otelBaggage(Entry entry) {
         return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
     }
 
     @Override
-    public BaggageInScope createBaggage(String name) {
+    public io.micrometer.tracing.Baggage createBaggage(String name) {
         return createBaggage(name, "");
     }
 
     @Override
-    public BaggageInScope createBaggage(String name, String value) {
-        BaggageInScope baggageInScope = baggageWithValue(name, "");
-        return baggageInScope.set(value);
+    public io.micrometer.tracing.Baggage createBaggage(String name, String value) {
+        io.micrometer.tracing.Baggage baggage = baggageWithValue(name, "");
+        return baggage.set(value);
     }
 
-    private BaggageInScope baggageWithValue(String name, String value) {
-        List<String> remoteFieldsFields = this.remoteFields;
-        boolean remoteField = remoteFieldsFields.stream().map(String::toLowerCase)
+    private io.micrometer.tracing.Baggage baggageWithValue(String name, String value) {
+        boolean remoteField = this.remoteFields.stream().map(String::toLowerCase)
                 .anyMatch(s -> s.equals(name.toLowerCase()));
         BaggageEntryMetadata entryMetadata = BaggageEntryMetadata.create(propagationString(remoteField));
         Entry entry = new Entry(name, value, entryMetadata);

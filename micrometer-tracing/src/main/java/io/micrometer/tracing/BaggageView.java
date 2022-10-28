@@ -15,27 +15,22 @@
  */
 package io.micrometer.tracing;
 
-import java.io.Closeable;
+import io.micrometer.common.lang.Nullable;
 
 /**
- * Inspired by OpenZipkin Brave's {@code BaggageField}. Since some tracer implementations
- * require a scope to be wrapped around baggage, baggage must be closed so that the scope
- * does not leak. Some tracer implementations make baggage immutable (e.g. OpenTelemetry),
- * so when the value gets updated they might create new scope (others will return the same
- * one - e.g. OpenZipkin Brave).
- * <p>
- * Represents a single baggage entry.
+ * Inspired by OpenZipkin Brave's {@code BaggageField}. Represents a single, immutable
+ * baggage entry.
  *
  * @author Marcin Grzejszczak
  * @author Jonatan Ivanov
  * @since 1.0.0
  */
-public interface BaggageInScope extends BaggageView, Closeable {
+public interface BaggageView {
 
     /**
      * A noop implementation.
      */
-    BaggageInScope NOOP = new BaggageInScope() {
+    BaggageView NOOP = new BaggageView() {
         @Override
         public String name() {
             return null;
@@ -50,13 +45,27 @@ public interface BaggageInScope extends BaggageView, Closeable {
         public String get(TraceContext traceContext) {
             return null;
         }
-
-        @Override
-        public void close() {
-        }
     };
 
-    @Override
-    void close();
+    /**
+     * Retrieves baggage name.
+     * @return name of the baggage entry
+     */
+    String name();
+
+    /**
+     * Retrieves baggage value.
+     * @return value of the baggage entry or {@code null} if not set.
+     */
+    @Nullable
+    String get();
+
+    /**
+     * Retrieves baggage value from the given {@link TraceContext}.
+     * @param traceContext context containing baggage
+     * @return value of the baggage entry or {@code null} if not set.
+     */
+    @Nullable
+    String get(TraceContext traceContext);
 
 }
