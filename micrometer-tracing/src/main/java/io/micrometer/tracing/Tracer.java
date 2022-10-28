@@ -122,23 +122,23 @@ public interface Tracer extends BaggageManager {
         }
 
         @Override
-        public BaggageInScope getBaggage(String name) {
-            return BaggageInScope.NOOP;
+        public Baggage getBaggage(String name) {
+            return Baggage.NOOP;
         }
 
         @Override
-        public BaggageInScope getBaggage(TraceContext traceContext, String name) {
-            return BaggageInScope.NOOP;
+        public Baggage getBaggage(TraceContext traceContext, String name) {
+            return Baggage.NOOP;
         }
 
         @Override
-        public BaggageInScope createBaggage(String name) {
-            return BaggageInScope.NOOP;
+        public Baggage createBaggage(String name) {
+            return Baggage.NOOP;
         }
 
         @Override
-        public BaggageInScope createBaggage(String name, String value) {
-            return BaggageInScope.NOOP;
+        public Baggage createBaggage(String name, String value) {
+            return Baggage.NOOP;
         }
     };
 
