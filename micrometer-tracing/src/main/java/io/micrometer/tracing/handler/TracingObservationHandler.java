@@ -214,6 +214,11 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
             setScope(scope);
         }
 
+        @Override
+        public String toString() {
+            return "TracingContext{" + "span=" + span + ", scope=" + scope + '}';
+        }
+
     }
 
 }
