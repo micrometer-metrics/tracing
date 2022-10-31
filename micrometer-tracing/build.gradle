@@ -14,6 +14,9 @@ dependencies {
 	optionalApi 'ch.qos.logback:logback-classic'
 	optionalApi 'org.apache.logging.log4j:log4j-core'
 
+	// gRPC
+	optionalApi 'io.grpc:grpc-api'
+
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'org.mockito:mockito-core'
