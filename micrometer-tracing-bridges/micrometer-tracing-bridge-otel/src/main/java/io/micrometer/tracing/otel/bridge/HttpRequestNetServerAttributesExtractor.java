@@ -15,22 +15,22 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.net.URI;
-
-import io.micrometer.tracing.http.HttpRequest;
 import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.http.HttpServerRequest;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetServerAttributesGetter;
+
+import java.net.URI;
 
 /**
  * Extracts OpenTelemetry network semantic attributes value for server http spans.
  *
  * @author Nikita Salnikov-Tarnovski
  */
-class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGetter<HttpRequest> {
+class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGetter<HttpServerRequest> {
 
     @Nullable
     @Override
-    public String transport(HttpRequest httpRequest) {
+    public String transport(HttpServerRequest httpRequest) {
         String url = httpRequest.url();
         if (url == null) {
             return null;
@@ -41,7 +41,7 @@ class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGett
 
     @Nullable
     @Override
-    public String hostName(HttpRequest httpRequest) {
+    public String hostName(HttpServerRequest httpRequest) {
         String url = httpRequest.url();
         if (url == null) {
             return null;
@@ -51,19 +51,19 @@ class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGett
     }
 
     @Override
-    public Integer hostPort(HttpRequest httpRequest) {
+    public Integer hostPort(HttpServerRequest httpRequest) {
         return httpRequest.remotePort();
     }
 
     @Nullable
     @Override
-    public String sockPeerAddr(HttpRequest httpRequest) {
+    public String sockPeerAddr(HttpServerRequest httpRequest) {
         return httpRequest.remoteIp();
     }
 
     @Nullable
     @Override
-    public Integer sockPeerPort(HttpRequest httpRequest) {
+    public Integer sockPeerPort(HttpServerRequest httpRequest) {
         return httpRequest.remotePort();
     }
 

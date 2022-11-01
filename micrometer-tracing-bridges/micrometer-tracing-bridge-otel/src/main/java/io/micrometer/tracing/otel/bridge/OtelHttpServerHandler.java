@@ -30,7 +30,6 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttribut
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesGetter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
-import io.opentelemetry.instrumentation.api.instrumenter.net.NetServerAttributesExtractor;
 
 import java.util.regex.Pattern;
 
@@ -74,9 +73,8 @@ public class OtelHttpServerHandler implements HttpServerHandler {
                 .<HttpServerRequest, HttpServerResponse>builder(openTelemetry, "io.micrometer.tracing",
                         HttpSpanNameExtractor.create(httpAttributesExtractor))
                 .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
-                .addAttributesExtractor(
-                        NetServerAttributesExtractor.create(new HttpRequestNetServerAttributesExtractor()))
-                .addAttributesExtractor(HttpServerAttributesExtractor.create(httpAttributesExtractor))
+                .addAttributesExtractor(HttpServerAttributesExtractor.create(httpAttributesExtractor,
+                        new HttpRequestNetServerAttributesExtractor()))
                 .addAttributesExtractor(new PathAttributeExtractor()).buildServerInstrumenter(getGetter());
     }
 
