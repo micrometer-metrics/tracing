@@ -19,6 +19,7 @@ import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,6 +36,29 @@ import java.util.List;
  * @since 1.0.0
  */
 public interface Propagator {
+
+    /**
+     * A noop implementation.
+     * <p>
+     * This implementation could be used with sender/receiver that do not need any
+     * propagation. e.g. database access
+     */
+    Propagator NOOP = new Propagator() {
+        @Override
+        public List<String> fields() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public <C> void inject(TraceContext context, C carrier, Setter<C> setter) {
+
+        }
+
+        @Override
+        public <C> Span.Builder extract(C carrier, Getter<C> getter) {
+            return Span.Builder.NOOP;
+        }
+    };
 
     /**
      * @return collection of headers that contain tracing information
@@ -82,6 +106,13 @@ public interface Propagator {
     interface Setter<C> {
 
         /**
+         * A noop implementation.
+         */
+        @SuppressWarnings("rawtypes")
+        Setter NOOP = (carrier, key, value) -> {
+        };
+
+        /**
          * Replaces a propagated field with the given value.
          *
          * <p>
@@ -109,6 +140,12 @@ public interface Propagator {
      * @param <C> carrier of propagation fields, such as an http request.
      */
     interface Getter<C> {
+
+        /**
+         * A noop implementation.
+         */
+        @SuppressWarnings("rawtypes")
+        Getter NOOP = (carrier, key) -> null;
 
         /**
          * Returns the first value of the given propagation {@code key} or returns
