@@ -81,23 +81,21 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         Context current = Context.current();
         Span currentSpan = Span.current();
         io.opentelemetry.api.baggage.Baggage baggage;
-        if (context != null) {
-            OtelTraceContext ctx = (OtelTraceContext) context;
-            Context storedCtx = ctx.context();
-            Baggage fromContext = Baggage.fromContext(storedCtx);
-
-            BaggageBuilder newBaggageBuilder = fromContext.toBuilder();
-            Baggage.current().forEach((key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(),
-                    baggageEntry.getMetadata()));
-
-            baggage = newBaggageBuilder.put(entry().getKey(), value, entry().getMetadata()).build();
-            current = current.with(baggage);
-            ctx.updateContext(current);
+        if (context == null) {
+            return this;
         }
-        else {
-            baggage = Baggage.builder().put(entry().getKey(), value, entry().getMetadata()).build();
-        }
+        OtelTraceContext ctx = (OtelTraceContext) context;
+        Context storedCtx = ctx.context();
+        Baggage fromContext = Baggage.fromContext(storedCtx);
+
+        BaggageBuilder newBaggageBuilder = fromContext.toBuilder();
+        Baggage.current().forEach(
+                (key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
+
+        baggage = newBaggageBuilder.put(entry().getKey(), value, entry().getMetadata()).build();
+        current = current.with(baggage);
         Context withBaggage = current.with(baggage);
+        ctx.updateContext(withBaggage);
         this.scope.set(withBaggage.makeCurrent());
         if (this.tagFields.stream().map(String::toLowerCase).anyMatch(s -> s.equals(entry().getKey()))) {
             currentSpan.setAttribute(entry().getKey(), value);
@@ -118,6 +116,9 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public BaggageInScope makeCurrent() {
+        if (this.scope.get() == null) {
+            return this;
+        }
         close();
         Entry entry = entry();
         Scope scope = Baggage.builder().put(entry.getKey(), entry.getValue(), entry.getMetadata()).build()
