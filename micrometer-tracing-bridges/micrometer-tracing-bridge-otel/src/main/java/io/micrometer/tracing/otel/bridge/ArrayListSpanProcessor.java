@@ -26,6 +26,7 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -61,7 +62,9 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
 
     @Override
     public CompletableResultCode export(Collection<SpanData> spans) {
-        this.spans.addAll(spans);
+        this.spans.addAll(spans.stream()
+                .filter(f -> !this.spans.contains(f))
+                .collect(Collectors.toList()));
         return CompletableResultCode.ofSuccess();
     }
 
