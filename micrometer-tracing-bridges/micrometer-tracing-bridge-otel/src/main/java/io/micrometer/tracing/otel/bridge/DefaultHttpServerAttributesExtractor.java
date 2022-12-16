@@ -15,14 +15,14 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.http.HttpServerRequest;
+import io.micrometer.tracing.http.HttpServerResponse;
+import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesGetter;
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-
-import io.micrometer.tracing.http.HttpServerRequest;
-import io.micrometer.tracing.http.HttpServerResponse;
-import io.micrometer.common.lang.Nullable;
-import io.opentelemetry.instrumentation.api.instrumenter.http.HttpServerAttributesGetter;
 
 /**
  * Extracts OpenTelemetry http semantic attributes value for server http spans.
@@ -78,12 +78,6 @@ public class DefaultHttpServerAttributesExtractor
         if (url.startsWith("http:")) {
             return "http";
         }
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public String serverName(HttpServerRequest httpServerRequest) {
         return null;
     }
 

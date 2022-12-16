@@ -33,19 +33,43 @@ import java.util.Map;
 
 class OtelPropagatorTests {
 
+    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn()).build();
+
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
+            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+
+    io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+
+    ContextPropagators contextPropagators = ContextPropagators.create(
+            TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance()));
+
+    OtelPropagator otelPropagator = new OtelPropagator(contextPropagators, otelTracer);
+
+    OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
+
     @Test
-    void should_propagate_context_with_baggage() {
-        SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-                .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn()).build();
-        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
-        io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
-        ContextPropagators contextPropagators = ContextPropagators.create(TextMapPropagator
-                .composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance()));
-        OtelPropagator otelPropagator = new OtelPropagator(contextPropagators, otelTracer);
-        OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
+    void should_propagate_context_with_trace_and_baggage() {
         Map<String, String> carrier = new HashMap<>();
         carrier.put("traceparent", "00-3e425f2373d89640bde06e8285e7bf88-9a5fdefae3abb440-00");
+        carrier.put("baggage", "foo=bar");
+        Span.Builder extract = otelPropagator.extract(carrier, Map::get);
+
+        Span span = extract.start();
+
+        BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
+                Collections.emptyList()).getBaggage(span.context(), "foo").makeCurrent();
+        try {
+            BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
+        }
+        finally {
+            baggage.close();
+        }
+    }
+
+    @Test
+    void should_propagate_context_with_baggage_only() {
+        Map<String, String> carrier = new HashMap<>();
         carrier.put("baggage", "foo=bar");
         Span.Builder extract = otelPropagator.extract(carrier, Map::get);
 

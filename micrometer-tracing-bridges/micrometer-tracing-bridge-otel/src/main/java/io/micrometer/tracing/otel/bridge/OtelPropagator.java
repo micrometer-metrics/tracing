@@ -74,11 +74,16 @@ public class OtelPropagator implements Propagator {
             }
         });
         io.opentelemetry.api.trace.Span span = io.opentelemetry.api.trace.Span.fromContextOrNull(extracted);
-        if (span == null || span.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
-            return OtelSpanBuilder.fromOtel(tracer.spanBuilder(""));
-        }
-        OtelTraceContext otelTraceContext = new OtelTraceContext(extracted, span.getSpanContext(), span);
+        OtelTraceContext otelTraceContext = getOtelTraceContext(extracted, span);
         return OtelSpanBuilder.fromOtel(this.tracer.spanBuilder("")).setParent(otelTraceContext);
+    }
+
+    private static OtelTraceContext getOtelTraceContext(Context extracted, io.opentelemetry.api.trace.Span span) {
+        if (span == null || span.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
+            io.opentelemetry.api.trace.Span invalid = io.opentelemetry.api.trace.Span.getInvalid();
+            return new OtelTraceContext(extracted, invalid.getSpanContext(), invalid);
+        }
+        return new OtelTraceContext(extracted, span.getSpanContext(), span);
     }
 
 }

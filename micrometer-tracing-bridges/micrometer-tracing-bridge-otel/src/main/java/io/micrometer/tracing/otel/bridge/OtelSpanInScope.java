@@ -19,6 +19,7 @@ import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Tracer;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
 class OtelSpanInScope implements Tracer.SpanInScope {
@@ -45,7 +46,11 @@ class OtelSpanInScope implements Tracer.SpanInScope {
             SpanFromSpanContext spanFromSpanContext = (SpanFromSpanContext) otelSpan;
             return spanFromSpanContext.otelTraceContext.context().makeCurrent();
         }
-        return otelSpan.makeCurrent();
+        if (this.span == null || this.span.context() == null || this.span.context().context() == null) {
+            return otelSpan.makeCurrent();
+        }
+        Context context = this.span.context().context();
+        return context.with(otelSpan).makeCurrent();
     }
 
     @Override

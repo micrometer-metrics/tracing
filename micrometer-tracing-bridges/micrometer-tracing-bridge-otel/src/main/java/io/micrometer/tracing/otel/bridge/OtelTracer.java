@@ -16,8 +16,11 @@
 package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.tracing.*;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * OpenTelemetry implementation of a {@link Tracer}.
@@ -66,8 +69,22 @@ public class OtelTracer implements Tracer {
         if (parent == null) {
             return nextSpan();
         }
-        return OtelSpan.fromOtel(
-                this.tracer.spanBuilder("").setParent(OtelTraceContext.toOtelContext(parent.context())).startSpan());
+        OtelSpan otelSpan = (OtelSpan) parent;
+        AtomicReference<Context> context = otelSpan.context().context;
+        Context otelContext = context.get();
+        Scope scope = null;
+        if (otelContext != null) {
+            scope = otelContext.makeCurrent();
+        }
+        try {
+            return OtelSpan.fromOtel(this.tracer.spanBuilder("")
+                    .setParent(OtelTraceContext.toOtelContext(parent.context())).startSpan());
+        }
+        finally {
+            if (scope != null) {
+                scope.close();
+            }
+        }
     }
 
     @Override
