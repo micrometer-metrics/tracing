@@ -18,7 +18,6 @@ package io.micrometer.tracing.brave.bridge;
 import brave.Tracing;
 import brave.baggage.BaggageField;
 import brave.internal.baggage.BaggageFields;
-import brave.propagation.SamplingFlags;
 import brave.propagation.TraceContextOrSamplingFlags;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
@@ -57,9 +56,6 @@ public class BravePropagator implements Propagator {
     @Override
     public <C> Span.Builder extract(C carrier, Getter<C> getter) {
         TraceContextOrSamplingFlags extract = this.tracing.propagation().extractor(getter::get).extract(carrier);
-        if (extract.samplingFlags() == SamplingFlags.EMPTY) {
-            return new BraveSpanBuilder(this.tracing.tracer());
-        }
         updateExistingBaggageFieldsWithUpdatedValues(extract);
         return BraveSpanBuilder.toBuilder(this.tracing.tracer(), extract);
     }

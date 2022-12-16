@@ -17,6 +17,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
@@ -41,12 +42,16 @@ class OtelPropagatorTests {
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
+    OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
+
+    OtelBaggageManager otelBaggageManager = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
+            Collections.emptyList());
+
     ContextPropagators contextPropagators = ContextPropagators.create(
-            TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance()));
+            TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
+                    new BaggageTextMapPropagator(Collections.singletonList("foo"), otelBaggageManager)));
 
     OtelPropagator otelPropagator = new OtelPropagator(contextPropagators, otelTracer);
-
-    OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
 
     @Test
     void should_propagate_context_with_trace_and_baggage() {
@@ -57,8 +62,7 @@ class OtelPropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
-                Collections.emptyList()).getBaggage(span.context(), "foo").makeCurrent();
+        BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent();
         try {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }
@@ -71,6 +75,23 @@ class OtelPropagatorTests {
     void should_propagate_context_with_baggage_only() {
         Map<String, String> carrier = new HashMap<>();
         carrier.put("baggage", "foo=bar");
+        Span.Builder extract = otelPropagator.extract(carrier, Map::get);
+
+        Span span = extract.start();
+
+        BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent();
+        try {
+            BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
+        }
+        finally {
+            baggage.close();
+        }
+    }
+
+    @Test
+    void should_propagate_context_with_baggage_only_as_field() {
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("foo", "bar");
         Span.Builder extract = otelPropagator.extract(carrier, Map::get);
 
         Span span = extract.start();
