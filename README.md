@@ -20,7 +20,7 @@ To use:
 
 ```groovy
 repositories {
-    maven { url 'https://repo.spring.io/libs-snapshot' }
+    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {

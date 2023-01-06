@@ -15,7 +15,6 @@ buildscript {
 		classpath 'com.netflix.nebula:nebula-publishing-plugin:18.4.0'
 		classpath 'com.netflix.nebula:nebula-project-plugin:9.4.0'
 		classpath 'io.spring.nohttp:nohttp-gradle:0.0.10'
-		classpath 'org.gradle:test-retry-gradle-plugin:1.4.1'
 		classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
 		classpath 'io.spring.javaformat:spring-javaformat-gradle-plugin:0.0.35'
 
@@ -52,7 +51,6 @@ subprojects {
 		apply plugin: 'com.github.hierynomus.license'
 		apply plugin: 'checkstyle'
 		apply plugin: 'io.spring.nohttp'
-		apply plugin: 'org.gradle.test-retry'
 		apply plugin: 'io.spring.javaformat'
 
 		java {
