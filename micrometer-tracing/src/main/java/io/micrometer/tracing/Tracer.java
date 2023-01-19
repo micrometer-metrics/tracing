@@ -68,6 +68,9 @@ import java.util.Map;
  */
 public interface Tracer extends BaggageManager {
 
+    /**
+     * A noop implementation.
+     */
     Tracer NOOP = new Tracer() {
         @Override
         public Span nextSpan() {
