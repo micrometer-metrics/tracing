@@ -72,12 +72,17 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
      */
     @Override
     default void onScopeOpened(T context) {
-        Span span = getTracingContext(context).getSpan();
+        TracingContext tracingContext = getTracingContext(context);
+        Span span = tracingContext.getSpan();
         if (span == null) {
             return;
         }
         CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(span.context());
-        getTracingContext(context).setSpanAndScope(span, scope);
+        CurrentTraceContext.Scope previousScope = tracingContext.getScope();
+        tracingContext.setSpanAndScope(span, () -> {
+            scope.close();
+            tracingContext.setScope(previousScope);
+        });
     }
 
     @Override

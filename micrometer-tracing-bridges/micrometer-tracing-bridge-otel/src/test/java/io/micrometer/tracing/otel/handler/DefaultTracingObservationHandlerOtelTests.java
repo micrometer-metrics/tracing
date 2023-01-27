@@ -17,10 +17,13 @@ package io.micrometer.tracing.otel.handler;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.Observation.Event;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.handler.TracingObservationHandler;
 import io.micrometer.tracing.otel.bridge.*;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
@@ -93,6 +96,43 @@ class DefaultTracingObservationHandlerOtelTests {
 
         then(tracer.currentSpan()).as("Span still not in scope").isNull();
         thenSpanStartedAndStopped(currentNanos);
+    }
+
+    @Test
+    void should_put_and_remove_trace_from_thread_local_on_scope_change_for_the_same_observation() {
+        ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(handler);
+
+        Observation parent = Observation.start("parent", registry);
+        Span parentSpan = getSpanFromObservation(parent);
+
+        then(parentSpan).isNotNull();
+
+        parent.scoped(() -> {
+
+            then(tracer.currentSpan()).isEqualTo(parentSpan);
+
+            Observation child = Observation.start("child", registry);
+            Span childSpan = getSpanFromObservation(child);
+
+            child.scoped(() -> {
+                then(tracer.currentSpan()).isEqualTo(childSpan);
+                child.scoped(() -> {
+                    then(tracer.currentSpan()).isEqualTo(childSpan);
+                });
+                then(tracer.currentSpan()).isEqualTo(childSpan);
+            });
+
+            then(tracer.currentSpan()).isEqualTo(parentSpan);
+        });
+
+        then(tracer.currentSpan()).isNull();
+    }
+
+    private static Span getSpanFromObservation(Observation parent) {
+        TracingObservationHandler.TracingContext tracingContext = parent.getContextView().getOrDefault(
+                TracingObservationHandler.TracingContext.class, new TracingObservationHandler.TracingContext());
+        return tracingContext.getSpan();
     }
 
     @Test
