@@ -1,4 +1,4 @@
-# Micrometer Application Metrics
+# Micrometer Tracing Facade
 
 [![Build Status](https://circleci.com/gh/micrometer-metrics/tracing.svg?style=shield)](https://circleci.com/gh/micrometer-metrics/tracing)
 [![Apache 2.0](https://img.shields.io/github/license/micrometer-metrics/tracing.svg)](https://www.apache.org/licenses/LICENSE-2.0)
