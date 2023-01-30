@@ -16,9 +16,13 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 
 class TracingObservationHandlerTests {
 
@@ -28,6 +32,16 @@ class TracingObservationHandlerTests {
 
         thenThrownBy(() -> handler.onEvent(() -> "", new Observation.Context()))
                 .isInstanceOf(IllegalStateException.class).hasMessageContaining("Span wasn't started");
+    }
+
+    @Test
+    void spanShouldBeClearedOnScopeReset() {
+        Tracer tracer = mock(Tracer.class);
+        TracingObservationHandler<Observation.Context> handler = () -> tracer;
+
+        handler.onScopeReset();
+
+        then(tracer).should().withSpan(isNull());
     }
 
 }
