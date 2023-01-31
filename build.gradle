@@ -303,8 +303,8 @@ subprojects {
 	description = 'Facade over tracing concepts'
 
 	repositories {
-		mavenLocal()
 		mavenCentral()
+		maven { url "https://repo.spring.io/snapshot/" } // for micrometer & context-propagation snapshots
 	}
 
 	def check = tasks.findByName('check')
