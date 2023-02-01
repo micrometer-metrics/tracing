@@ -39,7 +39,7 @@ class TracingObservationHandlerTests {
         Tracer tracer = mock(Tracer.class);
         TracingObservationHandler<Observation.Context> handler = () -> tracer;
 
-        handler.onScopeReset();
+        handler.onScopeReset(new Observation.Context());
 
         then(tracer).should().withSpan(isNull());
     }

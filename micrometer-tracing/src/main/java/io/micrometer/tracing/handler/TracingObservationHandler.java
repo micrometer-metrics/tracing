@@ -86,7 +86,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     }
 
     @Override
-    default void onScopeReset() {
+    default void onScopeReset(T context) {
         getTracer().withSpan(null);
     }
 
