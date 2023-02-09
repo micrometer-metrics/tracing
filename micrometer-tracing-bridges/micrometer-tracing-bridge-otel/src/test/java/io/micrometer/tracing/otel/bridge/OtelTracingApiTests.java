@@ -229,7 +229,6 @@ class OtelTracingApiTests {
             then(MDC.get("customTraceId")).isNotBlank();
         }
         finally {
-
             newSpan.end();
         }
     }
