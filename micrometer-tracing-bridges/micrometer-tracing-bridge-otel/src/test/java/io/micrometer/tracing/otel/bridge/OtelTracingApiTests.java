@@ -19,6 +19,7 @@ import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
@@ -39,6 +40,8 @@ import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelTracingApiTests {
+
+    private ContextStorage cache;
 
     // [OTel component] Example of using a SpanExporter. SpanExporter is a component
     // that gets called when a span is finished.
@@ -62,7 +65,11 @@ class OtelTracingApiTests {
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting up MDC
     Slf4JEventListener slf4JEventListener = new Slf4JEventListener();
 
-    Slf4JEventListener slf4JEventListenerCustom = new Slf4JEventListener("customTraceId", "customSpanId");
+    private final String customTraceIdKey = "customTraceId";
+
+    private final String customSpanIdKey = "customSpanId";
+
+    Slf4JEventListener slf4JEventListenerCustom = new Slf4JEventListener(customTraceIdKey, customSpanIdKey);
 
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting
     // Baggage in MDC. Customizable
@@ -73,18 +80,10 @@ class OtelTracingApiTests {
     // You can consider
     // customizing the baggage manager with correlation and remote fields (currently
     // we're setting empty lists)
-    OtelTracer tracer;
-
-    {
-        OtelTracer.EventPublisher eventPublisher = event -> {
-            slf4JEventListener.onEvent(event);
-            slf4JEventListenerCustom.onEvent(event);
-            slf4JBaggageEventListener.onEvent(event);
-        };
-        ContextStorage.addWrapper(new EventPublishingContextWrapper(eventPublisher));
-        tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, eventPublisher,
-                new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
-    }
+    OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
+        slf4JEventListener.onEvent(event);
+        slf4JBaggageEventListener.onEvent(event);
+    }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
 
     @BeforeEach
     void setup() {
@@ -222,15 +221,62 @@ class OtelTracingApiTests {
     }
 
     @Test
-    void testMDC() {
+    void testSlf4JEventListener() {
         Span newSpan = this.tracer.nextSpan().name("testMDC");
         try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
-            then(MDC.get("traceId")).isNotBlank();
-            then(MDC.get("customTraceId")).isNotBlank();
+            Context current = Context.current();
+
+            EventPublishingContextWrapper.ScopeAttachedEvent scopeAttachedEvent = new EventPublishingContextWrapper.ScopeAttachedEvent(
+                    current);
+            slf4JEventListener.onEvent(scopeAttachedEvent);
+            slf4JEventListenerCustom.onEvent(scopeAttachedEvent);
+
+            String traceId = MDC.get("traceId");
+            String customTraceId = MDC.get(customTraceIdKey);
+
+            then(traceId).isNotBlank();
+            then(customTraceId).isNotBlank();
+            then(traceId).isEqualTo(customTraceId);
+
+            String spanId = MDC.get("spanId");
+            String customSpanId = MDC.get(customSpanIdKey);
+
+            then(spanId).isNotBlank();
+            then(customSpanId).isNotBlank();
+            then(spanId).isEqualTo(customSpanId);
+
+            EventPublishingContextWrapper.ScopeRestoredEvent scopeRestoredEvent = new EventPublishingContextWrapper.ScopeRestoredEvent(
+                    current);
+            slf4JEventListener.onEvent(scopeRestoredEvent);
+            slf4JEventListenerCustom.onEvent(scopeRestoredEvent);
+
+            traceId = MDC.get("traceId");
+            customTraceId = MDC.get(customTraceIdKey);
+
+            then(traceId).isNotBlank();
+            then(customTraceId).isNotBlank();
+            then(traceId).isEqualTo(customTraceId);
+
+            spanId = MDC.get("spanId");
+            customSpanId = MDC.get(customSpanIdKey);
+
+            then(spanId).isNotBlank();
+            then(customSpanId).isNotBlank();
+            then(spanId).isEqualTo(customSpanId);
         }
         finally {
             newSpan.end();
         }
+
+        EventPublishingContextWrapper.ScopeClosedEvent scopeClosedEvent = new EventPublishingContextWrapper.ScopeClosedEvent();
+        slf4JEventListener.onEvent(scopeClosedEvent);
+        slf4JEventListenerCustom.onEvent(scopeClosedEvent);
+
+        then(MDC.get("traceId")).isNull();
+        then(MDC.get("customTraceId")).isNull();
+        then(MDC.get("spanId")).isNull();
+        then(MDC.get("customSpanId")).isNull();
+
     }
 
 }
