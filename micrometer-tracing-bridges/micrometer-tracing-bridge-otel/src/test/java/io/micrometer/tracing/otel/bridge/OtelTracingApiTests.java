@@ -20,7 +20,6 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -40,8 +39,6 @@ import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelTracingApiTests {
-
-    private ContextStorage cache;
 
     // [OTel component] Example of using a SpanExporter. SpanExporter is a component
     // that gets called when a span is finished.
