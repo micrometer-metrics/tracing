@@ -270,9 +270,9 @@ class OtelTracingApiTests {
         slf4JEventListenerCustom.onEvent(scopeClosedEvent);
 
         then(MDC.get("traceId")).isNull();
-        then(MDC.get("customTraceId")).isNull();
+        then(MDC.get(customTraceIdKey)).isNull();
         then(MDC.get("spanId")).isNull();
-        then(MDC.get("customSpanId")).isNull();
+        then(MDC.get(customSpanIdKey)).isNull();
 
     }
 
