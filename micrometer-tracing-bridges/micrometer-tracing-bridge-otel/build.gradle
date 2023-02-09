@@ -6,7 +6,6 @@ dependencies {
 	api project(':micrometer-tracing')
 	api 'org.slf4j:slf4j-api'
 	api 'io.micrometer:micrometer-observation'
-
 	api 'io.opentelemetry:opentelemetry-api'
 	api 'io.opentelemetry:opentelemetry-extension-aws'
 	api 'io.opentelemetry:opentelemetry-semconv'
@@ -17,10 +16,10 @@ dependencies {
 	optionalApi 'io.opentelemetry:opentelemetry-exporter-logging'
 	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
 	optionalApi 'io.opentelemetry:opentelemetry-opentracing-shim'
-
 	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'ch.qos.logback:logback-classic:1.2.11'
 }

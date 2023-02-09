@@ -19,6 +19,7 @@ import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -28,6 +29,7 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -60,6 +62,8 @@ class OtelTracingApiTests {
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting up MDC
     Slf4JEventListener slf4JEventListener = new Slf4JEventListener();
 
+    Slf4JEventListener slf4JEventListenerCustom = new Slf4JEventListener("customTraceId", "customSpanId");
+
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting
     // Baggage in MDC. Customizable
     // with correlation fields (currently we're setting empty list)
@@ -69,10 +73,18 @@ class OtelTracingApiTests {
     // You can consider
     // customizing the baggage manager with correlation and remote fields (currently
     // we're setting empty lists)
-    OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
-        slf4JEventListener.onEvent(event);
-        slf4JBaggageEventListener.onEvent(event);
-    }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
+    OtelTracer tracer;
+
+    {
+        OtelTracer.EventPublisher eventPublisher = event -> {
+            slf4JEventListener.onEvent(event);
+            slf4JEventListenerCustom.onEvent(event);
+            slf4JBaggageEventListener.onEvent(event);
+        };
+        ContextStorage.addWrapper(new EventPublishingContextWrapper(eventPublisher));
+        tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, eventPublisher,
+                new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
+    }
 
     @BeforeEach
     void setup() {
@@ -207,6 +219,19 @@ class OtelTracingApiTests {
         // You will retrieve the baggage value ALWAYS when you pass the context explicitly
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3")
                 .isEqualTo("value 3");
+    }
+
+    @Test
+    void testMDC() {
+        Span newSpan = this.tracer.nextSpan().name("testMDC");
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
+            then(MDC.get("traceId")).isNotBlank();
+            then(MDC.get("customTraceId")).isNotBlank();
+        }
+        finally {
+
+            newSpan.end();
+        }
     }
 
 }
