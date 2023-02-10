@@ -62,11 +62,6 @@ class OtelTracingApiTests {
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting up MDC
     Slf4JEventListener slf4JEventListener = new Slf4JEventListener();
 
-    private final String customTraceIdKey = "customTraceId";
-
-    private final String customSpanIdKey = "customSpanId";
-
-    Slf4JEventListener slf4JEventListenerCustom = new Slf4JEventListener(customTraceIdKey, customSpanIdKey);
 
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting
     // Baggage in MDC. Customizable
@@ -219,6 +214,13 @@ class OtelTracingApiTests {
 
     @Test
     void testSlf4JEventListener() {
+        String customTraceIdKey = "customTraceId";
+
+        String customSpanIdKey = "customSpanId";
+
+
+        Slf4JEventListener customSlf4JEventListener = new Slf4JEventListener(customTraceIdKey, customSpanIdKey);
+
         Span newSpan = this.tracer.nextSpan().name("testMDC");
         try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
             Context current = Context.current();
@@ -226,7 +228,7 @@ class OtelTracingApiTests {
             EventPublishingContextWrapper.ScopeAttachedEvent scopeAttachedEvent = new EventPublishingContextWrapper.ScopeAttachedEvent(
                     current);
             slf4JEventListener.onEvent(scopeAttachedEvent);
-            slf4JEventListenerCustom.onEvent(scopeAttachedEvent);
+            customSlf4JEventListener.onEvent(scopeAttachedEvent);
 
             String traceId = MDC.get("traceId");
             String customTraceId = MDC.get(customTraceIdKey);
@@ -245,7 +247,7 @@ class OtelTracingApiTests {
             EventPublishingContextWrapper.ScopeRestoredEvent scopeRestoredEvent = new EventPublishingContextWrapper.ScopeRestoredEvent(
                     current);
             slf4JEventListener.onEvent(scopeRestoredEvent);
-            slf4JEventListenerCustom.onEvent(scopeRestoredEvent);
+            customSlf4JEventListener.onEvent(scopeRestoredEvent);
 
             traceId = MDC.get("traceId");
             customTraceId = MDC.get(customTraceIdKey);
@@ -267,7 +269,7 @@ class OtelTracingApiTests {
 
         EventPublishingContextWrapper.ScopeClosedEvent scopeClosedEvent = new EventPublishingContextWrapper.ScopeClosedEvent();
         slf4JEventListener.onEvent(scopeClosedEvent);
-        slf4JEventListenerCustom.onEvent(scopeClosedEvent);
+        customSlf4JEventListener.onEvent(scopeClosedEvent);
 
         then(MDC.get("traceId")).isNull();
         then(MDC.get(customTraceIdKey)).isNull();
