@@ -62,7 +62,6 @@ class OtelTracingApiTests {
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting up MDC
     Slf4JEventListener slf4JEventListener = new Slf4JEventListener();
 
-
     // [Micrometer Tracing component] A Micrometer Tracing listener for setting
     // Baggage in MDC. Customizable
     // with correlation fields (currently we're setting empty list)
@@ -215,10 +214,7 @@ class OtelTracingApiTests {
     @Test
     void testSlf4JEventListener() {
         String customTraceIdKey = "customTraceId";
-
         String customSpanIdKey = "customSpanId";
-
-
         Slf4JEventListener customSlf4JEventListener = new Slf4JEventListener(customTraceIdKey, customSpanIdKey);
 
         Span newSpan = this.tracer.nextSpan().name("testMDC");
