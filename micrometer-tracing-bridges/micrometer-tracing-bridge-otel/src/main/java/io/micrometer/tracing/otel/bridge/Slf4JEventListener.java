@@ -29,12 +29,34 @@ public class Slf4JEventListener implements EventListener {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(Slf4JEventListener.class);
 
+    private static final String DEFAULT_TRACE_ID_KEY = "traceId";
+
+    private static final String DEFAULT_SPAN_ID_KEY = "spanId";
+
+    private final String traceIdKey;
+
+    private final String spanIdKey;
+
+    public Slf4JEventListener() {
+        this(DEFAULT_TRACE_ID_KEY, DEFAULT_SPAN_ID_KEY);
+    }
+
+    /**
+     * @param traceIdKey custom traceId Key
+     * @param spanIdKey custom spanId Key
+     * @since 1.1.0
+     */
+    public Slf4JEventListener(String traceIdKey, String spanIdKey) {
+        this.traceIdKey = traceIdKey;
+        this.spanIdKey = spanIdKey;
+    }
+
     private void onScopeAttached(EventPublishingContextWrapper.ScopeAttachedEvent event) {
         log.trace("Got scope changed event [{}]", event);
         Span span = event.getSpan();
         if (span != null) {
-            MDC.put("traceId", span.getSpanContext().getTraceId());
-            MDC.put("spanId", span.getSpanContext().getSpanId());
+            MDC.put(traceIdKey, span.getSpanContext().getTraceId());
+            MDC.put(spanIdKey, span.getSpanContext().getSpanId());
         }
     }
 
@@ -42,15 +64,15 @@ public class Slf4JEventListener implements EventListener {
         log.trace("Got scope restored event [{}]", event);
         Span span = event.getSpan();
         if (span != null) {
-            MDC.put("traceId", span.getSpanContext().getTraceId());
-            MDC.put("spanId", span.getSpanContext().getSpanId());
+            MDC.put(traceIdKey, span.getSpanContext().getTraceId());
+            MDC.put(spanIdKey, span.getSpanContext().getSpanId());
         }
     }
 
     private void onScopeClosed(EventPublishingContextWrapper.ScopeClosedEvent event) {
         log.trace("Got scope closed event [{}]", event);
-        MDC.remove("traceId");
-        MDC.remove("spanId");
+        MDC.remove(traceIdKey);
+        MDC.remove(spanIdKey);
     }
 
     @Override

@@ -19,6 +19,7 @@ import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -28,6 +29,7 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -207,6 +209,69 @@ class OtelTracingApiTests {
         // You will retrieve the baggage value ALWAYS when you pass the context explicitly
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3")
                 .isEqualTo("value 3");
+    }
+
+    @Test
+    void testSlf4JEventListener() {
+        String customTraceIdKey = "customTraceId";
+        String customSpanIdKey = "customSpanId";
+        Slf4JEventListener customSlf4JEventListener = new Slf4JEventListener(customTraceIdKey, customSpanIdKey);
+
+        Span newSpan = this.tracer.nextSpan().name("testMDC");
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
+            Context current = Context.current();
+
+            EventPublishingContextWrapper.ScopeAttachedEvent scopeAttachedEvent = new EventPublishingContextWrapper.ScopeAttachedEvent(
+                    current);
+            slf4JEventListener.onEvent(scopeAttachedEvent);
+            customSlf4JEventListener.onEvent(scopeAttachedEvent);
+
+            String traceId = MDC.get("traceId");
+            String customTraceId = MDC.get(customTraceIdKey);
+
+            then(traceId).isNotBlank();
+            then(customTraceId).isNotBlank();
+            then(traceId).isEqualTo(customTraceId);
+
+            String spanId = MDC.get("spanId");
+            String customSpanId = MDC.get(customSpanIdKey);
+
+            then(spanId).isNotBlank();
+            then(customSpanId).isNotBlank();
+            then(spanId).isEqualTo(customSpanId);
+
+            EventPublishingContextWrapper.ScopeRestoredEvent scopeRestoredEvent = new EventPublishingContextWrapper.ScopeRestoredEvent(
+                    current);
+            slf4JEventListener.onEvent(scopeRestoredEvent);
+            customSlf4JEventListener.onEvent(scopeRestoredEvent);
+
+            traceId = MDC.get("traceId");
+            customTraceId = MDC.get(customTraceIdKey);
+
+            then(traceId).isNotBlank();
+            then(customTraceId).isNotBlank();
+            then(traceId).isEqualTo(customTraceId);
+
+            spanId = MDC.get("spanId");
+            customSpanId = MDC.get(customSpanIdKey);
+
+            then(spanId).isNotBlank();
+            then(customSpanId).isNotBlank();
+            then(spanId).isEqualTo(customSpanId);
+        }
+        finally {
+            newSpan.end();
+        }
+
+        EventPublishingContextWrapper.ScopeClosedEvent scopeClosedEvent = new EventPublishingContextWrapper.ScopeClosedEvent();
+        slf4JEventListener.onEvent(scopeClosedEvent);
+        customSlf4JEventListener.onEvent(scopeClosedEvent);
+
+        then(MDC.get("traceId")).isNull();
+        then(MDC.get(customTraceIdKey)).isNull();
+        then(MDC.get("spanId")).isNull();
+        then(MDC.get(customSpanIdKey)).isNull();
+
     }
 
 }
