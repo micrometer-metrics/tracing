@@ -20,6 +20,7 @@ dependencies {
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'org.awaitility:awaitility'
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
 	testImplementation 'ch.qos.logback:logback-classic'
 }
