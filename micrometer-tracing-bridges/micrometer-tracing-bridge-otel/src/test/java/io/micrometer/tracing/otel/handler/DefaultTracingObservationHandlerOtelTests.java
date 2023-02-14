@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.handler;
 
+import io.micrometer.context.ContextSnapshot;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.ObservationRegistry;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -206,6 +208,32 @@ class DefaultTracingObservationHandlerOtelTests {
 
         SpanData data = takeOnlySpan();
         then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("bar");
+    }
+
+    @Test
+    void should_not_break_when_dealing_with_threads() throws InterruptedException {
+        ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(handler);
+
+        Observation parent = Observation.start("parent", registry);
+        Span parentSpan = getSpanFromObservation(parent);
+
+        then(parentSpan).isNotNull();
+
+        try (Observation.Scope scope = parent.openScope()) {
+            then(tracer.currentSpan()).isEqualTo(parentSpan);
+            AtomicReference<Span> span = new AtomicReference<>();
+            new Thread(ContextSnapshot.captureAll().wrap(() -> {
+                span.set(tracer.currentSpan());
+            })).start();
+
+            Thread.sleep(100);
+
+            then(span.get()).isEqualTo(parentSpan);
+            then(tracer.currentSpan()).isEqualTo(parentSpan);
+        }
+
+        then(tracer.currentSpan()).isNull();
     }
 
     private SpanData takeOnlySpan() {

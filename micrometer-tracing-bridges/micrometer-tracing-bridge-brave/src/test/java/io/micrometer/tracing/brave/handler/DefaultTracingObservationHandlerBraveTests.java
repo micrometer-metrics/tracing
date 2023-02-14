@@ -18,6 +18,7 @@ package io.micrometer.tracing.brave.handler;
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
+import io.micrometer.context.ContextSnapshot;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.ObservationRegistry;
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -185,6 +187,32 @@ class DefaultTracingObservationHandlerBraveTests {
 
             then(tracer.currentSpan()).isEqualTo(parentSpan);
         });
+
+        then(tracer.currentSpan()).isNull();
+    }
+
+    @Test
+    void should_not_break_when_dealing_with_threads() throws InterruptedException {
+        ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(handler);
+
+        Observation parent = Observation.start("parent", registry);
+        Span parentSpan = getSpanFromObservation(parent);
+
+        then(parentSpan).isNotNull();
+
+        try (Observation.Scope scope = parent.openScope()) {
+            then(tracer.currentSpan()).isEqualTo(parentSpan);
+            AtomicReference<Span> span = new AtomicReference<>();
+            new Thread(ContextSnapshot.captureAll().wrap(() -> {
+                span.set(tracer.currentSpan());
+            })).start();
+
+            Thread.sleep(100);
+
+            then(span.get()).isEqualTo(parentSpan);
+            then(tracer.currentSpan()).isEqualTo(parentSpan);
+        }
 
         then(tracer.currentSpan()).isNull();
     }
