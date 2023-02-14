@@ -22,5 +22,6 @@ dependencies {
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'org.awaitility:awaitility'
 	testImplementation 'org.mockito:mockito-core'
 }

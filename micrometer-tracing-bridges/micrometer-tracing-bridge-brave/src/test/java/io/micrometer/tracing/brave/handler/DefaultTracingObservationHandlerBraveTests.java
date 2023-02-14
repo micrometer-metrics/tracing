@@ -37,12 +37,14 @@ import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.awaitility.Awaitility.await;
 
 @SuppressWarnings("unchecked")
 class DefaultTracingObservationHandlerBraveTests {
@@ -204,11 +206,8 @@ class DefaultTracingObservationHandlerBraveTests {
         try (Observation.Scope scope = parent.openScope()) {
             then(tracer.currentSpan()).isEqualTo(parentSpan);
             AtomicReference<Span> span = new AtomicReference<>();
-            new Thread(ContextSnapshot.captureAll().wrap(() -> {
-                span.set(tracer.currentSpan());
-            })).start();
-
-            Thread.sleep(100);
+            new Thread(ContextSnapshot.captureAll().wrap(() -> span.set(tracer.currentSpan()))).start();
+            await().pollDelay(Duration.ofMillis(10)).atMost(Duration.ofMillis(100)).until(() -> span.get() != null);
 
             then(span.get()).isEqualTo(parentSpan);
             then(tracer.currentSpan()).isEqualTo(parentSpan);
