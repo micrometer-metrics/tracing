@@ -306,7 +306,7 @@ subprojects {
 		mavenCentral()
 		maven {
 			// TODO remove before releasing
-			url 'https://repo.spring.io/milestone/'
+			url 'https://repo.spring.io/snapshot/'
 			content {
 				includeGroupByRegex 'io\\.micrometer'
 			}
