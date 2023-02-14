@@ -183,7 +183,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
         private Span span;
 
-        Map<Thread, CurrentTraceContext.Scope> scopes = new ConcurrentHashMap<>();
+        private Map<Thread, CurrentTraceContext.Scope> scopes = new ConcurrentHashMap<>();
 
         /**
          * Returns the span.
