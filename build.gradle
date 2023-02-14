@@ -304,7 +304,13 @@ subprojects {
 
 	repositories {
 		mavenCentral()
-		maven { url "https://repo.spring.io/snapshot/" } // for micrometer & context-propagation snapshots
+		maven {
+			// TODO remove before releasing
+			url 'https://repo.spring.io/milestone/'
+			content {
+				includeGroupByRegex 'io\\.micrometer'
+			}
+		}
 	}
 
 	def check = tasks.findByName('check')
