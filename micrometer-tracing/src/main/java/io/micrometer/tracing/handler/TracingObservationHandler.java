@@ -28,6 +28,9 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Marker interface for tracing handlers.
  *
@@ -180,7 +183,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
         private Span span;
 
-        private CurrentTraceContext.Scope scope;
+        Map<Thread, CurrentTraceContext.Scope> scopes = new ConcurrentHashMap<>();
 
         /**
          * Returns the span.
@@ -203,7 +206,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
          * @return scope of the span
          */
         public CurrentTraceContext.Scope getScope() {
-            return this.scope;
+            return this.scopes.get(Thread.currentThread());
         }
 
         /**
@@ -211,7 +214,12 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
          * @param scope scope to set
          */
         public void setScope(CurrentTraceContext.Scope scope) {
-            this.scope = scope;
+            if (scope == null) {
+                this.scopes.remove(Thread.currentThread());
+            }
+            else {
+                this.scopes.put(Thread.currentThread(), scope);
+            }
         }
 
         /**
@@ -226,7 +234,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
         @Override
         public String toString() {
-            return "TracingContext{" + "span=" + span + ", scope=" + scope + '}';
+            return "TracingContext{" + "span=" + span + ", scope=" + scopes + '}';
         }
 
     }
