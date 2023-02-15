@@ -15,8 +15,6 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import java.util.Deque;
-
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.SpanAndScope;
 import io.micrometer.tracing.Tracer;
@@ -31,33 +29,41 @@ public class SimpleSpanInScope implements Tracer.SpanInScope {
 
     private volatile boolean closed;
 
-    private final Deque<SpanAndScope> scopedSpans;
+    private final ThreadLocal<SpanAndScope> scopedSpans;
 
     private final Span span;
 
     private final SpanAndScope spanAndScope;
+
+    private final SpanAndScope previousSpanAndScope;
 
     /**
      * Creates a new instance of {@link SimpleSpanInScope}.
      * @param span span
      * @param scopedSpans scoped spans
      */
-    public SimpleSpanInScope(Span span, Deque<SpanAndScope> scopedSpans) {
+    public SimpleSpanInScope(Span span, ThreadLocal<SpanAndScope> scopedSpans) {
         this.span = span;
         this.scopedSpans = scopedSpans;
         this.spanAndScope = new SpanAndScope(span, this);
-        this.scopedSpans.addFirst(this.spanAndScope);
+        this.previousSpanAndScope = scopedSpans.get();
+        if (span != null) {
+            this.scopedSpans.set(this.spanAndScope);
+        }
+        else {
+            this.scopedSpans.remove();
+        }
     }
 
     @Override
     public void close() {
         this.closed = true;
-        SpanAndScope first = this.scopedSpans.peekFirst();
-        if (first != this.spanAndScope) {
+        SpanAndScope current = this.scopedSpans.get();
+        if (current != null && current != this.spanAndScope) {
             throw new IllegalStateException("Trying to close scope for span [" + span
-                    + "] but current span in scope is [" + (first != null ? first.getSpan() : null) + "]");
+                    + "] but current span in scope is [" + current.getSpan() + "]");
         }
-        this.scopedSpans.remove(this.spanAndScope);
+        this.scopedSpans.set(this.previousSpanAndScope);
     }
 
     /**

@@ -35,7 +35,7 @@ public class SimpleTracer implements Tracer {
 
     private final Deque<SimpleSpan> spans = new LinkedBlockingDeque<>();
 
-    private final Deque<SpanAndScope> scopedSpans = new LinkedBlockingDeque<>();
+    private final ThreadLocal<SpanAndScope> scopedSpans = new ThreadLocal<>();
 
     /**
      * Creates a new instance of {@link SimpleTracer}.
@@ -94,8 +94,8 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpan currentSpan() {
-        SpanAndScope first = this.scopedSpans.peekFirst();
-        return first != null ? (SimpleSpan) first.getSpan() : null;
+        SpanAndScope current = this.scopedSpans.get();
+        return current != null ? (SimpleSpan) current.getSpan() : null;
     }
 
     @Override
