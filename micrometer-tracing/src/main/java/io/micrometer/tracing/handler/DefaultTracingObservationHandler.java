@@ -54,14 +54,6 @@ public class DefaultTracingObservationHandler implements TracingObservationHandl
     }
 
     @Override
-    public void onError(Observation.Context context) {
-        Span span = getTracingContext(context).getSpan();
-        if (context.getError() != null) {
-            span.error(context.getError());
-        }
-    }
-
-    @Override
     public Tracer getTracer() {
         return this.tracer;
     }
