@@ -15,14 +15,12 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.TraceContext;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -63,9 +61,10 @@ public class SimpleBaggageManager implements BaggageManager {
         return baggageForName(traceContext, name);
     }
 
+    @Nullable
     private SimpleBaggageInScope baggageForName(TraceContext traceContext, String name) {
-        return this.baggagesByContext.get(traceContext).stream().filter(bag -> name.equalsIgnoreCase(bag.name()))
-                .findFirst().orElse(null);
+        return this.baggagesByContext.getOrDefault(traceContext, Collections.emptySet()).stream()
+                .filter(bag -> name.equalsIgnoreCase(bag.name())).findFirst().orElse(null);
     }
 
     @Override
