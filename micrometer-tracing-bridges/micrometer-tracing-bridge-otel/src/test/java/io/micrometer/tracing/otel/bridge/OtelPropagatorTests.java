@@ -62,12 +62,8 @@ class OtelPropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent();
-        try {
+        try (BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
-        }
-        finally {
-            baggage.close();
         }
     }
 
@@ -79,12 +75,8 @@ class OtelPropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent();
-        try {
+        try (BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
-        }
-        finally {
-            baggage.close();
         }
     }
 
@@ -96,13 +88,9 @@ class OtelPropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
-                Collections.emptyList()).getBaggage(span.context(), "foo").makeCurrent();
-        try {
+        try (BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
+                Collections.emptyList()).getBaggage(span.context(), "foo").makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
-        }
-        finally {
-            baggage.close();
         }
     }
 

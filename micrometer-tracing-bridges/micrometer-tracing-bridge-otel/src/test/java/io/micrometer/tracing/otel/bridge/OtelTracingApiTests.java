@@ -184,6 +184,8 @@ class OtelTracingApiTests {
             }
         }
 
+        then(tracer.currentSpan()).isNull();
+
         // Assuming that you have a handle to the span
         Baggage baggageForExplicitSpan = tracer.createBaggage("from_span").set(span.context(), "value 3");
         try (BaggageInScope baggage = baggageForExplicitSpan.makeCurrent()) {
@@ -193,14 +195,18 @@ class OtelTracingApiTests {
                     .isEqualTo("value 3");
         }
 
+        then(tracer.currentSpan()).isNull();
+
         // Assuming that there's no span in scope
         Baggage baggageFour = tracer.createBaggage("from_span_in_scope 1", "value 1");
 
-        // When there's no span in scope, there will never be any baggage - even if you
-        // make it current
+        then(tracer.currentSpan()).isNull();
+
+        // When there's no span in scope, baggage can still be there (that's incosistent
+        // with Brave)
         try (BaggageInScope baggage = baggageFour.makeCurrent()) {
-            then(baggageFour.get()).as("[Out of span scope] Baggage 1").isNull();
-            then(tracer.getBaggage("from_span_in_scope 1").get()).as("[Out of span scope] Baggage 1").isNull();
+            then(baggageFour.get()).as("[Out of span scope] Baggage 1").isNotNull();
+            then(tracer.getBaggage("from_span_in_scope 1").get()).as("[Out of span scope] Baggage 1").isNotNull();
         }
         then(tracer.getBaggage("from_span_in_scope 1").get()).as("[Out of scope] Baggage 1").isNull();
         then(tracer.getBaggage("from_span_in_scope 2").get()).as("[Out of scope] Baggage 2").isNull();

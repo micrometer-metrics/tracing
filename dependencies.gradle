@@ -34,8 +34,8 @@ def MICROMETER_PLATFORM_VERSIONS = [
 def PLATFORM_VERSIONS = [
 	'io.zipkin.brave:brave-bom:5.14.+',
 	// opentelemetry-instrumentation-api dependency above with this
-	'io.opentelemetry:opentelemetry-bom:1.21.+',
-	'io.opentelemetry:opentelemetry-bom-alpha:1.21.+',
+	'io.opentelemetry:opentelemetry-bom:1.23.+',
+	'io.opentelemetry:opentelemetry-bom-alpha:1.23.+',
 	'org.junit:junit-bom:5.9.+'
 ]
 

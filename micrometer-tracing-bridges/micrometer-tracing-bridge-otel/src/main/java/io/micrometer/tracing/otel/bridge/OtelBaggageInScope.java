@@ -43,6 +43,8 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     private final AtomicReference<Entry> entry = new AtomicReference<>();
 
+    private final AtomicReference<Context> contextWithBaggage = new AtomicReference<>(null);
+
     private final AtomicReference<Scope> scope = new AtomicReference<>();
 
     OtelBaggageInScope(OtelBaggageManager otelBaggageManager, CurrentTraceContext currentTraceContext,
@@ -78,12 +80,12 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     private io.micrometer.tracing.Baggage doSet(TraceContext context, String value) {
-        Context current = Context.current();
-        Span currentSpan = Span.current();
-        io.opentelemetry.api.baggage.Baggage baggage;
         if (context == null) {
             return this;
         }
+        Context current = Context.current();
+        Span currentSpan = Span.current();
+        io.opentelemetry.api.baggage.Baggage baggage;
         OtelTraceContext ctx = (OtelTraceContext) context;
         Context storedCtx = ctx.context();
         Baggage fromContext = Baggage.fromContext(storedCtx);
@@ -96,7 +98,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         current = current.with(baggage);
         Context withBaggage = current.with(baggage);
         ctx.updateContext(withBaggage);
-        this.scope.set(withBaggage.makeCurrent());
+        contextWithBaggage.set(withBaggage);
         if (this.tagFields.stream().map(String::toLowerCase).anyMatch(s -> s.equals(entry().getKey()))) {
             currentSpan.setAttribute(entry().getKey(), value);
         }
@@ -116,13 +118,14 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public BaggageInScope makeCurrent() {
-        if (this.scope.get() == null) {
-            return this;
-        }
-        close();
         Entry entry = entry();
-        Scope scope = Baggage.builder().put(entry.getKey(), entry.getValue(), entry.getMetadata()).build()
-                .makeCurrent();
+        Context context = contextWithBaggage.get();
+        if (context == null) {
+            context = Context.current();
+        }
+        Baggage baggage = Baggage.builder().put(entry.getKey(), entry.getValue(), entry.getMetadata()).build();
+        Context updated = context.with(baggage);
+        Scope scope = updated.makeCurrent();
         this.scope.set(scope);
         return this;
     }

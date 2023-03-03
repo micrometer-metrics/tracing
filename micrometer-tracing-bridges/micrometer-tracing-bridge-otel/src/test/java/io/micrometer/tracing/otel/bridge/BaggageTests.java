@@ -1,12 +1,12 @@
 /**
  * Copyright 2022 the original author or authors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * https://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -68,10 +68,10 @@ class BaggageTests {
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
             // WHEN
-            this.tracer.getBaggage(KEY_1).set(VALUE_1);
-
-            // THEN
-            then(tracer.getBaggage(KEY_1).get()).isEqualTo(VALUE_1);
+            try (BaggageInScope bs = this.tracer.createBaggage(KEY_1, VALUE_1).makeCurrent()) {
+                // THEN
+                then(tracer.getBaggage(KEY_1).get()).isEqualTo(VALUE_1);
+            }
         }
     }
 
@@ -82,13 +82,13 @@ class BaggageTests {
 
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
-            this.tracer.createBaggage(KEY_1, VALUE_1);
+            try (BaggageInScope bs = this.tracer.createBaggage(KEY_1, VALUE_1).makeCurrent()) {
+                // WHEN
+                this.propagator.inject(tracer.currentTraceContext().context(), carrier, Map::put);
 
-            // WHEN
-            this.propagator.inject(tracer.currentTraceContext().context(), carrier, Map::put);
-
-            // THEN
-            then(carrier.get(KEY_1)).isEqualTo(VALUE_1);
+                // THEN
+                then(carrier.get(KEY_1)).isEqualTo(VALUE_1);
+            }
         }
 
         // WHEN
