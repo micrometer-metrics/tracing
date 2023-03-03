@@ -15,14 +15,17 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.TraceContext;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * A test implementation of a baggage manager.
@@ -47,22 +50,38 @@ public class SimpleBaggageManager implements BaggageManager {
 
     @Override
     public Map<String, String> getAllBaggage() {
-        return this.baggagesByContext.values().stream().flatMap(Collection::stream)
+        TraceContext context = simpleTracer.currentTraceContext().context();
+        if (context == null) {
+            return Collections.emptyMap();
+        }
+        return this.baggagesByContext.getOrDefault(context, Collections.emptySet()).stream()
                 .collect(Collectors.toMap(Baggage::name, Baggage::get));
     }
 
     @Override
     public Baggage getBaggage(String name) {
-        return getBaggage(simpleTracer.currentTraceContext().context(), name);
+        Baggage baggage = getBaggage(simpleTracer.currentTraceContext().context(), name);
+        return baggageOrNoop(baggage);
     }
 
     @Override
     public Baggage getBaggage(TraceContext traceContext, String name) {
-        return baggageForName(traceContext, name);
+        SimpleBaggageInScope simpleBaggageInScope = baggageForName(traceContext, name);
+        return baggageOrNoop(simpleBaggageInScope);
+    }
+
+    private static Baggage baggageOrNoop(Baggage baggage) {
+        if (baggage == null) {
+            return Baggage.NOOP;
+        }
+        return baggage;
     }
 
     @Nullable
     private SimpleBaggageInScope baggageForName(TraceContext traceContext, String name) {
+        if (traceContext == null) {
+            return null;
+        }
         return this.baggagesByContext.getOrDefault(traceContext, Collections.emptySet()).stream()
                 .filter(bag -> name.equalsIgnoreCase(bag.name())).findFirst().orElse(null);
     }
