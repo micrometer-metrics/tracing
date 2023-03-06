@@ -112,7 +112,10 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     @Override
     default void onScopeClosed(T context) {
         TracingContext tracingContext = getTracingContext(context);
-        tracingContext.getScope().close();
+        CurrentTraceContext.Scope scope = tracingContext.getScope();
+        if (scope != null) {
+            scope.close();
+        }
     }
 
     /**

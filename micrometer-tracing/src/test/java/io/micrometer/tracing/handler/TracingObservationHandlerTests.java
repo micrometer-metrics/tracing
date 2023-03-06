@@ -19,6 +19,7 @@ import io.micrometer.observation.Observation;
 import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.BDDAssertions.thenNoException;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.then;
@@ -42,6 +43,13 @@ class TracingObservationHandlerTests {
         handler.onScopeReset(new Observation.Context());
 
         then(tracer).should().withSpan(isNull());
+    }
+
+    @Test
+    void nullScopeShouldBeSupported() {
+        TracingObservationHandler<Observation.Context> handler = () -> null;
+
+        thenNoException().isThrownBy(() -> handler.onScopeClosed(new Observation.Context()));
     }
 
 }
