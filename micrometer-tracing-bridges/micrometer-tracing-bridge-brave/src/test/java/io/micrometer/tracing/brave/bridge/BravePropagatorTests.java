@@ -20,13 +20,13 @@ import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
 import brave.baggage.BaggagePropagationConfig;
 import brave.propagation.B3Propagation;
-import brave.propagation.CurrentTraceContext;
 import brave.propagation.Propagation;
 import brave.propagation.StrictCurrentTraceContext;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import org.assertj.core.api.BDDAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import java.util.Map;
 
 class BravePropagatorTests {
 
-    CurrentTraceContext currentTraceContext = new StrictCurrentTraceContext();
+    StrictCurrentTraceContext currentTraceContext = new StrictCurrentTraceContext();
 
     Tracing tracing = Tracing.newBuilder()
             .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
@@ -47,6 +47,12 @@ class BravePropagatorTests {
 
     BravePropagator bravePropagator = new BravePropagator(tracing);
 
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+        currentTraceContext.close();
+    }
+
     @Test
     void should_propagate_context_with_trace_and_baggage() {
         Map<String, String> carrier = new HashMap<>();
@@ -56,7 +62,7 @@ class BravePropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = braveBaggageManager.getBaggage(span.context(), "foo").makeCurrent();
+        BaggageInScope baggage = tracer.getBaggage(span.context(), "foo").makeCurrent();
         try {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }
@@ -73,7 +79,7 @@ class BravePropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = braveBaggageManager.getBaggage(span.context(), "foo").makeCurrent();
+        BaggageInScope baggage = tracer.getBaggage(span.context(), "foo").makeCurrent();
         try {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }

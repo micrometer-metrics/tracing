@@ -58,6 +58,16 @@ public interface BaggageManager {
         public Baggage createBaggage(String name, String value) {
             return Baggage.NOOP;
         }
+
+        @Override
+        public BaggageInScope createBaggageInScope(String name, String value) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+            return BaggageInScope.NOOP;
+        }
     };
 
     /**
@@ -87,7 +97,9 @@ public interface BaggageManager {
      * if it's already present.
      * @param name baggage name
      * @return new or already created baggage
+     * @deprecated use {@link BaggageManager#createBaggageInScope(String, String)}
      */
+    @Deprecated
     Baggage createBaggage(String name);
 
     /**
@@ -96,7 +108,30 @@ public interface BaggageManager {
      * @param name baggage name
      * @param value baggage value
      * @return new or already created baggage
+     * @deprecated use {@link BaggageManager#createBaggageInScope(String, String)}
      */
+    @Deprecated
     Baggage createBaggage(String name, String value);
+
+    /**
+     * Creates a new {@link Baggage} entry, sets a value on it and puts it in scope.
+     * @param name baggage name
+     * @param value baggage value
+     * @return baggage with value
+     */
+    default BaggageInScope createBaggageInScope(String name, String value) {
+        return createBaggage(name).makeCurrent(value);
+    }
+
+    /**
+     * Creates a new {@link Baggage} entry, sets a value on it and puts it in scope.
+     * @param traceContext trace context with baggage attached to it
+     * @param name baggage name
+     * @param value baggage value
+     * @return baggage with value
+     */
+    default BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return createBaggage(name).makeCurrent(traceContext, value);
+    }
 
 }

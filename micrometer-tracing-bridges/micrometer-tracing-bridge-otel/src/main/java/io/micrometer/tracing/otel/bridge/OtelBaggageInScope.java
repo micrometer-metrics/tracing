@@ -75,6 +75,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @Override
+    @Deprecated
     public io.micrometer.tracing.Baggage set(String value) {
         return doSet(this.currentTraceContext.context(), value);
     }
@@ -112,8 +113,19 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @Override
+    @Deprecated
     public io.micrometer.tracing.Baggage set(TraceContext traceContext, String value) {
         return doSet(traceContext, value);
+    }
+
+    @Override
+    public BaggageInScope makeCurrent(String value) {
+        return doSet(currentTraceContext.context(), value).makeCurrent();
+    }
+
+    @Override
+    public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
+        return doSet(traceContext, value).makeCurrent();
     }
 
     @Override

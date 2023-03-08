@@ -122,13 +122,25 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name) {
         return this.braveBaggageManager.createBaggage(name);
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name, String value) {
         return this.braveBaggageManager.createBaggage(name).set(value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(String name, String value) {
+        return this.braveBaggageManager.createBaggageInScope(name, value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return this.braveBaggageManager.createBaggageInScope(traceContext, name, value);
     }
 
     @Override

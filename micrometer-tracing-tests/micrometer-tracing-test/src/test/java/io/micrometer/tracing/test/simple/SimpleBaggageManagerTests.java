@@ -31,7 +31,7 @@ class SimpleBaggageManagerTests {
     void should_create_baggage() {
         SimpleSpan simpleSpan = tracer.nextSpan();
         try (Tracer.SpanInScope scope = tracer.withSpan(simpleSpan.start())) {
-            try (BaggageInScope baggage = manager.createBaggage("foo", "bar").makeCurrent()) {
+            try (BaggageInScope baggage = manager.createBaggageInScope("foo", "bar")) {
                 then(manager.getBaggage("foo").get()).isEqualTo("bar");
                 then(manager.getBaggage(simpleSpan.context(), "foo").get()).isEqualTo("bar");
                 then(manager.getAllBaggage()).containsEntry("foo", "bar");

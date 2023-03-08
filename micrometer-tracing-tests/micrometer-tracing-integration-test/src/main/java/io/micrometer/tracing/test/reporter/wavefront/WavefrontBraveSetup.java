@@ -15,15 +15,6 @@
  */
 package io.micrometer.tracing.test.reporter.wavefront;
 
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import brave.Tracing;
 import brave.handler.SpanHandler;
 import brave.http.HttpTracing;
@@ -37,13 +28,7 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
-import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
-import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
-import io.micrometer.tracing.brave.bridge.BraveHttpClientHandler;
-import io.micrometer.tracing.brave.bridge.BraveHttpServerHandler;
-import io.micrometer.tracing.brave.bridge.BravePropagator;
-import io.micrometer.tracing.brave.bridge.BraveTracer;
+import io.micrometer.tracing.brave.bridge.*;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
@@ -53,6 +38,15 @@ import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontBraveSpanHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
+
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Provides Wavefront setup with Brave.

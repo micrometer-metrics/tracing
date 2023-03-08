@@ -15,17 +15,18 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.Baggage;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.BaggageManager;
+import io.micrometer.tracing.TraceContext;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import io.micrometer.common.lang.Nullable;
-import io.micrometer.tracing.Baggage;
-import io.micrometer.tracing.BaggageManager;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * A test implementation of a baggage manager.
@@ -87,6 +88,7 @@ public class SimpleBaggageManager implements BaggageManager {
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name) {
         return createSimpleBaggage(name);
     }
@@ -95,7 +97,7 @@ public class SimpleBaggageManager implements BaggageManager {
         TraceContext current = simpleTracer.currentTraceContext().context();
         SimpleBaggageInScope baggage = baggageForName(current, name);
         if (baggage == null) {
-            baggage = new SimpleBaggageInScope(name);
+            baggage = new SimpleBaggageInScope(simpleTracer.currentTraceContext(), name, current);
         }
         Set<SimpleBaggageInScope> baggages = this.baggagesByContext.getOrDefault(current, new HashSet<>());
         baggages.add(baggage);
@@ -104,10 +106,21 @@ public class SimpleBaggageManager implements BaggageManager {
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name, String value) {
         Baggage baggage = createSimpleBaggage(name);
         baggage.set(value);
         return baggage;
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(String name, String value) {
+        return createSimpleBaggage(name).makeCurrent(value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return createSimpleBaggage(name).makeCurrent(traceContext, value);
     }
 
 }
