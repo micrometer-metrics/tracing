@@ -7,6 +7,9 @@ dependencies {
 	api 'io.micrometer:context-propagation'
 	api 'aopalliance:aopalliance'
 
+	// aspects
+	optionalApi 'org.aspectj:aspectjweaver'
+
 	// exemplars support
 	optionalApi 'io.micrometer:micrometer-core'
 

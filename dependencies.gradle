@@ -5,6 +5,11 @@ def VERSIONS = [
 	'io.micrometer:context-propagation:1.1.+',
 
 	'aopalliance:aopalliance:1.0',
+	'io.projectreactor:reactor-core:3.5.+',
+	'org.aspectj:aspectjweaver:1.8.+',
+	'org.springframework:spring-context:5.+',
+	'org.springframework:spring-core:5+',
+
 	// logging
 	'ch.qos.logback:logback-classic:1.2.+',
 	'org.apache.logging.log4j:log4j-core:2.+',

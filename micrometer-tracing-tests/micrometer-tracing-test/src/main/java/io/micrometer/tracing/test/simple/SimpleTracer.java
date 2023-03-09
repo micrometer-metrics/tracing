@@ -89,7 +89,7 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpanCustomizer currentSpanCustomizer() {
-        return new SimpleSpanCustomizer(currentSpan());
+        return new SimpleSpanCustomizer(this);
     }
 
     @Override
