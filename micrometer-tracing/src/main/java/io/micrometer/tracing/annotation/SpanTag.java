@@ -50,9 +50,9 @@ public @interface SpanTag {
     String key() default "";
 
     /**
-     * Execute this SPEL expression to calculate the tag value. Will be analyzed if no
-     * value of the {@link SpanTag#resolver()} was set.
-     * @return a SPEL expression
+     * Execute this expression to calculate the tag value. Will be analyzed if no value of
+     * the {@link SpanTag#resolver()} was set.
+     * @return an expression
      */
     String expression() default "";
 

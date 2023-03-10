@@ -7,6 +7,9 @@ dependencies {
 	api 'io.micrometer:context-propagation'
 	api 'aopalliance:aopalliance'
 
+	// aspects
+	optionalApi 'org.aspectj:aspectjweaver'
+
 	// exemplars support
 	optionalApi 'io.micrometer:micrometer-core'
 
@@ -18,4 +21,7 @@ dependencies {
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'org.mockito:mockito-core'
 	testImplementation 'org.mockito:mockito-junit-jupiter'
+
+	// aspect
+	testImplementation 'org.springframework:spring-context'
 }

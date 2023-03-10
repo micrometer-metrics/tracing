@@ -9,4 +9,8 @@ dependencies {
 	// Tests for tests
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+
+	// aspects
+	testImplementation 'org.springframework:spring-context'
+	testImplementation 'org.aspectj:aspectjweaver'
 }

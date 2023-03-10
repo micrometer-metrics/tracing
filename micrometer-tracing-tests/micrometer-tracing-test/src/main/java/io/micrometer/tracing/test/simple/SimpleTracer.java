@@ -89,7 +89,7 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpanCustomizer currentSpanCustomizer() {
-        return new SimpleSpanCustomizer(currentSpan());
+        return new SimpleSpanCustomizer(this);
     }
 
     @Override
@@ -148,6 +148,16 @@ public class SimpleTracer implements Tracer {
     @Override
     public Baggage createBaggage(String name, String value) {
         return this.simpleBaggageManager.createBaggage(name, value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(String name, String value) {
+        return this.simpleBaggageManager.createBaggageInScope(name, value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return this.simpleBaggageManager.createBaggageInScope(traceContext, name, value);
     }
 
     /**

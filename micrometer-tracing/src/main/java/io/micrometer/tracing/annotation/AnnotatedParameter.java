@@ -15,18 +15,26 @@
  */
 package io.micrometer.tracing.annotation;
 
-import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.BDDAssertions.then;
-
 /**
- * @author Marcin Grzejszczak
+ * A container class that holds information about the parameter of the annotated method
+ * argument.
+ *
+ * Code ported from Spring Cloud Sleuth.
+ *
+ * @author Christian Schwerdtfeger
  */
-class NoOpTagValueResolverTests {
+class AnnotatedParameter {
 
-    @Test
-    void should_return_null() throws Exception {
-        then(new NoOpTagValueResolver().resolve("")).isNull();
+    final int parameterIndex;
+
+    final SpanTag annotation;
+
+    final Object argument;
+
+    AnnotatedParameter(int parameterIndex, SpanTag annotation, Object argument) {
+        this.parameterIndex = parameterIndex;
+        this.annotation = annotation;
+        this.argument = argument;
     }
 
 }

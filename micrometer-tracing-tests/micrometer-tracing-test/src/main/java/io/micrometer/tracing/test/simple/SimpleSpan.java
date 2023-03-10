@@ -21,7 +21,9 @@ import io.micrometer.tracing.exporter.FinishedSpan;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -47,7 +49,7 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     private volatile Span.Kind spanKind;
 
-    private final Map<Long, String> events = new ConcurrentHashMap<>();
+    private final Queue<Event> events = new ConcurrentLinkedQueue<>();
 
     private volatile String name;
 
@@ -92,13 +94,13 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public SimpleSpan event(String value) {
-        this.events.put(MILLISECONDS.toMicros(this.clock.wallTime()), value);
+        this.events.add(new Event(MILLISECONDS.toMicros(this.clock.wallTime()), value));
         return this;
     }
 
     @Override
     public Span event(String value, long time, TimeUnit timeUnit) {
-        this.events.put(timeUnit.toMicros(time), value);
+        this.events.add(new Event(timeUnit.toMicros(time), value));
         return this;
     }
 
@@ -158,7 +160,7 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public Collection<Map.Entry<Long, String>> getEvents() {
-        return this.events.entrySet();
+        return this.events.stream().map(Event::toEntry).collect(Collectors.toList());
     }
 
     void setStartMillis(long startMillis) {
@@ -283,6 +285,40 @@ public class SimpleSpan implements Span, FinishedSpan {
                 + ", endMillis=" + endMillis + ", throwable=" + throwable + ", remoteServiceName='" + remoteServiceName
                 + '\'' + ", spanKind=" + spanKind + ", events=" + events + ", name='" + name + '\'' + ", ip='" + ip
                 + '\'' + ", port=" + port + ", noop=" + noop + ", clock=" + clock + ", context=" + context + '}';
+    }
+
+    static class Event {
+
+        final Long timestamp;
+
+        final String eventName;
+
+        Event(Long timestamp, String eventName) {
+            this.timestamp = timestamp;
+            this.eventName = eventName;
+        }
+
+        Map.Entry<Long, String> toEntry() {
+            return new AbstractMap.SimpleEntry<>(this.timestamp, this.eventName);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Event event = (Event) o;
+            return Objects.equals(this.timestamp, event.timestamp) && Objects.equals(this.eventName, event.eventName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.timestamp, this.eventName);
+        }
+
     }
 
 }
