@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -49,12 +48,8 @@ class NullSpanTagAnnotationHandlerTests {
         }
     };
 
-    Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider = aClass -> tagValueResolver;
-
-    Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider = aClass -> tagValueExpressionResolver;
-
-    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(spanCustomizer, resolverProvider,
-            expressionResolverProvider);
+    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(spanCustomizer, aClass -> tagValueResolver,
+            aClass -> tagValueExpressionResolver);
 
     @Test
     void shouldUseEmptyStringWheCustomTagValueResolverReturnsNull() throws NoSuchMethodException, SecurityException {

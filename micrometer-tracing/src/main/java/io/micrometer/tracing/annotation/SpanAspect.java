@@ -65,15 +65,7 @@ public class SpanAspect {
 
     private Method getMethod(ProceedingJoinPoint pjp) throws NoSuchMethodException {
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
-        Method targetMethod = pjp.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
-        if (hasSpanAnnotation(targetMethod)) {
-            return targetMethod;
-        }
-        return method;
-    }
-
-    private static boolean hasSpanAnnotation(Method method) {
-        return method.getAnnotation(NewSpan.class) != null || method.getAnnotation(ContinueSpan.class) != null;
+        return pjp.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
     }
 
 }

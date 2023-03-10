@@ -257,45 +257,37 @@ class SpanCreatorAspectTests {
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }
 
+    // In Sleuth @NewSpan and @ContinueSpan annotations would be taken into
+    // consideration. In Micrometer Tracing due to limitations of @Aspect
+    // we can't do that.
     protected interface TestBeanInterface {
 
-        @NewSpan
         void testMethod();
 
         void testMethod2();
 
-        @NewSpan(name = "interfaceCustomNameOnTestMethod3")
         void testMethod3();
 
-        @NewSpan("customNameOnTestMethod4")
         void testMethod4();
 
-        @NewSpan(name = "customNameOnTestMethod5")
         void testMethod5(@SpanTag("testTag") String param);
 
         void testMethod6(String test);
 
         void testMethod7();
 
-        @NewSpan(name = "customNameOnTestMethod8")
         void testMethod8(String param);
 
-        @NewSpan(name = "testMethod9")
         void testMethod9(String param);
 
-        @ContinueSpan(log = "customTest")
         void testMethod10(@SpanTag("testTag10") String param);
 
-        @ContinueSpan(log = "customTest")
         void testMethod10_v2(@SpanTag("testTag10") String param);
 
-        @ContinueSpan(log = "testMethod11")
         void testMethod11(@SpanTag("testTag11") String param);
 
-        @NewSpan
         void testMethod12(@SpanTag("testTag12") String param);
 
-        @ContinueSpan(log = "testMethod13")
         void testMethod13();
 
     }
