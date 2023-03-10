@@ -68,6 +68,19 @@ class BaggageTests {
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
             // WHEN
+            try (BaggageInScope bs = this.tracer.createBaggageInScope(KEY_1, VALUE_1)) {
+                // THEN
+                then(tracer.getBaggage(KEY_1).get()).isEqualTo(VALUE_1);
+            }
+        }
+    }
+
+    @Test
+    void canSetAndGetBaggageWithLegacyApi() {
+        // GIVEN
+        Span span = tracer.nextSpan().start();
+        try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
+            // WHEN
             try (BaggageInScope bs = this.tracer.createBaggage(KEY_1, VALUE_1).makeCurrent()) {
                 // THEN
                 then(tracer.getBaggage(KEY_1).get()).isEqualTo(VALUE_1);
@@ -82,7 +95,7 @@ class BaggageTests {
 
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
-            try (BaggageInScope bs = this.tracer.createBaggage(KEY_1, VALUE_1).makeCurrent()) {
+            try (BaggageInScope bs = this.tracer.createBaggageInScope(KEY_1, VALUE_1)) {
                 // WHEN
                 this.propagator.inject(tracer.currentTraceContext().context(), carrier, Map::put);
 
