@@ -26,8 +26,10 @@ import java.util.function.Function;
 /**
  * Method Invocation processor for imperative code.
  *
+ * Code ported from Spring Cloud Sleuth.
+ *
  * @author Marcin Grzejszczak
- * @since 1.11.0
+ * @since 1.1.0
  */
 public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocationProcessor {
 

@@ -25,8 +25,9 @@ import java.util.List;
  * Utility class that can verify whether the method is annotated with the Micrometer
  * Tracing annotations.
  *
+ * Code ported from Spring Cloud Sleuth.
+ *
  * @author Christian Schwerdtfeger
- * @since 1.1.0
  */
 final class AnnotationUtils {
 

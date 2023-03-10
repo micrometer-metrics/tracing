@@ -36,8 +36,10 @@ import java.util.function.Function;
  * This information is then used to add proper tags to the span from the method arguments
  * that are annotated with {@link SpanTag}.
  *
+ * Code ported from Spring Cloud Sleuth.
+ *
  * @author Christian Schwerdtfeger
- * @since 1.11.0
+ * @since 1.1.0
  */
 class SpanTagAnnotationHandler {
 

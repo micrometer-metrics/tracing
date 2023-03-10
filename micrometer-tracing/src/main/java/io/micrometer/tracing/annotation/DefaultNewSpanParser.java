@@ -26,8 +26,10 @@ import org.aopalliance.intercept.MethodInvocation;
 /**
  * Default implementation of the {@link NewSpanParser} that parses only the span name.
  *
+ * Code ported from Spring Cloud Sleuth.
+ *
  * @author Christian Schwerdtfeger
- * @since 1.11.0
+ * @since 1.1.0
  */
 public class DefaultNewSpanParser implements NewSpanParser {
 

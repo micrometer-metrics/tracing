@@ -20,8 +20,9 @@ package io.micrometer.tracing.annotation;
  * A container class that holds information about the parameter of the annotated method
  * argument.
  *
+ * Code ported from Spring Cloud Sleuth.
+ *
  * @author Christian Schwerdtfeger
- * @since 1.2.0
  */
 class AnnotatedParameter {
 

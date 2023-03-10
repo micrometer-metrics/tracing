@@ -30,11 +30,9 @@ import java.lang.reflect.Method;
  * {@link NewSpan @NewSpan} or {@link ContinueSpan @ContinueSpan}<br>
  * The aspect supports programmatic customizations through constructor-injectable custom
  * logic.
- * </p>
- * <p>
  *
  * @author Marcin Grzejszczak
- * @since 1.11.0
+ * @since 1.1.0
  * @see ImperativeMethodInvocationProcessor
  */
 @Aspect
