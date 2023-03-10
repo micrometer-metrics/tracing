@@ -181,6 +181,7 @@ class BaseTests {
         tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
         });
 
+        // Legacy API
         Baggage foo = tracer.createBaggage("foo");
         then(foo).isSameAs(Baggage.NOOP);
         then(foo.get()).isNull();
@@ -192,6 +193,14 @@ class BaseTests {
         BaggageInScope fooInScope = foo.makeCurrent();
         then(fooInScope).isSameAs(BaggageInScope.NOOP);
         fooInScope.close();
+
+        // New API
+        BaggageInScope fooNew = tracer.createBaggageInScope("foo", "bar");
+        then(fooNew).isSameAs(BaggageInScope.NOOP);
+        then(fooNew.get()).isNull();
+        then(fooNew.get()).isNull();
+        then(fooNew.get(null)).isNull();
+        fooNew.close();
 
         then(tracer.getBaggage("foo")).isSameAs(Baggage.NOOP);
         then(tracer.getAllBaggage()).isEmpty();

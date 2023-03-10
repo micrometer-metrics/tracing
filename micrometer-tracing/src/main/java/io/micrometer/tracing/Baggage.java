@@ -22,7 +22,7 @@ package io.micrometer.tracing;
  * immutable (e.g. OpenTelemetry), so when the value gets updated they might create new
  * scope (others will return the same one - e.g. OpenZipkin Brave).
  * <p>
- * Represents a single mutable baggage entry.
+ * Represents a single baggage entry.
  *
  * @author Marcin Grzejszczak
  * @author Jonatan Ivanov
@@ -63,13 +63,25 @@ public interface Baggage extends BaggageView {
         public BaggageInScope makeCurrent() {
             return BaggageInScope.NOOP;
         }
+
+        @Override
+        public BaggageInScope makeCurrent(String value) {
+            return BaggageInScope.NOOP;
+        }
+
+        @Override
+        public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
+            return BaggageInScope.NOOP;
+        }
     };
 
     /**
      * Sets the baggage value.
      * @param value to set
      * @return itself
+     * @deprecated use {@link Baggage#makeCurrent(String)}
      */
+    @Deprecated
     Baggage set(String value);
 
     /**
@@ -77,7 +89,9 @@ public interface Baggage extends BaggageView {
      * @param traceContext context containing baggage
      * @param value to set
      * @return itself
+     * @deprecated use {@link Baggage#makeCurrent(TraceContext, String)}
      */
+    @Deprecated
     Baggage set(TraceContext traceContext, String value);
 
     /**
@@ -85,5 +99,24 @@ public interface Baggage extends BaggageView {
      * @return a {@link BaggageInScope} instance
      */
     BaggageInScope makeCurrent();
+
+    /**
+     * Sets the current baggage in scope with given value.
+     * @param value to set
+     * @return a {@link BaggageInScope} instance
+     */
+    default BaggageInScope makeCurrent(String value) {
+        return set(value).makeCurrent();
+    }
+
+    /**
+     * Sets the current baggage in scope with given value.
+     * @param traceContext context containing baggage
+     * @param value to set
+     * @return a {@link BaggageInScope} instance
+     */
+    default BaggageInScope makeCurrent(TraceContext traceContext, String value) {
+        return set(traceContext, value).makeCurrent();
+    }
 
 }

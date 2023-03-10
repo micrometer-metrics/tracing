@@ -159,13 +159,25 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name) {
         return this.otelBaggageManager.createBaggage(name);
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name, String value) {
         return this.otelBaggageManager.createBaggage(name, value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(String name, String value) {
+        return this.otelBaggageManager.createBaggageInScope(name, value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return this.otelBaggageManager.createBaggageInScope(traceContext, name, value);
     }
 
     /**

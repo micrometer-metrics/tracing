@@ -15,10 +15,6 @@
  */
 package io.micrometer.tracing.brave;
 
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.propagation.StrictCurrentTraceContext;
@@ -33,6 +29,10 @@ import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.BDDAssertions.then;
 

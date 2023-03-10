@@ -19,6 +19,7 @@ import brave.Tracer;
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import io.micrometer.tracing.exporter.FinishedSpan;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -28,7 +29,14 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class BraveFinishedSpanTests {
 
-    Tracer tracer = Tracing.newBuilder().build().tracer();
+    Tracing tracing = Tracing.newBuilder().build();
+
+    Tracer tracer = tracing.tracer();
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
 
     @Test
     void should_calculate_instant_from_brave_timestamps() {

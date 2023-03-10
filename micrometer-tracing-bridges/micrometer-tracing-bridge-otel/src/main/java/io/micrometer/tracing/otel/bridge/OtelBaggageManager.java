@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
@@ -138,14 +139,26 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     @Override
+    @Deprecated
     public io.micrometer.tracing.Baggage createBaggage(String name) {
         return createBaggage(name, "");
     }
 
     @Override
+    @Deprecated
     public io.micrometer.tracing.Baggage createBaggage(String name, String value) {
         io.micrometer.tracing.Baggage baggage = baggageWithValue(name, "");
         return baggage.set(value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(String name, String value) {
+        return baggageWithValue(name, value).makeCurrent();
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return baggageWithValue(name, value).makeCurrent(traceContext, value);
     }
 
     private io.micrometer.tracing.Baggage baggageWithValue(String name, String value) {

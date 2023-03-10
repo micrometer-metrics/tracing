@@ -17,6 +17,7 @@ package io.micrometer.tracing.brave.bridge;
 
 import brave.baggage.BaggageField;
 import io.micrometer.tracing.Baggage;
+import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.TraceContext;
 
@@ -32,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BraveBaggageManager implements Closeable, BaggageManager {
 
-    private static final Map<String, Baggage> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, BraveBaggageInScope> CACHE = new ConcurrentHashMap<>();
 
     @Override
     public Map<String, String> getAllBaggage() {
@@ -54,13 +55,29 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name) {
+        return baggage(name);
+    }
+
+    private BraveBaggageInScope baggage(String name) {
         return CACHE.computeIfAbsent(name, s -> new BraveBaggageInScope(BaggageField.create(s)));
     }
 
     @Override
+    @Deprecated
     public Baggage createBaggage(String name, String value) {
-        return createBaggage(name).set(value);
+        return baggage(name).set(value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(String name, String value) {
+        return baggage(name).makeCurrent(value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return baggage(name).makeCurrent(traceContext, value);
     }
 
     @Override

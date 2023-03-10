@@ -50,12 +50,14 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     }
 
     @Override
+    @Deprecated
     public Baggage set(String value) {
         this.delegate.updateValue(value);
         return this;
     }
 
     @Override
+    @Deprecated
     public Baggage set(TraceContext traceContext, String value) {
         this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
         return this;
@@ -64,6 +66,18 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     @Override
     public BaggageInScope makeCurrent() {
         return this;
+    }
+
+    @Override
+    public BaggageInScope makeCurrent(String value) {
+        this.delegate.updateValue(value);
+        return makeCurrent();
+    }
+
+    @Override
+    public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
+        this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
+        return makeCurrent();
     }
 
     @Override
