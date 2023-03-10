@@ -15,8 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.Span;
+import io.micrometer.tracing.*;
 import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -31,6 +30,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class OtelPropagatorTests {
 
@@ -91,6 +93,31 @@ class OtelPropagatorTests {
         try (BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
                 Collections.emptyList()).getBaggage(span.context(), "foo").makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
+        }
+    }
+
+    @Test
+    void should_use_created_child_context_in_scope_instead_of_parent() {
+        OtelBaggageManager baggageManager = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
+                Collections.emptyList());
+        OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, Function.identity()::apply,
+                baggageManager);
+
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("traceparent", "00-3e425f2373d89640bde06e8285e7bf88-9a5fdefae3abb440-00");
+
+        Span extracted = otelPropagator.extract(carrier, Map::get).start();
+        String expectedSpanId = extracted.context().spanId();
+
+        try (Tracer.SpanInScope ignored = tracer.withSpan(extracted)) {
+            assertThat(tracer.currentSpan()).extracting(Span::context).returns(expectedSpanId, TraceContext::spanId)
+                    .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
+                    .returns("9a5fdefae3abb440", TraceContext::parentId);
+
+            assertThat(tracer.currentTraceContext()).isNotNull().extracting(CurrentTraceContext::context).isNotNull()
+                    .returns(expectedSpanId, TraceContext::spanId)
+                    .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
+                    .returns("9a5fdefae3abb440", TraceContext::parentId);
         }
     }
 
