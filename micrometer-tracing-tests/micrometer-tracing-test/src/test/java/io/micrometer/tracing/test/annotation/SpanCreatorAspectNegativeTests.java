@@ -34,7 +34,8 @@ class SpanCreatorAspectNegativeTests {
     @Test
     void shouldNotCallAdviceForNotAnnotatedBean() {
         AspectJProxyFactory pf = new AspectJProxyFactory(this.testBean);
-        pf.addAspect(new SpanAspect(new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(), tracer, aClass -> null, aClass -> null)));
+        pf.addAspect(new SpanAspect(new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(), tracer,
+                aClass -> null, aClass -> null)));
 
         ((NotAnnotatedTestBeanInterface) pf.getProxy()).testMethod();
 
@@ -44,13 +45,13 @@ class SpanCreatorAspectNegativeTests {
     @Test
     void shouldCallAdviceForAnnotatedBean() throws Throwable {
         AspectJProxyFactory pf = new AspectJProxyFactory(this.annotatedTestBean);
-        pf.addAspect(new SpanAspect(new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(), tracer, aClass -> null, aClass -> null)));
+        pf.addAspect(new SpanAspect(new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(), tracer,
+                aClass -> null, aClass -> null)));
 
         // Sleuth allowed checking for parent methods / interfaces
         ((TestBeanInterface) pf.getProxy()).testMethod2();
 
-        TracerAssert.assertThat(tracer).onlySpan().isStarted().isEnded()
-                        .hasNameEqualTo("test-method2");
+        TracerAssert.assertThat(tracer).onlySpan().isStarted().isEnded().hasNameEqualTo("test-method2");
     }
 
     protected interface NotAnnotatedTestBeanInterface {

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.micrometer.tracing.test.annotation;
 
 import io.micrometer.tracing.Span;
@@ -14,22 +30,23 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-class SleuthSpanCreatorAspectTests {
+class SpanCreatorAspectTests {
 
     SimpleTracer tracer = new SimpleTracer();
 
     TestBeanInterface testBean = new TestBean();
-    
+
     Deque<SimpleSpan> spans;
-    
+
     @BeforeEach
     void setup() {
         spans = tracer.getSpans();
     }
-    
+
     private TestBeanInterface testBean() {
         AspectJProxyFactory pf = new AspectJProxyFactory(this.testBean);
-        pf.addAspect(new SpanAspect(new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(), tracer, aClass -> null, aClass -> null)));
+        pf.addAspect(new SpanAspect(new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(), tracer,
+                aClass -> null, aClass -> null)));
         return pf.getProxy();
     }
 
@@ -113,9 +130,9 @@ class SleuthSpanCreatorAspectTests {
 
         BDDAssertions.then(this.spans).hasSize(1);
         // Different in Sleuth
-        BDDAssertions.then(this.spans.peek().getName()).isEqualTo("test-method9");
-        BDDAssertions.then(this.spans.peek().getTags()).containsEntry("annotated.class", "TestBean").containsEntry("annotated.method",
-                "testMethod9");
+        BDDAssertions.then(this.spans.peek().getName()).isEqualTo("custom-name-on-test-method9");
+        BDDAssertions.then(this.spans.peek().getTags()).containsEntry("annotated.class", "TestBean")
+                .containsEntry("annotated.method", "testMethod9");
         BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }
@@ -178,9 +195,7 @@ class SleuthSpanCreatorAspectTests {
         Span span = this.tracer.nextSpan().name("foo");
 
         try (Tracer.SpanInScope ws = this.tracer.withSpan(span.start())) {
-            // tag::continue_span_execution[]
             testBean().testMethod11("test");
-            // end::continue_span_execution[]
         }
         finally {
             span.end();
@@ -213,7 +228,7 @@ class SleuthSpanCreatorAspectTests {
     }
 
     @Test
-    void shouldAddErrorTagWhenExceptionOccurredInContinueSpan() {
+    void shouldAddErrorTagWhenExceptionOccurredInContinueSpan() throws InterruptedException {
         Span span = this.tracer.nextSpan().name("foo");
 
         try (Tracer.SpanInScope ws = this.tracer.withSpan(span.start())) {
@@ -322,7 +337,6 @@ class SleuthSpanCreatorAspectTests {
         @Override
         public void testMethod7() {
         }
-
 
         // In Sleuth it would be taken from the interface
         @NewSpan(name = "customNameOnTestMethod8")

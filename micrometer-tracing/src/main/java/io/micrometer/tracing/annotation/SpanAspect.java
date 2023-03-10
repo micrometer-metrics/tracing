@@ -17,13 +17,11 @@ package io.micrometer.tracing.annotation;
 
 import io.micrometer.common.lang.NonNullApi;
 import io.micrometer.common.lang.Nullable;
-import org.aopalliance.intercept.MethodInvocation;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
 
 /**
@@ -54,7 +52,7 @@ public class SpanAspect {
     public Object continueSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         ContinueSpan continueSpan = method.getAnnotation(ContinueSpan.class);
-        return methodInvocationProcessor.process(pjpToMethodInterceptor(pjp, method), null, continueSpan);
+        return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), null, continueSpan);
     }
 
     @Around("@annotation(io.micrometer.tracing.annotation.NewSpan)")
@@ -62,44 +60,20 @@ public class SpanAspect {
     public Object newSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         NewSpan newSpan = method.getAnnotation(NewSpan.class);
-        return methodInvocationProcessor.process(pjpToMethodInterceptor(pjp, method), newSpan, null);
-    }
-
-    private static MethodInvocation pjpToMethodInterceptor(ProceedingJoinPoint pjp, Method method) {
-        return new MethodInvocation() {
-            @Override
-            public Method getMethod() {
-                return method;
-            }
-
-            @Override
-            public Object[] getArguments() {
-                return pjp.getArgs();
-            }
-
-            @Override
-            public Object proceed() throws Throwable {
-                return pjp.proceed();
-            }
-
-            @Override
-            public Object getThis() {
-                return pjp.getThis();
-            }
-
-            @Override
-            public AccessibleObject getStaticPart() {
-                return getMethod();
-            }
-        };
+        return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), newSpan, null);
     }
 
     private Method getMethod(ProceedingJoinPoint pjp) throws NoSuchMethodException {
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
-        if (method.getAnnotation(NewSpan.class) == null && method.getAnnotation(ContinueSpan.class) == null) {
-            return pjp.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
+        Method targetMethod = pjp.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
+        if (hasSpanAnnotation(targetMethod)) {
+            return targetMethod;
         }
         return method;
+    }
+
+    private static boolean hasSpanAnnotation(Method method) {
+        return method.getAnnotation(NewSpan.class) != null || method.getAnnotation(ContinueSpan.class) != null;
     }
 
 }

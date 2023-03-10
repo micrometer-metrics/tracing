@@ -22,30 +22,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utility class that can verify whether the method is annotated with the Micrometer Tracing annotations.
+ * Utility class that can verify whether the method is annotated with the Micrometer
+ * Tracing annotations.
  *
  * @author Christian Schwerdtfeger
  * @since 1.1.0
  */
 final class AnnotationUtils {
 
-	private AnnotationUtils() {
+    private AnnotationUtils() {
 
-	}
+    }
 
-	static List<AnnotatedParameter> findAnnotatedParameters(Method method, Object[] args) {
-		Annotation[][] parameters = method.getParameterAnnotations();
-		List<AnnotatedParameter> result = new ArrayList<>();
-		int i = 0;
-		for (Annotation[] parameter : parameters) {
-			for (Annotation parameter2 : parameter) {
-				if (parameter2 instanceof SpanTag) {
-					result.add(new AnnotatedParameter(i, (SpanTag) parameter2, args[i]));
-				}
-			}
-			i++;
-		}
-		return result;
-	}
+    static List<AnnotatedParameter> findAnnotatedParameters(Method method, Object[] args) {
+        Annotation[][] parameters = method.getParameterAnnotations();
+        List<AnnotatedParameter> result = new ArrayList<>();
+        int i = 0;
+        for (Annotation[] parameter : parameters) {
+            for (Annotation parameter2 : parameter) {
+                if (parameter2 instanceof SpanTag) {
+                    result.add(new AnnotatedParameter(i, (SpanTag) parameter2, args[i]));
+                }
+            }
+            i++;
+        }
+        return result;
+    }
 
 }

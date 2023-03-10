@@ -150,6 +150,16 @@ public class SimpleTracer implements Tracer {
         return this.simpleBaggageManager.createBaggage(name, value);
     }
 
+    @Override
+    public BaggageInScope createBaggageInScope(String name, String value) {
+        return this.simpleBaggageManager.createBaggageInScope(name, value);
+    }
+
+    @Override
+    public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
+        return this.simpleBaggageManager.createBaggageInScope(traceContext, name, value);
+    }
+
     /**
      * Created spans.
      * @return all created spans

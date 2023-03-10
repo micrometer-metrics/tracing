@@ -55,4 +55,5 @@ public class DefaultNewSpanParser implements NewSpanParser {
         }
         return StringUtils.isEmpty(name) ? value : name;
     }
+
 }

@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * This class is able to find all methods annotated with the Micrometer Tracing annotations. All
- * methods mean that if you have both an interface and an implementation annotated with
- * Micrometer Tracing annotations then this class is capable of finding both of them and merging into
- * one set of tracing information.
+ * This class is able to find all methods annotated with the Micrometer Tracing
+ * annotations. All methods mean that if you have both an interface and an implementation
+ * annotated with Micrometer Tracing annotations then this class is capable of finding
+ * both of them and merging into one set of tracing information.
  * <p>
  * This information is then used to add proper tags to the span from the method arguments
  * that are annotated with {@link SpanTag}.
@@ -49,7 +49,9 @@ class SpanTagAnnotationHandler {
 
     private final Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider;
 
-    SpanTagAnnotationHandler(SpanCustomizer spanCustomizer, Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider, Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
+    SpanTagAnnotationHandler(SpanCustomizer spanCustomizer,
+            Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider,
+            Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
         this.spanCustomizer = spanCustomizer;
         this.resolverProvider = resolverProvider;
         this.expressionResolverProvider = expressionResolverProvider;
@@ -58,8 +60,8 @@ class SpanTagAnnotationHandler {
     void addAnnotatedParameters(MethodInvocation pjp) {
         try {
             Method method = pjp.getMethod();
-            List<AnnotatedParameter> annotatedParameters = AnnotationUtils
-                    .findAnnotatedParameters(method, pjp.getArguments());
+            List<AnnotatedParameter> annotatedParameters = AnnotationUtils.findAnnotatedParameters(method,
+                    pjp.getArguments());
             getAnnotationsFromInterfaces(pjp, method, annotatedParameters);
             addAnnotatedArguments(annotatedParameters);
         }
@@ -126,8 +128,8 @@ class SpanTagAnnotationHandler {
             value = tagValueResolver.resolve(argument);
         }
         else if (StringUtils.isNotBlank(annotation.expression())) {
-            value = this.expressionResolverProvider.apply(TagValueExpressionResolver.class).resolve(annotation.expression(),
-                    argument);
+            value = this.expressionResolverProvider.apply(TagValueExpressionResolver.class)
+                    .resolve(annotation.expression(), argument);
         }
         else if (argument != null) {
             value = argument.toString();

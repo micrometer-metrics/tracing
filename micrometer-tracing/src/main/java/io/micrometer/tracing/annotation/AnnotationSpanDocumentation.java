@@ -51,7 +51,7 @@ enum AnnotationSpanDocumentation implements SpanDocumentation {
     enum Tags implements KeyName {
 
         /**
-         * Class name where a method got annotated with a Sleuth annotation.
+         * Class name where a method got annotated with a Micrometer Tracing annotation.
          */
         CLASS {
             @Override
@@ -61,7 +61,7 @@ enum AnnotationSpanDocumentation implements SpanDocumentation {
         },
 
         /**
-         * Method name that got annotated with Sleuth annotation.
+         * Method name that got annotated with Micrometer Tracing annotation.
          */
         METHOD {
             @Override

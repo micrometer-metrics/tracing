@@ -25,7 +25,8 @@ import org.aopalliance.intercept.MethodInvocation;
 
 abstract class AbstractMethodInvocationProcessor implements MethodInvocationProcessor {
 
-    private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractMethodInvocationProcessor.class);
+    private static final InternalLogger logger = InternalLoggerFactory
+            .getInstance(AbstractMethodInvocationProcessor.class);
 
     final NewSpanParser newSpanParser;
 
@@ -35,7 +36,8 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
 
     final SpanTagAnnotationHandler spanTagAnnotationHandler;
 
-    AbstractMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer, CurrentTraceContext currentTraceContext, SpanTagAnnotationHandler spanTagAnnotationHandler) {
+    AbstractMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
+            CurrentTraceContext currentTraceContext, SpanTagAnnotationHandler spanTagAnnotationHandler) {
         this.newSpanParser = newSpanParser;
         this.tracer = tracer;
         this.currentTraceContext = currentTraceContext;
@@ -64,13 +66,17 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
             logger.debug("Exception occurred while trying to continue the pointcut", e);
         }
         if (hasLog) {
-            logEvent(span, String.format(AnnotationSpanDocumentation.Events.AFTER_FAILURE.name(), log));
+            logEvent(span, String.format(AnnotationSpanDocumentation.Events.AFTER_FAILURE.getValue(), log));
         }
         span.error(e);
     }
 
     void addTags(MethodInvocation invocation, Span span) {
-        span.tag(AnnotationSpanDocumentation.Tags.CLASS.asString(), invocation.getThis().getClass().getSimpleName());
+        if (invocation instanceof SpanAspectMethodInvocation) {
+            SpanAspectMethodInvocation methodInvocation = (SpanAspectMethodInvocation) invocation;
+            span.tag(AnnotationSpanDocumentation.Tags.CLASS.asString(),
+                    methodInvocation.getPjp().getTarget().getClass().getSimpleName());
+        }
         span.tag(AnnotationSpanDocumentation.Tags.METHOD.asString(), invocation.getMethod().getName());
     }
 

@@ -33,14 +33,17 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
 
     /**
      * Creates a new instance of {@link ImperativeMethodInvocationProcessor}.
-     *
      * @param newSpanParser new span parser
      * @param tracer tracer
      * @param resolverProvider converts a class into an instance of resolver provider
-     * @param expressionResolverProvider converts a class into an instance of expression resolver provider
+     * @param expressionResolverProvider converts a class into an instance of expression
+     * resolver provider
      */
-    public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer, Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider, Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
-        super(newSpanParser, tracer, tracer.currentTraceContext(), new SpanTagAnnotationHandler(tracer.currentSpanCustomizer(), resolverProvider, expressionResolverProvider));
+    public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
+            Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider,
+            Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
+        super(newSpanParser, tracer, tracer.currentTraceContext(), new SpanTagAnnotationHandler(
+                tracer.currentSpanCustomizer(), resolverProvider, expressionResolverProvider));
     }
 
     @Override
