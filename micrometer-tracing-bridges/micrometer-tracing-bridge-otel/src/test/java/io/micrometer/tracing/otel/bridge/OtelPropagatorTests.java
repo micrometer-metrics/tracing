@@ -127,14 +127,17 @@ class OtelPropagatorTests {
         String expectedSpanId = extracted.context().spanId();
 
         try (Tracer.SpanInScope ignored = tracer.withSpan(extracted)) {
-            assertThat(tracer.currentSpan()).extracting(Span::context).returns(expectedSpanId, TraceContext::spanId)
-                    .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
-                    .returns("9a5fdefae3abb440", TraceContext::parentId);
+            assertThat(tracer.currentSpan()).extracting(Span::context)
+                .returns(expectedSpanId, TraceContext::spanId)
+                .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
+                .returns("9a5fdefae3abb440", TraceContext::parentId);
 
-            assertThat(tracer.currentTraceContext()).isNotNull().extracting(CurrentTraceContext::context).isNotNull()
-                    .returns(expectedSpanId, TraceContext::spanId)
-                    .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
-                    .returns("9a5fdefae3abb440", TraceContext::parentId);
+            assertThat(tracer.currentTraceContext()).isNotNull()
+                .extracting(CurrentTraceContext::context)
+                .isNotNull()
+                .returns(expectedSpanId, TraceContext::spanId)
+                .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
+                .returns("9a5fdefae3abb440", TraceContext::parentId);
         }
     }
 
