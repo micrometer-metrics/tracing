@@ -37,8 +37,9 @@ class BravePropagatorTests {
     CurrentTraceContext currentTraceContext = new StrictCurrentTraceContext();
 
     Tracing tracing = Tracing.newBuilder()
-            .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
-            .currentTraceContext(currentTraceContext).build();
+        .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
+        .currentTraceContext(currentTraceContext)
+        .build();
 
     BraveBaggageManager braveBaggageManager = new BraveBaggageManager();
 
@@ -90,7 +91,7 @@ class BravePropagatorTests {
     private Propagation.Factory micrometerTracingPropagationWithBaggage(
             BaggagePropagation.FactoryBuilder factoryBuilder) {
         return factoryBuilder.add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create("foo")))
-                .build();
+            .build();
     }
 
 }

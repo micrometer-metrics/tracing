@@ -129,8 +129,11 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     private Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
-        return Entry.fromBaggage(baggage).stream().filter(e -> e.getKey().equalsIgnoreCase(name)).findFirst()
-                .orElse(null);
+        return Entry.fromBaggage(baggage)
+            .stream()
+            .filter(e -> e.getKey().equalsIgnoreCase(name))
+            .findFirst()
+            .orElse(null);
     }
 
     private io.micrometer.tracing.Baggage otelBaggage(Entry entry) {
@@ -149,8 +152,9 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     private io.micrometer.tracing.Baggage baggageWithValue(String name, String value) {
-        boolean remoteField = this.remoteFields.stream().map(String::toLowerCase)
-                .anyMatch(s -> s.equals(name.toLowerCase()));
+        boolean remoteField = this.remoteFields.stream()
+            .map(String::toLowerCase)
+            .anyMatch(s -> s.equals(name.toLowerCase()));
         BaggageEntryMetadata entryMetadata = BaggageEntryMetadata.create(propagationString(remoteField));
         Entry entry = new Entry(name, value, entryMetadata);
         return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
@@ -212,8 +216,11 @@ class CompositeBaggage implements io.opentelemetry.api.baggage.Baggage {
 
     @Override
     public String getEntryValue(String entryKey) {
-        return this.entries.stream().filter(entry -> entryKey.equals(entry.getKey())).map(Entry::getValue).findFirst()
-                .orElse(null);
+        return this.entries.stream()
+            .filter(entry -> entryKey.equals(entry.getKey()))
+            .map(Entry::getValue)
+            .findFirst()
+            .orElse(null);
     }
 
     @Override

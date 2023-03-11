@@ -37,7 +37,7 @@ public class SpanIgnoringSpanExportingPredicate implements SpanExportingPredicat
     static final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
     private static final InternalLogger log = InternalLoggerFactory
-            .getInstance(SpanIgnoringSpanExportingPredicate.class);
+        .getInstance(SpanIgnoringSpanExportingPredicate.class);
 
     private final List<String> spanNamePatternsToSkip;
 
@@ -55,8 +55,9 @@ public class SpanIgnoringSpanExportingPredicate implements SpanExportingPredicat
     }
 
     private List<Pattern> spanNamesToIgnore() {
-        return spanNames().stream().map(regex -> cache.computeIfAbsent(regex, Pattern::compile))
-                .collect(Collectors.toList());
+        return spanNames().stream()
+            .map(regex -> cache.computeIfAbsent(regex, Pattern::compile))
+            .collect(Collectors.toList());
     }
 
     private List<String> spanNames() {

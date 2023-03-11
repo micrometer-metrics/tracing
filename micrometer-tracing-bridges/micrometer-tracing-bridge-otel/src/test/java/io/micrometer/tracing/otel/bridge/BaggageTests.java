@@ -41,10 +41,13 @@ class BaggageTests {
     public static final String VALUE_1 = "value1";
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn()).build();
+        .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
@@ -53,9 +56,9 @@ class BaggageTests {
     OtelBaggageManager otelBaggageManager = new OtelBaggageManager(otelCurrentTraceContext,
             Collections.singletonList(KEY_1), Collections.emptyList());
 
-    ContextPropagators contextPropagators = ContextPropagators.create(
-            TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                    new BaggageTextMapPropagator(Collections.singletonList(KEY_1), otelBaggageManager)));
+    ContextPropagators contextPropagators = ContextPropagators
+        .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
+                new BaggageTextMapPropagator(Collections.singletonList(KEY_1), otelBaggageManager)));
 
     OtelPropagator propagator = new OtelPropagator(contextPropagators, otelTracer);
 

@@ -44,8 +44,9 @@ public class Slf4JBaggageEventListener implements EventListener {
      * @param correlationFields correlation fields
      */
     public Slf4JBaggageEventListener(List<String> correlationFields) {
-        this.lowerCaseCorrelationFields = correlationFields.stream().map(String::toLowerCase)
-                .collect(Collectors.toList());
+        this.lowerCaseCorrelationFields = correlationFields.stream()
+            .map(String::toLowerCase)
+            .collect(Collectors.toList());
         this.correlationFields = correlationFields;
     }
 

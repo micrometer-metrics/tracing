@@ -23,7 +23,7 @@ class SpanNameUtilTests {
     @Test
     void should_convert_a_name_in_hyphen_based_notation() throws Exception {
         BDDAssertions.then(SpanNameUtil.toLowerHyphen("aMethodNameInCamelCaseNotation"))
-                .isEqualTo("a-method-name-in-camel-case-notation");
+            .isEqualTo("a-method-name-in-camel-case-notation");
     }
 
     @Test

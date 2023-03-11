@@ -89,8 +89,9 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         Baggage fromContext = Baggage.fromContext(storedCtx);
 
         BaggageBuilder newBaggageBuilder = fromContext.toBuilder();
-        Baggage.current().forEach(
-                (key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
+        Baggage.current()
+            .forEach((key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(),
+                    baggageEntry.getMetadata()));
 
         baggage = newBaggageBuilder.put(entry().getKey(), value, entry().getMetadata()).build();
         current = current.with(baggage);
@@ -121,8 +122,10 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         }
         close();
         Entry entry = entry();
-        Scope scope = Baggage.builder().put(entry.getKey(), entry.getValue(), entry.getMetadata()).build()
-                .makeCurrent();
+        Scope scope = Baggage.builder()
+            .put(entry.getKey(), entry.getValue(), entry.getMetadata())
+            .build()
+            .makeCurrent();
         this.scope.set(scope);
         return this;
     }

@@ -58,11 +58,12 @@ class CompositeSpanExporterTests {
 
         CompletableResultCode resultCode = new CompositeSpanExporter(Collections.singleton(exporter),
                 Collections.singletonList(predicate), Collections.singletonList(reporter),
-                Collections.singletonList(filter)).export(Arrays.asList(fooSpan, barSpan));
+                Collections.singletonList(filter))
+            .export(Arrays.asList(fooSpan, barSpan));
 
         then(reporter).should().report(BDDMockito.argThat(finishedSpan -> "baz".equals(finishedSpan.getName())));
-        then(exporter).should().export(
-                BDDMockito.argThat(spans -> spans.size() == 1 && "baz".equals(spans.iterator().next().getName())));
+        then(exporter).should()
+            .export(BDDMockito.argThat(spans -> spans.size() == 1 && "baz".equals(spans.iterator().next().getName())));
         BDDAssertions.then(resultCode.isSuccess()).isTrue();
     }
 
@@ -72,7 +73,7 @@ class CompositeSpanExporterTests {
         given(exporter.flush()).willReturn(CompletableResultCode.ofSuccess());
 
         CompletableResultCode resultCode = new CompositeSpanExporter(Collections.singleton(exporter), null, null, null)
-                .flush();
+            .flush();
 
         then(exporter).should().flush();
         BDDAssertions.then(resultCode.isSuccess()).isTrue();
@@ -84,7 +85,7 @@ class CompositeSpanExporterTests {
         given(exporter.shutdown()).willReturn(CompletableResultCode.ofSuccess());
 
         CompletableResultCode resultCode = new CompositeSpanExporter(Collections.singleton(exporter), null, null, null)
-                .shutdown();
+            .shutdown();
 
         verify(exporter).shutdown();
         BDDAssertions.then(resultCode.isSuccess()).isTrue();

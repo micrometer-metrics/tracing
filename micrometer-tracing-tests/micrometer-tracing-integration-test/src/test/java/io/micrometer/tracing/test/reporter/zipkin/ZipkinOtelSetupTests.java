@@ -48,8 +48,10 @@ class ZipkinOtelSetupTests {
             sample.stop();
         });
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(
-                () -> wmri.getWireMock().verifyThat(WireMock.anyRequestedFor(urlPathEqualTo("/api/v2/spans"))));
+        Awaitility.await()
+            .atMost(5, TimeUnit.SECONDS)
+            .untilAsserted(
+                    () -> wmri.getWireMock().verifyThat(WireMock.anyRequestedFor(urlPathEqualTo("/api/v2/spans"))));
     }
 
 }

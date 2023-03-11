@@ -43,16 +43,20 @@ class OtelTracingApiTests {
     SpanExporter spanExporter = new ArrayListSpanProcessor();
 
     // [OTel component] SdkTracerProvider is a SDK implementation for TracerProvider
-    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder().setSampler(alwaysOn())
-            .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build()).build();
+    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+        .setSampler(alwaysOn())
+        .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
+        .build();
 
     // [OTel component] The SDK implementation of OpenTelemetry
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
 
     // [OTel component] Tracer is a component that handles the life-cycle of a span
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracerProvider()
-            .get("io.micrometer.micrometer-tracing");
+        .get("io.micrometer.micrometer-tracing");
 
     // [Micrometer Tracing component] A Micrometer Tracing wrapper for OTel
     OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
@@ -186,9 +190,9 @@ class OtelTracingApiTests {
         Baggage baggageForExplicitSpan = tracer.createBaggage("from_span").set(span.context(), "value 3");
         try (BaggageInScope baggage = baggageForExplicitSpan.makeCurrent()) {
             then(baggageForExplicitSpan.get(span.context())).as("[Span passed explicitly] Baggage 3")
-                    .isEqualTo("value 3");
+                .isEqualTo("value 3");
             then(tracer.getBaggage("from_span").get(span.context())).as("[Span passed explicitly] Baggage 3")
-                    .isEqualTo("value 3");
+                .isEqualTo("value 3");
         }
 
         // Assuming that there's no span in scope
@@ -206,7 +210,7 @@ class OtelTracingApiTests {
 
         // You will retrieve the baggage value ALWAYS when you pass the context explicitly
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3")
-                .isEqualTo("value 3");
+            .isEqualTo("value 3");
     }
 
 }

@@ -54,8 +54,11 @@ class BaggageTaggingSpanProcessorTest {
     void onStart_withBaggage() {
         BaggageTaggingSpanProcessor spanProcessor = new BaggageTaggingSpanProcessor(Arrays.asList("tagOne", "tagTwo"));
 
-        Baggage baggage = Baggage.builder().put("tagOne", "valueOne").put("tagTwo", "valueTwo")
-                .put("otherTag", "otherValue").build();
+        Baggage baggage = Baggage.builder()
+            .put("tagOne", "valueOne")
+            .put("tagTwo", "valueTwo")
+            .put("otherTag", "otherValue")
+            .build();
         ReadWriteSpan span = mock(ReadWriteSpan.class);
 
         spanProcessor.onStart(Context.root().with(baggage), span);

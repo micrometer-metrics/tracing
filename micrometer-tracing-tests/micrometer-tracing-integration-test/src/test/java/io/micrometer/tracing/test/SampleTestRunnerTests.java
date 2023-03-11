@@ -57,14 +57,18 @@ class SampleTestRunnerTests extends SampleTestRunner {
 
     @Container
     private static final GenericContainer zipkin = new GenericContainer(DockerImageName.parse("openzipkin/zipkin"))
-            .withExposedPorts(9411).waitingFor(Wait.forHttp("/").forStatusCode(200));
+        .withExposedPorts(9411)
+        .waitingFor(Wait.forHttp("/").forStatusCode(200));
 
     private static final Queue<String> traces = new LinkedList<>();
 
     @Override
     protected SampleRunnerConfig getSampleRunnerConfig() {
-        return SampleRunnerConfig.builder().wavefrontUrl("http://localhost:1234")
-                .zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort()).wavefrontToken("foo").build();
+        return SampleRunnerConfig.builder()
+            .wavefrontUrl("http://localhost:1234")
+            .zipkinUrl("http://localhost:" + zipkin.getFirstMappedPort())
+            .wavefrontToken("foo")
+            .build();
     }
 
     WavefrontSpanHandler braveSpanHandler = WavefrontAccessor.setMockForBrave();
@@ -113,8 +117,11 @@ class SampleTestRunnerTests extends SampleTestRunner {
         else if (testName.contains("wavefront")) {
             WavefrontSpanHandler handler = testName.toLowerCase(Locale.ROOT).contains("brave") ? braveSpanHandler
                     : otelSpanHandler;
-            Awaitility.await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> BDDMockito.then(handler)
-                    .should(BDDMockito.atLeastOnce()).end(BDDMockito.any(), BDDMockito.any()));
+            Awaitility.await()
+                .atMost(1, TimeUnit.SECONDS)
+                .untilAsserted(() -> BDDMockito.then(handler)
+                    .should(BDDMockito.atLeastOnce())
+                    .end(BDDMockito.any(), BDDMockito.any()));
         }
         then(handlers.getFirst()).isInstanceOf(MyRecordingHandler.class);
         then(handlers.getLast()).isInstanceOf(DefaultTracingObservationHandler.class);
@@ -128,7 +135,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
     private void assertThatZipkinRegisteredATrace(String lastTrace) throws Throwable {
         HttpSender httpSender = new HttpUrlConnectionSender();
         HttpSender.Response response = httpSender.get(getSampleRunnerConfig().zipkinUrl + "/api/v2/trace/" + lastTrace)
-                .send();
+            .send();
 
         BDDAssertions.then(response.isSuccessful()).isTrue();
         BDDAssertions.then(response.body()).isNotEmpty();

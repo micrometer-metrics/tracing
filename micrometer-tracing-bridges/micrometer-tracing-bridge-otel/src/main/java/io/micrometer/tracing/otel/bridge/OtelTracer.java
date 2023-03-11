@@ -78,7 +78,8 @@ public class OtelTracer implements Tracer {
         }
         try {
             return OtelSpan.fromOtel(this.tracer.spanBuilder("")
-                    .setParent(OtelTraceContext.toOtelContext(parent.context())).startSpan());
+                .setParent(OtelTraceContext.toOtelContext(parent.context()))
+                .startSpan());
         }
         finally {
             if (scope != null) {

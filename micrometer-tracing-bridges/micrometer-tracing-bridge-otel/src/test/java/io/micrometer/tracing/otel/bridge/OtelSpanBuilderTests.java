@@ -29,9 +29,12 @@ class OtelSpanBuilderTests {
     @Test
     void should_set_child_span_when_using_builders() {
         SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-                .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn()).build();
-        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+            .build();
+        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+            .setTracerProvider(sdkTracerProvider)
+            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+            .build();
         io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
         Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));

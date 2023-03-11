@@ -42,8 +42,10 @@ class WavefrontBraveSetupTests {
     @Test
     void should_register_a_span_in_wavefront(WireMockRuntimeInfo wmri) throws InterruptedException {
         WavefrontBraveSetup setup = WavefrontBraveSetup.builder(wmri.getHttpBaseUrl(), "token")
-                .applicationName("app-name").serviceName("service-name").source("source")
-                .register(this.meterRegistry, this.registry);
+            .applicationName("app-name")
+            .serviceName("service-name")
+            .source("source")
+            .register(this.meterRegistry, this.registry);
 
         WavefrontBraveSetup.run(setup, __ -> {
             Observation sample = Observation.start("the-name", this.registry);
@@ -53,8 +55,9 @@ class WavefrontBraveSetupTests {
             sample.stop();
         });
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(
-                () -> wmri.getWireMock().verifyThat(anyRequestedFor(urlMatching(".*/report\\?f=trace.*"))));
+        Awaitility.await()
+            .atMost(5, TimeUnit.SECONDS)
+            .untilAsserted(() -> wmri.getWireMock().verifyThat(anyRequestedFor(urlMatching(".*/report\\?f=trace.*"))));
     }
 
 }

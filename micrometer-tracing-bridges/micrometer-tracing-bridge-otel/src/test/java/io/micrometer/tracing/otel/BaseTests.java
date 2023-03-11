@@ -51,14 +51,18 @@ class BaseTests {
 
     ArrayListSpanProcessor spans = new ArrayListSpanProcessor();
 
-    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder().setSampler(alwaysOn()).addSpanProcessor(spans)
-            .build();
+    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+        .setSampler(alwaysOn())
+        .addSpanProcessor(spans)
+        .build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracerProvider()
-            .get("io.micrometer.micrometer-tracing");
+        .get("io.micrometer.micrometer-tracing");
 
     OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
 
@@ -168,8 +172,10 @@ class BaseTests {
             // end::manual_span_joining[]
         }).get();
         ;
-        Optional<SpanData> calculateTax = spans.spans().stream()
-                .filter(span -> span.getName().equals("calculateCommission")).findFirst();
+        Optional<SpanData> calculateTax = spans.spans()
+            .stream()
+            .filter(span -> span.getName().equals("calculateCommission"))
+            .findFirst();
         then(calculateTax).isPresent();
         then(calculateTax.get().getAttributes().asMap()).containsEntry(AttributeKey.stringKey("commissionValue"), "10");
         then(calculateTax.get().getEvents()).hasSize(1);

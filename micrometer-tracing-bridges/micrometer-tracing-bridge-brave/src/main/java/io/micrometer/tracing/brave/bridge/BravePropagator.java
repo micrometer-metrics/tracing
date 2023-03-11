@@ -73,8 +73,9 @@ public class BravePropagator implements Propagator {
                 fields.getEntries().forEach(e -> {
                     String key = e.getKey().name();
                     String value = e.getValue();
-                    allFields.stream().filter(allField -> allField.name().equals(key))
-                            .forEach(allField -> allField.updateValue(extract, value));
+                    allFields.stream()
+                        .filter(allField -> allField.name().equals(key))
+                        .forEach(allField -> allField.updateValue(extract, value));
                 });
             });
         });

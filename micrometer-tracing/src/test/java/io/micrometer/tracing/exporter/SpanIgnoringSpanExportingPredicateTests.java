@@ -58,8 +58,10 @@ class SpanIgnoringSpanExportingPredicateTests {
         export(handler("b"));
         export(handler("c"));
 
-        then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName").containsKey("a").containsKey("b")
-                .containsKey("c");
+        then(SpanIgnoringSpanExportingPredicate.cache).containsKey("someOtherName")
+            .containsKey("a")
+            .containsKey("b")
+            .containsKey("c");
     }
 
     private void export(SpanIgnoringSpanExportingPredicate handler) {

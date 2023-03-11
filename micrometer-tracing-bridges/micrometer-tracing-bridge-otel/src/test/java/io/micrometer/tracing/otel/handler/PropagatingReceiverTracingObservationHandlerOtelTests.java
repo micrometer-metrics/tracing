@@ -40,11 +40,14 @@ class PropagatingReceiverTracingObservationHandlerOtelTests {
     ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-            .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
+        .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor))
+        .build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 

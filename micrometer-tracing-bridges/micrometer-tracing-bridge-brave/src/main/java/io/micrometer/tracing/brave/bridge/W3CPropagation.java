@@ -158,11 +158,13 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
                 String traceIdHigh = traceId.substring(0, traceId.length() / 2);
                 String traceIdLow = traceId.substring(traceId.length() / 2);
                 byte isSampled = TraceFlags.byteFromHex(traceparent, TRACE_OPTION_OFFSET);
-                return TraceContext.newBuilder().shared(true)
-                        .traceIdHigh(EncodingUtils.longFromBase16String(traceIdHigh))
-                        .traceId(EncodingUtils.longFromBase16String(traceIdLow))
-                        .spanId(EncodingUtils.longFromBase16String(spanId)).sampled(isSampled == TraceFlags.IS_SAMPLED)
-                        .build();
+                return TraceContext.newBuilder()
+                    .shared(true)
+                    .traceIdHigh(EncodingUtils.longFromBase16String(traceIdHigh))
+                    .traceId(EncodingUtils.longFromBase16String(traceIdLow))
+                    .spanId(EncodingUtils.longFromBase16String(spanId))
+                    .sampled(isSampled == TraceFlags.IS_SAMPLED)
+                    .build();
             }
             return null;
         }
@@ -277,10 +279,14 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
         }
         try {
             return TraceContextOrSamplingFlags
-                    .newBuilder(TraceContext.newBuilder().traceId(contextFromParentHeader.traceId())
-                            .traceIdHigh(contextFromParentHeader.traceIdHigh()).spanId(contextFromParentHeader.spanId())
-                            .sampled(contextFromParentHeader.sampled()).shared(true).build())
-                    .build();
+                .newBuilder(TraceContext.newBuilder()
+                    .traceId(contextFromParentHeader.traceId())
+                    .traceIdHigh(contextFromParentHeader.traceIdHigh())
+                    .spanId(contextFromParentHeader.spanId())
+                    .sampled(contextFromParentHeader.sampled())
+                    .shared(true)
+                    .build())
+                .build();
         }
         catch (IllegalArgumentException e) {
             logger.info("Unparseable tracestate header. Returning span context without state.");

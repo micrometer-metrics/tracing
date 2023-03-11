@@ -32,7 +32,8 @@ class TracingObservationHandlerTests {
         TracingObservationHandler<Observation.Context> handler = () -> null;
 
         thenThrownBy(() -> handler.onEvent(() -> "", new Observation.Context()))
-                .isInstanceOf(IllegalStateException.class).hasMessageContaining("Span wasn't started");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Span wasn't started");
     }
 
     @Test

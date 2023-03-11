@@ -47,8 +47,10 @@ public class SimpleBaggageManager implements BaggageManager {
 
     @Override
     public Map<String, String> getAllBaggage() {
-        return this.baggagesByContext.values().stream().flatMap(Collection::stream)
-                .collect(Collectors.toMap(Baggage::name, Baggage::get));
+        return this.baggagesByContext.values()
+            .stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toMap(Baggage::name, Baggage::get));
     }
 
     @Override
@@ -63,8 +65,11 @@ public class SimpleBaggageManager implements BaggageManager {
 
     @Nullable
     private SimpleBaggageInScope baggageForName(TraceContext traceContext, String name) {
-        return this.baggagesByContext.getOrDefault(traceContext, Collections.emptySet()).stream()
-                .filter(bag -> name.equalsIgnoreCase(bag.name())).findFirst().orElse(null);
+        return this.baggagesByContext.getOrDefault(traceContext, Collections.emptySet())
+            .stream()
+            .filter(bag -> name.equalsIgnoreCase(bag.name()))
+            .findFirst()
+            .orElse(null);
     }
 
     @Override

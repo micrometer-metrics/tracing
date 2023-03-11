@@ -37,7 +37,7 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         implements TracingObservationHandler<T> {
 
     private static final InternalLogger log = InternalLoggerFactory
-            .getInstance(PropagatingSenderTracingObservationHandler.class);
+        .getInstance(PropagatingSenderTracingObservationHandler.class);
 
     private final Tracer tracer;
 

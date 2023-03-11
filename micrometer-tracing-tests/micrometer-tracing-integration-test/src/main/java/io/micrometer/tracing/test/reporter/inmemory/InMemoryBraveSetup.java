@@ -181,8 +181,10 @@ public final class InMemoryBraveSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave)
-                        .collect(Collectors.toList());
+                return this.testSpanHandler.spans()
+                    .stream()
+                    .map(BraveFinishedSpan::fromBrave)
+                    .collect(Collectors.toList());
             }
 
         }
@@ -315,9 +317,12 @@ public final class InMemoryBraveSetup implements AutoCloseable {
         }
 
         private static Tracing tracing(TestSpanHandler testSpanHandler, String applicationName) {
-            return Tracing.newBuilder().localServiceName(applicationName).addSpanHandler(testSpanHandler)
-                    .currentTraceContext(ThreadLocalCurrentTraceContext.create()).sampler(Sampler.ALWAYS_SAMPLE)
-                    .build();
+            return Tracing.newBuilder()
+                .localServiceName(applicationName)
+                .addSpanHandler(testSpanHandler)
+                .currentTraceContext(ThreadLocalCurrentTraceContext.create())
+                .sampler(Sampler.ALWAYS_SAMPLE)
+                .build();
         }
 
         private static HttpTracing httpTracing(Tracing tracing) {

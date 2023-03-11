@@ -218,8 +218,10 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.arrayListSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
-                        .collect(Collectors.toList());
+                return this.arrayListSpanProcessor.spans()
+                    .stream()
+                    .map(OtelFinishedSpan::fromOtel)
+                    .collect(Collectors.toList());
             }
 
         }
@@ -420,14 +422,18 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
         private static SdkTracerProvider sdkTracerProvider(WavefrontOtelSpanExporter spanHandler,
                 ArrayListSpanProcessor arrayListSpanProcessor) {
-            return SdkTracerProvider.builder().setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                    .addSpanProcessor(arrayListSpanProcessor).addSpanProcessor(SimpleSpanProcessor.create(spanHandler))
-                    .build();
+            return SdkTracerProvider.builder()
+                .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+                .addSpanProcessor(arrayListSpanProcessor)
+                .addSpanProcessor(SimpleSpanProcessor.create(spanHandler))
+                .build();
         }
 
         private static OpenTelemetrySdk openTelemetrySdk(SdkTracerProvider sdkTracerProvider) {
-            return OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-                    .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+            return OpenTelemetrySdk.builder()
+                .setTracerProvider(sdkTracerProvider)
+                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+                .build();
         }
 
         private static io.opentelemetry.api.trace.Tracer tracer(OpenTelemetrySdk openTelemetrySdk) {
