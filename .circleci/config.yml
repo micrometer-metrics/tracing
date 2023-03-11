@@ -24,7 +24,7 @@ executors:
     environment:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: cimg/openjdk:cimg/openjdk:17.0.6
+      - image: cimg/openjdk:17.0.6
   machine-executor:
     working_directory: ~/micrometer-tracing
     machine:
