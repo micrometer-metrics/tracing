@@ -2,4 +2,4 @@
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
 io.micrometer:micrometer-bom:1.10.5-SNAPSHOT=classpath
-empty=archives,default,signatures
+empty=archives,signatures
