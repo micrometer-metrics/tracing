@@ -45,7 +45,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
     private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelHttpClientHandler.class);
 
     private static final ContextKey<HttpServerRequest> REQUEST_CONTEXT_KEY = ContextKey
-            .named(OtelHttpServerHandler.class.getName() + ".request");
+        .named(OtelHttpServerHandler.class.getName() + ".request");
 
     private final HttpRequestParser httpServerRequestParser;
 
@@ -70,12 +70,13 @@ public class OtelHttpServerHandler implements HttpServerHandler {
         this.httpServerResponseParser = httpServerResponseParser;
         this.pattern = skipPattern;
         this.instrumenter = Instrumenter
-                .<HttpServerRequest, HttpServerResponse>builder(openTelemetry, "io.micrometer.tracing",
-                        HttpSpanNameExtractor.create(httpAttributesExtractor))
-                .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
-                .addAttributesExtractor(HttpServerAttributesExtractor.create(httpAttributesExtractor,
-                        new HttpRequestNetServerAttributesExtractor()))
-                .addAttributesExtractor(new PathAttributeExtractor()).buildServerInstrumenter(getGetter());
+            .<HttpServerRequest, HttpServerResponse>builder(openTelemetry, "io.micrometer.tracing",
+                    HttpSpanNameExtractor.create(httpAttributesExtractor))
+            .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
+            .addAttributesExtractor(HttpServerAttributesExtractor.create(httpAttributesExtractor,
+                    new HttpRequestNetServerAttributesExtractor()))
+            .addAttributesExtractor(new PathAttributeExtractor())
+            .buildServerInstrumenter(getGetter());
     }
 
     @Override

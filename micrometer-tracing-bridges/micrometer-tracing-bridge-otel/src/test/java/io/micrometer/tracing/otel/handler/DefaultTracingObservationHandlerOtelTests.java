@@ -55,11 +55,14 @@ class DefaultTracingObservationHandlerOtelTests {
     ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-            .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
+        .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor))
+        .build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
@@ -134,8 +137,9 @@ class DefaultTracingObservationHandlerOtelTests {
     }
 
     private static Span getSpanFromObservation(Observation parent) {
-        TracingObservationHandler.TracingContext tracingContext = parent.getContextView().getOrDefault(
-                TracingObservationHandler.TracingContext.class, new TracingObservationHandler.TracingContext());
+        TracingObservationHandler.TracingContext tracingContext = parent.getContextView()
+            .getOrDefault(TracingObservationHandler.TracingContext.class,
+                    new TracingObservationHandler.TracingContext());
         return tracingContext.getSpan();
     }
 
@@ -152,8 +156,10 @@ class DefaultTracingObservationHandlerOtelTests {
         child.stop();
         parent.stop();
 
-        List<FinishedSpan> spans = testSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
-                .collect(Collectors.toList());
+        List<FinishedSpan> spans = testSpanProcessor.spans()
+            .stream()
+            .map(OtelFinishedSpan::fromOtel)
+            .collect(Collectors.toList());
         SpansAssert.then(spans).haveSameTraceId();
         FinishedSpan grandchildFinishedSpan = spans.get(0);
         SpanAssert.then(grandchildFinishedSpan).hasNameEqualTo("grandchild");
@@ -193,9 +199,9 @@ class DefaultTracingObservationHandlerOtelTests {
         SpanData data = takeOnlySpan();
         then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("exception");
         then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.type")))
-                .isEqualTo("java.io.IOException");
+            .isEqualTo("java.io.IOException");
         then(data.getEvents().get(0).getAttributes().get(AttributeKey.stringKey("exception.message")))
-                .isEqualTo("simulated");
+            .isEqualTo("simulated");
     }
 
     @Test

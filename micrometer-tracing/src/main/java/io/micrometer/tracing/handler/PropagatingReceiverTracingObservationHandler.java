@@ -37,7 +37,7 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
         implements TracingObservationHandler<T> {
 
     private static final InternalLogger log = InternalLoggerFactory
-            .getInstance(PropagatingReceiverTracingObservationHandler.class);
+        .getInstance(PropagatingReceiverTracingObservationHandler.class);
 
     private final Tracer tracer;
 

@@ -56,8 +56,11 @@ class SpanAssertTests {
     void should_jump_to_and_back_from_throwable_assert() {
         SimpleSpan span = new SimpleSpan().name("foo").error(new RuntimeException("bar"));
 
-        thenNoException().isThrownBy(() -> assertThat(span).hasNameEqualTo("foo").thenThrowable().hasMessage("bar")
-                .backToSpan().hasNameEqualTo("foo"));
+        thenNoException().isThrownBy(() -> assertThat(span).hasNameEqualTo("foo")
+            .thenThrowable()
+            .hasMessage("bar")
+            .backToSpan()
+            .hasNameEqualTo("foo"));
     }
 
     @Test
@@ -222,7 +225,7 @@ class SpanAssertTests {
         SimpleSpan span = new SimpleSpan().remoteServiceName("foo");
 
         thenThrownBy(() -> assertThat(span).doesNotHaveRemoteServiceNameEqualTo("foo"))
-                .isInstanceOf(AssertionError.class);
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test
@@ -255,7 +258,7 @@ class SpanAssertTests {
         span.setSpanKind(Span.Kind.CLIENT);
 
         thenThrownBy(() -> assertThat(span).doesNotHaveKindEqualTo(Span.Kind.CLIENT))
-                .isInstanceOf(AssertionError.class);
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test

@@ -25,7 +25,7 @@ import org.aopalliance.intercept.MethodInvocation;
 abstract class AbstractMethodInvocationProcessor implements MethodInvocationProcessor {
 
     private static final InternalLogger logger = InternalLoggerFactory
-            .getInstance(AbstractMethodInvocationProcessor.class);
+        .getInstance(AbstractMethodInvocationProcessor.class);
 
     final NewSpanParser newSpanParser;
 

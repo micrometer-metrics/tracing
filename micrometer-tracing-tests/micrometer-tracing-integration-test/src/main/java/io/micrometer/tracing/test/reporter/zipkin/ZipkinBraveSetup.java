@@ -205,8 +205,10 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave)
-                        .collect(Collectors.toList());
+                return this.testSpanHandler.spans()
+                    .stream()
+                    .map(BraveFinishedSpan::fromBrave)
+                    .collect(Collectors.toList());
             }
 
         }
@@ -367,10 +369,12 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         }
 
         private static Sender sender(String zipkinUrl) {
-            return URLConnectionSender.newBuilder().connectTimeout(1000).readTimeout(1000)
-                    .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl)
-                            + "/api/v2/spans")
-                    .build();
+            return URLConnectionSender.newBuilder()
+                .connectTimeout(1000)
+                .readTimeout(1000)
+                .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl)
+                        + "/api/v2/spans")
+                .build();
         }
 
         private static AsyncReporter<Span> reporter(Sender sender) {
@@ -384,10 +388,13 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private static Tracing tracing(AsyncReporter<Span> reporter, TestSpanHandler testSpanHandler,
                 String applicationName) {
-            return Tracing.newBuilder().localServiceName(applicationName)
-                    .addSpanHandler(ZipkinSpanHandler.newBuilder(reporter).build()).addSpanHandler(testSpanHandler)
-                    .currentTraceContext(ThreadLocalCurrentTraceContext.create()).sampler(Sampler.ALWAYS_SAMPLE)
-                    .build();
+            return Tracing.newBuilder()
+                .localServiceName(applicationName)
+                .addSpanHandler(ZipkinSpanHandler.newBuilder(reporter).build())
+                .addSpanHandler(testSpanHandler)
+                .currentTraceContext(ThreadLocalCurrentTraceContext.create())
+                .sampler(Sampler.ALWAYS_SAMPLE)
+                .build();
         }
 
         private static HttpTracing httpTracing(Tracing tracing) {

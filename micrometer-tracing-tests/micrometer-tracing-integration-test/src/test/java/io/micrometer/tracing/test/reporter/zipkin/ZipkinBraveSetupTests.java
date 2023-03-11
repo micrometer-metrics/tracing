@@ -48,8 +48,9 @@ class ZipkinBraveSetupTests {
             sample.stop();
         });
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> wmri.getWireMock().verifyThat(anyRequestedFor(urlPathEqualTo("/api/v2/spans"))));
+        Awaitility.await()
+            .atMost(5, TimeUnit.SECONDS)
+            .untilAsserted(() -> wmri.getWireMock().verifyThat(anyRequestedFor(urlPathEqualTo("/api/v2/spans"))));
     }
 
 }

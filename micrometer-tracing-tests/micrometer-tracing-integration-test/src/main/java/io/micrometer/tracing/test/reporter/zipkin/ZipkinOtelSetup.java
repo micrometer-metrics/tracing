@@ -220,8 +220,10 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.arrayListSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
-                        .collect(Collectors.toList());
+                return this.arrayListSpanProcessor.spans()
+                    .stream()
+                    .map(OtelFinishedSpan::fromOtel)
+                    .collect(Collectors.toList());
             }
 
             @Override
@@ -403,10 +405,12 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         }
 
         private static Sender sender(String zipkinUrl) {
-            return URLConnectionSender.newBuilder().connectTimeout(1000).readTimeout(1000)
-                    .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl)
-                            + "/api/v2/spans")
-                    .build();
+            return URLConnectionSender.newBuilder()
+                .connectTimeout(1000)
+                .readTimeout(1000)
+                .endpoint((zipkinUrl.endsWith("/") ? zipkinUrl.substring(0, zipkinUrl.length() - 1) : zipkinUrl)
+                        + "/api/v2/spans")
+                .build();
         }
 
         private static ZipkinSpanExporter zipkinSpanExporter(Sender sender) {
@@ -415,19 +419,23 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private static SdkTracerProvider sdkTracerProvider(ZipkinSpanExporter zipkinSpanExporter,
                 ArrayListSpanProcessor arrayListSpanProcessor, String applicationName) {
-            return SdkTracerProvider.builder().setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                    .addSpanProcessor(arrayListSpanProcessor)
-                    .addSpanProcessor(
-                            BatchSpanProcessor.builder(zipkinSpanExporter).setScheduleDelay(100, TimeUnit.MILLISECONDS)
-                                    .setExporterTimeout(300, TimeUnit.MILLISECONDS).build())
-                    .setResource(Resource.getDefault()
-                            .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
-                    .build();
+            return SdkTracerProvider.builder()
+                .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+                .addSpanProcessor(arrayListSpanProcessor)
+                .addSpanProcessor(BatchSpanProcessor.builder(zipkinSpanExporter)
+                    .setScheduleDelay(100, TimeUnit.MILLISECONDS)
+                    .setExporterTimeout(300, TimeUnit.MILLISECONDS)
+                    .build())
+                .setResource(Resource.getDefault()
+                    .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
+                .build();
         }
 
         private static OpenTelemetrySdk openTelemetrySdk(SdkTracerProvider sdkTracerProvider) {
-            return OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-                    .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+            return OpenTelemetrySdk.builder()
+                .setTracerProvider(sdkTracerProvider)
+                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+                .build();
         }
 
         private static io.opentelemetry.api.trace.Tracer tracer(OpenTelemetrySdk openTelemetrySdk) {

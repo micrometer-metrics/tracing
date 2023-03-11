@@ -33,7 +33,7 @@ class BraveHttpClientHandlerTests {
     @Test
     void should_not_throw_exception_when_response_null() {
         brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate = HttpClientHandler
-                .create(HttpTracing.newBuilder(tracing).build());
+            .create(HttpTracing.newBuilder(tracing).build());
         BraveHttpClientHandler handler = new BraveHttpClientHandler(delegate);
 
         handler.handleReceive(null, new BraveSpan(tracing.currentTracer().nextSpan()));

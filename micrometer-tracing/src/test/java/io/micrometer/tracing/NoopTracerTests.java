@@ -29,8 +29,15 @@ class NoopTracerTests {
         BDDAssertions.thenNoException().isThrownBy(() -> {
             Span span = tracer.nextSpan();
             BDDAssertions.then(span.isNoop()).isTrue();
-            span.start().name("foo").tag("foo", "bar").remoteServiceName("foo").remoteIpAndPort("foo", 1)
-                    .error(new RuntimeException()).event("foo").event("foo", 1, TimeUnit.DAYS).end();
+            span.start()
+                .name("foo")
+                .tag("foo", "bar")
+                .remoteServiceName("foo")
+                .remoteIpAndPort("foo", 1)
+                .error(new RuntimeException())
+                .event("foo")
+                .event("foo", 1, TimeUnit.DAYS)
+                .end();
             BDDAssertions.then(span).isSameAs(Span.NOOP);
 
             TraceContext context = span.context();
@@ -55,8 +62,15 @@ class NoopTracerTests {
             BDDAssertions.then(currentSpan).isSameAs(Span.NOOP);
 
             Span.Builder spanBuilder = tracer.spanBuilder();
-            spanBuilder.name("foo").kind(Span.Kind.CONSUMER).setParent(context).setNoParent().remoteServiceName("foo")
-                    .remoteIpAndPort("foo", 1).error(new RuntimeException()).event("foo").start();
+            spanBuilder.name("foo")
+                .kind(Span.Kind.CONSUMER)
+                .setParent(context)
+                .setNoParent()
+                .remoteServiceName("foo")
+                .remoteIpAndPort("foo", 1)
+                .error(new RuntimeException())
+                .event("foo")
+                .start();
             BDDAssertions.then(spanBuilder).isSameAs(Span.Builder.NOOP);
 
             SpanCustomizer spanCustomizer = tracer.currentSpanCustomizer();

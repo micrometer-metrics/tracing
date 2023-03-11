@@ -26,8 +26,11 @@ class BraveTraceContextBuilderTests {
     void should_set_trace_context_for_64_bit() {
         BraveTraceContextBuilder builder = new BraveTraceContextBuilder();
 
-        TraceContext traceContext = builder.parentId("7c6239a5ad0a4287").spanId("caff89f7f0f229dd")
-                .traceId("596e1787feb11040").sampled(true).build();
+        TraceContext traceContext = builder.parentId("7c6239a5ad0a4287")
+            .spanId("caff89f7f0f229dd")
+            .traceId("596e1787feb11040")
+            .sampled(true)
+            .build();
 
         then(traceContext.parentId()).isEqualTo("7c6239a5ad0a4287");
         then(traceContext.spanId()).isEqualTo("caff89f7f0f229dd");
@@ -40,8 +43,10 @@ class BraveTraceContextBuilderTests {
         BraveTraceContextBuilder builder = new BraveTraceContextBuilder();
 
         TraceContext traceContext = builder.parentId("00000000000000007c6239a5ad0a4287")
-                .spanId("0000000000000000caff89f7f0f229dd").traceId("596e1787feb11040caff89f7f0f229dd").sampled(true)
-                .build();
+            .spanId("0000000000000000caff89f7f0f229dd")
+            .traceId("596e1787feb11040caff89f7f0f229dd")
+            .sampled(true)
+            .build();
 
         then(traceContext.parentId()).isEqualTo("7c6239a5ad0a4287");
         then(traceContext.spanId()).isEqualTo("caff89f7f0f229dd");

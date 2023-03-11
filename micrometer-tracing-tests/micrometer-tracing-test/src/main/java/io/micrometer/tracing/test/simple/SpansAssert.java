@@ -77,8 +77,10 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      */
     public SpansAssert haveSameTraceId() {
         isNotEmpty();
-        List<String> traceIds = this.actual.stream().map(FinishedSpan::getTraceId).distinct()
-                .collect(Collectors.toList());
+        List<String> traceIds = this.actual.stream()
+            .map(FinishedSpan::getTraceId)
+            .distinct()
+            .collect(Collectors.toList());
         if (traceIds.size() != 1) {
             failWithMessage("Spans should have same trace ids but found %s trace ids. Found following spans \n%s",
                     traceIds, spansAsString());
@@ -257,8 +259,9 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
     public SpansAssert forAllSpansWithNameEqualTo(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
         hasASpanWithName(name);
-        this.actual.stream().filter(f -> name.equals(f.getName()))
-                .forEach(f -> spanConsumer.accept(SpanAssert.then(f)));
+        this.actual.stream()
+            .filter(f -> name.equals(f.getName()))
+            .forEach(f -> spanConsumer.accept(SpanAssert.then(f)));
         return this;
     }
 
@@ -283,8 +286,9 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
     public SpansAssert forAllSpansWithNameEqualToIgnoreCase(String name, Consumer<SpanAssert> spanConsumer) {
         isNotEmpty();
         hasASpanWithNameIgnoreCase(name);
-        this.actual.stream().filter(f -> name.equalsIgnoreCase(f.getName()))
-                .forEach(f -> spanConsumer.accept(SpanAssert.then(f)));
+        this.actual.stream()
+            .filter(f -> name.equalsIgnoreCase(f.getName()))
+            .forEach(f -> spanConsumer.accept(SpanAssert.then(f)));
         return this;
     }
 
@@ -458,13 +462,15 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      */
     public SpansAssert hasASpanWithRemoteServiceName(String remoteServiceName) {
         isNotEmpty();
-        this.actual.stream().filter(f -> remoteServiceName.equals(f.getRemoteServiceName())).findFirst()
-                .orElseThrow(() -> {
-                    failWithMessage(
-                            "There should be at least one span with remote service name <%s> but found none. Found following spans \n%s",
-                            remoteServiceName, spansAsString());
-                    return new AssertionError();
-                });
+        this.actual.stream()
+            .filter(f -> remoteServiceName.equals(f.getRemoteServiceName()))
+            .findFirst()
+            .orElseThrow(() -> {
+                failWithMessage(
+                        "There should be at least one span with remote service name <%s> but found none. Found following spans \n%s",
+                        remoteServiceName, spansAsString());
+                return new AssertionError();
+            });
         return this;
     }
 

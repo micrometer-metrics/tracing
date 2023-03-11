@@ -49,11 +49,14 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
     ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-            .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor)).build();
+        .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .addSpanProcessor(SimpleSpanProcessor.create(testSpanProcessor))
+        .build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
@@ -77,8 +80,9 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
     @Test
     void should_create_a_child_span_when_parent_was_present() {
         TestObservationRegistry registry = TestObservationRegistry.create();
-        registry.observationConfig().observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
-                handler, new DefaultTracingObservationHandler(tracer)));
+        registry.observationConfig()
+            .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(handler,
+                    new DefaultTracingObservationHandler(tracer)));
 
         Observation parent = Observation.start("parent", registry);
         SenderContext<?> senderContext = new SenderContext<>((carrier, key, value) -> {
@@ -87,17 +91,23 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
         senderContext.setRemoteServiceName("remote service");
         senderContext.setRemoteServiceAddress("http://127.0.0.1:1234");
         Observation child = Observation.createNotStarted("child", () -> senderContext, registry)
-                .parentObservation(parent).start();
+            .parentObservation(parent)
+            .start();
 
         child.stop();
         parent.stop();
 
-        List<FinishedSpan> spans = testSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
-                .collect(Collectors.toList());
+        List<FinishedSpan> spans = testSpanProcessor.spans()
+            .stream()
+            .map(OtelFinishedSpan::fromOtel)
+            .collect(Collectors.toList());
         SpansAssert.then(spans).haveSameTraceId();
         FinishedSpan childFinishedSpan = spans.get(0);
-        SpanAssert.then(childFinishedSpan).hasNameEqualTo("HTTP GET").hasRemoteServiceNameEqualTo("remote service")
-                .hasIpEqualTo("127.0.0.1").hasPortEqualTo(1234);
+        SpanAssert.then(childFinishedSpan)
+            .hasNameEqualTo("HTTP GET")
+            .hasRemoteServiceNameEqualTo("remote service")
+            .hasIpEqualTo("127.0.0.1")
+            .hasPortEqualTo(1234);
         FinishedSpan parentFinishedSpan = spans.get(1);
         SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
 

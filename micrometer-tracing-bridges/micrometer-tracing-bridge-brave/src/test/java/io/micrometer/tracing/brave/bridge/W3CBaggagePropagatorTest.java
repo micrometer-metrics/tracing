@@ -88,7 +88,8 @@ class W3CBaggagePropagatorTest {
 
     private TraceContextOrSamplingFlags context() {
         return TraceContextOrSamplingFlags
-                .newBuilder(TraceContext.newBuilder().traceId(1L).spanId(2L).sampled(true).build()).build();
+            .newBuilder(TraceContext.newBuilder().traceId(1L).spanId(2L).sampled(true).build())
+            .build();
     }
 
     @Test
@@ -125,8 +126,10 @@ class W3CBaggagePropagatorTest {
         TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
         Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
-        assertThat(baggageEntries).hasSize(3).containsEntry("key1", "value1").containsEntry("key2", "value2")
-                .containsEntry("key3", "value3");
+        assertThat(baggageEntries).hasSize(3)
+            .containsEntry("key1", "value1")
+            .containsEntry("key2", "value2")
+            .containsEntry("key3", "value3");
     }
 
     private Map<String, String> baggageEntries(TraceContextOrSamplingFlags flags) {
@@ -134,8 +137,9 @@ class W3CBaggagePropagatorTest {
             throw new AssertionError("Extra doesn't contain BraveBaggageFields as first entry");
         }
         BraveBaggageFields fields = (BraveBaggageFields) flags.context().extra().get(0);
-        return fields.getEntries().stream()
-                .collect(Collectors.toMap(e -> e.getKey().name(), AbstractMap.SimpleEntry::getValue, (o, o2) -> o2));
+        return fields.getEntries()
+            .stream()
+            .collect(Collectors.toMap(e -> e.getKey().name(), AbstractMap.SimpleEntry::getValue, (o, o2) -> o2));
     }
 
     /**
@@ -161,8 +165,8 @@ class W3CBaggagePropagatorTest {
         TraceContextOrSamplingFlags context = context();
         Map<String, String> carrier = new HashMap<>();
 
-        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put).inject(context.context(),
-                carrier);
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
 
         assertThat(carrier).isEmpty();
     }
@@ -178,8 +182,8 @@ class W3CBaggagePropagatorTest {
         meta.updateValue(context, "meta-value;somemetadata; someother=foo");
         Map<String, String> carrier = new HashMap<>();
 
-        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put).inject(context.context(),
-                carrier);
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
 
         assertThat(carrier).containsExactlyInAnyOrderEntriesOf(
                 singletonMap("baggage", "nometa=nometa-value,meta=meta-value;somemetadata; someother=foo"));
@@ -198,11 +202,13 @@ class W3CBaggagePropagatorTest {
         // Brave with W3C
         BraveBaggageManager braveBaggageManager = new BraveBaggageManager();
         ThreadLocalCurrentTraceContext currentTraceContext = ThreadLocalCurrentTraceContext.newBuilder()
-                .addScopeDecorator(correlationScopeDecorator(mdcCorrelationScopeDecoratorBuilder())).build();
+            .addScopeDecorator(correlationScopeDecorator(mdcCorrelationScopeDecoratorBuilder()))
+            .build();
         Tracing tracing = Tracing.newBuilder()
-                .propagationFactory(micrometerTracingPropagationWithBaggage(w3cPropagationFactory(braveBaggageManager)))
-                // .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
-                .currentTraceContext(currentTraceContext).build();
+            .propagationFactory(micrometerTracingPropagationWithBaggage(w3cPropagationFactory(braveBaggageManager)))
+            // .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
+            .currentTraceContext(currentTraceContext)
+            .build();
         Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()),
                 braveBaggageManager);
         BravePropagator bravePropagator = new BravePropagator(tracing);
@@ -210,20 +216,22 @@ class W3CBaggagePropagatorTest {
         // Observation
         TestObservationRegistry registry = TestObservationRegistry.create();
         registry.observationConfig()
-                .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
-                        new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
-                        new DefaultTracingObservationHandler(tracer)));
+            .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
+                    new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
+                    new DefaultTracingObservationHandler(tracer)));
 
         ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
         receiverContext.setCarrier(carrier);
         Observation parent = Observation.start("foo", () -> receiverContext, registry);
         parent.scoped(() -> {
-            assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value").containsEntry("key2", "value2")
-                    .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+            assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value")
+                .containsEntry("key2", "value2")
+                .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
             Observation child = Observation.start("bar", registry);
             child.scoped(() -> {
-                assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value").containsEntry("key2", "value2")
-                        .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+                assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value")
+                    .containsEntry("key2", "value2")
+                    .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
             });
         });
 
@@ -241,32 +249,35 @@ class W3CBaggagePropagatorTest {
 
         // Brave with W3C
         ThreadLocalCurrentTraceContext currentTraceContext = ThreadLocalCurrentTraceContext.newBuilder()
-                .addScopeDecorator(correlationScopeDecorator(mdcCorrelationScopeDecoratorBuilder())).build();
+            .addScopeDecorator(correlationScopeDecorator(mdcCorrelationScopeDecoratorBuilder()))
+            .build();
         Tracing tracing = Tracing.newBuilder()
-                .propagationFactory(micrometerTracingPropagationWithBaggage(w3cPropagationFactoryWithoutBaggage()))
-                // .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
-                .currentTraceContext(currentTraceContext).build();
+            .propagationFactory(micrometerTracingPropagationWithBaggage(w3cPropagationFactoryWithoutBaggage()))
+            // .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
+            .currentTraceContext(currentTraceContext)
+            .build();
         Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()));
         BravePropagator bravePropagator = new BravePropagator(tracing);
 
         // Observation
         TestObservationRegistry registry = TestObservationRegistry.create();
         registry.observationConfig()
-                .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
-                        new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
-                        new DefaultTracingObservationHandler(tracer)));
+            .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
+                    new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
+                    new DefaultTracingObservationHandler(tracer)));
 
         ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
         receiverContext.setCarrier(carrier);
         Observation parent = Observation.start("foo", () -> receiverContext, registry);
         parent.scoped(() -> {
             assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
-                    .doesNotContainEntry("key2", "value2").containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+                .doesNotContainEntry("key2", "value2")
+                .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
             Observation child = Observation.start("bar", registry);
             child.scoped(() -> {
                 assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
-                        .doesNotContainEntry("key2", "value2")
-                        .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+                    .doesNotContainEntry("key2", "value2")
+                    .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
             });
         });
 
@@ -302,7 +313,8 @@ class W3CBaggagePropagatorTest {
         List<String> correlationFields = Arrays.asList("key", "key2");
         for (String field : correlationFields) {
             builder.add(CorrelationScopeConfig.SingleCorrelationField.newBuilder(BaggageField.create(field))
-                    .flushOnUpdate().build());
+                .flushOnUpdate()
+                .build());
         }
         return builder.build();
     }

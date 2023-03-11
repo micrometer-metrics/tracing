@@ -68,14 +68,15 @@ class EncodingUtilsTests {
     void longFromBase16String_InputTooSmall() {
         // Valid base16 strings always have an even length.
         thenThrownBy(() -> EncodingUtils.longFromBase16String("12345678", 1))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void longFromBase16String_UnrecognizedCharacters() {
         // These contain bytes not in the decoding.
         thenThrownBy(() -> EncodingUtils.longFromBase16String("0123456789gbcdef", 0))
-                .isInstanceOf(IllegalArgumentException.class).hasMessage("invalid character g");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("invalid character g");
     }
 
     @Test
@@ -96,7 +97,7 @@ class EncodingUtilsTests {
         then(EncodingUtils.longFromBase16String(CharBuffer.wrap(BOTH_CHAR_ARRAY), 0)).isEqualTo(FIRST_LONG);
 
         then(EncodingUtils.longFromBase16String(CharBuffer.wrap(BOTH_CHAR_ARRAY), EncodingUtils.LONG_BASE16))
-                .isEqualTo(SECOND_LONG);
+            .isEqualTo(SECOND_LONG);
 
         long id = EncodingUtils.longFromBase16String("0b6aaf642574edd3dcebed0be190402d");
         // unsigned long version of hex 0b6aaf642574edd3

@@ -49,7 +49,7 @@ public class OtelHttpClientHandler implements HttpClientHandler {
     private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelHttpClientHandler.class);
 
     private static final ContextKey<HttpClientRequest> REQUEST_CONTEXT_KEY = ContextKey
-            .named(OtelHttpClientHandler.class.getName() + ".request");
+        .named(OtelHttpClientHandler.class.getName() + ".request");
 
     private final HttpRequestParser httpClientRequestParser;
 
@@ -74,14 +74,13 @@ public class OtelHttpClientHandler implements HttpClientHandler {
         this.httpClientResponseParser = httpClientResponseParser;
         this.samplerFunction = samplerFunction;
         this.instrumenter = Instrumenter
-                .<HttpClientRequest, HttpClientResponse>builder(openTelemetry, "io.micrometer.tracing",
-                        HttpSpanNameExtractor.create(httpAttributesExtractor))
-                .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
-                .addAttributesExtractor(
-                        NetClientAttributesExtractor.create(new HttpRequestNetClientAttributesExtractor()))
-                .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesExtractor))
-                .addAttributesExtractor(new PathAttributeExtractor())
-                .buildClientInstrumenter(HttpClientRequest::header);
+            .<HttpClientRequest, HttpClientResponse>builder(openTelemetry, "io.micrometer.tracing",
+                    HttpSpanNameExtractor.create(httpAttributesExtractor))
+            .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
+            .addAttributesExtractor(NetClientAttributesExtractor.create(new HttpRequestNetClientAttributesExtractor()))
+            .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesExtractor))
+            .addAttributesExtractor(new PathAttributeExtractor())
+            .buildClientInstrumenter(HttpClientRequest::header);
     }
 
     @Override

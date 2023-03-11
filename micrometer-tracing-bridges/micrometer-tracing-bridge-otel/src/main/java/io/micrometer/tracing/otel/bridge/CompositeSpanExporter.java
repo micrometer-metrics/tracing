@@ -98,7 +98,7 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
     @Override
     public CompletableResultCode flush() {
         return CompletableResultCode
-                .ofAll(this.exporters.stream().map(SpanExporter::flush).collect(Collectors.toList()));
+            .ofAll(this.exporters.stream().map(SpanExporter::flush).collect(Collectors.toList()));
     }
 
     @Override

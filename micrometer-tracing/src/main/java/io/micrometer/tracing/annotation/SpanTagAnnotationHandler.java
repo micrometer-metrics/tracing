@@ -79,7 +79,7 @@ class SpanTagAnnotationHandler {
                 for (Method methodFromInterface : implementedInterface.getMethods()) {
                     if (methodsAreTheSame(mostSpecificMethod, methodFromInterface)) {
                         List<AnnotatedParameter> annotatedParametersForActualMethod = AnnotationUtils
-                                .findAnnotatedParameters(methodFromInterface, pjp.getArguments());
+                            .findAnnotatedParameters(methodFromInterface, pjp.getArguments());
                         mergeAnnotatedParameters(annotatedParameters, annotatedParametersForActualMethod);
                     }
                 }
@@ -130,7 +130,7 @@ class SpanTagAnnotationHandler {
         }
         else if (StringUtils.isNotBlank(annotation.expression())) {
             value = this.expressionResolverProvider.apply(TagValueExpressionResolver.class)
-                    .resolve(annotation.expression(), argument);
+                .resolve(annotation.expression(), argument);
         }
         else if (argument != null) {
             value = argument.toString();

@@ -52,16 +52,19 @@ class BraveTracingApiTests {
 
     // [Brave component] Tracing is the root component that allows to configure the
     // tracer, handlers, context propagation etc.
-    Tracing tracing = Tracing.newBuilder().currentTraceContext(this.braveCurrentTraceContext).supportsJoin(false)
-            .traceId128Bit(true)
-            // For Baggage to work you need to provide a list of fields to propagate
-            .propagationFactory(BaggagePropagation.newFactoryBuilder(B3Propagation.FACTORY)
-                    .add(BaggagePropagationConfig.SingleBaggageField
-                            .remote(BaggageField.create("from_span_in_scope 1")))
-                    .add(BaggagePropagationConfig.SingleBaggageField
-                            .remote(BaggageField.create("from_span_in_scope 2")))
-                    .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create("from_span"))).build())
-            .sampler(Sampler.ALWAYS_SAMPLE).addSpanHandler(this.spanHandler).build();
+    Tracing tracing = Tracing.newBuilder()
+        .currentTraceContext(this.braveCurrentTraceContext)
+        .supportsJoin(false)
+        .traceId128Bit(true)
+        // For Baggage to work you need to provide a list of fields to propagate
+        .propagationFactory(BaggagePropagation.newFactoryBuilder(B3Propagation.FACTORY)
+            .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create("from_span_in_scope 1")))
+            .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create("from_span_in_scope 2")))
+            .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create("from_span")))
+            .build())
+        .sampler(Sampler.ALWAYS_SAMPLE)
+        .addSpanHandler(this.spanHandler)
+        .build();
 
     // [Brave component] Tracer is a component that handles the life-cycle of a span
     brave.Tracer braveTracer = this.tracing.tracer();
@@ -182,7 +185,7 @@ class BraveTracingApiTests {
         try (BaggageInScope baggage = baggageForExplicitSpan.makeCurrent()) {
             then(baggage.get(span.context())).as("[Span passed explicitly] Baggage 3").isEqualTo("value 3");
             then(tracer.getBaggage("from_span").get(span.context())).as("[Span passed explicitly] Baggage 3")
-                    .isEqualTo("value 3");
+                .isEqualTo("value 3");
         }
 
         // Assuming that there's no span in scope
@@ -200,7 +203,7 @@ class BraveTracingApiTests {
 
         // You will retrieve the baggage value ALWAYS when you pass the context explicitly
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3")
-                .isEqualTo("value 3");
+            .isEqualTo("value 3");
     }
 
     @Test
@@ -227,9 +230,9 @@ class BraveTracingApiTests {
         try (BaggageInScope baggageForExplicitSpan = tracer.createBaggageInScope(span.context(), "from_span",
                 "value 3")) {
             then(baggageForExplicitSpan.get(span.context())).as("[Span passed explicitly] Baggage 3")
-                    .isEqualTo("value 3");
+                .isEqualTo("value 3");
             then(tracer.getBaggage("from_span").get(span.context())).as("[Span passed explicitly] Baggage 3")
-                    .isEqualTo("value 3");
+                .isEqualTo("value 3");
         }
 
         // Assuming that there's no span in scope
@@ -245,7 +248,7 @@ class BraveTracingApiTests {
 
         // You will retrieve the baggage value ALWAYS when you pass the context explicitly
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3")
-                .isEqualTo("value 3");
+            .isEqualTo("value 3");
     }
 
 }

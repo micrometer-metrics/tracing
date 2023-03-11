@@ -42,8 +42,9 @@ public class BaggageTaggingSpanProcessor implements SpanProcessor {
      * @param tagsToApply tags to apply from the baggage on the span
      */
     public BaggageTaggingSpanProcessor(List<String> tagsToApply) {
-        this.tagsToApply = tagsToApply.stream().map(tag -> stringKey(tag))
-                .collect(toMap(AttributeKey::getKey, key -> key));
+        this.tagsToApply = tagsToApply.stream()
+            .map(tag -> stringKey(tag))
+            .collect(toMap(AttributeKey::getKey, key -> key));
     }
 
     @Override

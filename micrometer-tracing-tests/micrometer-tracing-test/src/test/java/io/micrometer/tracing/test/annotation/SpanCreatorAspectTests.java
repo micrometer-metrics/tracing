@@ -130,8 +130,9 @@ class SpanCreatorAspectTests {
         BDDAssertions.then(this.spans).hasSize(1);
         // Different in Sleuth
         BDDAssertions.then(this.spans.peek().getName()).isEqualTo("custom-name-on-test-method9");
-        BDDAssertions.then(this.spans.peek().getTags()).containsEntry("annotated.class", "TestBean")
-                .containsEntry("annotated.method", "testMethod9");
+        BDDAssertions.then(this.spans.peek().getTags())
+            .containsEntry("annotated.class", "TestBean")
+            .containsEntry("annotated.method", "testMethod9");
         BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }
@@ -151,7 +152,7 @@ class SpanCreatorAspectTests {
         BDDAssertions.then(this.spans.peek().getName()).isEqualTo("foo");
         BDDAssertions.then(this.spans.peek().getTags()).containsEntry("customTestTag10", "test");
         BDDAssertions.then(this.spans.peek().getEvents().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-                .contains("customTest.before", "customTest.after");
+            .contains("customTest.before", "customTest.after");
         BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }
@@ -164,7 +165,7 @@ class SpanCreatorAspectTests {
         BDDAssertions.then(this.spans.peek().getName()).isEqualTo("test-method10");
         BDDAssertions.then(this.spans.peek().getTags()).containsEntry("customTestTag10", "test");
         BDDAssertions.then(this.spans.peek().getEvents().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-                .contains("customTest.before", "customTest.after");
+            .contains("customTest.before", "customTest.after");
         BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }
@@ -184,7 +185,7 @@ class SpanCreatorAspectTests {
         BDDAssertions.then(this.spans.peek().getName()).isEqualTo("foo");
         BDDAssertions.then(this.spans.peek().getTags()).containsEntry("customTestTag10", "test");
         BDDAssertions.then(this.spans.peek().getEvents().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-                .contains("customTest.before", "customTest.after");
+            .contains("customTest.before", "customTest.after");
         BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }
@@ -202,10 +203,12 @@ class SpanCreatorAspectTests {
 
         BDDAssertions.then(this.spans).hasSize(1);
         BDDAssertions.then(this.spans.peek().getName()).isEqualTo("foo");
-        BDDAssertions.then(this.spans.peek().getTags()).containsEntry("annotated.class", "TestBean")
-                .containsEntry("annotated.method", "testMethod11").containsEntry("customTestTag11", "test");
+        BDDAssertions.then(this.spans.peek().getTags())
+            .containsEntry("annotated.class", "TestBean")
+            .containsEntry("annotated.method", "testMethod11")
+            .containsEntry("customTestTag11", "test");
         BDDAssertions.then(this.spans.peek().getEvents().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-                .contains("customTest.before", "customTest.after");
+            .contains("customTest.before", "customTest.after");
         BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }
@@ -243,7 +246,7 @@ class SpanCreatorAspectTests {
         BDDAssertions.then(this.spans.peek().getName()).isEqualTo("foo");
         BDDAssertions.then(this.spans.peek().getError()).hasMessageContaining("test exception 13");
         BDDAssertions.then(this.spans.peek().getEvents().stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-                .contains("testMethod13.before", "testMethod13.afterFailure", "testMethod13.after");
+            .contains("testMethod13.before", "testMethod13.afterFailure", "testMethod13.after");
         BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
         BDDAssertions.then(this.tracer.currentSpan()).isNull();
     }

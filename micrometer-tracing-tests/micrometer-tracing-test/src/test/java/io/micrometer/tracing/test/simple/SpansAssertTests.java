@@ -39,7 +39,7 @@ class SpansAssertTests {
         SimpleSpan span = new SimpleSpan().name("foo");
 
         thenThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithName("bar"))
-                .isInstanceOf(AssertionError.class);
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test
@@ -57,7 +57,7 @@ class SpansAssertTests {
         SimpleSpan span2 = new SimpleSpan().name("baz");
 
         thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithName("bar", AbstractAssert::isNotNull))
-                .isInstanceOf(AssertionError.class);
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test
@@ -66,7 +66,8 @@ class SpansAssertTests {
         SimpleSpan span2 = new SimpleSpan().name("baz");
 
         thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithName("baz",
-                spanAssert -> spanAssert.hasNameEqualTo("bar"))).isInstanceOf(AssertionError.class);
+                spanAssert -> spanAssert.hasNameEqualTo("bar")))
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test
@@ -84,7 +85,8 @@ class SpansAssertTests {
         SimpleSpan span2 = new SimpleSpan().name("baz");
 
         thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithNameIgnoreCase("bar",
-                AbstractAssert::isNotNull)).isInstanceOf(AssertionError.class);
+                AbstractAssert::isNotNull))
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test
@@ -93,7 +95,8 @@ class SpansAssertTests {
         SimpleSpan span2 = new SimpleSpan().name("baz");
 
         thenThrownBy(() -> assertThat(Arrays.asList(span, span2)).hasASpanWithNameIgnoreCase("BaZ",
-                spanAssert -> spanAssert.hasNameEqualTo("bar"))).isInstanceOf(AssertionError.class);
+                spanAssert -> spanAssert.hasNameEqualTo("bar")))
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test
@@ -101,7 +104,10 @@ class SpansAssertTests {
         SimpleSpan span = new SimpleSpan().name("foo");
 
         thenNoException().isThrownBy(() -> assertThat(Collections.singletonList(span)).hasASpanWithName("foo")
-                .thenASpanWithNameEqualTo("foo").hasNameEqualTo("foo").backToSpans().hasASpanWithNameIgnoreCase("foo"));
+            .thenASpanWithNameEqualTo("foo")
+            .hasNameEqualTo("foo")
+            .backToSpans()
+            .hasASpanWithNameIgnoreCase("foo"));
     }
 
     @Test
@@ -146,7 +152,7 @@ class SpansAssertTests {
         SimpleSpan span = new SimpleSpan().name("foo").start();
 
         thenNoException().isThrownBy(() -> assertThat(Collections.singletonList(span))
-                .forAllSpansWithNameEqualToIgnoreCase("FOO", SpanAssert::isNotEnded));
+            .forAllSpansWithNameEqualToIgnoreCase("FOO", SpanAssert::isNotEnded));
     }
 
     @Test
@@ -171,30 +177,35 @@ class SpansAssertTests {
     void should_throw_exception_when_assert_that_a_span_with_name_equal_to_fails_on_missing_name() {
         SimpleSpan span = new SimpleSpan().name("foo").start();
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualTo("bar").isStarted()
-                .backToSpans());
+        thenThrownBy(() -> assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualTo("bar")
+            .isStarted()
+            .backToSpans());
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).thenASpanWithNameEqualTo("bar").isStarted()
-                .backToSpans());
+        thenThrownBy(() -> assertThat(Collections.singletonList(span)).thenASpanWithNameEqualTo("bar")
+            .isStarted()
+            .backToSpans());
     }
 
     @Test
     void should_throw_exception_when_assert_that_a_span_with_name_equal_to_fails_on_assertion() {
         SimpleSpan span = new SimpleSpan().name("foo").start();
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualTo("foo").isEnded()
-                .backToSpans());
+        thenThrownBy(() -> assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualTo("foo")
+            .isEnded()
+            .backToSpans());
 
-        thenThrownBy(() -> assertThat(Collections.singletonList(span)).thenASpanWithNameEqualTo("foo").isEnded()
-                .backToSpans());
+        thenThrownBy(() -> assertThat(Collections.singletonList(span)).thenASpanWithNameEqualTo("foo")
+            .isEnded()
+            .backToSpans());
     }
 
     @Test
     void should_not_throw_exception_assert_that_a_span_with_name_equal_to_ignore_case() {
         SimpleSpan span = new SimpleSpan().name("foo").start();
 
-        assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualToIgnoreCase("FOO").isStarted()
-                .backToSpans();
+        assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualToIgnoreCase("FOO")
+            .isStarted()
+            .backToSpans();
 
         assertThat(Collections.singletonList(span)).thenASpanWithNameEqualToIgnoreCase("FOO").isStarted().backToSpans();
     }
@@ -204,10 +215,12 @@ class SpansAssertTests {
         SimpleSpan span = new SimpleSpan().name("foo").start();
 
         thenThrownBy(() -> assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualToIgnoreCase("BAR")
-                .isStarted().backToSpans());
+            .isStarted()
+            .backToSpans());
 
         thenThrownBy(() -> assertThat(Collections.singletonList(span)).thenASpanWithNameEqualToIgnoreCase("BAR")
-                .isStarted().backToSpans());
+            .isStarted()
+            .backToSpans());
     }
 
     @Test
@@ -215,10 +228,12 @@ class SpansAssertTests {
         SimpleSpan span = new SimpleSpan().name("foo").start();
 
         thenThrownBy(() -> assertThat(Collections.singletonList(span)).assertThatASpanWithNameEqualToIgnoreCase("FOO")
-                .isEnded().backToSpans());
+            .isEnded()
+            .backToSpans());
 
         thenThrownBy(() -> assertThat(Collections.singletonList(span)).thenASpanWithNameEqualToIgnoreCase("FOO")
-                .isEnded().backToSpans());
+            .isEnded()
+            .backToSpans());
     }
 
     @Test
@@ -297,8 +312,10 @@ class SpansAssertTests {
     void should_not_throw_exception_when_span_has_tag() {
         SimpleSpan span = new SimpleSpan().tag("foo", "bar");
 
-        assertThat(Collections.singletonList(span)).hasASpanWithATag("foo", "bar").hasASpanWithATagKey("foo")
-                .hasASpanWithATag(() -> "foo", "bar").hasASpanWithATagKey(() -> "foo");
+        assertThat(Collections.singletonList(span)).hasASpanWithATag("foo", "bar")
+            .hasASpanWithATagKey("foo")
+            .hasASpanWithATag(() -> "foo", "bar")
+            .hasASpanWithATagKey(() -> "foo");
     }
 
     @Test

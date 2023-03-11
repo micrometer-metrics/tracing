@@ -37,10 +37,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OtelPropagatorTests {
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn()).build();
+        .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
@@ -49,9 +52,9 @@ class OtelPropagatorTests {
     OtelBaggageManager otelBaggageManager = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
             Collections.emptyList());
 
-    ContextPropagators contextPropagators = ContextPropagators.create(
-            TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                    new BaggageTextMapPropagator(Collections.singletonList("foo"), otelBaggageManager)));
+    ContextPropagators contextPropagators = ContextPropagators
+        .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
+                new BaggageTextMapPropagator(Collections.singletonList("foo"), otelBaggageManager)));
 
     OtelPropagator otelPropagator = new OtelPropagator(contextPropagators, otelTracer);
 
@@ -91,7 +94,9 @@ class OtelPropagatorTests {
         Span span = extract.start();
 
         try (BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
-                Collections.emptyList()).getBaggage(span.context(), "foo").makeCurrent()) {
+                Collections.emptyList())
+            .getBaggage(span.context(), "foo")
+            .makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }
     }
@@ -110,14 +115,17 @@ class OtelPropagatorTests {
         String expectedSpanId = extracted.context().spanId();
 
         try (Tracer.SpanInScope ignored = tracer.withSpan(extracted)) {
-            assertThat(tracer.currentSpan()).extracting(Span::context).returns(expectedSpanId, TraceContext::spanId)
-                    .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
-                    .returns("9a5fdefae3abb440", TraceContext::parentId);
+            assertThat(tracer.currentSpan()).extracting(Span::context)
+                .returns(expectedSpanId, TraceContext::spanId)
+                .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
+                .returns("9a5fdefae3abb440", TraceContext::parentId);
 
-            assertThat(tracer.currentTraceContext()).isNotNull().extracting(CurrentTraceContext::context).isNotNull()
-                    .returns(expectedSpanId, TraceContext::spanId)
-                    .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
-                    .returns("9a5fdefae3abb440", TraceContext::parentId);
+            assertThat(tracer.currentTraceContext()).isNotNull()
+                .extracting(CurrentTraceContext::context)
+                .isNotNull()
+                .returns(expectedSpanId, TraceContext::spanId)
+                .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
+                .returns("9a5fdefae3abb440", TraceContext::parentId);
         }
     }
 

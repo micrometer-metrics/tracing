@@ -92,8 +92,9 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         Baggage fromContext = Baggage.fromContext(storedCtx);
 
         BaggageBuilder newBaggageBuilder = fromContext.toBuilder();
-        Baggage.current().forEach(
-                (key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
+        Baggage.current()
+            .forEach((key, baggageEntry) -> newBaggageBuilder.put(key, baggageEntry.getValue(),
+                    baggageEntry.getMetadata()));
 
         baggage = newBaggageBuilder.put(entry().getKey(), value, entry().getMetadata()).build();
         current = current.with(baggage);

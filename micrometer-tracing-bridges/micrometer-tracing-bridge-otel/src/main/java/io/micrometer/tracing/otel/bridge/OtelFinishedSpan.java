@@ -90,29 +90,34 @@ public class OtelFinishedSpan implements FinishedSpan {
     @Override
     public FinishedSpan setTags(Map<String, String> tags) {
         this.spanData.tags.clear();
-        this.spanData.tags.putAll(tags.entrySet().stream()
-                .collect(Collectors.toMap(e -> AttributeKey.stringKey(e.getKey()), Map.Entry::getValue)));
+        this.spanData.tags.putAll(tags.entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> AttributeKey.stringKey(e.getKey()), Map.Entry::getValue)));
         return this;
     }
 
     @Override
     public Map<String, String> getTags() {
-        return this.spanData.tags.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey().getKey(), Map.Entry::getValue));
+        return this.spanData.tags.entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> e.getKey().getKey(), Map.Entry::getValue));
     }
 
     @Override
     public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
         this.spanData.events.clear();
         this.spanData.events.addAll(events.stream()
-                .map(e -> EventData.create(e.getKey(), e.getValue(), Attributes.empty())).collect(Collectors.toList()));
+            .map(e -> EventData.create(e.getKey(), e.getValue(), Attributes.empty()))
+            .collect(Collectors.toList()));
         return this;
     }
 
     @Override
     public Collection<Map.Entry<Long, String>> getEvents() {
-        return this.spanData.getEvents().stream()
-                .map(e -> new AbstractMap.SimpleEntry<>(e.getEpochNanos(), e.getName())).collect(Collectors.toList());
+        return this.spanData.getEvents()
+            .stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getEpochNanos(), e.getName()))
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -193,8 +198,12 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     @Override
     public Throwable getError() {
-        Attributes attributes = this.spanData.getEvents().stream().filter(e -> e.getName().equals("exception"))
-                .findFirst().map(EventData::getAttributes).orElse(null);
+        Attributes attributes = this.spanData.getEvents()
+            .stream()
+            .filter(e -> e.getName().equals("exception"))
+            .findFirst()
+            .map(EventData::getAttributes)
+            .orElse(null);
         if (attributes != null) {
             return new AssertingThrowable(attributes);
         }
@@ -203,8 +212,9 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     @Override
     public FinishedSpan setError(Throwable error) {
-        this.spanData.getEvents().add(EventData.create(System.nanoTime(), "exception",
-                Attributes.of(AttributeKey.stringKey("exception.message"), error.toString())));
+        this.spanData.getEvents()
+            .add(EventData.create(System.nanoTime(), "exception",
+                    Attributes.of(AttributeKey.stringKey("exception.message"), error.toString())));
         return this;
     }
 

@@ -25,12 +25,28 @@ class SimpleSpanBuilderTests {
         SimpleTracer simpleTracer = new SimpleTracer();
         SimpleSpanBuilder builder = new SimpleSpanBuilder(simpleTracer);
 
-        builder.name("foo").kind(Span.Kind.CLIENT).remoteIpAndPort("1.2.3.4", 80).error(new Throwable())
-                .event("foo event").tag("tag", "value").remoteServiceName("bar").setNoParent().start().end();
+        builder.name("foo")
+            .kind(Span.Kind.CLIENT)
+            .remoteIpAndPort("1.2.3.4", 80)
+            .error(new Throwable())
+            .event("foo event")
+            .tag("tag", "value")
+            .remoteServiceName("bar")
+            .setNoParent()
+            .start()
+            .end();
 
-        TracerAssert.assertThat(simpleTracer).onlySpan().hasNameEqualTo("foo").hasRemoteServiceNameEqualTo("bar")
-                .hasTag("tag", "value").hasEventWithNameEqualTo("foo event").hasIpThatIsNotBlank().hasPortThatIsSet()
-                .hasKindEqualTo(Span.Kind.CLIENT).assertThatThrowable().isInstanceOf(Throwable.class);
+        TracerAssert.assertThat(simpleTracer)
+            .onlySpan()
+            .hasNameEqualTo("foo")
+            .hasRemoteServiceNameEqualTo("bar")
+            .hasTag("tag", "value")
+            .hasEventWithNameEqualTo("foo event")
+            .hasIpThatIsNotBlank()
+            .hasPortThatIsSet()
+            .hasKindEqualTo(Span.Kind.CLIENT)
+            .assertThatThrowable()
+            .isInstanceOf(Throwable.class);
     }
 
 }

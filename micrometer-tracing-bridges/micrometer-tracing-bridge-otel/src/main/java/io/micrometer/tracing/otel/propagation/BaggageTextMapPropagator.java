@@ -77,20 +77,23 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
     private <C> List<Map.Entry<String, String>> applicableBaggageEntries(C c) {
         Map<String, String> allBaggage = this.baggageManager.getAllBaggage();
         List<String> lowerCaseKeys = this.remoteFields.stream().map(String::toLowerCase).collect(Collectors.toList());
-        return allBaggage.entrySet().stream().filter(e -> lowerCaseKeys.contains(e.getKey().toLowerCase()))
-                .collect(Collectors.toList());
+        return allBaggage.entrySet()
+            .stream()
+            .filter(e -> lowerCaseKeys.contains(e.getKey().toLowerCase()))
+            .collect(Collectors.toList());
     }
 
     @Override
     public <C> Context extract(Context context, C c, TextMapGetter<C> getter) {
         Map<String, String> baggageEntries = this.remoteFields.stream()
-                .map(s -> new AbstractMap.SimpleEntry<>(s, getter.get(c, s))).filter(e -> e.getValue() != null)
-                .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()));
+            .map(s -> new AbstractMap.SimpleEntry<>(s, getter.get(c, s)))
+            .filter(e -> e.getValue() != null)
+            .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()));
         BaggageBuilder builder = Baggage.current().toBuilder();
         baggageEntries
-                .forEach((key, value) -> builder.put(key, value, BaggageEntryMetadata.create(PROPAGATION_UNLIMITED)));
+            .forEach((key, value) -> builder.put(key, value, BaggageEntryMetadata.create(PROPAGATION_UNLIMITED)));
         Baggage.fromContext(context)
-                .forEach((s, baggageEntry) -> builder.put(s, baggageEntry.getValue(), baggageEntry.getMetadata()));
+            .forEach((s, baggageEntry) -> builder.put(s, baggageEntry.getValue(), baggageEntry.getMetadata()));
         Baggage baggage = builder.build();
         Context withBaggage = context.with(baggage);
         if (log.isDebugEnabled()) {

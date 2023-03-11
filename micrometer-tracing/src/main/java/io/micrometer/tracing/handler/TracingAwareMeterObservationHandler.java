@@ -76,7 +76,7 @@ public class TracingAwareMeterObservationHandler<T extends Observation.Context> 
     @Override
     public void onStop(T context) {
         TracingObservationHandler.TracingContext tracingContext = context
-                .getRequired(TracingObservationHandler.TracingContext.class);
+            .getRequired(TracingObservationHandler.TracingContext.class);
         Span currentSpan = tracingContext.getSpan();
         if (currentSpan != null) {
             try (Tracer.SpanInScope spanInScope = tracer.withSpan(tracingContext.getSpan())) {

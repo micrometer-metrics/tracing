@@ -182,8 +182,10 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.arrayListSpanProcessor.spans().stream().map(OtelFinishedSpan::fromOtel)
-                        .collect(Collectors.toList());
+                return this.arrayListSpanProcessor.spans()
+                    .stream()
+                    .map(OtelFinishedSpan::fromOtel)
+                    .collect(Collectors.toList());
             }
 
             @Override
@@ -331,16 +333,19 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
         private static SdkTracerProvider sdkTracerProvider(ArrayListSpanProcessor arrayListSpanProcessor,
                 String applicationName) {
-            return SdkTracerProvider.builder().setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                    .addSpanProcessor(arrayListSpanProcessor)
-                    .setResource(Resource.getDefault()
-                            .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
-                    .build();
+            return SdkTracerProvider.builder()
+                .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+                .addSpanProcessor(arrayListSpanProcessor)
+                .setResource(Resource.getDefault()
+                    .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
+                .build();
         }
 
         private static OpenTelemetrySdk openTelemetrySdk(SdkTracerProvider sdkTracerProvider) {
-            return OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider)
-                    .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader())).build();
+            return OpenTelemetrySdk.builder()
+                .setTracerProvider(sdkTracerProvider)
+                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+                .build();
         }
 
         private static Tracer tracer(OpenTelemetrySdk openTelemetrySdk) {

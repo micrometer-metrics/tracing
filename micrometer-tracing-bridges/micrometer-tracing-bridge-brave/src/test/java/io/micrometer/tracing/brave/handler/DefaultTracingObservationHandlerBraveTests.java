@@ -105,8 +105,10 @@ class DefaultTracingObservationHandlerBraveTests {
         child.stop();
         parent.stop();
 
-        List<FinishedSpan> spans = testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave)
-                .collect(Collectors.toList());
+        List<FinishedSpan> spans = testSpanHandler.spans()
+            .stream()
+            .map(BraveFinishedSpan::fromBrave)
+            .collect(Collectors.toList());
         SpansAssert.then(spans).haveSameTraceId();
         FinishedSpan grandchildFinishedSpan = spans.get(0);
         SpanAssert.then(grandchildFinishedSpan).hasNameEqualTo("grandchild");
@@ -217,8 +219,9 @@ class DefaultTracingObservationHandlerBraveTests {
     }
 
     private static Span getSpanFromObservation(Observation parent) {
-        TracingObservationHandler.TracingContext tracingContext = parent.getContextView().getOrDefault(
-                TracingObservationHandler.TracingContext.class, new TracingObservationHandler.TracingContext());
+        TracingObservationHandler.TracingContext tracingContext = parent.getContextView()
+            .getOrDefault(TracingObservationHandler.TracingContext.class,
+                    new TracingObservationHandler.TracingContext());
         return tracingContext.getSpan();
     }
 

@@ -50,8 +50,11 @@ class BaseTests {
 
     BraveCurrentTraceContext bridgeContext = new BraveCurrentTraceContext(this.braveCurrentTraceContext);
 
-    Tracing tracing = Tracing.newBuilder().currentTraceContext(this.braveCurrentTraceContext)
-            .sampler(Sampler.ALWAYS_SAMPLE).addSpanHandler(this.spans).build();
+    Tracing tracing = Tracing.newBuilder()
+        .currentTraceContext(this.braveCurrentTraceContext)
+        .sampler(Sampler.ALWAYS_SAMPLE)
+        .addSpanHandler(this.spans)
+        .build();
 
     brave.Tracer braveTracer = this.tracing.tracer();
 
@@ -159,8 +162,10 @@ class BaseTests {
             // end::manual_span_joining[]
         }).get();
 
-        Optional<MutableSpan> calculateTax = spans.spans().stream()
-                .filter(span -> span.name().equals("calculateCommission")).findFirst();
+        Optional<MutableSpan> calculateTax = spans.spans()
+            .stream()
+            .filter(span -> span.name().equals("calculateCommission"))
+            .findFirst();
         BDDAssertions.then(calculateTax).isPresent();
         BDDAssertions.then(calculateTax.get().tags()).containsEntry("commissionValue", "10");
         BDDAssertions.then(calculateTax.get().annotations()).hasSize(1);

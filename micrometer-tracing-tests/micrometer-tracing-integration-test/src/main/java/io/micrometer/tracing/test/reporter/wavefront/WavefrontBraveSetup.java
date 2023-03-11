@@ -218,8 +218,10 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.testSpanHandler.spans().stream().map(BraveFinishedSpan::fromBrave)
-                        .collect(Collectors.toList());
+                return this.testSpanHandler.spans()
+                    .stream()
+                    .map(BraveFinishedSpan::fromBrave)
+                    .collect(Collectors.toList());
             }
 
         }
@@ -403,9 +405,13 @@ public final class WavefrontBraveSetup implements AutoCloseable {
         }
 
         private static Tracing tracing(SpanHandler spanHandler, TestSpanHandler testSpanHandler) {
-            return Tracing.newBuilder().traceId128Bit(true).addSpanHandler(spanHandler).addSpanHandler(testSpanHandler)
-                    .currentTraceContext(ThreadLocalCurrentTraceContext.create()).sampler(Sampler.ALWAYS_SAMPLE)
-                    .build();
+            return Tracing.newBuilder()
+                .traceId128Bit(true)
+                .addSpanHandler(spanHandler)
+                .addSpanHandler(testSpanHandler)
+                .currentTraceContext(ThreadLocalCurrentTraceContext.create())
+                .sampler(Sampler.ALWAYS_SAMPLE)
+                .build();
         }
 
         private static HttpTracing httpTracing(Tracing tracing) {

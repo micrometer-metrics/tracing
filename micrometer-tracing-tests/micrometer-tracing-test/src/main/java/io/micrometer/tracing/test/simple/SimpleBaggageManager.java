@@ -55,8 +55,9 @@ public class SimpleBaggageManager implements BaggageManager {
         if (context == null) {
             return Collections.emptyMap();
         }
-        return this.baggagesByContext.getOrDefault(context, Collections.emptySet()).stream()
-                .collect(Collectors.toMap(Baggage::name, Baggage::get));
+        return this.baggagesByContext.getOrDefault(context, Collections.emptySet())
+            .stream()
+            .collect(Collectors.toMap(Baggage::name, Baggage::get));
     }
 
     @Override
@@ -83,8 +84,11 @@ public class SimpleBaggageManager implements BaggageManager {
         if (traceContext == null) {
             return null;
         }
-        return this.baggagesByContext.getOrDefault(traceContext, Collections.emptySet()).stream()
-                .filter(bag -> name.equalsIgnoreCase(bag.name())).findFirst().orElse(null);
+        return this.baggagesByContext.getOrDefault(traceContext, Collections.emptySet())
+            .stream()
+            .filter(bag -> name.equalsIgnoreCase(bag.name()))
+            .findFirst()
+            .orElse(null);
     }
 
     @Override

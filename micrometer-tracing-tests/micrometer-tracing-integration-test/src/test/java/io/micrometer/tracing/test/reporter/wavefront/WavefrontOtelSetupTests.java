@@ -42,8 +42,10 @@ class WavefrontOtelSetupTests {
     @Test
     void should_register_a_span_in_wavefront(WireMockRuntimeInfo wmri) throws InterruptedException {
         WavefrontOtelSetup setup = WavefrontOtelSetup.builder(wmri.getHttpBaseUrl(), "token")
-                .applicationName("app-name").serviceName("service-name").source("source")
-                .register(this.registry, this.meterRegistry);
+            .applicationName("app-name")
+            .serviceName("service-name")
+            .source("source")
+            .register(this.registry, this.meterRegistry);
 
         WavefrontOtelSetup.run(setup, __ -> {
             Observation sample = Observation.start("the-name", this.registry);
@@ -53,8 +55,9 @@ class WavefrontOtelSetupTests {
             sample.stop();
         });
 
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(
-                () -> wmri.getWireMock().verifyThat(anyRequestedFor(urlMatching(".*/report\\?f=trace.*"))));
+        Awaitility.await()
+            .atMost(5, TimeUnit.SECONDS)
+            .untilAsserted(() -> wmri.getWireMock().verifyThat(anyRequestedFor(urlMatching(".*/report\\?f=trace.*"))));
     }
 
 }

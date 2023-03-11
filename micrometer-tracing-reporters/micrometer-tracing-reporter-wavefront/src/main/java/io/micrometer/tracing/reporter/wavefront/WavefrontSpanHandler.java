@@ -153,7 +153,9 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         // Start the reporter
         wfInternalReporter = new WavefrontInternalReporter.Builder().prefixedWith(TRACING_DERIVED_PREFIX)
-                .withSource(DEFAULT_SOURCE).reportMinuteDistribution().build(wavefrontSender);
+            .withSource(DEFAULT_SOURCE)
+            .reportMinuteDistribution()
+            .build(wavefrontSender);
         wfInternalReporter.start(1, TimeUnit.MINUTES);
 
         this.source = source;
@@ -205,9 +207,10 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L397-L402
     static List<SpanLog> convertAnnotationsToSpanLogs(FinishedSpan span) {
-        return span.getEvents().stream()
-                .map(entry -> new SpanLog(entry.getKey(), Collections.singletonMap("annotation", entry.getValue())))
-                .collect(Collectors.toList());
+        return span.getEvents()
+            .stream()
+            .map(entry -> new SpanLog(entry.getKey(), Collections.singletonMap("annotation", entry.getValue())))
+            .collect(Collectors.toList());
     }
 
     // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/WavefrontTracer.java#L275-L280
