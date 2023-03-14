@@ -303,6 +303,13 @@ subprojects {
 
 	repositories {
 		mavenCentral()
+		maven {
+			// TODO remove when upgrading to GA versions of micrometer deps
+			url 'https://repo.spring.io/milestone/'
+			content {
+				includeGroupByRegex 'io\\.micrometer'
+			}
+		}
 	}
 
 	def check = tasks.findByName('check')
