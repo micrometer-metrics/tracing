@@ -151,6 +151,23 @@ class BraveSpanBuilder implements Span.Builder {
     }
 
     @Override
+    public Span.Builder addLink(TraceContext traceContext) {
+        brave.propagation.TraceContext braveContext = BraveTraceContext.toBrave(traceContext);
+        long nextId = LinkUtils.nextIndex(this.tags);
+        this.tags.put(LinkUtils.spanIdKey(nextId), braveContext.spanIdString());
+        this.tags.put(LinkUtils.traceIdKey(nextId), braveContext.traceIdString());
+        return this;
+    }
+
+    @Override
+    public Span.Builder addLink(TraceContext traceContext, Map<String, String> attributes) {
+        long nextId = LinkUtils.nextIndex(this.tags);
+        addLink(traceContext);
+        attributes.forEach((key, value) -> this.tags.put(LinkUtils.tagKey(nextId, key), value));
+        return this;
+    }
+
+    @Override
     public Span start() {
         brave.Span span = span();
         if (this.startTimestamp > 0) {

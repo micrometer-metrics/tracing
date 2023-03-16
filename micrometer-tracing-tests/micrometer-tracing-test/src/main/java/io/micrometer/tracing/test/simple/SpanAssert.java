@@ -15,16 +15,19 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
 import io.micrometer.common.docs.KeyName;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.AbstractThrowableAssert;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.assertj.core.api.Assertions;
 
 /**
  * Assertion methods for {@code SimpleSpan}s.
@@ -712,6 +715,196 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         isNotNull();
         if (this.actual.getRemotePort() == 0) {
             failWithMessage("Span should have port that is set but wasn't");
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has a link for the trace context.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * TraceContext contextInALink = ...;
+     * assertThat(spanWithALink).hasLink(contextInALink);
+     *
+     * // assertions fail
+     * TraceContext contextNotInALink = ...;
+     * assertThat(spanWithALink)..hasLink(contextNotInALink);</code></pre>
+     * @param traceContext trace context for which link must be set
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there's no link for the given trace context
+     * @since 1.1.0
+     */
+    public SELF hasLink(TraceContext traceContext) {
+        isNotNull();
+        if (!this.actual.getLinks().containsKey(traceContext)) {
+            failWithMessage("Span should have a link with trace context <%s> but has <%s>", traceContext,
+                    this.actual.getLinks());
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span does not have a link for the trace context.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * TraceContext contextNotInALink = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(contextNotInALink);
+     *
+     * // assertions fail
+     * TraceContext contextInALink = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(contextInALink);</code></pre>
+     * @param traceContext trace context for which there must not be a link
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there's a link for the given trace context
+     * @since 1.1.0
+     */
+    public SELF doesNotHaveLink(TraceContext traceContext) {
+        isNotNull();
+        if (this.actual.getLinks().containsKey(traceContext)) {
+            failWithMessage("Span should dont have a link with trace context <%s> but one was found <%s>", traceContext,
+                    this.actual.getLinks().get(traceContext));
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has a link for the trace context and tags.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * TraceContext contextInALink = ...;
+     * Map tagsInALink = ...;
+     * assertThat(spanWithALink).hasLink(contextInALink, tagsInALink);
+     *
+     * // assertions fail
+     * TraceContext contextNotInALink = ...;
+     * Map tagsInALink = ...;
+     * assertThat(spanWithALink).hasLink(contextNotInALink, tagsInALink);
+     *
+     * // assertions fail
+     * TraceContext contextInALink = ...;
+     * Map tagsNotInALink = ...;
+     * assertThat(spanWithALink).hasLink(contextInALink, tagsNotInALink);</code></pre>
+     * @param traceContext trace context for which link must be set
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there's no link for the given trace context
+     * @throws AssertionError if there's a link for the given trace context but tags do
+     * not match
+     * @since 1.1.0
+     */
+    public SELF hasLink(TraceContext traceContext, Map<String, String> tags) {
+        isNotNull();
+        hasLink(traceContext);
+        Assertions.assertThat(this.actual.getLinks().get(traceContext)).isEqualTo(tags);
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span does not have a link for the trace context and tags.
+     * <p>
+     * Examples: <pre><code class='java'>
+     *
+     * // assertions succeed
+     * TraceContext contextNotInALink = ...;
+     * Map tagsInALink = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(contextNotInALink, tagsInALink);
+     *
+     * // assertions succeed
+     * TraceContext contextInALink = ...;
+     * Map tagsNotInALink = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(contextInALink, tagsNotInALink);
+     *
+     * // assertions fail
+     * TraceContext contextInALink = ...;
+     * Map tagsInALink = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(contextInALink, tagsInALink);</code></pre>
+     * @param traceContext trace context for which link must be set
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there's no link for the given trace context
+     * @throws AssertionError if there's a link for the given trace context but tags do
+     * not match
+     * @since 1.1.0
+     */
+    public SELF doesNotHaveLink(TraceContext traceContext, Map<String, String> tags) {
+        isNotNull();
+        if (this.actual.getLinks().containsKey(traceContext)) {
+            Assertions.assertThat(this.actual.getLinks().get(traceContext)).isNotEqualTo(tags);
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has at least one link that passes the assertion function.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithALinkWithTags).hasLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());
+     *
+     * // assertions fail
+     * assertThat(spanWithALinkWithNoTags).hasLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());</code></pre>
+     * @param consumer user assertion function to assert the trace context and tags
+     * against
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if the assertion from the assertion has failed for all link
+     * entries
+     * @since 1.1.0
+     */
+    public SELF hasLink(BiConsumer<TraceContext, Map<String, String>> consumer) {
+        isNotNull();
+        boolean atLeastOnePassed = false;
+        for (Map.Entry<TraceContext, Map<String, String>> entry : this.actual.getLinks().entrySet()) {
+            try {
+                consumer.accept(entry.getKey(), entry.getValue());
+                atLeastOnePassed = true;
+                break;
+            }
+            catch (AssertionError error) {
+
+            }
+        }
+        if (!atLeastOnePassed) {
+            failWithMessage("Not a single link has passed the assertion");
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has no links that passes the assertion function.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithALinkWithNoTags).doesNotHaveLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());
+     *
+     * // assertions fail
+     * assertThat(spanWithALinkWithTags).doesNotHaveLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());</code></pre>
+     * @param consumer user assertion function to assert the trace context and tags
+     * against
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if the assertion from the assertion has failed for all link
+     * entries
+     * @since 1.1.0
+     */
+    public SELF doesNotHaveLink(BiConsumer<TraceContext, Map<String, String>> consumer) {
+        isNotNull();
+        boolean allFailed = true;
+        Map.Entry<TraceContext, Map<String, String>> passingEntry = null;
+        for (Map.Entry<TraceContext, Map<String, String>> entry : this.actual.getLinks().entrySet()) {
+            try {
+                consumer.accept(entry.getKey(), entry.getValue());
+                allFailed = false;
+                passingEntry = entry;
+                break;
+            }
+            catch (AssertionError error) {
+
+            }
+        }
+        if (!allFailed) {
+            failWithMessage("At least one a link has passed the assertion. First link passing assertion <%s>",
+                    passingEntry);
         }
         return (SELF) this;
     }

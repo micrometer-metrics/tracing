@@ -15,23 +15,32 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import brave.Tracer;
 import brave.Tracing;
 import brave.handler.MutableSpan;
+import brave.test.TestSpanHandler;
+import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
 class BraveFinishedSpanTests {
 
-    Tracing tracing = Tracing.newBuilder().build();
+    TestSpanHandler handler = new TestSpanHandler();
+
+    Tracing tracing = Tracing.newBuilder().addSpanHandler(handler).build();
 
     Tracer tracer = tracing.tracer();
+
+    BraveTracer braveTracer = new BraveTracer(tracer, new BraveCurrentTraceContext(tracing.currentTraceContext()));
 
     @AfterEach
     void cleanup() {
@@ -50,6 +59,37 @@ class BraveFinishedSpanTests {
 
         then(finishedSpan.getStartTimestamp().toEpochMilli()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(startMicros));
         then(finishedSpan.getEndTimestamp().toEpochMilli()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(endMicros));
+    }
+
+    @Test
+    void should_set_links() {
+        Tracer tracer = tracing.tracer();
+        Span.Builder builder = new BraveSpanBuilder(tracer);
+        Span span1 = BraveSpan.fromBrave(tracer.nextSpan());
+        Span span2 = BraveSpan.fromBrave(tracer.nextSpan());
+        Span span3 = BraveSpan.fromBrave(tracer.nextSpan());
+        Span span4 = BraveSpan.fromBrave(tracer.nextSpan());
+
+        builder.addLink(span1.context()).addLink(span2.context(), tags()).start().end();
+
+        MutableSpan finishedSpan = handler.get(0);
+        BraveFinishedSpan braveFinishedSpan = new BraveFinishedSpan(finishedSpan);
+
+        braveFinishedSpan.addLink(span3.context(), tags());
+        braveFinishedSpan.addLinks(Collections.singletonMap(span4.context(), tags()));
+
+        then(braveFinishedSpan.getLinks()).hasSize(4)
+            .containsEntry(span1.context(), Collections.emptyMap())
+            .containsEntry(span2.context(), tags())
+            .containsEntry(span3.context(), tags())
+            .containsEntry(span4.context(), tags());
+    }
+
+    private Map<String, String> tags() {
+        Map<String, String> map = new HashMap<>();
+        map.put("tag1", "value1");
+        map.put("tag2", "value2");
+        return map;
     }
 
 }

@@ -15,15 +15,19 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * OpenTelemetry implementation of a {@link Span.Builder}.
@@ -131,6 +135,24 @@ class OtelSpanBuilder implements Span.Builder {
     @Override
     public Span.Builder startTimestamp(long startTimestamp, TimeUnit unit) {
         this.delegate.setStartTimestamp(startTimestamp, unit);
+        return this;
+    }
+
+    @Override
+    public Span.Builder addLink(TraceContext traceContext) {
+        SpanContext spanContext = ((OtelTraceContext) traceContext).spanContext();
+        this.delegate.addLink(spanContext);
+        return this;
+    }
+
+    @Override
+    public Span.Builder addLink(TraceContext traceContext, Map<String, String> attributes) {
+        SpanContext spanContext = ((OtelTraceContext) traceContext).spanContext();
+        AttributesBuilder otelAttributes = Attributes.empty().toBuilder();
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            otelAttributes = otelAttributes.put(entry.getKey(), entry.getValue());
+        }
+        this.delegate.addLink(spanContext, otelAttributes.build());
         return this;
     }
 

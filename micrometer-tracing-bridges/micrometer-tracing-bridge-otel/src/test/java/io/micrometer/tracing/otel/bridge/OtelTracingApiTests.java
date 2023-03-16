@@ -15,25 +15,28 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
-import io.opentelemetry.sdk.trace.export.SpanExporter;
+import io.opentelemetry.sdk.trace.data.LinkData;
+import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-
-import java.util.Collections;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
 import static org.assertj.core.api.BDDAssertions.then;
@@ -42,12 +45,12 @@ class OtelTracingApiTests {
 
     // [OTel component] Example of using a SpanExporter. SpanExporter is a component
     // that gets called when a span is finished.
-    SpanExporter spanExporter = new ArrayListSpanProcessor();
+    ArrayListSpanProcessor spanExporter = new ArrayListSpanProcessor();
 
     // [OTel component] SdkTracerProvider is a SDK implementation for TracerProvider
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(alwaysOn())
-        .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
+        .addSpanProcessor(spanExporter)
         .build();
 
     // [OTel component] The SDK implementation of OpenTelemetry
@@ -79,11 +82,6 @@ class OtelTracingApiTests {
         slf4JEventListener.onEvent(event);
         slf4JBaggageEventListener.onEvent(event);
     }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
-
-    @BeforeEach
-    void setup() {
-        this.spanExporter.close();
-    }
 
     @AfterEach
     void close() {
@@ -326,6 +324,44 @@ class OtelTracingApiTests {
         then(MDC.get("spanId")).isNull();
         then(MDC.get(customSpanIdKey)).isNull();
 
+    }
+
+    @Test
+    void should_add_links() throws InterruptedException {
+        // Let's say that we want to add 2 links to our span
+        // Create a span using builder to add links
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("tag", "value");
+
+        Span newSpan = this.tracer.spanBuilder()
+            .name("foo")
+            .addLink(tracer.traceContextBuilder()
+                .traceId("0af7651916cd43dd8448eb211c80319c")
+                .spanId("b7ad6b7169203331")
+                .sampled(true)
+                .build())
+            .addLink(tracer.traceContextBuilder()
+                .traceId("0af7651916cd43ddb7ad6b7169203331")
+                .spanId("8448eb211c80319c")
+                .sampled(true)
+                .build(), attributes)
+            .start();
+
+        // do some logic then end the span
+
+        newSpan.end();
+
+        Queue<SpanData> spans = spanExporter.spans();
+        then(spans).hasSize(1);
+        SpanData data = spans.poll();
+        then(data.getLinks()).hasSize(2);
+        LinkData linkData = data.getLinks().get(0);
+        then(linkData.getSpanContext().getTraceId()).isEqualTo("0af7651916cd43dd8448eb211c80319c");
+        then(linkData.getSpanContext().getSpanId()).isEqualTo("b7ad6b7169203331");
+        linkData = data.getLinks().get(1);
+        then(linkData.getSpanContext().getTraceId()).isEqualTo("0af7651916cd43ddb7ad6b7169203331");
+        then(linkData.getSpanContext().getSpanId()).isEqualTo("8448eb211c80319c");
+        then(linkData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("tag"), "value");
     }
 
 }

@@ -15,9 +15,10 @@
  */
 package io.micrometer.tracing;
 
-import io.micrometer.tracing.propagation.Propagator;
-
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import io.micrometer.tracing.propagation.Propagator;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken
@@ -369,6 +370,37 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
          * @return this
          */
         Builder startTimestamp(long startTimestamp, TimeUnit unit);
+
+        /**
+         * Adds a link to the newly created {@code Span}.
+         *
+         * <p>
+         * Links are used to link {@link Span}s in different traces. Used (for example) in
+         * batching operations, where a single batch handler processes multiple requests
+         * from different traces or the same trace.
+         * @param traceContext the context of the linked {@code Span}.
+         * @return this
+         * @since 1.1.0
+         */
+        default Builder addLink(TraceContext traceContext) {
+            return this;
+        }
+
+        /**
+         * Adds a link to the newly created {@code Span}.
+         *
+         * <p>
+         * Links are used to link {@link Span}s in different traces. Used (for example) in
+         * batching operations, where a single batch handler processes multiple requests
+         * from different traces or the same trace.
+         * @param traceContext the context of the linked {@code Span}.
+         * @param attributes the attributes of the {@code Link}.
+         * @return this
+         * @since 1.1.0
+         */
+        default Builder addLink(TraceContext traceContext, Map<String, String> attributes) {
+            return this;
+        }
 
         /**
          * Builds and starts the span.

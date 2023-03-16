@@ -15,15 +15,22 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.exporter.FinishedSpan;
-
 import java.time.Instant;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.exporter.FinishedSpan;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -62,6 +69,8 @@ public class SimpleSpan implements Span, FinishedSpan {
     private final Clock clock = Clock.SYSTEM;
 
     private final SimpleTraceContext context = new SimpleTraceContext();
+
+    private final List<SimpleLink> links = new ArrayList<>();
 
     /**
      * Creates a new instance of {@link SimpleSpan}.
@@ -154,7 +163,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
+    public SimpleSpan setEvents(Collection<Map.Entry<Long, String>> events) {
         return this;
     }
 
@@ -177,7 +186,27 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public FinishedSpan setRemoteServiceName(String remoteServiceName) {
+    public SimpleSpan setRemoteServiceName(String remoteServiceName) {
+        return this;
+    }
+
+    @Override
+    public Map<TraceContext, Map<String, String>> getLinks() {
+        return this.links.stream().collect(Collectors.toMap(SimpleLink::getTraceContext, SimpleLink::getTags));
+    }
+
+    @Override
+    public SimpleSpan addLinks(Map<TraceContext, Map<String, String>> links) {
+        this.links.addAll(links.entrySet()
+            .stream()
+            .map(e -> new SimpleLink(e.getKey(), e.getValue()))
+            .collect(Collectors.toList()));
+        return this;
+    }
+
+    @Override
+    public SimpleSpan addLink(TraceContext traceContext, Map<String, String> tags) {
+        this.links.add(new SimpleLink(traceContext, tags));
         return this;
     }
 
