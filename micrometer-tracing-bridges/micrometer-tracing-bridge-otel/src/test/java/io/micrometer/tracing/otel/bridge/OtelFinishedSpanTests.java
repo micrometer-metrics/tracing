@@ -15,14 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.opentelemetry.api.common.Attributes;
@@ -40,6 +33,9 @@ import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import org.junit.jupiter.api.Test;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -150,19 +146,17 @@ class OtelFinishedSpanTests {
         Span span3 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
         Span span4 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
 
-        builder.addLink(span1.context()).addLink(span2.context(), tags()).start().end();
+        builder.addLink(new Link(span1.context())).addLink(new Link(span2, tags())).start().end();
 
-        SpanData finishedSpan = processor.spans().poll();
-        OtelFinishedSpan otelFinishedSpan = new OtelFinishedSpan(finishedSpan);
+        SpanData traceFinishedSpan = processor.spans().poll();
+        OtelFinishedSpan finishedSpan = new OtelFinishedSpan(traceFinishedSpan);
 
-        otelFinishedSpan.addLink(span3.context(), tags());
-        otelFinishedSpan.addLinks(Collections.singletonMap(span4.context(), tags()));
+        finishedSpan.addLink(new Link(span3, tags()));
+        finishedSpan.addLinks(Collections.singletonList(new Link(span4.context(), tags())));
 
-        then(otelFinishedSpan.getLinks()).hasSize(4)
-            .containsEntry(span1.context(), Collections.emptyMap())
-            .containsEntry(span2.context(), tags())
-            .containsEntry(span3.context(), tags())
-            .containsEntry(span4.context(), tags());
+        then(finishedSpan.getLinks()).hasSize(4)
+            .contains(new Link(span1.context(), Collections.emptyMap()), new Link(span2.context(), tags()),
+                    new Link(span3.context(), tags()), new Link(span4.context(), tags()));
     }
 
     private Map<String, String> tags() {

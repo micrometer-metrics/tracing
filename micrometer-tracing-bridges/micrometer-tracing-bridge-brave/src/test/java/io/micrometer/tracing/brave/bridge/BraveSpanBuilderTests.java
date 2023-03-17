@@ -15,16 +15,17 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import brave.Tracer;
 import brave.Tracing;
 import brave.handler.MutableSpan;
 import brave.test.TestSpanHandler;
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -58,7 +59,7 @@ class BraveSpanBuilderTests {
         Span span1 = BraveSpan.fromBrave(tracer.nextSpan());
         Span span2 = BraveSpan.fromBrave(tracer.nextSpan());
 
-        builder.addLink(span2.context(), tags()).addLink(span1.context()).start().end();
+        builder.addLink(new Link(span2.context(), tags())).addLink(new Link(span1)).start().end();
 
         MutableSpan finishedSpan = handler.get(0);
         then(finishedSpan.tags()).containsEntry("links[0].traceId", span2.context().traceId())

@@ -15,17 +15,17 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.AbstractMap;
+import io.micrometer.common.util.StringUtils;
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.internal.EncodingUtils;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import io.micrometer.common.util.StringUtils;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.internal.EncodingUtils;
 
 class LinkUtils {
 
@@ -74,7 +74,7 @@ class LinkUtils {
             .size();
     }
 
-    static Map.Entry<TraceContext, Map<String, String>> toEntry(List<Map.Entry<String, String>> groupedTags) {
+    static Link toLink(List<Map.Entry<String, String>> groupedTags) {
         String traceId = "";
         String spanId = "";
         Map<String, String> tags = new HashMap<>();
@@ -96,7 +96,7 @@ class LinkUtils {
             brave.propagation.TraceContext.Builder newBuilder = traceId(brave.propagation.TraceContext.newBuilder(),
                     traceId);
             TraceContext traceContext = new BraveTraceContext(newBuilder.spanId(spanId(spanId)).build());
-            return new AbstractMap.SimpleEntry<>(traceContext, tags);
+            return new Link(traceContext, tags);
         }
         return null;
     }

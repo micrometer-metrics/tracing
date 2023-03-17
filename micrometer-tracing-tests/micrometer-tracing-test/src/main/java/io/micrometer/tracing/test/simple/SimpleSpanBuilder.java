@@ -15,15 +15,15 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * A test implementation of a span builder.
@@ -37,7 +37,7 @@ public class SimpleSpanBuilder implements Span.Builder {
 
     private Map<String, String> tags = new HashMap<>();
 
-    private List<SimpleLink> links = new ArrayList<>();
+    private List<Link> links = new ArrayList<>();
 
     private Throwable throwable;
 
@@ -126,14 +126,8 @@ public class SimpleSpanBuilder implements Span.Builder {
     }
 
     @Override
-    public Span.Builder addLink(TraceContext traceContext) {
-        links.add(new SimpleLink(traceContext, Collections.emptyMap()));
-        return this;
-    }
-
-    @Override
-    public Span.Builder addLink(TraceContext traceContext, Map<String, String> attributes) {
-        links.add(new SimpleLink(traceContext, attributes));
+    public Span.Builder addLink(Link link) {
+        links.add(new Link(link.getTraceContext(), link.getTags()));
         return this;
     }
 
@@ -147,7 +141,7 @@ public class SimpleSpanBuilder implements Span.Builder {
         span.setSpanKind(this.getSpanKind());
         span.name(this.getName());
         span.remoteIpAndPort(this.getIp(), this.getPort());
-        this.links.forEach(simpleLink -> span.addLink(simpleLink.getTraceContext(), simpleLink.getTags()));
+        span.addLinks(this.links);
         span.start();
         if (this.startTimestampUnit != null) {
             span.setStartMillis(this.startTimestampUnit.toMillis(this.startTimestamp));
@@ -233,7 +227,7 @@ public class SimpleSpanBuilder implements Span.Builder {
      * @return links
      * @since 1.1.0
      */
-    public List<SimpleLink> getLinks() {
+    public List<Link> getLinks() {
         return links;
     }
 

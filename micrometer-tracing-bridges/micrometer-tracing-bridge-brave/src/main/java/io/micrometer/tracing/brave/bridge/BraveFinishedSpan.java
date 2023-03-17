@@ -15,17 +15,16 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import brave.handler.MutableSpan;
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Brave implementation of a {@link FinishedSpan}.
@@ -185,8 +184,8 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public Map<TraceContext, Map<String, String>> getLinks() {
-        Map<TraceContext, Map<String, String>> links = new HashMap<>();
+    public List<Link> getLinks() {
+        List<Link> links = new ArrayList<>();
         this.mutableSpan.tags()
             .entrySet()
             .stream()
@@ -197,25 +196,27 @@ public class BraveFinishedSpan implements FinishedSpan {
             .filter(e -> e.getKey() >= 0)
             .map(Map.Entry::getValue)
             .forEach(e -> {
-                Map.Entry<TraceContext, Map<String, String>> entry = LinkUtils.toEntry(e);
+                Link entry = LinkUtils.toLink(e);
                 if (entry != null) {
-                    links.put(entry.getKey(), entry.getValue());
+                    links.add(entry);
                 }
             });
         return links;
     }
 
     @Override
-    public FinishedSpan addLinks(Map<TraceContext, Map<String, String>> links) {
+    public FinishedSpan addLinks(List<Link> links) {
         int index = LinkUtils.nextIndex(getTags());
-        for (Map.Entry<TraceContext, Map<String, String>> entry : links.entrySet()) {
-            addLink(index, entry.getKey(), entry.getValue());
+        for (Link link : links) {
+            addLink(index, link);
             index++;
         }
         return this;
     }
 
-    private void addLink(long index, TraceContext traceContext, Map<String, String> tags) {
+    private void addLink(long index, Link link) {
+        TraceContext traceContext = link.getTraceContext();
+        Map<String, String> tags = link.getTags();
         this.mutableSpan.tag(LinkUtils.traceIdKey(index), traceContext.traceId());
         this.mutableSpan.tag(LinkUtils.spanIdKey(index), traceContext.spanId());
         for (Map.Entry<String, String> e : tags.entrySet()) {
@@ -226,9 +227,9 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public FinishedSpan addLink(TraceContext traceContext, Map<String, String> tags) {
+    public FinishedSpan addLink(Link link) {
         long nextIndex = LinkUtils.nextIndex(getTags());
-        addLink(nextIndex, traceContext, tags);
+        addLink(nextIndex, link);
         return this;
     }
 

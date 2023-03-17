@@ -15,16 +15,17 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.Tracer;
+import brave.propagation.TraceContextOrSamplingFlags;
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import brave.Tracer;
-import brave.propagation.TraceContextOrSamplingFlags;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * Brave implementation of a {@link Span.Builder}.
@@ -151,19 +152,12 @@ class BraveSpanBuilder implements Span.Builder {
     }
 
     @Override
-    public Span.Builder addLink(TraceContext traceContext) {
-        brave.propagation.TraceContext braveContext = BraveTraceContext.toBrave(traceContext);
+    public Span.Builder addLink(Link link) {
+        brave.propagation.TraceContext braveContext = BraveTraceContext.toBrave(link.getTraceContext());
         long nextId = LinkUtils.nextIndex(this.tags);
         this.tags.put(LinkUtils.spanIdKey(nextId), braveContext.spanIdString());
         this.tags.put(LinkUtils.traceIdKey(nextId), braveContext.traceIdString());
-        return this;
-    }
-
-    @Override
-    public Span.Builder addLink(TraceContext traceContext, Map<String, String> attributes) {
-        long nextId = LinkUtils.nextIndex(this.tags);
-        addLink(traceContext);
-        attributes.forEach((key, value) -> this.tags.put(LinkUtils.tagKey(nextId, key), value));
+        link.getTags().forEach((key, value) -> this.tags.put(LinkUtils.tagKey(nextId, key), value));
         return this;
     }
 

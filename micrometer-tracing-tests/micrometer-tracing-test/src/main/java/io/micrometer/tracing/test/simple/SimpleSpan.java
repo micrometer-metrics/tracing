@@ -15,22 +15,16 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.exporter.FinishedSpan;
+
 import java.time.Instant;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.exporter.FinishedSpan;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -70,7 +64,7 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     private final SimpleTraceContext context = new SimpleTraceContext();
 
-    private final List<SimpleLink> links = new ArrayList<>();
+    private final List<Link> links = new ArrayList<>();
 
     /**
      * Creates a new instance of {@link SimpleSpan}.
@@ -191,22 +185,19 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public Map<TraceContext, Map<String, String>> getLinks() {
-        return this.links.stream().collect(Collectors.toMap(SimpleLink::getTraceContext, SimpleLink::getTags));
+    public List<Link> getLinks() {
+        return this.links;
     }
 
     @Override
-    public SimpleSpan addLinks(Map<TraceContext, Map<String, String>> links) {
-        this.links.addAll(links.entrySet()
-            .stream()
-            .map(e -> new SimpleLink(e.getKey(), e.getValue()))
-            .collect(Collectors.toList()));
+    public SimpleSpan addLinks(List<Link> links) {
+        this.links.addAll(links);
         return this;
     }
 
     @Override
-    public SimpleSpan addLink(TraceContext traceContext, Map<String, String> tags) {
-        this.links.add(new SimpleLink(traceContext, tags));
+    public SimpleSpan addLink(Link link) {
+        this.links.add(link);
         return this;
     }
 

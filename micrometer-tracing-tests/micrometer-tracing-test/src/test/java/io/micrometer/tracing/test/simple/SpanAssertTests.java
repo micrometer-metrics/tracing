@@ -15,13 +15,14 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import java.util.Collections;
-
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
+import java.util.Collections;
 
 import static io.micrometer.tracing.test.simple.SpanAssert.assertThat;
 import static org.assertj.core.api.BDDAssertions.thenNoException;
@@ -408,122 +409,68 @@ class SpanAssertTests {
 
     @Test
     void should_fail_when_link_does_not_have_a_trace_context() {
-        SimpleSpan span = new SimpleSpan().addLink(Mockito.mock(TraceContext.class), Collections.emptyMap());
+        SimpleSpan span = new SimpleSpan().addLink(new Link(Mockito.mock(TraceContext.class)));
 
-        thenThrownBy(() -> assertThat(span).hasLink(new SimpleTraceContext())).isInstanceOf(AssertionError.class);
+        thenThrownBy(() -> assertThat(span).hasLink(new Link(new SimpleTraceContext())))
+            .isInstanceOf(AssertionError.class);
     }
 
     @Test
     void should_not_fail_when_link_has_a_trace_context() {
         SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.emptyMap());
+        SimpleSpan span = new SimpleSpan().addLink(new Link(context));
 
-        thenNoException().isThrownBy(() -> assertThat(span).hasLink(context));
+        thenNoException().isThrownBy(() -> assertThat(span).hasLink(new Link(context)));
     }
 
     @Test
     void should_fail_when_link_has_a_trace_context() {
         SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.emptyMap());
+        SimpleSpan span = new SimpleSpan().addLink(new Link(context));
 
-        thenThrownBy(() -> assertThat(span).doesNotHaveLink(context)).isInstanceOf(AssertionError.class);
+        thenThrownBy(() -> assertThat(span).doesNotHaveLink(new Link(context))).isInstanceOf(AssertionError.class);
     }
 
     @Test
     void should_not_fail_when_link_does_not_have_a_trace_context() {
-        SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.emptyMap());
+        SimpleSpan span = new SimpleSpan().addLink(new Link(TraceContext.NOOP));
 
-        thenNoException().isThrownBy(() -> assertThat(span).hasLink(context));
-    }
-
-    @Test
-    void should_fail_when_link_does_not_have_a_trace_context_regardless_of_tags() {
-        SimpleSpan span = new SimpleSpan().addLink(Mockito.mock(TraceContext.class), Collections.emptyMap());
-
-        thenThrownBy(() -> assertThat(span).hasLink(new SimpleTraceContext(), Collections.emptyMap()))
-            .isInstanceOf(AssertionError.class);
-    }
-
-    @Test
-    void should_fail_when_link_has_a_trace_context_but_tags_are_different() {
-        SimpleSpan span = new SimpleSpan().addLink(Mockito.mock(TraceContext.class),
-                Collections.singletonMap("foo", "bar"));
-
-        thenThrownBy(() -> assertThat(span).hasLink(new SimpleTraceContext(), Collections.emptyMap()))
-            .isInstanceOf(AssertionError.class);
-    }
-
-    @Test
-    void should_not_fail_when_link_has_a_trace_context_and_tags() {
-        SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.singletonMap("foo", "bar"));
-
-        thenNoException().isThrownBy(() -> assertThat(span).hasLink(context, Collections.singletonMap("foo", "bar")));
-    }
-
-    @Test
-    void should_fail_when_link_has_a_trace_context_and_tags() {
-        SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.emptyMap());
-
-        thenThrownBy(() -> assertThat(span).doesNotHaveLink(context, Collections.emptyMap()))
-            .isInstanceOf(AssertionError.class);
-    }
-
-    @Test
-    void should_not_fail_when_link_has_a_trace_context_but_tags_are_different() {
-        SimpleSpan span = new SimpleSpan().addLink(Mockito.mock(TraceContext.class),
-                Collections.singletonMap("foo", "bar"));
-
-        thenNoException()
-            .isThrownBy(() -> assertThat(span).doesNotHaveLink(new SimpleTraceContext(), Collections.emptyMap()));
-    }
-
-    @Test
-    void should_not_fail_when_link_does_not_have_a_trace_context_and_tags() {
-        SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.singletonMap("foo", "bar"));
-
-        thenThrownBy(() -> assertThat(span).doesNotHaveLink(context, Collections.singletonMap("foo", "bar")))
-            .isInstanceOf(AssertionError.class);
+        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveLink(new Link(new SimpleTraceContext())));
     }
 
     @Test
     void should_fail_when_assertion_on_links_fail() {
-        SimpleSpan span = new SimpleSpan().addLink(Mockito.mock(TraceContext.class),
-                Collections.singletonMap("foo", "bar"));
+        SimpleSpan span = new SimpleSpan()
+            .addLink(new Link(Mockito.mock(TraceContext.class), Collections.singletonMap("foo", "bar")));
 
-        thenThrownBy(() -> assertThat(span).hasLink((traceContext, map) -> Assertions.assertThat(map).isNull()))
+        thenThrownBy(() -> assertThat(span).hasLink(link -> Assertions.assertThat(link).isNull()))
             .isInstanceOf(AssertionError.class);
     }
 
     @Test
     void should_not_fail_when_assertion_on_links_passes() {
         SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.singletonMap("foo", "bar"));
+        SimpleSpan span = new SimpleSpan().addLink(new Link(context, Collections.singletonMap("foo", "bar")));
 
-        thenNoException()
-            .isThrownBy(() -> assertThat(span).hasLink((traceContext, map) -> Assertions.assertThat(map).isNotNull()));
+        thenNoException().isThrownBy(() -> assertThat(span).hasLink(link -> Assertions.assertThat(link).isNotNull()));
     }
 
     @Test
     void should_fail_when_assertion_on_links_does_not_fail() {
-        SimpleSpan span = new SimpleSpan().addLink(Mockito.mock(TraceContext.class),
-                Collections.singletonMap("foo", "bar"));
+        SimpleSpan span = new SimpleSpan()
+            .addLink(new Link(Mockito.mock(TraceContext.class), Collections.singletonMap("foo", "bar")));
 
-        thenThrownBy(
-                () -> assertThat(span).doesNotHaveLink((traceContext, map) -> Assertions.assertThat(map).isNotNull()))
+        thenThrownBy(() -> assertThat(span).doesNotHaveLink(link -> Assertions.assertThat(link).isNotNull()))
             .isInstanceOf(AssertionError.class);
     }
 
     @Test
     void should_not_fail_when_assertion_on_links_fails() {
         SimpleTraceContext context = new SimpleTraceContext();
-        SimpleSpan span = new SimpleSpan().addLink(context, Collections.singletonMap("foo", "bar"));
+        SimpleSpan span = new SimpleSpan().addLink(new Link(context, Collections.singletonMap("foo", "bar")));
 
-        thenNoException().isThrownBy(
-                () -> assertThat(span).doesNotHaveLink((traceContext, map) -> Assertions.assertThat(map).isNull()));
+        thenNoException()
+            .isThrownBy(() -> assertThat(span).doesNotHaveLink(link -> Assertions.assertThat(link).isNull()));
     }
 
 }

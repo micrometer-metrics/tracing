@@ -15,14 +15,15 @@
  */
 package io.micrometer.tracing.exporter;
 
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
+
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-
-import io.micrometer.common.lang.Nullable;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * This API is inspired by OpenZipkin Brave (from {code MutableSpan}).
@@ -166,8 +167,8 @@ public interface FinishedSpan {
      * @return links
      * @since 1.1.0
      */
-    default Map<TraceContext, Map<String, String>> getLinks() {
-        return Collections.emptyMap();
+    default List<Link> getLinks() {
+        return Collections.emptyList();
     }
 
     /**
@@ -176,18 +177,17 @@ public interface FinishedSpan {
      * @return this
      * @since 1.1.0
      */
-    default FinishedSpan addLinks(Map<TraceContext, Map<String, String>> links) {
+    default FinishedSpan addLinks(List<Link> links) {
         return this;
     }
 
     /**
      * Adds a link.
-     * @param traceContext trace context related to the link
-     * @param tags tags related to the link
+     * @param link link to add
      * @return this
      * @since 1.1.0
      */
-    default FinishedSpan addLink(TraceContext traceContext, Map<String, String> tags) {
+    default FinishedSpan addLink(Link link) {
         return this;
     }
 

@@ -15,11 +15,12 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 class SimpleSpanBuilderTests {
 
@@ -38,8 +39,8 @@ class SimpleSpanBuilderTests {
             .tag("tag", "value")
             .remoteServiceName("bar")
             .setNoParent()
-            .addLink(context1)
-            .addLink(context2, tags())
+            .addLink(new Link(context1))
+            .addLink(new Link(context2, tags()))
             .start()
             .end();
 
@@ -52,8 +53,8 @@ class SimpleSpanBuilderTests {
             .hasIpThatIsNotBlank()
             .hasPortThatIsSet()
             .hasKindEqualTo(Span.Kind.CLIENT)
-            .hasLink(context1)
-            .hasLink(context2, tags())
+            .hasLink(new Link(context1))
+            .hasLink(new Link(context2, tags()))
             .assertThatThrowable()
             .isInstanceOf(Throwable.class);
     }

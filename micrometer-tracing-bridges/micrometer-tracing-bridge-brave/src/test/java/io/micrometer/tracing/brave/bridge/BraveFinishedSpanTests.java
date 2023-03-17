@@ -15,20 +15,21 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.Tracer;
+import brave.Tracing;
+import brave.handler.MutableSpan;
+import brave.test.TestSpanHandler;
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.exporter.FinishedSpan;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import brave.Tracer;
-import brave.Tracing;
-import brave.handler.MutableSpan;
-import brave.test.TestSpanHandler;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.exporter.FinishedSpan;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -70,19 +71,17 @@ class BraveFinishedSpanTests {
         Span span3 = BraveSpan.fromBrave(tracer.nextSpan());
         Span span4 = BraveSpan.fromBrave(tracer.nextSpan());
 
-        builder.addLink(span1.context()).addLink(span2.context(), tags()).start().end();
+        builder.addLink(new Link(span1.context())).addLink(new Link(span2, tags())).start().end();
 
-        MutableSpan finishedSpan = handler.get(0);
-        BraveFinishedSpan braveFinishedSpan = new BraveFinishedSpan(finishedSpan);
+        MutableSpan traceFinishedSpan = handler.get(0);
+        BraveFinishedSpan finishedSpan = new BraveFinishedSpan(traceFinishedSpan);
 
-        braveFinishedSpan.addLink(span3.context(), tags());
-        braveFinishedSpan.addLinks(Collections.singletonMap(span4.context(), tags()));
+        finishedSpan.addLink(new Link(span3, tags()));
+        finishedSpan.addLinks(Collections.singletonList(new Link(span4.context(), tags())));
 
-        then(braveFinishedSpan.getLinks()).hasSize(4)
-            .containsEntry(span1.context(), Collections.emptyMap())
-            .containsEntry(span2.context(), tags())
-            .containsEntry(span3.context(), tags())
-            .containsEntry(span4.context(), tags());
+        then(finishedSpan.getLinks()).hasSize(4)
+            .contains(new Link(span1.context(), Collections.emptyMap()), new Link(span2.context(), tags()),
+                    new Link(span3.context(), tags()), new Link(span4.context(), tags()));
     }
 
     private Map<String, String> tags() {

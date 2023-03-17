@@ -15,18 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.time.Instant;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
@@ -39,6 +28,12 @@ import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * OpenTelemetry implementation of a {@link FinishedSpan}.
@@ -246,25 +241,28 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public Map<TraceContext, Map<String, String>> getLinks() {
+    public List<Link> getLinks() {
         return this.spanData.getLinks()
             .stream()
-            .collect(Collectors.toMap(linkData -> OtelTraceContext.fromOtel(linkData.getSpanContext()),
-                    linkData -> linkData.getAttributes()
+            .map(linkData -> new Link(OtelTraceContext.fromOtel(linkData.getSpanContext()),
+                    linkData.getAttributes()
                         .asMap()
                         .entrySet()
                         .stream()
-                        .collect(Collectors.toMap(e -> e.getKey().getKey(), e -> String.valueOf(e.getValue())))));
+                        .collect(Collectors.toMap(e -> e.getKey().getKey(), e -> String.valueOf(e.getValue())))))
+            .collect(Collectors.toList());
     }
 
     @Override
-    public FinishedSpan addLinks(Map<TraceContext, Map<String, String>> links) {
+    public FinishedSpan addLinks(List<Link> links) {
         links.forEach(this::addLink);
         return this;
     }
 
     @Override
-    public FinishedSpan addLink(TraceContext traceContext, Map<String, String> tags) {
+    public FinishedSpan addLink(Link link) {
+        TraceContext traceContext = link.getTraceContext();
+        Map<String, String> tags = link.getTags();
         AttributesBuilder builder = Attributes.builder();
         tags.forEach(builder::put);
         this.spanData.getLinks()
