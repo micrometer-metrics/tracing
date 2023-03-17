@@ -36,6 +36,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttribut
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesGetter;
 
 /**
  * OpenTelemetry implementation of a {@link HttpClientHandler}.
@@ -66,10 +67,29 @@ public class OtelHttpClientHandler implements HttpClientHandler {
      * @param httpClientResponseParser http client response parser
      * @param samplerFunction sampler function
      * @param httpAttributesExtractor http attributes extractor
+     * @deprecated use
+     * {@link OtelHttpClientHandler#OtelHttpClientHandler(OpenTelemetry, HttpRequestParser, HttpResponseParser, SamplerFunction, HttpClientAttributesGetter, NetClientAttributesGetter)}
      */
+    @Deprecated
     public OtelHttpClientHandler(OpenTelemetry openTelemetry, @Nullable HttpRequestParser httpClientRequestParser,
             @Nullable HttpResponseParser httpClientResponseParser, SamplerFunction<HttpRequest> samplerFunction,
             HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> httpAttributesExtractor) {
+        this(openTelemetry, httpClientRequestParser, httpClientResponseParser, samplerFunction, httpAttributesExtractor,
+                new HttpRequestNetClientAttributesExtractor());
+    }
+
+    /**
+     * Creates a new instance of {@link OtelHttpClientHandler}.
+     * @param openTelemetry open telemetry
+     * @param httpClientRequestParser http client request parser
+     * @param httpClientResponseParser http client response parser
+     * @param samplerFunction sampler function
+     * @param httpAttributesExtractor http attributes extractor
+     */
+    public OtelHttpClientHandler(OpenTelemetry openTelemetry, @Nullable HttpRequestParser httpClientRequestParser,
+            @Nullable HttpResponseParser httpClientResponseParser, SamplerFunction<HttpRequest> samplerFunction,
+            HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> httpAttributesExtractor,
+            NetClientAttributesGetter<HttpClientRequest, HttpClientResponse> netAttributesGetter) {
         this.httpClientRequestParser = httpClientRequestParser;
         this.httpClientResponseParser = httpClientResponseParser;
         this.samplerFunction = samplerFunction;
@@ -78,7 +98,7 @@ public class OtelHttpClientHandler implements HttpClientHandler {
                     HttpSpanNameExtractor.create(httpAttributesExtractor))
             .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
             .addAttributesExtractor(NetClientAttributesExtractor.create(new HttpRequestNetClientAttributesExtractor()))
-            .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesExtractor))
+            .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesExtractor, netAttributesGetter))
             .addAttributesExtractor(new PathAttributeExtractor())
             .buildClientInstrumenter(HttpClientRequest::header);
     }

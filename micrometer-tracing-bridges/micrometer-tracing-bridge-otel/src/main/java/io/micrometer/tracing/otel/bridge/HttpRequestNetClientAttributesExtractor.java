@@ -15,9 +15,9 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.tracing.http.HttpRequest;
-import io.micrometer.tracing.http.HttpResponse;
 import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.http.HttpClientRequest;
+import io.micrometer.tracing.http.HttpClientResponse;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesGetter;
 
 /**
@@ -25,36 +25,25 @@ import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributes
  *
  * @author Nikita Salnikov-Tarnovski
  */
-class HttpRequestNetClientAttributesExtractor implements NetClientAttributesGetter<HttpRequest, HttpResponse> {
+class HttpRequestNetClientAttributesExtractor
+        implements NetClientAttributesGetter<HttpClientRequest, HttpClientResponse> {
 
     @Nullable
     @Override
-    public String transport(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
+    public String getTransport(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
         return null;
     }
 
     @Nullable
     @Override
-    public String peerName(HttpRequest httpRequest) {
+    public String getPeerName(HttpClientRequest httpClientRequest) {
         return null;
     }
 
     @Nullable
     @Override
-    public Integer peerPort(HttpRequest httpRequest) {
-        return httpRequest == null ? null : httpRequest.remotePort();
-    }
-
-    @Nullable
-    @Override
-    public String sockPeerAddr(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
-        return httpRequest == null ? null : httpRequest.remoteIp();
-    }
-
-    @Nullable
-    @Override
-    public Integer sockPeerPort(HttpRequest httpRequest, @Nullable HttpResponse httpResponse) {
-        return httpRequest == null ? null : httpRequest.remotePort();
+    public Integer getPeerPort(HttpClientRequest httpClientRequest) {
+        return httpClientRequest == null ? null : httpClientRequest.remotePort();
     }
 
 }

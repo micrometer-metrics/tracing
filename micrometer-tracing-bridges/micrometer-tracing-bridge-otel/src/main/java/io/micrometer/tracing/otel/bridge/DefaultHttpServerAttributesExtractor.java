@@ -35,13 +35,13 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    public String flavor(HttpServerRequest httpServerRequest) {
+    public String getFlavor(HttpServerRequest httpServerRequest) {
         return null;
     }
 
     @Nullable
     @Override
-    public String target(HttpServerRequest httpServerRequest) {
+    public String getTarget(HttpServerRequest httpServerRequest) {
         URI uri = toUri(httpServerRequest);
         if (uri == null) {
             return null;
@@ -61,13 +61,13 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    public String route(HttpServerRequest httpServerRequest) {
+    public String getRoute(HttpServerRequest httpServerRequest) {
         return httpServerRequest.route();
     }
 
     @Nullable
     @Override
-    public String scheme(HttpServerRequest httpServerRequest) {
+    public String getScheme(HttpServerRequest httpServerRequest) {
         String url = httpServerRequest.url();
         if (url == null) {
             return null;
@@ -83,25 +83,25 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    public String method(HttpServerRequest httpServerRequest) {
+    public String getMethod(HttpServerRequest httpServerRequest) {
         return httpServerRequest.method();
     }
 
     @Override
-    public List<String> requestHeader(HttpServerRequest httpServerRequest, String name) {
+    public List<String> getRequestHeader(HttpServerRequest httpServerRequest, String name) {
         String value = httpServerRequest.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
 
     @Nullable
     @Override
-    public Integer statusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+    public Integer getStatusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
             Throwable error) {
         return httpServerResponse.statusCode();
     }
 
     @Override
-    public List<String> responseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+    public List<String> getResponseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
             String name) {
         String value = httpServerResponse.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);

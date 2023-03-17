@@ -30,7 +30,7 @@ class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGett
 
     @Nullable
     @Override
-    public String transport(HttpServerRequest httpRequest) {
+    public String getTransport(HttpServerRequest httpRequest) {
         String url = httpRequest.url();
         if (url == null) {
             return null;
@@ -41,7 +41,7 @@ class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGett
 
     @Nullable
     @Override
-    public String hostName(HttpServerRequest httpRequest) {
+    public String getHostName(HttpServerRequest httpRequest) {
         String url = httpRequest.url();
         if (url == null) {
             return null;
@@ -51,19 +51,19 @@ class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGett
     }
 
     @Override
-    public Integer hostPort(HttpServerRequest httpRequest) {
+    public Integer getHostPort(HttpServerRequest httpRequest) {
         return httpRequest.remotePort();
     }
 
     @Nullable
     @Override
-    public String sockPeerAddr(HttpServerRequest httpRequest) {
+    public String getSockPeerAddr(HttpServerRequest httpRequest) {
         return httpRequest.remoteIp();
     }
 
     @Nullable
     @Override
-    public Integer sockPeerPort(HttpServerRequest httpRequest) {
+    public Integer getSockPeerPort(HttpServerRequest httpRequest) {
         return httpRequest.remotePort();
     }
 

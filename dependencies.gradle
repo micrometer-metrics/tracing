@@ -14,7 +14,7 @@ def VERSIONS = [
 	'org.apache.logging.log4j:log4j-core:2.+',
 	'org.slf4j:slf4j-api:1.7.+',
 	// otel
-	'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.23.+',
+	'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.24.+',
 	// zipkin
 	'io.zipkin.aws:brave-propagation-aws:latest.release',
 	// wavefront

@@ -15,13 +15,13 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Collections;
-import java.util.List;
-
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.http.HttpClientRequest;
 import io.micrometer.tracing.http.HttpClientResponse;
-import io.micrometer.common.lang.Nullable;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Extracts OpenTelemetry http semantic attributes value for client http spans.
@@ -34,23 +34,23 @@ public class DefaultHttpClientAttributesGetter
 
     @Nullable
     @Override
-    public String url(HttpClientRequest httpClientRequest) {
+    public String getUrl(HttpClientRequest httpClientRequest) {
         return httpClientRequest.url();
     }
 
     @Nullable
     @Override
-    public String flavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
+    public String getFlavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
         return null;
     }
 
     @Override
-    public String method(HttpClientRequest httpClientRequest) {
+    public String getMethod(HttpClientRequest httpClientRequest) {
         return httpClientRequest.method();
     }
 
     @Override
-    public List<String> requestHeader(HttpClientRequest httpClientRequest, String name) {
+    public List<String> getRequestHeader(HttpClientRequest httpClientRequest, String name) {
         if (httpClientRequest == null) {
             return Collections.emptyList();
         }
@@ -60,7 +60,7 @@ public class DefaultHttpClientAttributesGetter
 
     @Nullable
     @Override
-    public Integer statusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+    public Integer getStatusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
             Throwable error) {
         if (httpClientResponse == null) {
             return null;
@@ -69,7 +69,7 @@ public class DefaultHttpClientAttributesGetter
     }
 
     @Override
-    public List<String> responseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+    public List<String> getResponseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
             String name) {
         if (httpClientResponse == null) {
             return Collections.emptyList();
