@@ -17,7 +17,9 @@ package io.micrometer.tracing.handler;
 
 import io.micrometer.core.instrument.observation.MeterObservationHandler;
 import io.micrometer.observation.Observation;
+import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,13 +82,18 @@ class TracingAwareMeterObservationHandlerTests {
 
         Span span = mock(Span.class);
         tracingContext.setSpan(span);
-        Tracer.SpanInScope spanInScope = mock(Tracer.SpanInScope.class);
-        when(tracer.withSpan(span)).thenReturn(spanInScope);
+        TraceContext traceContext = mock(TraceContext.class);
+        CurrentTraceContext currentTraceContext = mock(CurrentTraceContext.class);
+        CurrentTraceContext.Scope scope = mock(CurrentTraceContext.Scope.class);
+
+        when(span.context()).thenReturn(traceContext);
+        when(tracer.currentTraceContext()).thenReturn(currentTraceContext);
+        when(currentTraceContext.maybeScope(traceContext)).thenReturn(scope);
 
         handler.onStop(observationContext);
 
-        verify(spanInScope).close();
-        verify(tracer).withSpan(span);
+        verify(scope).close();
+        verify(currentTraceContext).maybeScope(traceContext);
         verify(delegate).onStop(observationContext);
     }
 

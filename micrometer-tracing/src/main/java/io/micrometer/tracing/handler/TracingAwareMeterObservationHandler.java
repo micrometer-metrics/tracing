@@ -18,6 +18,7 @@ package io.micrometer.tracing.handler;
 import io.micrometer.common.lang.NonNullApi;
 import io.micrometer.core.instrument.observation.MeterObservationHandler;
 import io.micrometer.observation.Observation;
+import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 
@@ -79,7 +80,7 @@ public class TracingAwareMeterObservationHandler<T extends Observation.Context> 
             .getRequired(TracingObservationHandler.TracingContext.class);
         Span currentSpan = tracingContext.getSpan();
         if (currentSpan != null) {
-            try (Tracer.SpanInScope spanInScope = tracer.withSpan(tracingContext.getSpan())) {
+            try (CurrentTraceContext.Scope ignored = tracer.currentTraceContext().maybeScope(currentSpan.context())) {
                 this.delegate.onStop(context);
             }
         }
