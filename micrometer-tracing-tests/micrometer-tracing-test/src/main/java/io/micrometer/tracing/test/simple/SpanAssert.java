@@ -719,19 +719,19 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     }
 
     /**
-     * Verifies that this span has a link for the trace context.
+     * Verifies that this span has a link.
      * <p>
      * Examples: <pre><code class='java'> // assertions succeed
-     * TraceContext contextInALink = ...;
-     * assertThat(spanWithALink).hasLink(contextInALink);
+     * Link linkPresentInSpan = ...;
+     * assertThat(spanWithALink).hasLink(linkPresentInSpan);
      *
      * // assertions fail
-     * TraceContext contextNotInALink = ...;
-     * assertThat(spanWithALink)..hasLink(contextNotInALink);</code></pre>
+     * Link linkNotPresentInSpan = ...;
+     * assertThat(spanWithALink).hasLink(linkNotPresentInSpan);</code></pre>
      * @param link link to check
      * @return {@code this} assertion object.
      * @throws AssertionError if the actual value is {@code null}.
-     * @throws AssertionError if there's no link for the given trace context
+     * @throws AssertionError if there's no matching link
      * @since 1.1.0
      */
     public SELF hasLink(Link link) {
@@ -743,19 +743,19 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     }
 
     /**
-     * Verifies that this span does not have a link for the trace context.
+     * Verifies that this span does not have a link.
      * <p>
      * Examples: <pre><code class='java'> // assertions succeed
-     * TraceContext contextNotInALink = ...;
-     * assertThat(spanWithALink).doesNotHaveLink(contextNotInALink);
+     * Link linkNotPresentInSpan = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(linkNotPresentInSpan);
      *
      * // assertions fail
-     * TraceContext contextInALink = ...;
-     * assertThat(spanWithALink).doesNotHaveLink(contextInALink);</code></pre>
+     * Link linkNotPresentInSpan = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(linkNotPresentInSpan);</code></pre>
      * @param link link to check
      * @return {@code this} assertion object.
      * @throws AssertionError if the actual value is {@code null}.
-     * @throws AssertionError if there's a link for the given trace context
+     * @throws AssertionError if there's a matching link
      * @since 1.1.0
      */
     public SELF doesNotHaveLink(Link link) {
@@ -770,15 +770,15 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * Verifies that this span has at least one link that passes the assertion function.
      * <p>
      * Examples: <pre><code class='java'> // assertions succeed
-     * assertThat(spanWithALinkWithTags).hasLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());
+     * assertThat(spanWithALinkWithTags).hasLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());
      *
      * // assertions fail
-     * assertThat(spanWithALinkWithNoTags).hasLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());</code></pre>
+     * assertThat(spanWithALinkWithNoTags).hasLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());</code></pre>
      * @param consumer user assertion function to assert the trace context and tags
      * against
      * @return {@code this} assertion object.
      * @throws AssertionError if the actual value is {@code null}.
-     * @throws AssertionError if the assertion from the assertion has failed for all link
+     * @throws AssertionError if the assertion from the assertion has failed for all links
      * entries
      * @since 1.1.0
      */
@@ -805,15 +805,15 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * Verifies that this span has no links that passes the assertion function.
      * <p>
      * Examples: <pre><code class='java'> // assertions succeed
-     * assertThat(spanWithALinkWithNoTags).doesNotHaveLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());
+     * assertThat(spanWithALinkWithNoTags).doesNotHaveLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());
      *
      * // assertions fail
-     * assertThat(spanWithALinkWithTags).doesNotHaveLink((context, tags) -> Assertions.assertThat(tags).isNotEmpty());</code></pre>
+     * assertThat(spanWithALinkWithTags).doesNotHaveLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());</code></pre>
      * @param consumer user assertion function to assert the trace context and tags
      * against
      * @return {@code this} assertion object.
      * @throws AssertionError if the actual value is {@code null}.
-     * @throws AssertionError if the assertion from the assertion has failed for all link
+     * @throws AssertionError if the assertion from the assertion has failed for all links
      * entries
      * @since 1.1.0
      */
