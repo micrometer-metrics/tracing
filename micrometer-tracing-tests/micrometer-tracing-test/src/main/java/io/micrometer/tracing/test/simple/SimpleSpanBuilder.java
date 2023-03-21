@@ -1,12 +1,12 @@
 /**
  * Copyright 2022 the original author or authors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * https://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 
@@ -35,6 +36,8 @@ public class SimpleSpanBuilder implements Span.Builder {
     private List<String> events = new ArrayList<>();
 
     private Map<String, String> tags = new HashMap<>();
+
+    private List<Link> links = new ArrayList<>();
 
     private Throwable throwable;
 
@@ -123,6 +126,12 @@ public class SimpleSpanBuilder implements Span.Builder {
     }
 
     @Override
+    public Span.Builder addLink(Link link) {
+        links.add(new Link(link.getTraceContext(), link.getTags()));
+        return this;
+    }
+
+    @Override
     public Span start() {
         SimpleSpan span = new SimpleSpan();
         this.getTags().forEach(span::tag);
@@ -132,6 +141,7 @@ public class SimpleSpanBuilder implements Span.Builder {
         span.setSpanKind(this.getSpanKind());
         span.name(this.getName());
         span.remoteIpAndPort(this.getIp(), this.getPort());
+        span.addLinks(this.links);
         span.start();
         if (this.startTimestampUnit != null) {
             span.setStartMillis(this.startTimestampUnit.toMillis(this.startTimestamp));
@@ -210,6 +220,15 @@ public class SimpleSpanBuilder implements Span.Builder {
      */
     public SimpleTracer getSimpleTracer() {
         return simpleTracer;
+    }
+
+    /**
+     * Links.
+     * @return links
+     * @since 1.1.0
+     */
+    public List<Link> getLinks() {
+        return links;
     }
 
 }

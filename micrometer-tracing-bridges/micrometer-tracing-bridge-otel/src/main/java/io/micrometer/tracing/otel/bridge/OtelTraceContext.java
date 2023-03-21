@@ -15,15 +15,15 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadableSpan;
-
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * OpenTelemetry implementation of a {@link TraceContext}.
@@ -64,18 +64,18 @@ public class OtelTraceContext implements TraceContext {
     }
 
     /**
-     * Converts from Tracing to OTel.
-     * @param context Tracing version
-     * @return OTel version
+     * Converts from OTel to Tracing.
+     * @param context OTel version
+     * @return Tracing version
      */
     public static TraceContext fromOtel(SpanContext context) {
         return new OtelTraceContext(context, null);
     }
 
     /**
-     * Converts from OTel to Tracing.
-     * @param context OTel version
-     * @return Tracing version
+     * Converts from Tracing to OTel.
+     * @param context Tracing version
+     * @return OTel Context
      */
     public static Context toOtelContext(TraceContext context) {
         if (context instanceof OtelTraceContext) {
@@ -85,6 +85,19 @@ public class OtelTraceContext implements TraceContext {
             }
         }
         return Context.current();
+    }
+
+    /**
+     * Converts from Tracing to OTel SpanContext.
+     * @param context Tracing version
+     * @return OTel version
+     * @since 1.1.0
+     */
+    public static SpanContext toOtelSpanContext(TraceContext context) {
+        if (context instanceof OtelTraceContext) {
+            return ((OtelTraceContext) context).delegate;
+        }
+        return null;
     }
 
     @Override
@@ -124,6 +137,10 @@ public class OtelTraceContext implements TraceContext {
 
     Context context() {
         return this.context.get();
+    }
+
+    SpanContext spanContext() {
+        return this.delegate;
     }
 
     void updateContext(Context context) {

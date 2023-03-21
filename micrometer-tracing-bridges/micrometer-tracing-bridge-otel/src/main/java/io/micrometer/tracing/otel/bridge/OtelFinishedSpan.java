@@ -15,7 +15,9 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -23,6 +25,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.trace.data.DelegatingSpanData;
 import io.opentelemetry.sdk.trace.data.EventData;
+import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
@@ -238,6 +241,36 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public List<Link> getLinks() {
+        return this.spanData.getLinks()
+            .stream()
+            .map(linkData -> new Link(OtelTraceContext.fromOtel(linkData.getSpanContext()),
+                    linkData.getAttributes()
+                        .asMap()
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(e -> e.getKey().getKey(), e -> String.valueOf(e.getValue())))))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public FinishedSpan addLinks(List<Link> links) {
+        links.forEach(this::addLink);
+        return this;
+    }
+
+    @Override
+    public FinishedSpan addLink(Link link) {
+        TraceContext traceContext = link.getTraceContext();
+        Map<String, String> tags = link.getTags();
+        AttributesBuilder builder = Attributes.builder();
+        tags.forEach(builder::put);
+        this.spanData.getLinks()
+            .add(LinkData.create(OtelTraceContext.toOtelSpanContext(traceContext), builder.build()));
+        return this;
+    }
+
+    @Override
     public String toString() {
         return "SpanDataToReportedSpan{" + "spanData=" + spanData + '}';
     }
@@ -272,6 +305,8 @@ public class OtelFinishedSpan implements FinishedSpan {
 
         final List<EventData> events = new ArrayList<>();
 
+        final List<LinkData> links = new ArrayList<>();
+
         MutableSpanData(SpanData delegate) {
             super(delegate);
             this.name = delegate.getName();
@@ -279,6 +314,7 @@ public class OtelFinishedSpan implements FinishedSpan {
             this.endEpochNanos = delegate.getEndEpochNanos();
             delegate.getAttributes().forEach((key, value) -> this.tags.put(key, String.valueOf(value)));
             this.events.addAll(delegate.getEvents());
+            this.links.addAll(delegate.getLinks());
         }
 
         @Override
@@ -318,6 +354,11 @@ public class OtelFinishedSpan implements FinishedSpan {
         @Override
         public int getTotalAttributeCount() {
             return getAttributes().size();
+        }
+
+        @Override
+        public List<LinkData> getLinks() {
+            return this.links;
         }
 
     }

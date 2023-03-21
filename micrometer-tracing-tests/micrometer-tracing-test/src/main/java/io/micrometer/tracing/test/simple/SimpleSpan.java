@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 
@@ -62,6 +63,8 @@ public class SimpleSpan implements Span, FinishedSpan {
     private final Clock clock = Clock.SYSTEM;
 
     private final SimpleTraceContext context = new SimpleTraceContext();
+
+    private final List<Link> links = new ArrayList<>();
 
     /**
      * Creates a new instance of {@link SimpleSpan}.
@@ -154,7 +157,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public FinishedSpan setEvents(Collection<Map.Entry<Long, String>> events) {
+    public SimpleSpan setEvents(Collection<Map.Entry<Long, String>> events) {
         return this;
     }
 
@@ -177,7 +180,24 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public FinishedSpan setRemoteServiceName(String remoteServiceName) {
+    public SimpleSpan setRemoteServiceName(String remoteServiceName) {
+        return this;
+    }
+
+    @Override
+    public List<Link> getLinks() {
+        return this.links;
+    }
+
+    @Override
+    public SimpleSpan addLinks(List<Link> links) {
+        this.links.addAll(links);
+        return this;
+    }
+
+    @Override
+    public SimpleSpan addLink(Link link) {
+        this.links.add(link);
         return this;
     }
 

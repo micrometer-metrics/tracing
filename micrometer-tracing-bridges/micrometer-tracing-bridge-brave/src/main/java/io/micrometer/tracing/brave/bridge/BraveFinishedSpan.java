@@ -16,13 +16,15 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.handler.MutableSpan;
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Brave implementation of a {@link FinishedSpan}.
@@ -178,6 +180,56 @@ public class BraveFinishedSpan implements FinishedSpan {
     @Override
     public FinishedSpan setRemoteServiceName(String remoteServiceName) {
         this.mutableSpan.remoteServiceName(remoteServiceName);
+        return this;
+    }
+
+    @Override
+    public List<Link> getLinks() {
+        List<Link> links = new ArrayList<>();
+        this.mutableSpan.tags()
+            .entrySet()
+            .stream()
+            .filter(LinkUtils::isApplicable)
+            .collect(Collectors.groupingBy(LinkUtils::linkGroup))
+            .entrySet()
+            .stream()
+            .filter(e -> e.getKey() >= 0)
+            .map(Map.Entry::getValue)
+            .forEach(e -> {
+                Link entry = LinkUtils.toLink(e);
+                if (entry != null) {
+                    links.add(entry);
+                }
+            });
+        return links;
+    }
+
+    @Override
+    public FinishedSpan addLinks(List<Link> links) {
+        int index = LinkUtils.nextIndex(getTags());
+        for (Link link : links) {
+            addLink(index, link);
+            index++;
+        }
+        return this;
+    }
+
+    private void addLink(long index, Link link) {
+        TraceContext traceContext = link.getTraceContext();
+        Map<String, String> tags = link.getTags();
+        this.mutableSpan.tag(LinkUtils.traceIdKey(index), traceContext.traceId());
+        this.mutableSpan.tag(LinkUtils.spanIdKey(index), traceContext.spanId());
+        for (Map.Entry<String, String> e : tags.entrySet()) {
+            String key = e.getKey();
+            String value = e.getValue();
+            this.mutableSpan.tag(LinkUtils.tagKey(index, key), value);
+        }
+    }
+
+    @Override
+    public FinishedSpan addLink(Link link) {
+        long nextIndex = LinkUtils.nextIndex(getTags());
+        addLink(nextIndex, link);
         return this;
     }
 

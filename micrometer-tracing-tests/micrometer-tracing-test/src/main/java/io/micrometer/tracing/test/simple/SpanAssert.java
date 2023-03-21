@@ -17,6 +17,7 @@ package io.micrometer.tracing.test.simple;
 
 import io.micrometer.common.docs.KeyName;
 import io.micrometer.common.util.StringUtils;
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import org.assertj.core.api.AbstractAssert;
@@ -24,6 +25,7 @@ import org.assertj.core.api.AbstractThrowableAssert;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -712,6 +714,127 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         isNotNull();
         if (this.actual.getRemotePort() == 0) {
             failWithMessage("Span should have port that is set but wasn't");
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has a link.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * Link linkPresentInSpan = ...;
+     * assertThat(spanWithALink).hasLink(linkPresentInSpan);
+     *
+     * // assertions fail
+     * Link linkNotPresentInSpan = ...;
+     * assertThat(spanWithALink).hasLink(linkNotPresentInSpan);</code></pre>
+     * @param link link to check
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there's no matching link
+     * @since 1.1.0
+     */
+    public SELF hasLink(Link link) {
+        isNotNull();
+        if (!this.actual.getLinks().contains(link)) {
+            failWithMessage("Span should have a link <%s> but has <%s>", link, this.actual.getLinks());
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span does not have a link.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * Link linkNotPresentInSpan = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(linkNotPresentInSpan);
+     *
+     * // assertions fail
+     * Link linkNotPresentInSpan = ...;
+     * assertThat(spanWithALink).doesNotHaveLink(linkNotPresentInSpan);</code></pre>
+     * @param link link to check
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if there's a matching link
+     * @since 1.1.0
+     */
+    public SELF doesNotHaveLink(Link link) {
+        isNotNull();
+        if (this.actual.getLinks().contains(link)) {
+            failWithMessage("Span should not have a link but at least one was found <%s>", this.actual.getLinks());
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has at least one link that passes the assertion function.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithALinkWithTags).hasLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());
+     *
+     * // assertions fail
+     * assertThat(spanWithALinkWithNoTags).hasLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());</code></pre>
+     * @param consumer user assertion function to assert the trace context and tags
+     * against
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if the assertion from the assertion has failed for all links
+     * entries
+     * @since 1.1.0
+     */
+    public SELF hasLink(Consumer<Link> consumer) {
+        isNotNull();
+        boolean atLeastOnePassed = false;
+        for (Link entry : this.actual.getLinks()) {
+            try {
+                consumer.accept(entry);
+                atLeastOnePassed = true;
+                break;
+            }
+            catch (AssertionError error) {
+
+            }
+        }
+        if (!atLeastOnePassed) {
+            failWithMessage("Not a single link has passed the assertion");
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has no links that passes the assertion function.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithALinkWithNoTags).doesNotHaveLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());
+     *
+     * // assertions fail
+     * assertThat(spanWithALinkWithTags).doesNotHaveLink(link -> Assertions.assertThat(link.getTags()).isNotEmpty());</code></pre>
+     * @param consumer user assertion function to assert the trace context and tags
+     * against
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if the assertion from the assertion has failed for all links
+     * entries
+     * @since 1.1.0
+     */
+    public SELF doesNotHaveLink(Consumer<Link> consumer) {
+        isNotNull();
+        boolean allFailed = true;
+        Link passingEntry = null;
+        for (Link entry : this.actual.getLinks()) {
+            try {
+                consumer.accept(entry);
+                allFailed = false;
+                passingEntry = entry;
+                break;
+            }
+            catch (AssertionError error) {
+
+            }
+        }
+        if (!allFailed) {
+            failWithMessage("At least one a link has passed the assertion. First link passing assertion <%s>",
+                    passingEntry);
         }
         return (SELF) this;
     }

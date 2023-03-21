@@ -9,6 +9,7 @@ dependencies {
 	// Tests for tests
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'org.mockito:mockito-core'
 
 	// aspects
 	testImplementation 'org.springframework:spring-context'

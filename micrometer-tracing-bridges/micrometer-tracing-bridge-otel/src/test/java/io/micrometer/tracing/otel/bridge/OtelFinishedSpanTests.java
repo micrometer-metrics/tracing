@@ -15,13 +15,19 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.extension.trace.propagation.B3Propagator;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
@@ -119,6 +125,45 @@ class OtelFinishedSpanTests {
 
         then(finishedSpan.getStartTimestamp().toEpochMilli()).isEqualTo(TimeUnit.NANOSECONDS.toMillis(startMicros));
         then(finishedSpan.getEndTimestamp().toEpochMilli()).isEqualTo(TimeUnit.NANOSECONDS.toMillis(endMicros));
+    }
+
+    @Test
+    void should_set_links() {
+        ArrayListSpanProcessor processor = new ArrayListSpanProcessor();
+        SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+            .addSpanProcessor(processor)
+            .build();
+        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+            .setTracerProvider(sdkTracerProvider)
+            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+            .build();
+        io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+
+        Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));
+        Span span1 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
+        Span span2 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
+        Span span3 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
+        Span span4 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
+
+        builder.addLink(new Link(span1.context())).addLink(new Link(span2, tags())).start().end();
+
+        SpanData traceFinishedSpan = processor.spans().poll();
+        OtelFinishedSpan finishedSpan = new OtelFinishedSpan(traceFinishedSpan);
+
+        finishedSpan.addLink(new Link(span3, tags()));
+        finishedSpan.addLinks(Collections.singletonList(new Link(span4.context(), tags())));
+
+        then(finishedSpan.getLinks()).hasSize(4)
+            .contains(new Link(span1.context(), Collections.emptyMap()), new Link(span2.context(), tags()),
+                    new Link(span3.context(), tags()), new Link(span4.context(), tags()));
+    }
+
+    private Map<String, String> tags() {
+        Map<String, String> map = new HashMap<>();
+        map.put("tag1", "value1");
+        map.put("tag2", "value2");
+        return map;
     }
 
     static class CustomSpanData implements SpanData {

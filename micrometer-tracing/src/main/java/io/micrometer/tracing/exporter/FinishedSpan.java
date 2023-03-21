@@ -16,10 +16,13 @@
 package io.micrometer.tracing.exporter;
 
 import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -159,5 +162,33 @@ public interface FinishedSpan {
      * @return this
      */
     FinishedSpan setRemoteServiceName(String remoteServiceName);
+
+    /**
+     * @return links
+     * @since 1.1.0
+     */
+    default List<Link> getLinks() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Adds links.
+     * @param links links to add
+     * @return this
+     * @since 1.1.0
+     */
+    default FinishedSpan addLinks(List<Link> links) {
+        return this;
+    }
+
+    /**
+     * Adds a link.
+     * @param link link to add
+     * @return this
+     * @since 1.1.0
+     */
+    default FinishedSpan addLink(Link link) {
+        return this;
+    }
 
 }
