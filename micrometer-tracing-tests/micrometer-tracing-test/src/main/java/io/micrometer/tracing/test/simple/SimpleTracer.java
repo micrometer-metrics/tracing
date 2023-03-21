@@ -46,7 +46,21 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpan nextSpan(Span parent) {
-        return new SimpleSpan();
+        SimpleSpan span = simpleSpan(parent);
+        this.spans.add(span);
+        return span;
+    }
+
+    private SimpleSpan simpleSpan(Span parent) {
+        SimpleSpan span = new SimpleSpan();
+        boolean hasParent = parent != null;
+        if (hasParent) {
+            span.context().setParentId(parent.context().spanId());
+        }
+        String traceId = hasParent ? parent.context().traceId() : span.context().generateId();
+        span.context().setTraceId(traceId);
+        span.context().setSpanId(hasParent ? span.context().generateId() : traceId);
+        return span;
     }
 
     /**
@@ -100,7 +114,7 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpan nextSpan() {
-        SimpleSpan span = new SimpleSpan();
+        SimpleSpan span = simpleSpan(currentSpan());
         this.spans.add(span);
         return span;
     }
