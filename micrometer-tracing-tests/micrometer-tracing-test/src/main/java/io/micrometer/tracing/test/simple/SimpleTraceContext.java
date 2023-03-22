@@ -16,6 +16,9 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.internal.EncodingUtils;
+
+import java.util.Random;
 
 /**
  * A test implementation of a trace context.
@@ -24,6 +27,8 @@ import io.micrometer.tracing.TraceContext;
  * @since 1.0.0
  */
 public class SimpleTraceContext implements TraceContext {
+
+    private static final Random random = new Random();
 
     private volatile String traceId = "";
 
@@ -83,6 +88,16 @@ public class SimpleTraceContext implements TraceContext {
      */
     public void setSampled(Boolean sampled) {
         this.sampled = sampled;
+    }
+
+    String generateId() {
+        return EncodingUtils.fromLong(random.nextLong());
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleTraceContext{" + "traceId='" + traceId + '\'' + ", parentId='" + parentId + '\'' + ", spanId='"
+                + spanId + '\'' + ", sampled=" + sampled + '}';
     }
 
 }

@@ -401,4 +401,66 @@ class SpanAssertTests {
         thenThrownBy(() -> assertThat(span).hasPortThatIsSet()).isInstanceOf(AssertionError.class);
     }
 
+    @Test
+    void should_not_fail_when_spanId_is_equal() {
+        SimpleSpan span = new SimpleSpan();
+
+        thenNoException().isThrownBy(() -> assertThat(span).hasSpanIdEqualTo(span.getSpanId()));
+    }
+
+    @Test
+    void should_fail_when_spanId_is_not_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setSpanId("1");
+
+        thenThrownBy(() -> assertThat(span).hasSpanIdEqualTo("2")).isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void should_not_fail_when_spanId_is_not_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setSpanId("1");
+
+        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveSpanIdEqualTo("2"));
+    }
+
+    @Test
+    void should_fail_when_spanId_is_equal() {
+        SimpleSpan span = new SimpleSpan();
+
+        thenThrownBy(() -> assertThat(span).doesNotHaveSpanIdEqualTo(span.getSpanId()))
+            .isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void should_not_fail_when_traceId_is_equal() {
+        SimpleSpan span = new SimpleSpan();
+
+        thenNoException().isThrownBy(() -> assertThat(span).hasTraceIdEqualTo(span.getSpanId()));
+    }
+
+    @Test
+    void should_fail_when_traceId_is_not_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setTraceId("1");
+
+        thenThrownBy(() -> assertThat(span).hasTraceIdEqualTo("2")).isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void should_not_fail_when_traceId_is_not_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setTraceId("1");
+
+        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveTraceIdEqualTo("2"));
+    }
+
+    @Test
+    void should_fail_when_traceId_is_equal() {
+        SimpleSpan span = new SimpleSpan();
+
+        thenThrownBy(() -> assertThat(span).doesNotHaveTraceIdEqualTo(span.getSpanId()))
+            .isInstanceOf(AssertionError.class);
+    }
+
 }
