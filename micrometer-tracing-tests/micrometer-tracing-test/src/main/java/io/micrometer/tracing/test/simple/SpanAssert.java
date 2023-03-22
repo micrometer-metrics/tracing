@@ -840,6 +840,94 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     }
 
     /**
+     * Verifies that this span has span id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithId123).hasSpanIdEqualTo("123");
+     *
+     * // assertions fail
+     * assertThat(spanWithId123).hasSpanIdEqualTo("234");</code></pre>
+     * @param spanId span id
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a span id not equal to the given one
+     * @since 1.0.4
+     */
+    public SELF hasSpanIdEqualTo(String spanId) {
+        isNotNull();
+        if (!this.actual.getSpanId().equals(spanId)) {
+            failWithMessage("Span should have span id equal to <%s> but has <%s>", spanId, this.actual.getSpanId());
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span doesn't have span id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithId123).hasSpanIdEqualTo("234");
+     *
+     * // assertions fail
+     * assertThat(spanWithId123).hasSpanIdEqualTo("123");</code></pre>
+     * @param spanId span id
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a span id equal to the given one
+     * @since 1.0.4
+     */
+    public SELF doesNotHaveSpanIdEqualTo(String spanId) {
+        isNotNull();
+        if (this.actual.getSpanId().equals(spanId)) {
+            failWithMessage("Span should not have span id equal to <%s>", spanId);
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has trace id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithTraceId123).hasTraceIdEqualTo("123");
+     *
+     * // assertions fail
+     * assertThat(spanWithTraceId123).hasTraceIdEqualTo("234");</code></pre>
+     * @param spanId span id
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a trace id not equal to the given one
+     * @since 1.0.4
+     */
+    public SELF hasTraceIdEqualTo(String spanId) {
+        isNotNull();
+        if (!this.actual.getTraceId().equals(spanId)) {
+            failWithMessage("Span should have trace id equal to <%s> but has <%s>", spanId, this.actual.getSpanId());
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span doesn't have trace id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithTraceId123).hasTraceIdEqualTo("234");
+     *
+     * // assertions fail
+     * assertThat(spanWithTraceId123).hasTraceIdEqualTo("123");</code></pre>
+     * @param spanId span id
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a span id equal to the given one
+     * @since 1.0.4
+     */
+    public SELF doesNotHaveTraceIdEqualTo(String spanId) {
+        isNotNull();
+        if (this.actual.getTraceId().equals(spanId)) {
+            failWithMessage("Span should not have trace id equal to <%s>", spanId);
+        }
+        return (SELF) this;
+    }
+
+    /**
      * Syntactic sugar that extends {@link AbstractThrowableAssert} methods with an option
      * to go back to {@link SpanAssert}.
      *
