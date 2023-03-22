@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.contextpropagation;
 
+import io.micrometer.context.ContextRegistry;
 import io.micrometer.context.ThreadLocalAccessor;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
@@ -38,8 +39,12 @@ import io.micrometer.tracing.handler.TracingObservationHandler;
  * local</li>
  * </ul>
  *
+ * <b>IMPORTANT</b>: {@link ObservationAwareSpanThreadLocalAccessor} must be registered
+ * AFTER the {@link ObservationThreadLocalAccessor}. The easiest way to achieve that is to
+ * call {@link ContextRegistry#registerThreadLocalAccessor(ThreadLocalAccessor)} manually.
+ *
  * @author Marcin Grzejszczak
- * @since 1.1.0
+ * @since 1.0.4
  */
 public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAccessor<Span> {
 
@@ -52,6 +57,10 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
 
     private static final ObservationRegistry registry = ObservationRegistry.create();
 
+    /**
+     * Creates a new instance of {@link ObservationThreadLocalAccessor}.
+     * @param tracer tracer
+     */
     public ObservationAwareSpanThreadLocalAccessor(Tracer tracer) {
         this.tracer = tracer;
     }
