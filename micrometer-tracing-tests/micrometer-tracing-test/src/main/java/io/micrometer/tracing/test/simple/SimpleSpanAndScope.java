@@ -15,15 +15,13 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.SpanAndScope;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
+
+import java.util.Objects;
 
 /**
  * Container object for {@link Span} and its corresponding {@link Tracer.SpanInScope}.
@@ -33,8 +31,6 @@ import io.micrometer.tracing.Tracer;
  * @since 1.0.0
  */
 public class SimpleSpanAndScope extends SpanAndScope {
-
-    private static final Map<TraceContext, Span> traceContextToSpans = new ConcurrentHashMap<>();
 
     private final TraceContext traceContext;
 
@@ -54,7 +50,7 @@ public class SimpleSpanAndScope extends SpanAndScope {
      * @param scope scope
      */
     public SimpleSpanAndScope(TraceContext traceContext, @Nullable Tracer.SpanInScope scope) {
-        super(Objects.requireNonNull(traceContextToSpans.get(traceContext),
+        super(Objects.requireNonNull(SimpleTracer.getSpanForTraceContext(traceContext),
                 "You must create a span with this context before"), scope);
         this.traceContext = traceContext;
     }
@@ -65,24 +61,6 @@ public class SimpleSpanAndScope extends SpanAndScope {
      */
     public TraceContext getTraceContext() {
         return traceContext;
-    }
-
-    /**
-     * Binds the given {@link Span} to the given {@link TraceContext}.
-     * @param traceContext the traceContext to use to bind this span to
-     * @param span the span that needs to be bounded to the traceContext
-     */
-    static void bindSpanToTraceContext(TraceContext traceContext, Span span) {
-        traceContextToSpans.put(traceContext, span);
-    }
-
-    /**
-     * Returns the {@link Span} that is bounded to the given {@link TraceContext}.
-     * @param traceContext the traceContext to use to fetch the span
-     * @return the span that is bounded to the given traceContext (null if none)
-     */
-    static Span getSpanForTraceContext(TraceContext traceContext) {
-        return traceContextToSpans.get(traceContext);
     }
 
 }

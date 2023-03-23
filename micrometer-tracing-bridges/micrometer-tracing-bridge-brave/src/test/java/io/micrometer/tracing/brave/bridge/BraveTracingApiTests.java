@@ -24,14 +24,24 @@ import brave.propagation.B3Propagation;
 import brave.propagation.StrictCurrentTraceContext;
 import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
+import io.micrometer.context.ContextAccessor;
+import io.micrometer.context.ContextRegistry;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.*;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenNoException;
 
 /**
  * Sources for tracing-api.adoc
@@ -166,12 +176,12 @@ class BraveTracingApiTests {
             Baggage baggageForSpanInScopeTwo = tracer.createBaggage("from_span_in_scope 2").set("value 2");
 
             try (BaggageInScope baggage = baggageForSpanInScopeOne.makeCurrent()) {
-                then(baggageForSpanInScopeOne.get()).as("[In scope] Baggage 1").isEqualTo("value 1");
+                then(baggage.get()).as("[In scope] Baggage 1").isEqualTo("value 1");
                 then(tracer.getBaggage("from_span_in_scope 1").get()).as("[In scope] Baggage 1").isEqualTo("value 1");
             }
 
             try (BaggageInScope baggage = baggageForSpanInScopeTwo.makeCurrent()) {
-                then(baggageForSpanInScopeTwo.get()).as("[In scope] Baggage 2").isEqualTo("value 2");
+                then(baggage.get()).as("[In scope] Baggage 2").isEqualTo("value 2");
                 then(tracer.getBaggage("from_span_in_scope 2").get()).as("[In scope] Baggage 2").isEqualTo("value 2");
             }
         }
@@ -179,8 +189,7 @@ class BraveTracingApiTests {
         // Assuming that you have a handle to the span
         Baggage baggageForExplicitSpan = tracer.createBaggage("from_span").set(span.context(), "value 3");
         try (BaggageInScope baggage = baggageForExplicitSpan.makeCurrent()) {
-            then(baggageForExplicitSpan.get(span.context())).as("[Span passed explicitly] Baggage 3")
-                .isEqualTo("value 3");
+            then(baggage.get(span.context())).as("[Span passed explicitly] Baggage 3").isEqualTo("value 3");
             then(tracer.getBaggage("from_span").get(span.context())).as("[Span passed explicitly] Baggage 3")
                 .isEqualTo("value 3");
         }
@@ -191,7 +200,7 @@ class BraveTracingApiTests {
         // When there's no span in scope, there will never be any baggage - even if you
         // make it current
         try (BaggageInScope baggage = baggageFour.makeCurrent()) {
-            then(baggageFour.get()).as("[Out of span scope] Baggage 1").isNull();
+            then(baggage.get()).as("[Out of span scope] Baggage 1").isNull();
             then(tracer.getBaggage("from_span_in_scope 1").get()).as("[Out of span scope] Baggage 1").isNull();
         }
         then(tracer.getBaggage("from_span_in_scope 1").get()).as("[Out of scope] Baggage 1").isNull();
@@ -201,6 +210,53 @@ class BraveTracingApiTests {
         // You will retrieve the baggage value ALWAYS when you pass the context explicitly
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3")
             .isEqualTo("value 3");
+    }
+
+    @Test
+    void should_not_break_on_scopes() {
+        ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
+
+        ContextRegistry.getInstance().registerContextAccessor(new ContextAccessor<Observation, Observation>() {
+            @Override
+            public Class<? extends Observation> readableType() {
+                return Observation.class;
+            }
+
+            @Override
+            public void readValues(Observation sourceContext, Predicate<Object> keyPredicate,
+                    Map<Object, Object> readValues) {
+                readValues.put(ObservationThreadLocalAccessor.KEY, sourceContext);
+            }
+
+            @Override
+            public <T> T readValue(Observation sourceContext, Object key) {
+                return (T) sourceContext;
+            }
+
+            @Override
+            public Class<? extends Observation> writeableType() {
+                return Observation.class;
+            }
+
+            @Override
+            public Observation writeValues(Map<Object, Object> valuesToWrite, Observation targetContext) {
+                return (Observation) valuesToWrite.get(ObservationThreadLocalAccessor.KEY);
+            }
+        });
+
+        Observation obs0 = Observation.createNotStarted("observation-0", registry);
+        Observation obs1 = Observation.createNotStarted("observation-1", registry);
+
+        thenNoException().isThrownBy(() -> {
+            try (Observation.Scope scope = obs0.start().openScope()) {
+                try (Observation.Scope scope2 = obs1.start().openScope()) {
+                    try (ContextSnapshot.Scope scope3 = ContextSnapshot.setAllThreadLocalsFrom(obs1)) {
+                        // do sth here
+                    }
+                }
+            }
+        });
     }
 
 }

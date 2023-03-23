@@ -19,6 +19,7 @@ import io.micrometer.tracing.*;
 
 import java.util.Deque;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -29,13 +30,15 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class SimpleTracer implements Tracer {
 
+    private static final Map<TraceContext, SimpleSpan> traceContextToSpans = new ConcurrentHashMap<>();
+
+    private static final ThreadLocal<SimpleSpan> scopedSpans = new ThreadLocal<>();
+
     private final SimpleCurrentTraceContext currentTraceContext;
 
     private final SimpleBaggageManager simpleBaggageManager = new SimpleBaggageManager(this);
 
     private final Deque<SimpleSpan> spans = new LinkedBlockingDeque<>();
-
-    private final ThreadLocal<SpanAndScope> scopedSpans = new ThreadLocal<>();
 
     /**
      * Creates a new instance of {@link SimpleTracer}.
@@ -98,7 +101,7 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpanInScope withSpan(Span span) {
-        return new SimpleSpanInScope(span, scopedSpans);
+        return new SimpleSpanInScope(this.currentTraceContext.newScope(span != null ? span.context() : null));
     }
 
     @Override
@@ -108,8 +111,7 @@ public class SimpleTracer implements Tracer {
 
     @Override
     public SimpleSpan currentSpan() {
-        SpanAndScope current = this.scopedSpans.get();
-        return current != null ? (SimpleSpan) current.getSpan() : null;
+        return scopedSpans.get();
     }
 
     @Override
@@ -170,6 +172,40 @@ public class SimpleTracer implements Tracer {
      */
     public Deque<SimpleSpan> getSpans() {
         return spans;
+    }
+
+    /**
+     * Binds the given {@link Span} to the given {@link TraceContext}.
+     * @param traceContext the traceContext to use to bind this span to
+     * @param span the span that needs to be bounded to the traceContext
+     */
+    static void bindSpanToTraceContext(TraceContext traceContext, SimpleSpan span) {
+        traceContextToSpans.put(traceContext, span);
+    }
+
+    /**
+     * Returns the {@link Span} that is bounded to the given {@link TraceContext}.
+     * @param traceContext the traceContext to use to fetch the span
+     * @return the span that is bounded to the given traceContext (null if none)
+     */
+    static SimpleSpan getSpanForTraceContext(TraceContext traceContext) {
+        return traceContextToSpans.get(traceContext);
+    }
+
+    static SimpleSpan getCurrentSpan() {
+        return scopedSpans.get();
+    }
+
+    static void resetCurrentSpan() {
+        scopedSpans.remove();
+    }
+
+    static void setCurrentSpan(SimpleSpan simpleSpan) {
+        scopedSpans.set(simpleSpan);
+    }
+
+    static void setCurrentSpan(TraceContext context) {
+        scopedSpans.set(context != null ? getSpanForTraceContext(context) : null);
     }
 
 }
