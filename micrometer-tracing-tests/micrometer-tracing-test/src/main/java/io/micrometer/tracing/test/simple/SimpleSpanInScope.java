@@ -15,9 +15,7 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanAndScope;
-import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.*;
 
 /**
  * A test implementation of a span in scope.
@@ -31,22 +29,31 @@ public class SimpleSpanInScope implements Tracer.SpanInScope {
 
     private final ThreadLocal<SpanAndScope> scopedSpans;
 
-    private final Span span;
-
     private final SpanAndScope spanAndScope;
 
     private final SpanAndScope previousSpanAndScope;
+
+    private final CurrentTraceContext.Scope scope;
 
     /**
      * Creates a new instance of {@link SimpleSpanInScope}.
      * @param span span
      * @param scopedSpans scoped spans
+     * @deprecated use {@link SimpleSpanInScope(Span, CurrentTraceContext.Scope)}
      */
+    @Deprecated
     public SimpleSpanInScope(Span span, ThreadLocal<SpanAndScope> scopedSpans) {
-        this.span = span;
         this.scopedSpans = scopedSpans;
         this.spanAndScope = new SpanAndScope(span, this);
         this.previousSpanAndScope = scopedSpans.get();
+        this.scope = () -> {
+            SpanAndScope current = this.scopedSpans.get();
+            if (current != null && current != this.spanAndScope) {
+                throw new IllegalStateException("\nTrying to close scope for span \n\n[" + span
+                        + "] \n\nbut current span in scope is \n\n[" + current.getSpan() + "]");
+            }
+            this.scopedSpans.set(this.previousSpanAndScope);
+        };
         if (span != null) {
             this.scopedSpans.set(this.spanAndScope);
         }
@@ -55,15 +62,21 @@ public class SimpleSpanInScope implements Tracer.SpanInScope {
         }
     }
 
+    /**
+     * Creates a new instance of {@link SimpleSpanInScope}.
+     * @param scope current trace context scope
+     */
+    public SimpleSpanInScope(CurrentTraceContext.Scope scope) {
+        this.scopedSpans = null;
+        this.spanAndScope = null;
+        this.previousSpanAndScope = null;
+        this.scope = scope;
+    }
+
     @Override
     public void close() {
         this.closed = true;
-        SpanAndScope current = this.scopedSpans.get();
-        if (current != null && current != this.spanAndScope) {
-            throw new IllegalStateException("Trying to close scope for span [" + span
-                    + "] but current span in scope is [" + current.getSpan() + "]");
-        }
-        this.scopedSpans.set(this.previousSpanAndScope);
+        this.scope.close();
     }
 
     /**
