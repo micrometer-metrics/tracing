@@ -16,7 +16,6 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.Span;
 
 class RevertingScope implements CurrentTraceContext.Scope {
 
@@ -26,26 +25,23 @@ class RevertingScope implements CurrentTraceContext.Scope {
 
     private final CurrentTraceContext.Scope previousScope;
 
-    private final Span previousSpan;
-
     RevertingScope(TracingObservationHandler.TracingContext tracingContext, CurrentTraceContext.Scope currentScope,
-            CurrentTraceContext.Scope previousScope, Span previousSpan) {
+            CurrentTraceContext.Scope previousScope) {
         this.tracingContext = tracingContext;
         this.currentScope = currentScope;
         this.previousScope = previousScope;
-        this.previousSpan = previousSpan;
     }
 
     @Override
     public void close() {
         this.currentScope.close();
-        this.tracingContext.setSpanAndScope(this.previousSpan, this.previousScope);
+        this.tracingContext.setScope(this.previousScope);
     }
 
     @Override
     public String toString() {
         return "RevertingScope{" + "tracingContext=" + tracingContext + ", currentScope=" + currentScope
-                + ", previousScope=" + previousScope + ", previousSpan=" + previousSpan + '}';
+                + ", previousScope=" + previousScope + '}';
     }
 
 }
