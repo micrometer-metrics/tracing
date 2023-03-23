@@ -70,7 +70,7 @@ public class SimpleSpan implements Span, FinishedSpan {
      * Creates a new instance of {@link SimpleSpan}.
      */
     public SimpleSpan() {
-        SimpleSpanAndScope.bindSpanToTraceContext(context(), this);
+        SimpleTracer.bindSpanToTraceContext(context(), this);
     }
 
     @Override

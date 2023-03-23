@@ -25,6 +25,7 @@ import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationView;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
 
@@ -80,17 +81,31 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         if (span == null) {
             return;
         }
-        CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(span.context());
+        setMaybeScopeOnTracingContext(tracingContext, span);
+    }
+
+    /**
+     * Creates or reuses an existing {@link CurrentTraceContext.Scope} given the
+     * {@link Span}. {@link Span} can be {@code null} in which a scope that resets current
+     * scope but remembers the previously present value will be created.
+     * @param tracingContext handler's tracing context
+     * @param newSpan span, whose context will be used to create a new scope. Span can be
+     * {@code null}.
+     * @since 1.0.4
+     */
+    default void setMaybeScopeOnTracingContext(TracingContext tracingContext, @Nullable Span newSpan) {
+        Span spanFromThisObservation = tracingContext.getSpan();
+        TraceContext newContext = newSpan != null ? newSpan.context() : null;
+        CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(newContext);
         CurrentTraceContext.Scope previousScopeOnThisObservation = tracingContext.getScope();
-        tracingContext.setSpanAndScope(span, () -> {
-            scope.close();
-            tracingContext.setScope(previousScopeOnThisObservation);
-        });
+        tracingContext.setSpanAndScope(newSpan,
+                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation, spanFromThisObservation));
     }
 
     @Override
     default void onScopeReset(T context) {
-        getTracer().withSpan(null);
+        TracingContext tracingContext = getTracingContext(context);
+        setMaybeScopeOnTracingContext(tracingContext, null);
     }
 
     @Override

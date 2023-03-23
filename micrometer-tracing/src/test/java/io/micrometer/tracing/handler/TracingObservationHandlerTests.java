@@ -16,12 +16,14 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.thenNoException;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
@@ -39,11 +41,13 @@ class TracingObservationHandlerTests {
     @Test
     void spanShouldBeClearedOnScopeReset() {
         Tracer tracer = mock(Tracer.class);
+        CurrentTraceContext currentTraceContext = mock(CurrentTraceContext.class);
+        given(tracer.currentTraceContext()).willReturn(currentTraceContext);
         TracingObservationHandler<Observation.Context> handler = () -> tracer;
 
         handler.onScopeReset(new Observation.Context());
 
-        then(tracer).should().withSpan(isNull());
+        then(currentTraceContext).should().maybeScope(isNull());
     }
 
     @Test

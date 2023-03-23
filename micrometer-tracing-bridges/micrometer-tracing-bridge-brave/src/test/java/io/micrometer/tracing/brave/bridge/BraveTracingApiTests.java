@@ -24,14 +24,24 @@ import brave.propagation.B3Propagation;
 import brave.propagation.StrictCurrentTraceContext;
 import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
+import io.micrometer.context.ContextAccessor;
+import io.micrometer.context.ContextRegistry;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.*;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenNoException;
 
 /**
  * Sources for tracing-api.adoc
@@ -249,6 +259,53 @@ class BraveTracingApiTests {
         // You will retrieve the baggage value ALWAYS when you pass the context explicitly
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3")
             .isEqualTo("value 3");
+    }
+
+    @Test
+    void should_not_break_on_scopes() {
+        ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
+
+        ContextRegistry.getInstance().registerContextAccessor(new ContextAccessor<Observation, Observation>() {
+            @Override
+            public Class<? extends Observation> readableType() {
+                return Observation.class;
+            }
+
+            @Override
+            public void readValues(Observation sourceContext, Predicate<Object> keyPredicate,
+                    Map<Object, Object> readValues) {
+                readValues.put(ObservationThreadLocalAccessor.KEY, sourceContext);
+            }
+
+            @Override
+            public <T> T readValue(Observation sourceContext, Object key) {
+                return (T) sourceContext;
+            }
+
+            @Override
+            public Class<? extends Observation> writeableType() {
+                return Observation.class;
+            }
+
+            @Override
+            public Observation writeValues(Map<Object, Object> valuesToWrite, Observation targetContext) {
+                return (Observation) valuesToWrite.get(ObservationThreadLocalAccessor.KEY);
+            }
+        });
+
+        Observation obs0 = Observation.createNotStarted("observation-0", registry);
+        Observation obs1 = Observation.createNotStarted("observation-1", registry);
+
+        thenNoException().isThrownBy(() -> {
+            try (Observation.Scope scope = obs0.start().openScope()) {
+                try (Observation.Scope scope2 = obs1.start().openScope()) {
+                    try (ContextSnapshot.Scope scope3 = ContextSnapshot.setAllThreadLocalsFrom(obs1)) {
+                        // do sth here
+                    }
+                }
+            }
+        });
     }
 
 }

@@ -15,14 +15,14 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * A test implementation of a current trace context.
@@ -53,22 +53,18 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope newScope(TraceContext context) {
-        Span span = Objects.requireNonNull(SimpleSpanAndScope.getSpanForTraceContext(context),
-                "You must create a span with this context before");
-        SimpleSpanInScope inScope = this.simpleTracer.withSpan(span);
-        return inScope::close;
+        SimpleSpan previous = SimpleTracer.getCurrentSpan();
+        SimpleTracer.setCurrentSpan(context);
+        return previous != null ? new RevertToPreviousScope(previous) : new RevertToNullScope();
     }
 
     @Override
     public Scope maybeScope(TraceContext context) {
-        Span span = Objects.requireNonNull(SimpleSpanAndScope.getSpanForTraceContext(context),
-                "You must create a span with this context before");
-        if (this.simpleTracer.currentSpan() == span) {
-            return () -> {
-
-            };
+        SimpleSpan current = SimpleTracer.getCurrentSpan();
+        if (Objects.equals(current != null ? current.context() : current, context)) {
+            return Scope.NOOP;
         }
-        return newScope(span.context());
+        return newScope(context);
     }
 
     @Override
@@ -89,6 +85,30 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
     @Override
     public ExecutorService wrap(ExecutorService delegate) {
         return delegate;
+    }
+
+    private static final class RevertToNullScope implements Scope {
+
+        @Override
+        public void close() {
+            SimpleTracer.resetCurrentSpan();
+        }
+
+    }
+
+    private static final class RevertToPreviousScope implements Scope {
+
+        final SimpleSpan previous;
+
+        RevertToPreviousScope(SimpleSpan previous) {
+            this.previous = previous;
+        }
+
+        @Override
+        public void close() {
+            SimpleTracer.setCurrentSpan(this.previous);
+        }
+
     }
 
 }
