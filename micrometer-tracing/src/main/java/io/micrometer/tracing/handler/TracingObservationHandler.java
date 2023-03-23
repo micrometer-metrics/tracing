@@ -98,8 +98,8 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         TraceContext newContext = newSpan != null ? newSpan.context() : null;
         CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(newContext);
         CurrentTraceContext.Scope previousScopeOnThisObservation = tracingContext.getScope();
-        tracingContext.setSpanAndScope(newSpan,
-                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation, spanFromThisObservation));
+        tracingContext.setSpanAndScope(spanFromThisObservation,
+                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation));
     }
 
     @Override
@@ -252,7 +252,14 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
         @Override
         public String toString() {
-            return "TracingContext{" + "span=" + span + ", scope=" + scopes + '}';
+            return "TracingContext{" + "span=" + traceContextFromSpan() + ", scope count=" + scopes.size() + '}';
+        }
+
+        private String traceContextFromSpan() {
+            if (span != null) {
+                return span.context().toString();
+            }
+            return "null";
         }
 
     }

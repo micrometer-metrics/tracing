@@ -17,9 +17,11 @@ package io.micrometer.tracing.handler;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.thenNoException;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -55,6 +57,28 @@ class TracingObservationHandlerTests {
         TracingObservationHandler<Observation.Context> handler = () -> null;
 
         thenNoException().isThrownBy(() -> handler.onScopeClosed(new Observation.Context()));
+    }
+
+    @Test
+    void spanShouldNotBeOverriddenWhenResettingScope() {
+        Tracer tracer = tracer();
+        Span span = mock(Span.class);
+        Observation.Context context = new Observation.Context();
+        TracingObservationHandler.TracingContext tracingContext = new TracingObservationHandler.TracingContext();
+        tracingContext.setSpan(span);
+        context.put(TracingObservationHandler.TracingContext.class, tracingContext);
+        TracingObservationHandler<Observation.Context> handler = () -> tracer;
+
+        handler.onScopeReset(context);
+
+        assertThat(tracingContext.getSpan()).isSameAs(span);
+    }
+
+    private static Tracer tracer() {
+        Tracer tracer = mock(Tracer.class);
+        CurrentTraceContext currentTraceContext = mock(CurrentTraceContext.class);
+        given(tracer.currentTraceContext()).willReturn(currentTraceContext);
+        return tracer;
     }
 
 }
