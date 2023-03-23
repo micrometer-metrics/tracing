@@ -18,8 +18,9 @@ dependencies {
 	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
 	optionalApi 'io.opentelemetry:opentelemetry-opentracing-shim'
 
-	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation project(':micrometer-tracing-test')
+	testImplementation 'io.micrometer:micrometer-core'
+	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'org.awaitility:awaitility'
