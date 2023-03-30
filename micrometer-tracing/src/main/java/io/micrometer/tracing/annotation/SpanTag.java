@@ -15,11 +15,10 @@
  */
 package io.micrometer.tracing.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.micrometer.common.annotation.NoOpTagValueResolver;
+import io.micrometer.common.annotation.TagValueResolver;
+
+import java.lang.annotation.*;
 
 /**
  * There are 3 different ways to add tags to a span. All of them are controlled by the

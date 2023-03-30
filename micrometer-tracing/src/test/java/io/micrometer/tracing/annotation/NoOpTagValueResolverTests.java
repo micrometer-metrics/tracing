@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.annotation;
 
+import io.micrometer.common.annotation.NoOpTagValueResolver;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;

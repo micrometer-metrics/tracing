@@ -15,7 +15,8 @@
  */
 package io.micrometer.tracing.annotation;
 
-import io.micrometer.tracing.SpanCustomizer;
+import io.micrometer.common.annotation.TagValueExpressionResolver;
+import io.micrometer.common.annotation.TagValueResolver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,8 +42,7 @@ class SpanTagAnnotationHandlerTests {
 
     @BeforeEach
     void setup() {
-        this.handler = new SpanTagAnnotationHandler(SpanCustomizer.NOOP, aClass -> tagValueResolver,
-                aClass -> tagValueExpressionResolver);
+        this.handler = new SpanTagAnnotationHandler(aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
     }
 
     @Test
@@ -50,7 +50,8 @@ class SpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueResolver", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test");
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
+                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("Value from myCustomTagValueResolver");
         }
         else {
@@ -63,7 +64,8 @@ class SpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueExpression", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test");
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
+                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
 
             assertThat(resolvedValue).isEqualTo("hello characters");
         }
@@ -77,7 +79,8 @@ class SpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForArgumentToString", Long.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, 15);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, 15, aClass -> tagValueResolver,
+                    aClass -> tagValueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("15");
         }
         else {

@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.annotation;
 
+import io.micrometer.common.annotation.TagValueExpressionResolver;
+import io.micrometer.common.annotation.TagValueResolver;
 import io.micrometer.tracing.SpanCustomizer;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +49,7 @@ class NullSpanTagAnnotationHandlerTests {
         }
     };
 
-    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(spanCustomizer, aClass -> tagValueResolver,
+    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(aClass -> tagValueResolver,
             aClass -> tagValueExpressionResolver);
 
     @Test
@@ -55,7 +57,8 @@ class NullSpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueResolver", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test");
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
+                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("");
         }
         else {
@@ -68,7 +71,8 @@ class NullSpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueExpression", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test");
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
+                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
 
             assertThat(resolvedValue).isEqualTo("");
         }
@@ -82,7 +86,8 @@ class NullSpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForArgumentToString", Long.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, null);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, null, aClass -> tagValueResolver,
+                    aClass -> tagValueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("");
         }
         else {

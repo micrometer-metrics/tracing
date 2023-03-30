@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.annotation;
 
+import io.micrometer.common.annotation.TagValueExpressionResolver;
+import io.micrometer.common.annotation.TagValueResolver;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -43,8 +45,8 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
     public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
             Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider,
             Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
-        super(newSpanParser, tracer, tracer.currentTraceContext(), new SpanTagAnnotationHandler(
-                tracer.currentSpanCustomizer(), resolverProvider, expressionResolverProvider));
+        super(newSpanParser, tracer, tracer.currentTraceContext(),
+                new SpanTagAnnotationHandler(resolverProvider, expressionResolverProvider));
     }
 
     @Override

@@ -302,6 +302,7 @@ subprojects {
 	description = 'Facade over tracing concepts'
 
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven {
 			// TODO remove before releasing GA
