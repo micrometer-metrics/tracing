@@ -40,8 +40,7 @@ class RevertingScope implements CurrentTraceContext.Scope {
 
     @Override
     public String toString() {
-        return "RevertingScope{" + "tracingContext=" + tracingContext + ", currentScope=" + currentScope
-                + ", previousScope=" + previousScope + '}';
+        return "RevertingScope{" + "tracingContext=" + tracingContext + '}';
     }
 
 }
