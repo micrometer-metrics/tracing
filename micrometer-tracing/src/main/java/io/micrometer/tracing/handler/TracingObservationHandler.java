@@ -110,6 +110,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
             scope.close();
             scope = tracingContext.getScope();
         }
+        getTracer().currentTraceContext().maybeScope(null);
     }
 
     @Override

@@ -15,12 +15,13 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.propagation.ThreadLocalCurrentTraceContext;
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.TraceContext;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.TraceContext;
 
 /**
  * Brave implementation of a {@link CurrentTraceContext}.
@@ -75,6 +76,10 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope maybeScope(TraceContext context) {
+        if (context == null && delegate instanceof ThreadLocalCurrentTraceContext) {
+            ((ThreadLocalCurrentTraceContext) delegate).clear();
+            return Scope.NOOP;
+        }
         return new BraveScope(
                 this.delegate.maybeScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
     }
