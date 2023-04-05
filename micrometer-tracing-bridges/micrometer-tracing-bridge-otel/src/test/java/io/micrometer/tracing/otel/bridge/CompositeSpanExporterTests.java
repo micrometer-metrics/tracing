@@ -91,6 +91,28 @@ class CompositeSpanExporterTests {
         BDDAssertions.then(resultCode.isSuccess()).isTrue();
     }
 
+    @Test
+    void should_not_call_exporter_if_no_spans() {
+        SpanExporter exporter = mock(SpanExporter.class);
+        given(exporter.export(BDDMockito.any())).willReturn(CompletableResultCode.ofSuccess());
+        SpanExportingPredicate predicate = span -> span.getName().equals("foo");
+        SpanFilter filter = span -> span.setName("baz");
+        SpanReporter reporter = mock(SpanReporter.class);
+
+        SpanData barSpan = new CustomSpanData("bar");
+
+        CompletableResultCode resultCode = new CompositeSpanExporter(Collections.singleton(exporter),
+            Collections.singletonList(predicate), Collections.singletonList(reporter),
+            Collections.singletonList(filter))
+            .export(Collections.singletonList(barSpan));
+
+        then(reporter).shouldHaveNoInteractions();
+
+
+        then(exporter).shouldHaveNoInteractions();
+        BDDAssertions.then(resultCode.isSuccess()).isTrue();
+    }
+
     static class CustomSpanData implements SpanData {
 
         private String name;
