@@ -70,6 +70,9 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
             }
             return OtelFinishedSpan.toOtel(finishedSpan);
         }).collect(Collectors.toList());
+        if (changedSpanData.isEmpty()) {
+            return CompletableResultCode.ofSuccess();
+        }
         List<CompletableResultCode> results = new ArrayList<>();
         changedSpanData.forEach(spanData -> {
             this.reporters.forEach(reporter -> {
