@@ -102,12 +102,11 @@ class CompositeSpanExporterTests {
         SpanData barSpan = new CustomSpanData("bar");
 
         CompletableResultCode resultCode = new CompositeSpanExporter(Collections.singleton(exporter),
-            Collections.singletonList(predicate), Collections.singletonList(reporter),
-            Collections.singletonList(filter))
+                Collections.singletonList(predicate), Collections.singletonList(reporter),
+                Collections.singletonList(filter))
             .export(Collections.singletonList(barSpan));
 
         then(reporter).shouldHaveNoInteractions();
-
 
         then(exporter).shouldHaveNoInteractions();
         BDDAssertions.then(resultCode.isSuccess()).isTrue();
