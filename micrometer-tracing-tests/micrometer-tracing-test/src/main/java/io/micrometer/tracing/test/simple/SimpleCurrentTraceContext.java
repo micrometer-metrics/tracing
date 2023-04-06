@@ -53,6 +53,10 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope newScope(TraceContext context) {
+        if (context == null) {
+            SimpleTracer.resetCurrentSpan();
+            return Scope.NOOP;
+        }
         SimpleSpan previous = SimpleTracer.getCurrentSpan();
         SimpleTracer.setCurrentSpan(context);
         return previous != null ? new RevertToPreviousScope(previous) : new RevertToNullScope();
@@ -60,6 +64,10 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope maybeScope(TraceContext context) {
+        if (context == null) {
+            SimpleTracer.resetCurrentSpan();
+            return Scope.NOOP;
+        }
         SimpleSpan current = SimpleTracer.getCurrentSpan();
         if (Objects.equals(current != null ? current.context() : current, context)) {
             return Scope.NOOP;

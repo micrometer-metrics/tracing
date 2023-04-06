@@ -89,6 +89,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
                 return currentSpan;
             }
             // Current span is same as the one from observation, we will skip this
+            currentObservation.getContext().put("micrometer.tracing.handled-by-observation", true);
             return null;
         }
         // No current observation so let's check the tracer
@@ -102,7 +103,18 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
 
     @Override
     public void reset() {
-        this.tracer.withSpan(null);
+        Observation currentObservation = registry.getCurrentObservation();
+        boolean handledByObservation = false;
+        if (currentObservation != null) {
+            handledByObservation = currentObservation.getContext()
+                .getOrDefault("micrometer.tracing.handled-by-observation", false);
+        }
+        if (!handledByObservation) {
+            this.tracer.withSpan(null);
+        }
+        else {
+            currentObservation.getContext().remove("micrometer.tracing.handled-by-observation");
+        }
     }
 
 }

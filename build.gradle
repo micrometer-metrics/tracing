@@ -304,10 +304,10 @@ subprojects {
 	repositories {
 		mavenCentral()
 		maven {
-			// TODO remove when upgrading to GA versions of micrometer deps
-			url 'https://repo.spring.io/milestone/'
+			// TODO remove before releasing GA
+			url "https://repo.spring.io/snapshot/"
 			content {
-				includeGroupByRegex 'io\\.micrometer'
+				includeGroup 'io.micrometer'
 			}
 		}
 	}

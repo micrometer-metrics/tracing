@@ -17,6 +17,8 @@ package io.micrometer.tracing.handler;
 
 import io.micrometer.tracing.CurrentTraceContext;
 
+import java.util.Objects;
+
 class RevertingScope implements CurrentTraceContext.Scope {
 
     private final TracingObservationHandler.TracingContext tracingContext;
@@ -41,6 +43,24 @@ class RevertingScope implements CurrentTraceContext.Scope {
     @Override
     public String toString() {
         return "RevertingScope{" + "tracingContext=" + tracingContext + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RevertingScope that = (RevertingScope) o;
+        return Objects.equals(tracingContext, that.tracingContext) && Objects.equals(currentScope, that.currentScope)
+                && Objects.equals(previousScope, that.previousScope);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tracingContext, currentScope, previousScope);
     }
 
 }

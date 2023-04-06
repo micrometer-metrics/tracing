@@ -15,10 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.baggage.Baggage;
@@ -26,6 +22,10 @@ import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 /**
  * OpenTelemetry implementation of a {@link CurrentTraceContext}.
@@ -88,6 +88,10 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope maybeScope(TraceContext context) {
+        if (context == null) {
+            io.opentelemetry.context.Scope scope = Context.current().with(Span.getInvalid()).makeCurrent();
+            return scope::close;
+        }
         return newScope(context);
     }
 

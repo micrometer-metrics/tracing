@@ -19,17 +19,28 @@ import io.micrometer.observation.Observation;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
+import org.mockito.InOrder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.thenNoException;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
 class TracingObservationHandlerTests {
+
+    Tracer tracer = mock(Tracer.class);
+
+    CurrentTraceContext currentTraceContext = mock(CurrentTraceContext.class);
+
+    @BeforeEach
+    void setup() {
+        given(tracer.currentTraceContext()).willReturn(currentTraceContext);
+    }
 
     @Test
     void iseShouldBeCalledWhenNoSpanInContext() {
@@ -42,14 +53,22 @@ class TracingObservationHandlerTests {
 
     @Test
     void spanShouldBeClearedOnScopeReset() {
-        Tracer tracer = mock(Tracer.class);
-        CurrentTraceContext currentTraceContext = mock(CurrentTraceContext.class);
-        given(tracer.currentTraceContext()).willReturn(currentTraceContext);
         TracingObservationHandler<Observation.Context> handler = () -> tracer;
+        Observation.Context context = new Observation.Context();
+        TracingObservationHandler.TracingContext tracingContext = new TracingObservationHandler.TracingContext();
+        CurrentTraceContext.Scope scope1 = mock(CurrentTraceContext.Scope.class);
+        CurrentTraceContext.Scope scope2 = mock(CurrentTraceContext.Scope.class);
+        RevertingScope revertingScope1 = new RevertingScope(tracingContext, scope1, null);
+        RevertingScope revertingScope2 = new RevertingScope(tracingContext, scope2, revertingScope1);
+        tracingContext.setScope(revertingScope2);
+        context.put(TracingObservationHandler.TracingContext.class, tracingContext);
 
-        handler.onScopeReset(new Observation.Context());
+        handler.onScopeReset(context);
 
-        then(currentTraceContext).should().maybeScope(isNull());
+        InOrder inOrder = inOrder(scope2, scope1);
+        inOrder.verify(scope2).close();
+        inOrder.verify(scope1).close();
+        BDDMockito.then(currentTraceContext).should().maybeScope(null);
     }
 
     @Test
@@ -61,7 +80,6 @@ class TracingObservationHandlerTests {
 
     @Test
     void spanShouldNotBeOverriddenWhenResettingScope() {
-        Tracer tracer = tracer();
         Span span = mock(Span.class);
         Observation.Context context = new Observation.Context();
         TracingObservationHandler.TracingContext tracingContext = new TracingObservationHandler.TracingContext();
@@ -72,13 +90,6 @@ class TracingObservationHandlerTests {
         handler.onScopeReset(context);
 
         assertThat(tracingContext.getSpan()).isSameAs(span);
-    }
-
-    private static Tracer tracer() {
-        Tracer tracer = mock(Tracer.class);
-        CurrentTraceContext currentTraceContext = mock(CurrentTraceContext.class);
-        given(tracer.currentTraceContext()).willReturn(currentTraceContext);
-        return tracer;
     }
 
 }

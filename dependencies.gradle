@@ -32,7 +32,7 @@ def VERSIONS = [
 ]
 
 def MICROMETER_PLATFORM_VERSIONS = [
-	'io.micrometer:micrometer-bom:1.11.0-M2'
+	'io.micrometer:micrometer-bom:1.11.0-SNAPSHOT'
 ]
 
 def PLATFORM_VERSIONS = [
@@ -40,6 +40,7 @@ def PLATFORM_VERSIONS = [
 	// opentelemetry-instrumentation-api dependency above with this
 	'io.opentelemetry:opentelemetry-bom:1.24.+',
 	'io.opentelemetry:opentelemetry-bom-alpha:1.24.+',
+	'io.projectreactor:reactor-bom:2022.0.+', // latest release for tests
 	'org.junit:junit-bom:5.9.+'
 ]
 
