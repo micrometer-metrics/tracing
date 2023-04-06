@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.annotation;
 
-import io.micrometer.common.annotation.NoOpTagValueResolver;
+import io.micrometer.common.annotation.NoOpValueResolver;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -23,11 +23,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 /**
  * @author Marcin Grzejszczak
  */
-class NoOpTagValueResolverTests {
+class NoOpValueResolverTests {
 
     @Test
     void should_return_null() throws Exception {
-        then(new NoOpTagValueResolver().resolve("")).isNull();
+        then(new NoOpValueResolver().resolve("")).isNull();
     }
 
 }

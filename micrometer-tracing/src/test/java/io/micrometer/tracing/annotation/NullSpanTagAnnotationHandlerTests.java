@@ -15,8 +15,8 @@
  */
 package io.micrometer.tracing.annotation;
 
-import io.micrometer.common.annotation.TagValueExpressionResolver;
-import io.micrometer.common.annotation.TagValueResolver;
+import io.micrometer.common.annotation.ValueExpressionResolver;
+import io.micrometer.common.annotation.ValueResolver;
 import io.micrometer.tracing.SpanCustomizer;
 import org.junit.jupiter.api.Test;
 
@@ -28,9 +28,9 @@ import static org.assertj.core.api.Assertions.fail;
 
 class NullSpanTagAnnotationHandlerTests {
 
-    TagValueResolver tagValueResolver = parameter -> null;
+    ValueResolver ValueResolver = parameter -> null;
 
-    TagValueExpressionResolver tagValueExpressionResolver = (expression, parameter) -> "";
+    ValueExpressionResolver ValueExpressionResolver = (expression, parameter) -> "";
 
     SpanCustomizer spanCustomizer = new SpanCustomizer() {
         @Override
@@ -49,16 +49,16 @@ class NullSpanTagAnnotationHandlerTests {
         }
     };
 
-    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(aClass -> tagValueResolver,
-            aClass -> tagValueExpressionResolver);
+    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(aClass -> ValueResolver,
+            aClass -> ValueExpressionResolver);
 
     @Test
-    void shouldUseEmptyStringWheCustomTagValueResolverReturnsNull() throws NoSuchMethodException, SecurityException {
-        Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueResolver", String.class);
+    void shouldUseEmptyStringWheCustomValueResolverReturnsNull() throws NoSuchMethodException, SecurityException {
+        Method method = AnnotationMockClass.class.getMethod("getAnnotationForValueResolver", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
-                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> ValueResolver,
+                    aClass -> ValueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("");
         }
         else {
@@ -71,8 +71,8 @@ class NullSpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueExpression", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
-                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> ValueResolver,
+                    aClass -> ValueExpressionResolver);
 
             assertThat(resolvedValue).isEqualTo("");
         }
@@ -86,8 +86,8 @@ class NullSpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForArgumentToString", Long.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, null, aClass -> tagValueResolver,
-                    aClass -> tagValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, null, aClass -> ValueResolver,
+                    aClass -> ValueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("");
         }
         else {
@@ -98,8 +98,7 @@ class NullSpanTagAnnotationHandlerTests {
     protected class AnnotationMockClass {
 
         @NewSpan
-        public void getAnnotationForTagValueResolver(
-                @SpanTag(key = "test", resolver = TagValueResolver.class) String test) {
+        public void getAnnotationForValueResolver(@SpanTag(key = "test", resolver = ValueResolver.class) String test) {
         }
 
         @NewSpan

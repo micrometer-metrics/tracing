@@ -15,8 +15,8 @@
  */
 package io.micrometer.tracing.annotation;
 
-import io.micrometer.common.annotation.TagValueExpressionResolver;
-import io.micrometer.common.annotation.TagValueResolver;
+import io.micrometer.common.annotation.ValueExpressionResolver;
+import io.micrometer.common.annotation.ValueResolver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,25 +34,25 @@ import static org.assertj.core.api.Assertions.fail;
 
 class SpanTagAnnotationHandlerTests {
 
-    TagValueResolver tagValueResolver = parameter -> "Value from myCustomTagValueResolver";
+    ValueResolver ValueResolver = parameter -> "Value from myCustomValueResolver";
 
-    TagValueExpressionResolver tagValueExpressionResolver = new SpelTagValueExpressionResolver();
+    ValueExpressionResolver ValueExpressionResolver = new SpelValueExpressionResolver();
 
     SpanTagAnnotationHandler handler;
 
     @BeforeEach
     void setup() {
-        this.handler = new SpanTagAnnotationHandler(aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
+        this.handler = new SpanTagAnnotationHandler(aClass -> ValueResolver, aClass -> ValueExpressionResolver);
     }
 
     @Test
-    void shouldUseCustomTagValueResolver() throws NoSuchMethodException, SecurityException {
-        Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueResolver", String.class);
+    void shouldUseCustomValueResolver() throws NoSuchMethodException, SecurityException {
+        Method method = AnnotationMockClass.class.getMethod("getAnnotationForValueResolver", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
-                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
-            assertThat(resolvedValue).isEqualTo("Value from myCustomTagValueResolver");
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> ValueResolver,
+                    aClass -> ValueExpressionResolver);
+            assertThat(resolvedValue).isEqualTo("Value from myCustomValueResolver");
         }
         else {
             fail("Annotation was not SpanTag");
@@ -64,8 +64,8 @@ class SpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueExpression", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test",
-                    aClass -> tagValueResolver, aClass -> tagValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> ValueResolver,
+                    aClass -> ValueExpressionResolver);
 
             assertThat(resolvedValue).isEqualTo("hello characters");
         }
@@ -79,8 +79,8 @@ class SpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForArgumentToString", Long.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, 15, aClass -> tagValueResolver,
-                    aClass -> tagValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, 15, aClass -> ValueResolver,
+                    aClass -> ValueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("15");
         }
         else {
@@ -91,8 +91,7 @@ class SpanTagAnnotationHandlerTests {
     protected class AnnotationMockClass {
 
         @NewSpan
-        public void getAnnotationForTagValueResolver(
-                @SpanTag(key = "test", resolver = TagValueResolver.class) String test) {
+        public void getAnnotationForValueResolver(@SpanTag(key = "test", resolver = ValueResolver.class) String test) {
         }
 
         @NewSpan
@@ -106,9 +105,9 @@ class SpanTagAnnotationHandlerTests {
 
     }
 
-    static class SpelTagValueExpressionResolver implements TagValueExpressionResolver {
+    static class SpelValueExpressionResolver implements ValueExpressionResolver {
 
-        private static final Log log = LogFactory.getLog(SpelTagValueExpressionResolver.class);
+        private static final Log log = LogFactory.getLog(SpelValueExpressionResolver.class);
 
         @Override
         public String resolve(String expression, Object parameter) {

@@ -16,10 +16,10 @@
 package io.micrometer.tracing.annotation;
 
 import io.micrometer.common.KeyValue;
-import io.micrometer.common.annotation.NoOpTagValueResolver;
+import io.micrometer.common.annotation.NoOpValueResolver;
 import io.micrometer.common.annotation.TagAnnotationHandler;
-import io.micrometer.common.annotation.TagValueExpressionResolver;
-import io.micrometer.common.annotation.TagValueResolver;
+import io.micrometer.common.annotation.ValueExpressionResolver;
+import io.micrometer.common.annotation.ValueResolver;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.SpanCustomizer;
 
@@ -41,9 +41,8 @@ import java.util.function.Function;
  */
 class SpanTagAnnotationHandler extends TagAnnotationHandler<SpanCustomizer> {
 
-    public SpanTagAnnotationHandler(
-            Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider,
-            Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
+    public SpanTagAnnotationHandler(Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
+            Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
         super((keyValue, spanCustomizer) -> spanCustomizer.tag(keyValue.getKey(), keyValue.getValue()),
                 resolverProvider, expressionResolverProvider, SpanTag.class, (annotation, o) -> {
                     if (!(annotation instanceof SpanTag)) {
@@ -60,15 +59,15 @@ class SpanTagAnnotationHandler extends TagAnnotationHandler<SpanCustomizer> {
     }
 
     static String resolveTagValue(SpanTag annotation, Object argument,
-            Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider,
-            Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
+            Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
+            Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
         String value = null;
-        if (annotation.resolver() != NoOpTagValueResolver.class) {
-            TagValueResolver tagValueResolver = resolverProvider.apply(annotation.resolver());
-            value = tagValueResolver.resolve(argument);
+        if (annotation.resolver() != NoOpValueResolver.class) {
+            ValueResolver ValueResolver = resolverProvider.apply(annotation.resolver());
+            value = ValueResolver.resolve(argument);
         }
         else if (StringUtils.isNotBlank(annotation.expression())) {
-            value = expressionResolverProvider.apply(TagValueExpressionResolver.class)
+            value = expressionResolverProvider.apply(ValueExpressionResolver.class)
                 .resolve(annotation.expression(), argument);
         }
         else if (argument != null) {
