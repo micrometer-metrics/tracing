@@ -105,7 +105,12 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     @Override
     default void onScopeReset(T context) {
         TracingContext tracingContext = getTracingContext(context);
-        setMaybeScopeOnTracingContext(tracingContext, null);
+        CurrentTraceContext.Scope scope = tracingContext.getScope();
+        while (scope != null) {
+            scope.close();
+            scope = tracingContext.getScope();
+        }
+        getTracer().currentTraceContext().maybeScope(null);
     }
 
     @Override
@@ -252,7 +257,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
         @Override
         public String toString() {
-            return "TracingContext{" + "span=" + traceContextFromSpan() + ", scope count=" + scopes.size() + '}';
+            return "TracingContext{" + "span=" + traceContextFromSpan() + '}';
         }
 
         private String traceContextFromSpan() {
