@@ -47,7 +47,10 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
         if (hasLog) {
             logEvent(span, String.format(AnnotationSpanDocumentation.Events.BEFORE.getValue(), log));
         }
-        spanTagAnnotationHandler.addAnnotatedParameters(invocation);
+        if (invocation instanceof SpanAspectMethodInvocation) {
+            SpanAspectMethodInvocation spanInvocation = (SpanAspectMethodInvocation) invocation;
+            spanTagAnnotationHandler.addAnnotatedParameters(tracer.currentSpanCustomizer(), spanInvocation.getPjp());
+        }
         addTags(invocation, span);
     }
 

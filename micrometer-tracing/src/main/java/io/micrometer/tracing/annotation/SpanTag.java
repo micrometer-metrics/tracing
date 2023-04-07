@@ -15,17 +15,16 @@
  */
 package io.micrometer.tracing.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.micrometer.common.annotation.NoOpValueResolver;
+import io.micrometer.common.annotation.ValueResolver;
+
+import java.lang.annotation.*;
 
 /**
  * There are 3 different ways to add tags to a span. All of them are controlled by the
  * annotation values. Precedence is:
  * <p>
- * try with the {@link TagValueResolver} bean if the value of the bean wasn't set, try to
+ * try with the {@link ValueResolver} bean if the value of the bean wasn't set, try to
  * evaluate a SPEL expression if there’s no SPEL expression just return a
  * {@code toString()} value of the parameter
  *
@@ -58,8 +57,8 @@ public @interface SpanTag {
 
     /**
      * Use this bean to resolve the tag value. Has the highest precedence.
-     * @return {@link TagValueResolver} bean
+     * @return {@link ValueResolver} bean
      */
-    Class<? extends TagValueResolver> resolver() default NoOpTagValueResolver.class;
+    Class<? extends ValueResolver> resolver() default NoOpValueResolver.class;
 
 }

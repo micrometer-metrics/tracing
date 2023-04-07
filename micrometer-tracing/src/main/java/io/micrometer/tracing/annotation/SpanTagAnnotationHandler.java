@@ -15,15 +15,14 @@
  */
 package io.micrometer.tracing.annotation;
 
+import io.micrometer.common.KeyValue;
+import io.micrometer.common.annotation.NoOpValueResolver;
+import io.micrometer.common.annotation.AnnotationHandler;
+import io.micrometer.common.annotation.ValueExpressionResolver;
+import io.micrometer.common.annotation.ValueResolver;
 import io.micrometer.common.util.StringUtils;
-import io.micrometer.common.util.internal.logging.InternalLogger;
-import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.SpanCustomizer;
-import org.aopalliance.intercept.MethodInvocation;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -40,96 +39,35 @@ import java.util.function.Function;
  * @author Christian Schwerdtfeger
  * @since 1.1.0
  */
-class SpanTagAnnotationHandler {
+class SpanTagAnnotationHandler extends AnnotationHandler<SpanCustomizer> {
 
-    private static final InternalLogger log = InternalLoggerFactory.getInstance(SpanTagAnnotationHandler.class);
-
-    private final SpanCustomizer spanCustomizer;
-
-    private final Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider;
-
-    private final Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider;
-
-    SpanTagAnnotationHandler(SpanCustomizer spanCustomizer,
-            Function<Class<? extends TagValueResolver>, ? extends TagValueResolver> resolverProvider,
-            Function<Class<? extends TagValueExpressionResolver>, ? extends TagValueExpressionResolver> expressionResolverProvider) {
-        this.spanCustomizer = spanCustomizer;
-        this.resolverProvider = resolverProvider;
-        this.expressionResolverProvider = expressionResolverProvider;
-    }
-
-    void addAnnotatedParameters(MethodInvocation pjp) {
-        try {
-            Method method = pjp.getMethod();
-            List<AnnotatedParameter> annotatedParameters = AnnotationUtils.findAnnotatedParameters(method,
-                    pjp.getArguments());
-            getAnnotationsFromInterfaces(pjp, method, annotatedParameters);
-            addAnnotatedArguments(annotatedParameters);
-        }
-        catch (SecurityException ex) {
-            log.error("Exception occurred while trying to add annotated parameters", ex);
-        }
-    }
-
-    private void getAnnotationsFromInterfaces(MethodInvocation pjp, Method mostSpecificMethod,
-            List<AnnotatedParameter> annotatedParameters) {
-        Class<?>[] implementedInterfaces = pjp.getThis().getClass().getInterfaces();
-        if (implementedInterfaces.length > 0) {
-            for (Class<?> implementedInterface : implementedInterfaces) {
-                for (Method methodFromInterface : implementedInterface.getMethods()) {
-                    if (methodsAreTheSame(mostSpecificMethod, methodFromInterface)) {
-                        List<AnnotatedParameter> annotatedParametersForActualMethod = AnnotationUtils
-                            .findAnnotatedParameters(methodFromInterface, pjp.getArguments());
-                        mergeAnnotatedParameters(annotatedParameters, annotatedParametersForActualMethod);
+    public SpanTagAnnotationHandler(Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
+            Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
+        super((keyValue, spanCustomizer) -> spanCustomizer.tag(keyValue.getKey(), keyValue.getValue()),
+                resolverProvider, expressionResolverProvider, SpanTag.class, (annotation, o) -> {
+                    if (!(annotation instanceof SpanTag)) {
+                        return null;
                     }
-                }
-            }
-        }
+                    SpanTag spanTag = (SpanTag) annotation;
+                    return KeyValue.of(resolveTagKey(spanTag),
+                            resolveTagValue(spanTag, o, resolverProvider, expressionResolverProvider));
+                });
     }
 
-    private boolean methodsAreTheSame(Method mostSpecificMethod, Method method1) {
-        return method1.getName().equals(mostSpecificMethod.getName())
-                && Arrays.equals(method1.getParameterTypes(), mostSpecificMethod.getParameterTypes());
+    private static String resolveTagKey(SpanTag annotation) {
+        return StringUtils.isNotBlank(annotation.value()) ? annotation.value() : annotation.key();
     }
 
-    private void mergeAnnotatedParameters(List<AnnotatedParameter> annotatedParametersIndices,
-            List<AnnotatedParameter> annotatedParametersIndicesForActualMethod) {
-        for (AnnotatedParameter container : annotatedParametersIndicesForActualMethod) {
-            final int index = container.parameterIndex;
-            boolean parameterContained = false;
-            for (AnnotatedParameter parameterContainer : annotatedParametersIndices) {
-                if (parameterContainer.parameterIndex == index) {
-                    parameterContained = true;
-                    break;
-                }
-            }
-            if (!parameterContained) {
-                annotatedParametersIndices.add(container);
-            }
-        }
-    }
-
-    private void addAnnotatedArguments(List<AnnotatedParameter> toBeAdded) {
-        for (AnnotatedParameter container : toBeAdded) {
-            String tagValue = resolveTagValue(container.annotation, container.argument);
-            String tagKey = resolveTagKey(container);
-            spanCustomizer.tag(tagKey, tagValue);
-        }
-    }
-
-    private String resolveTagKey(AnnotatedParameter container) {
-        return StringUtils.isNotBlank(container.annotation.value()) ? container.annotation.value()
-                : container.annotation.key();
-    }
-
-    String resolveTagValue(SpanTag annotation, Object argument) {
+    static String resolveTagValue(SpanTag annotation, Object argument,
+            Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
+            Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
         String value = null;
-        if (annotation.resolver() != NoOpTagValueResolver.class) {
-            TagValueResolver tagValueResolver = resolverProvider.apply(annotation.resolver());
-            value = tagValueResolver.resolve(argument);
+        if (annotation.resolver() != NoOpValueResolver.class) {
+            ValueResolver ValueResolver = resolverProvider.apply(annotation.resolver());
+            value = ValueResolver.resolve(argument);
         }
         else if (StringUtils.isNotBlank(annotation.expression())) {
-            value = this.expressionResolverProvider.apply(TagValueExpressionResolver.class)
+            value = expressionResolverProvider.apply(ValueExpressionResolver.class)
                 .resolve(annotation.expression(), argument);
         }
         else if (argument != null) {
