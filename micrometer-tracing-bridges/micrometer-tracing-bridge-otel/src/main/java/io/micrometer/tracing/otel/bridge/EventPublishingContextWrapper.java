@@ -86,11 +86,11 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
             this.context = context;
         }
 
-        Span getSpan() {
+        public Span getSpan() {
             return Span.fromContextOrNull(context);
         }
 
-        Baggage getBaggage() {
+        public Baggage getBaggage() {
             return Baggage.fromContextOrNull(context);
         }
 
@@ -127,11 +127,11 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
             this.context = context;
         }
 
-        Span getSpan() {
+        public Span getSpan() {
             return Span.fromContextOrNull(context);
         }
 
-        Baggage getBaggage() {
+        public Baggage getBaggage() {
             return Baggage.fromContextOrNull(context);
         }
 
