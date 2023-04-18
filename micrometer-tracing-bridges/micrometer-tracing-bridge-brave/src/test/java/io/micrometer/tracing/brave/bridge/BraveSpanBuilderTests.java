@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class BraveSpanBuilderTests {
@@ -68,6 +69,21 @@ class BraveSpanBuilderTests {
             .containsEntry("links[0].tags[tag2]", "value2")
             .containsEntry("links[1].traceId", span1.context().traceId())
             .containsEntry("links[1].spanId", span1.context().spanId());
+    }
+
+    @Test
+    void should_set_non_string_tags() {
+        new BraveSpanBuilder(tracing.tracer()).tag("string", "string")
+            .tag("double", 2.5)
+            .tag("long", 2)
+            .tag("boolean", true)
+            .start()
+            .end();
+
+        assertThat(handler.get(0).tags()).containsEntry("string", "string")
+            .containsEntry("double", "2.5")
+            .containsEntry("long", "2")
+            .containsEntry("boolean", "true");
     }
 
     private Map<String, String> tags() {

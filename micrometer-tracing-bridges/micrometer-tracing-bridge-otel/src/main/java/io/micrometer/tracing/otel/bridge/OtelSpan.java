@@ -108,6 +108,24 @@ class OtelSpan implements Span {
     }
 
     @Override
+    public Span tag(String key, long value) {
+        this.delegate.setAttribute(key, value);
+        return new OtelSpan(this.delegate);
+    }
+
+    @Override
+    public Span tag(String key, double value) {
+        this.delegate.setAttribute(key, value);
+        return new OtelSpan(this.delegate);
+    }
+
+    @Override
+    public Span tag(String key, boolean value) {
+        this.delegate.setAttribute(key, value);
+        return new OtelSpan(this.delegate);
+    }
+
+    @Override
     public void end(long time, TimeUnit timeUnit) {
         this.delegate.end(time, timeUnit);
     }

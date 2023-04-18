@@ -17,6 +17,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -29,6 +30,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OtelSpanBuilderTests {
 
@@ -78,6 +81,22 @@ class OtelSpanBuilderTests {
             .entrySet()
             .stream()
             .collect(Collectors.toMap(e -> e.getKey().getKey(), e -> e.getValue().toString()))).isEqualTo(tags());
+    }
+
+    @Test
+    void should_set_non_string_tags() {
+        new OtelSpanBuilder(otelTracer.spanBuilder("foo")).tag("string", "string")
+            .tag("double", 2.5)
+            .tag("long", 2)
+            .tag("boolean", true)
+            .start()
+            .end();
+
+        SpanData poll = processor.spans().poll();
+        assertEquals("string", poll.getAttributes().get(AttributeKey.stringKey("string")));
+        assertEquals(2.5, poll.getAttributes().get(AttributeKey.doubleKey("double")));
+        assertEquals(2, poll.getAttributes().get(AttributeKey.longKey("long")));
+        assertTrue(poll.getAttributes().get(AttributeKey.booleanKey("boolean")));
     }
 
     private Map<String, String> tags() {

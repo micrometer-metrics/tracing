@@ -90,6 +90,24 @@ class OtelSpanBuilder implements Span.Builder {
     }
 
     @Override
+    public Span.Builder tag(String key, long value) {
+        this.delegate.setAttribute(key, value);
+        return this;
+    }
+
+    @Override
+    public Span.Builder tag(String key, double value) {
+        this.delegate.setAttribute(key, value);
+        return this;
+    }
+
+    @Override
+    public Span.Builder tag(String key, boolean value) {
+        this.delegate.setAttribute(key, value);
+        return this;
+    }
+
+    @Override
     public Span.Builder error(Throwable throwable) {
         this.error = throwable;
         return this;

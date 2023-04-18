@@ -43,6 +43,24 @@ public class OtelSpanCustomizer implements SpanCustomizer {
     }
 
     @Override
+    public SpanCustomizer tag(String key, long value) {
+        currentSpan().setAttribute(key, value);
+        return this;
+    }
+
+    @Override
+    public SpanCustomizer tag(String key, double value) {
+        currentSpan().setAttribute(key, value);
+        return this;
+    }
+
+    @Override
+    public SpanCustomizer tag(String key, boolean value) {
+        currentSpan().setAttribute(key, value);
+        return this;
+    }
+
+    @Override
     public SpanCustomizer event(String value) {
         currentSpan().addEvent(value);
         return this;
