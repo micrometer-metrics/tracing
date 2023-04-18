@@ -69,7 +69,7 @@ public interface Propagator {
     <C> Span.Builder extract(C carrier, Getter<C> getter);
 
     /**
-     * Class that allows a {@code TextMapPropagator} to set propagated fields into a
+     * Class that allows a {@code Propagator} to set propagated fields into a
      * carrier.
      *
      * <p>
@@ -99,7 +99,7 @@ public interface Propagator {
     }
 
     /**
-     * Interface that allows a {@code TextMapPropagator} to read propagated fields from a
+     * Interface that allows a {@code Propagator} to read propagated fields from a
      * carrier.
      *
      * <p>
