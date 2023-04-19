@@ -69,8 +69,7 @@ public interface Propagator {
     <C> Span.Builder extract(C carrier, Getter<C> getter);
 
     /**
-     * Class that allows a {@code Propagator} to set propagated fields into a
-     * carrier.
+     * Class that allows a {@code Propagator} to set propagated fields into a carrier.
      *
      * <p>
      * {@code Setter} is stateless and allows to be saved as a constant to avoid runtime
