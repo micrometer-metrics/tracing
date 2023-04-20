@@ -23,10 +23,7 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.Observation.Event;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationView;
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.*;
 import io.micrometer.tracing.internal.SpanNameUtil;
 
 import java.util.Map;
@@ -48,11 +45,14 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
      */
     default void tagSpan(T context, Span span) {
         for (KeyValue keyValue : context.getAllKeyValues()) {
-            if (!keyValue.getKey().equalsIgnoreCase("ERROR")) {
-                span.tag(keyValue.getKey(), keyValue.getValue());
+            if (keyValue.getKey().equalsIgnoreCase("ERROR")) {
+                span.error(new RuntimeException(keyValue.getValue()));
+            }
+            else if (keyValue instanceof TypedKeyValue) {
+                ((TypedKeyValue<?>) keyValue).setAttribute(span);
             }
             else {
-                span.error(new RuntimeException(keyValue.getValue()));
+                span.tag(keyValue.getKey(), keyValue.getValue());
             }
         }
     }
