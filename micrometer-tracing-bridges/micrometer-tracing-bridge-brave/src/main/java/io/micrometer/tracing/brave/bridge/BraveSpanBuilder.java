@@ -157,7 +157,7 @@ class BraveSpanBuilder implements Span.Builder {
         long nextId = LinkUtils.nextIndex(this.tags);
         this.tags.put(LinkUtils.spanIdKey(nextId), braveContext.spanIdString());
         this.tags.put(LinkUtils.traceIdKey(nextId), braveContext.traceIdString());
-        link.getTags().forEach((key, value) -> this.tags.put(LinkUtils.tagKey(nextId, key), value));
+        link.getTags().forEach((key, value) -> this.tags.put(LinkUtils.tagKey(nextId, key), String.valueOf(value)));
         return this;
     }
 

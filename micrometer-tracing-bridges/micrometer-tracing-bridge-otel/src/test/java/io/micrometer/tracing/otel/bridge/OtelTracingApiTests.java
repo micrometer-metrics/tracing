@@ -15,7 +15,18 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.tracing.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import io.micrometer.tracing.Baggage;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.ContextPropagators;
@@ -27,13 +38,6 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
 import static org.assertj.core.api.BDDAssertions.then;
@@ -327,7 +331,7 @@ class OtelTracingApiTests {
     void should_add_links() throws InterruptedException {
         // Let's say that we want to add 2 links to our span
         // Create a span using builder to add links
-        Map<String, String> attributes = new HashMap<>();
+        Map<String, Object> attributes = new HashMap<>();
         attributes.put("tag", "value");
 
         Span newSpan = this.tracer.spanBuilder()

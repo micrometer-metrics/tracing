@@ -36,14 +36,14 @@ public class Link {
 
     private final TraceContext traceContext;
 
-    private final Map<String, String> tags;
+    private final Map<String, Object> tags;
 
     /**
      * Creates a new instance of {@link Link}.
      * @param traceContext trace context attached to the link
      * @param tags attached to the link
      */
-    public Link(TraceContext traceContext, Map<String, String> tags) {
+    public Link(TraceContext traceContext, Map<String, Object> tags) {
         this.traceContext = traceContext;
         this.tags = tags;
     }
@@ -62,7 +62,7 @@ public class Link {
      * @param span span attached to the link
      * @param tags attached to the link
      */
-    public Link(Span span, Map<String, String> tags) {
+    public Link(Span span, Map<String, Object> tags) {
         this.traceContext = span.context();
         this.tags = tags;
     }
@@ -90,7 +90,7 @@ public class Link {
      * @return tags
      */
     @NonNull
-    public Map<String, String> getTags() {
+    public Map<String, Object> getTags() {
         return this.tags;
     }
 

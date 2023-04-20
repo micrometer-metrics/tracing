@@ -15,6 +15,18 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.time.Instant;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
@@ -28,12 +40,6 @@ import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * OpenTelemetry implementation of a {@link FinishedSpan}.
@@ -101,6 +107,37 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     @Override
     public Map<String, String> getTags() {
+        return this.spanData.tags.entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> e.getKey().getKey(), entry -> String.valueOf(entry.getValue())));
+    }
+
+    @Override
+    public FinishedSpan setTypedTags(Map<String, Object> tags) {
+        this.spanData.tags.clear();
+        this.spanData.tags.putAll(tags.entrySet().stream().collect(Collectors.toMap(e -> {
+            Object value = e.getValue();
+            return getAttributeKey(e.getKey(), value);
+        }, Map.Entry::getValue)));
+        return this;
+    }
+
+    @SuppressWarnings("raw")
+    private static AttributeKey getAttributeKey(String key, Object value) {
+        if (value instanceof Double) {
+            return AttributeKey.doubleKey(key);
+        }
+        else if (value instanceof Long) {
+            return AttributeKey.longKey(key);
+        }
+        else if (value instanceof Boolean) {
+            return AttributeKey.booleanKey(key);
+        }
+        return AttributeKey.stringKey(key);
+    }
+
+    @Override
+    public Map<String, Object> getTypedTags() {
         return this.spanData.tags.entrySet()
             .stream()
             .collect(Collectors.toMap(e -> e.getKey().getKey(), Map.Entry::getValue));
@@ -260,11 +297,12 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public FinishedSpan addLink(Link link) {
         TraceContext traceContext = link.getTraceContext();
-        Map<String, String> tags = link.getTags();
+        Map<String, Object> tags = link.getTags();
         AttributesBuilder builder = Attributes.builder();
-        tags.forEach(builder::put);
+        tags.forEach((s, o) -> builder.put(getAttributeKey(s, o), o));
         this.spanData.getLinks()
             .add(LinkData.create(OtelTraceContext.toOtelSpanContext(traceContext), builder.build()));
         return this;
@@ -301,7 +339,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
         long endEpochNanos;
 
-        final Map<AttributeKey, String> tags = new HashMap<>();
+        final Map<AttributeKey, Object> tags = new HashMap<>();
 
         final List<EventData> events = new ArrayList<>();
 
@@ -312,7 +350,7 @@ public class OtelFinishedSpan implements FinishedSpan {
             this.name = delegate.getName();
             this.startEpochNanos = delegate.getStartEpochNanos();
             this.endEpochNanos = delegate.getEndEpochNanos();
-            delegate.getAttributes().forEach((key, value) -> this.tags.put(key, String.valueOf(value)));
+            delegate.getAttributes().forEach(this.tags::put);
             this.events.addAll(delegate.getEvents());
             this.links.addAll(delegate.getLinks());
         }
@@ -330,7 +368,7 @@ public class OtelFinishedSpan implements FinishedSpan {
         @Override
         public Attributes getAttributes() {
             AttributesBuilder builder = Attributes.builder();
-            for (Map.Entry<AttributeKey, String> entry : this.tags.entrySet()) {
+            for (Map.Entry<AttributeKey, Object> entry : this.tags.entrySet()) {
                 builder = builder.put(entry.getKey(), entry.getValue());
             }
             return builder.build();

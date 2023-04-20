@@ -159,8 +159,8 @@ class OtelFinishedSpanTests {
                     new Link(span3.context(), tags()), new Link(span4.context(), tags()));
     }
 
-    private Map<String, String> tags() {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, Object> tags() {
+        Map<String, Object> map = new HashMap<>();
         map.put("tag1", "value1");
         map.put("tag2", "value2");
         return map;
