@@ -15,6 +15,12 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import brave.Tracer;
 import brave.Tracing;
 import brave.handler.MutableSpan;
@@ -25,12 +31,6 @@ import io.micrometer.tracing.exporter.FinishedSpan;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.BDDAssertions.then;
 
 class BraveFinishedSpanTests {
@@ -40,8 +40,6 @@ class BraveFinishedSpanTests {
     Tracing tracing = Tracing.newBuilder().addSpanHandler(handler).build();
 
     Tracer tracer = tracing.tracer();
-
-    BraveTracer braveTracer = new BraveTracer(tracer, new BraveCurrentTraceContext(tracing.currentTraceContext()));
 
     @AfterEach
     void cleanup() {
@@ -60,6 +58,30 @@ class BraveFinishedSpanTests {
 
         then(finishedSpan.getStartTimestamp().toEpochMilli()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(startMicros));
         then(finishedSpan.getEndTimestamp().toEpochMilli()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(endMicros));
+    }
+
+    @Test
+    void should_set_tags() {
+        FinishedSpan span = BraveFinishedSpan.fromBrave(new MutableSpan(tracer.nextSpan().context(), null));
+        then(span.getTags()).isEmpty();
+
+        Map<String, String> map = new HashMap<>();
+        map.put("foo", "bar");
+        span.setTags(map);
+
+        then(span.getTags().get("foo")).isEqualTo("bar");
+    }
+
+    @Test
+    void should_set_typed_tags() {
+        FinishedSpan span = BraveFinishedSpan.fromBrave(new MutableSpan(tracer.nextSpan().context(), null));
+        then(span.getTypedTags()).isEmpty();
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("foo", 2L);
+        span.setTypedTags(map);
+
+        then(span.getTypedTags().get("foo")).isEqualTo("2");
     }
 
     @Test
