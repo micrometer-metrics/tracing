@@ -15,12 +15,12 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 class SimpleSpanBuilderTests {
 
@@ -59,8 +59,8 @@ class SimpleSpanBuilderTests {
             .isInstanceOf(Throwable.class);
     }
 
-    private Map<String, String> tags() {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, Object> tags() {
+        Map<String, Object> map = new HashMap<>();
         map.put("tag1", "value1");
         map.put("tag2", "value2");
         return map;

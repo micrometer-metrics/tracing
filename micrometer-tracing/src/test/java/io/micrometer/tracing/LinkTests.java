@@ -15,12 +15,12 @@
  */
 package io.micrometer.tracing;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
-
-import java.util.HashMap;
-import java.util.Map;
 
 class LinkTests {
 
@@ -80,15 +80,15 @@ class LinkTests {
         BDDAssertions.then(link1.hashCode()).isNotEqualTo(link2.hashCode());
     }
 
-    private Map<String, String> tags1() {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, Object> tags1() {
+        Map<String, Object> map = new HashMap<>();
         map.put("tag1", "value1");
         map.put("tag2", "value2");
         return map;
     }
 
-    private Map<String, String> tags2() {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, Object> tags2() {
+        Map<String, Object> map = new HashMap<>();
         map.put("tag3", "value3");
         map.put("tag4", "value4");
         return map;

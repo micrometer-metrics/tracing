@@ -15,15 +15,16 @@
  */
 package io.micrometer.tracing.exporter;
 
-import io.micrometer.common.lang.Nullable;
-import io.micrometer.tracing.Link;
-import io.micrometer.tracing.Span;
-
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.Link;
+import io.micrometer.tracing.Span;
 
 /**
  * This API is inspired by OpenZipkin Brave (from {code MutableSpan}).
@@ -70,6 +71,28 @@ public interface FinishedSpan {
      * @return span's tags
      */
     Map<String, String> getTags();
+
+    /**
+     * Sets the tags with typed values.
+     * @param tags tags to set
+     * @return this
+     * @since 1.1.0
+     */
+    default FinishedSpan setTypedTags(Map<String, Object> tags) {
+        Map<String, String> map = new HashMap<>();
+        tags.forEach((s, o) -> map.put(s, String.valueOf(o)));
+        return setTags(map);
+    }
+
+    /**
+     * Not all tracers (e.g. Brave) honor different values of tags in which case the tags
+     * will always get converted to String.
+     * @return span's tags with typed values
+     * @since 1.1.0
+     */
+    default Map<String, Object> getTypedTags() {
+        return new HashMap<>(getTags());
+    }
 
     /**
      * Sets the events.

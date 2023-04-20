@@ -60,6 +60,36 @@ public interface SpanCustomizer {
     SpanCustomizer tag(String key, String value);
 
     /**
+     * Sets a tag on a span.
+     * @param key tag key
+     * @param value tag value
+     * @return this, for chaining
+     */
+    default SpanCustomizer tag(String key, long value) {
+        return tag(key, String.valueOf(value));
+    }
+
+    /**
+     * Sets a tag on a span.
+     * @param key tag key
+     * @param value tag value
+     * @return this, for chaining
+     */
+    default SpanCustomizer tag(String key, double value) {
+        return tag(key, String.valueOf(value));
+    }
+
+    /**
+     * Sets a tag on a span.
+     * @param key tag key
+     * @param value tag value
+     * @return this, for chaining
+     */
+    default SpanCustomizer tag(String key, boolean value) {
+        return tag(key, String.valueOf(value));
+    }
+
+    /**
      * Sets an event on a span.
      * @param value event name
      * @return this, for chaining

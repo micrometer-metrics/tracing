@@ -15,6 +15,9 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import brave.Tracer;
 import brave.Tracing;
 import brave.handler.MutableSpan;
@@ -23,9 +26,6 @@ import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -70,8 +70,23 @@ class BraveSpanBuilderTests {
             .containsEntry("links[1].spanId", span1.context().spanId());
     }
 
-    private Map<String, String> tags() {
-        Map<String, String> map = new HashMap<>();
+    @Test
+    void should_set_non_string_tags() {
+        new BraveSpanBuilder(tracing.tracer()).tag("string", "string")
+            .tag("double", 2.5)
+            .tag("long", 2)
+            .tag("boolean", true)
+            .start()
+            .end();
+
+        then(handler.get(0).tags()).containsEntry("string", "string")
+            .containsEntry("double", "2.5")
+            .containsEntry("long", "2")
+            .containsEntry("boolean", "true");
+    }
+
+    private Map<String, Object> tags() {
+        Map<String, Object> map = new HashMap<>();
         map.put("tag1", "value1");
         map.put("tag2", "value2");
         return map;

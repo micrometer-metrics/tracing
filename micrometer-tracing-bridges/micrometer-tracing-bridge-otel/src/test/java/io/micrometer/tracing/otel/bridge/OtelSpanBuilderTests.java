@@ -15,18 +15,19 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -80,8 +81,24 @@ class OtelSpanBuilderTests {
             .collect(Collectors.toMap(e -> e.getKey().getKey(), e -> e.getValue().toString()))).isEqualTo(tags());
     }
 
-    private Map<String, String> tags() {
-        Map<String, String> map = new HashMap<>();
+    @Test
+    void should_set_non_string_tags() {
+        new OtelSpanBuilder(otelTracer.spanBuilder("foo")).tag("string", "string")
+            .tag("double", 2.5)
+            .tag("long", 2)
+            .tag("boolean", true)
+            .start()
+            .end();
+
+        SpanData poll = processor.spans().poll();
+        then(poll.getAttributes().get(AttributeKey.stringKey("string"))).isEqualTo("string");
+        then(poll.getAttributes().get(AttributeKey.doubleKey("double"))).isEqualTo(2.5);
+        then(poll.getAttributes().get(AttributeKey.longKey("long"))).isEqualTo(2L);
+        then(poll.getAttributes().get(AttributeKey.booleanKey("boolean"))).isTrue();
+    }
+
+    private Map<String, Object> tags() {
+        Map<String, Object> map = new HashMap<>();
         map.put("tag1", "value1");
         map.put("tag2", "value2");
         return map;

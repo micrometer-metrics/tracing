@@ -152,6 +152,36 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
     Span tag(String key, String value);
 
     /**
+     * Sets a tag on this span.
+     * @param key tag key
+     * @param value tag value
+     * @return this span
+     */
+    default Span tag(String key, long value) {
+        return tag(key, String.valueOf(value));
+    }
+
+    /**
+     * Sets a tag on this span.
+     * @param key tag key
+     * @param value tag value
+     * @return this span
+     */
+    default Span tag(String key, double value) {
+        return tag(key, String.valueOf(value));
+    }
+
+    /**
+     * Sets a tag on this span.
+     * @param key tag key
+     * @param value tag value
+     * @return this span
+     */
+    default Span tag(String key, boolean value) {
+        return tag(key, String.valueOf(value));
+    }
+
+    /**
      * Records an exception for this span.
      * @param throwable to record
      * @return this span
@@ -332,6 +362,36 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
          * @return this
          */
         Builder tag(String key, String value);
+
+        /**
+         * Sets a tag on the span.
+         * @param key tag key
+         * @param value tag value
+         * @return this
+         */
+        default Builder tag(String key, long value) {
+            return tag(key, String.valueOf(value));
+        }
+
+        /**
+         * Sets a tag on the span.
+         * @param key tag key
+         * @param value tag value
+         * @return this
+         */
+        default Builder tag(String key, double value) {
+            return tag(key, String.valueOf(value));
+        }
+
+        /**
+         * Sets a tag on the span.
+         * @param key tag key
+         * @param value tag value
+         * @return this
+         */
+        default Builder tag(String key, boolean value) {
+            return tag(key, String.valueOf(value));
+        }
 
         /**
          * Sets an error on the span.

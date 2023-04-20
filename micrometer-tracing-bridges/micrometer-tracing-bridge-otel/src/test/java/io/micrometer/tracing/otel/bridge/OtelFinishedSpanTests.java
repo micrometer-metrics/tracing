@@ -15,6 +15,14 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
@@ -33,9 +41,6 @@ import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import org.junit.jupiter.api.Test;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -61,6 +66,18 @@ class OtelFinishedSpanTests {
         span.setTags(map);
 
         then(span.getTags().get("foo")).isEqualTo("bar");
+    }
+
+    @Test
+    void should_set_typed_tags() {
+        FinishedSpan span = OtelFinishedSpan.fromOtel(new CustomSpanData());
+        then(span.getTypedTags()).isEmpty();
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("foo", 2L);
+        span.setTypedTags(map);
+
+        then(span.getTypedTags().get("foo")).isEqualTo(2L);
     }
 
     @Test
@@ -159,8 +176,8 @@ class OtelFinishedSpanTests {
                     new Link(span3.context(), tags()), new Link(span4.context(), tags()));
     }
 
-    private Map<String, String> tags() {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, Object> tags() {
+        Map<String, Object> map = new HashMap<>();
         map.put("tag1", "value1");
         map.put("tag2", "value2");
         return map;

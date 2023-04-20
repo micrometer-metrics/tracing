@@ -28,23 +28,27 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelSpanTests {
 
+    ArrayListSpanProcessor processor = new ArrayListSpanProcessor();
+
+    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+        .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .addSpanProcessor(processor)
+        .build();
+
+    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
+        .setTracerProvider(sdkTracerProvider)
+        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
+        .build();
+
+    io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+
     @Test
     void should_set_status_to_error_when_recording_exception() {
-        ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
-        SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-            .addSpanProcessor(arrayListSpanProcessor)
-            .build();
-        OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
-            .setTracerProvider(sdkTracerProvider)
-            .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
-            .build();
-        io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
         OtelSpan otelSpan = new OtelSpan(otelTracer.spanBuilder("foo").startSpan());
 
         otelSpan.error(new RuntimeException("boom!")).end();
 
-        SpanData poll = arrayListSpanProcessor.spans().poll();
+        SpanData poll = processor.spans().poll();
         then(poll.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "boom!"));
         then(poll.getEvents()).hasSize(1);
         then(poll.getEvents().get(0).getAttributes().asMap().values()).containsAnyOf("boom!");

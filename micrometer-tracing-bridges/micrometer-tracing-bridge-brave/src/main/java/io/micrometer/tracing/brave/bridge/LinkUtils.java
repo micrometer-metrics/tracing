@@ -77,7 +77,7 @@ class LinkUtils {
     static Link toLink(List<Map.Entry<String, String>> groupedTags) {
         String traceId = "";
         String spanId = "";
-        Map<String, String> tags = new HashMap<>();
+        Map<String, Object> tags = new HashMap<>();
         for (Map.Entry<String, String> groupedTag : groupedTags) {
             if (groupedTag.getKey().endsWith(".traceId")) {
                 traceId = groupedTag.getValue();

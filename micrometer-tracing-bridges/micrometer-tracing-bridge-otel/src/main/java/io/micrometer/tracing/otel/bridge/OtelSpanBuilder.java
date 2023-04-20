@@ -15,20 +15,21 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * OpenTelemetry implementation of a {@link Span.Builder}.
@@ -90,6 +91,24 @@ class OtelSpanBuilder implements Span.Builder {
     }
 
     @Override
+    public Span.Builder tag(String key, long value) {
+        this.delegate.setAttribute(key, value);
+        return this;
+    }
+
+    @Override
+    public Span.Builder tag(String key, double value) {
+        this.delegate.setAttribute(key, value);
+        return this;
+    }
+
+    @Override
+    public Span.Builder tag(String key, boolean value) {
+        this.delegate.setAttribute(key, value);
+        return this;
+    }
+
+    @Override
     public Span.Builder error(Throwable throwable) {
         this.error = throwable;
         return this;
@@ -140,15 +159,30 @@ class OtelSpanBuilder implements Span.Builder {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Span.Builder addLink(Link link) {
         TraceContext traceContext = link.getTraceContext();
         SpanContext spanContext = ((OtelTraceContext) traceContext).spanContext();
         AttributesBuilder otelAttributes = Attributes.empty().toBuilder();
-        for (Map.Entry<String, String> entry : link.getTags().entrySet()) {
-            otelAttributes = otelAttributes.put(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Object> entry : link.getTags().entrySet()) {
+            otelAttributes = otelAttributes.put(getAttributeKey(entry.getKey(), entry.getValue()), entry.getValue());
         }
         this.delegate.addLink(spanContext, otelAttributes.build());
         return this;
+    }
+
+    @SuppressWarnings("raw")
+    private static AttributeKey getAttributeKey(String key, Object value) {
+        if (value instanceof Double) {
+            return AttributeKey.doubleKey(key);
+        }
+        else if (value instanceof Long) {
+            return AttributeKey.longKey(key);
+        }
+        else if (value instanceof Boolean) {
+            return AttributeKey.booleanKey(key);
+        }
+        return AttributeKey.stringKey(key);
     }
 
     @Override

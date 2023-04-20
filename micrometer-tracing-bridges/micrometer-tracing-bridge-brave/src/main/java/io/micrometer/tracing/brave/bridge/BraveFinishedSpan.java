@@ -216,12 +216,12 @@ public class BraveFinishedSpan implements FinishedSpan {
 
     private void addLink(long index, Link link) {
         TraceContext traceContext = link.getTraceContext();
-        Map<String, String> tags = link.getTags();
+        Map<String, Object> tags = link.getTags();
         this.mutableSpan.tag(LinkUtils.traceIdKey(index), traceContext.traceId());
         this.mutableSpan.tag(LinkUtils.spanIdKey(index), traceContext.spanId());
-        for (Map.Entry<String, String> e : tags.entrySet()) {
+        for (Map.Entry<String, Object> e : tags.entrySet()) {
             String key = e.getKey();
-            String value = e.getValue();
+            String value = String.valueOf(e.getValue());
             this.mutableSpan.tag(LinkUtils.tagKey(index, key), value);
         }
     }
