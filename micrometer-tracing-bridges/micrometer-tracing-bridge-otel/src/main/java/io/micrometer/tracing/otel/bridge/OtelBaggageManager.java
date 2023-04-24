@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
@@ -115,7 +116,10 @@ public class OtelBaggageManager implements BaggageManager {
             entry = getBaggage(name, Baggage.fromContext(ctx));
             ctx = removeFirst(stack);
         }
-        return createNewEntryIfMissing(name, entry);
+        if (entry != null) {
+            return otelBaggage(entry);
+        }
+        return null;
     }
 
     Entry getEntry(OtelTraceContext traceContext, String name) {
@@ -142,16 +146,16 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public io.micrometer.tracing.Baggage createBaggage(String name) {
-        return createBaggage(name, "");
+        return createBaggage(name, null);
     }
 
     @Override
     public io.micrometer.tracing.Baggage createBaggage(String name, String value) {
-        io.micrometer.tracing.Baggage baggage = baggageWithValue(name, "");
+        io.micrometer.tracing.Baggage baggage = baggageWithValue(name, null);
         return baggage.set(value);
     }
 
-    private io.micrometer.tracing.Baggage baggageWithValue(String name, String value) {
+    private io.micrometer.tracing.Baggage baggageWithValue(String name, @Nullable String value) {
         boolean remoteField = this.remoteFields.stream()
             .map(String::toLowerCase)
             .anyMatch(s -> s.equals(name.toLowerCase()));
