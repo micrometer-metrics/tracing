@@ -151,7 +151,7 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public io.micrometer.tracing.Baggage createBaggage(String name, String value) {
-        io.micrometer.tracing.Baggage baggage = baggageWithValue(name, null);
+        io.micrometer.tracing.Baggage baggage = baggageWithValue(name, value);
         return baggage.set(value);
     }
 
