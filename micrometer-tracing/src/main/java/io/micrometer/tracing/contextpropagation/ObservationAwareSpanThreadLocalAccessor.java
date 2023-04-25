@@ -24,6 +24,8 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler;
 
+import java.util.Objects;
+
 /**
  * A {@link ThreadLocalAccessor} to put and restore current {@link Span} depending on
  * whether {@link ObservationThreadLocalAccessor} did some work or not (if
@@ -44,6 +46,7 @@ import io.micrometer.tracing.handler.TracingObservationHandler;
  * call {@link ContextRegistry#registerThreadLocalAccessor(ThreadLocalAccessor)} manually.
  *
  * @author Marcin Grzejszczak
+ * @author Taeik Lim
  * @since 1.0.4
  */
 public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAccessor<Span> {
@@ -53,16 +56,26 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
      */
     public static final String KEY = "micrometer.tracing";
 
-    private final Tracer tracer;
+    private final ObservationRegistry registry;
 
-    private static final ObservationRegistry registry = ObservationRegistry.create();
+    private final Tracer tracer;
 
     /**
      * Creates a new instance of {@link ObservationThreadLocalAccessor}.
      * @param tracer tracer
      */
     public ObservationAwareSpanThreadLocalAccessor(Tracer tracer) {
-        this.tracer = tracer;
+        this(ObservationRegistry.create(), tracer);
+    }
+
+    /**
+     * Creates a new instance of {@link ObservationThreadLocalAccessor}.
+     * @param observationRegistry observationRegistry
+     * @param tracer tracer
+     */
+    public ObservationAwareSpanThreadLocalAccessor(ObservationRegistry observationRegistry, Tracer tracer) {
+        this.registry = Objects.requireNonNull(observationRegistry, "observationRegistry must not be null");
+        this.tracer = Objects.requireNonNull(tracer, "tracer must not be null");
     }
 
     @Override

@@ -54,7 +54,7 @@ class ObservationAwareSpanThreadLocalAccessorTests {
     void setup() {
         observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
         contextRegistry.loadThreadLocalAccessors()
-            .registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(tracer));
+            .registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(observationRegistry, tracer));
     }
 
     @AfterEach
