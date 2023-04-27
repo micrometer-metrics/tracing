@@ -45,13 +45,17 @@ import static java.util.Collections.singletonList;
 @SuppressWarnings({ "unchecked", "deprecation" })
 public class W3CPropagation extends Propagation.Factory implements Propagation<String> {
 
+    static final String X_B3_TRACE_ID = "X-B3-TraceId";
+    static final String X_B3_SPAN_ID = "X-B3-SpanId";
+
     static final String TRACE_PARENT = "traceparent";
 
     static final String TRACE_STATE = "tracestate";
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(W3CPropagation.class.getName());
 
-    private static final List<String> FIELDS = Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE));
+    private static final List<String> FIELDS = Collections
+        .unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, X_B3_TRACE_ID, X_B3_SPAN_ID));
 
     private static final String VERSION = "00";
 
@@ -174,6 +178,17 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
         }
     }
 
+    private static TraceContext extractContextFromXB3Trace(String traceId, String spanId) {
+        if (traceId == null || spanId == null) {
+            return null;
+        }
+        return TraceContext.newBuilder()
+            .shared(true)
+            .traceId(EncodingUtils.longFromBase16String(traceId))
+            .spanId(EncodingUtils.longFromBase16String(spanId))
+            .build();
+    }
+
     @Override
     public <K> Propagation<K> create(KeyFactory<K> keyFactory) {
         return StringPropagationAdapter.create(this, keyFactory);
@@ -205,6 +220,8 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
             chars[TRACE_OPTION_OFFSET - 1] = TRACEPARENT_DELIMITER;
             copyTraceFlagsHexTo(chars, TRACE_OPTION_OFFSET, context);
             setter.put(carrier, TRACE_PARENT, new String(chars, 0, TRACEPARENT_HEADER_SIZE));
+            setter.put(carrier, X_B3_TRACE_ID, new String(chars, TRACE_ID_OFFSET, TRACE_ID_HEX_SIZE));
+            setter.put(carrier, X_B3_SPAN_ID, new String(chars, SPAN_ID_OFFSET, SPAN_ID_HEX_SIZE));
             addTraceState(setter, context, carrier);
             if (this.baggagePropagator != null) {
                 this.baggagePropagator.injector(setter).inject(context, carrier);
@@ -248,11 +265,16 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
     public <R> TraceContext.Extractor<R> extractor(Getter<R, String> getter) {
         Objects.requireNonNull(getter, "getter");
         return carrier -> {
+            TraceContext contextFromParentHeader = null;
             String traceParent = getter.get(carrier, TRACE_PARENT);
-            if (traceParent == null) {
-                return withBaggage(TraceContextOrSamplingFlags.EMPTY, carrier, getter);
+            if (traceParent != null) {
+                contextFromParentHeader = extractContextFromTraceParent(traceParent);
             }
-            TraceContext contextFromParentHeader = extractContextFromTraceParent(traceParent);
+            if (contextFromParentHeader == null) {
+                String xb3TraceId = getter.get(carrier, X_B3_TRACE_ID);
+                String xb3SpanId = getter.get(carrier, X_B3_SPAN_ID);
+                contextFromParentHeader = extractContextFromXB3Trace(xb3TraceId, xb3SpanId);
+            }
             if (contextFromParentHeader == null) {
                 return withBaggage(TraceContextOrSamplingFlags.EMPTY, carrier, getter);
             }

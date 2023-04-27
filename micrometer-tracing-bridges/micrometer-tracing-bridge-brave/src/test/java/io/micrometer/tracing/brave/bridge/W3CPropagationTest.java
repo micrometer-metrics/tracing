@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static io.micrometer.tracing.brave.bridge.W3CPropagation.TRACE_PARENT;
+import static io.micrometer.tracing.brave.bridge.W3CPropagation.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
@@ -62,7 +62,7 @@ class W3CPropagationTest {
         final Map<String, String> carrier = new LinkedHashMap<>();
         TraceContext traceContext = sampledTraceContext().build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, null);
-        assertThat(carrier).containsExactly(entry(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED));
+        assertThat(carrier).contains(entry(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED));
     }
 
     private TraceContext.Builder sampledTraceContext() {
@@ -83,7 +83,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         TraceContext traceContext = sampledTraceContext().build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, carrier);
-        assertThat(carrier).containsExactly(entry(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED));
+        assertThat(carrier).contains(entry(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED));
     }
 
     @Test
@@ -109,7 +109,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         TraceContext traceContext = notSampledTraceContext().build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, carrier);
-        assertThat(carrier).containsExactly(entry(TRACE_PARENT, TRACEPARENT_HEADER_NOT_SAMPLED));
+        assertThat(carrier).contains(entry(TRACE_PARENT, TRACEPARENT_HEADER_NOT_SAMPLED));
     }
 
     /**
@@ -122,8 +122,7 @@ class W3CPropagationTest {
         TraceContext traceContext = sampledTraceContext("0000000000000000", "123456789abcdef0", "123456789abcdef1")
             .build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, carrier);
-        assertThat(carrier)
-            .containsExactly(entry(TRACE_PARENT, "00-0000000000000000123456789abcdef0-123456789abcdef1-01"));
+        assertThat(carrier).contains(entry(TRACE_PARENT, "00-0000000000000000123456789abcdef0-123456789abcdef1-01"));
     }
 
     @ParameterizedTest
@@ -344,7 +343,8 @@ class W3CPropagationTest {
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void fieldsList(W3CPropagationType propagationType) {
-        assertThat(propagationType.get().keys()).containsExactly(TRACE_PARENT, TRACE_STATE);
+        assertThat(propagationType.get().keys()).containsExactly(TRACE_PARENT, TRACE_STATE, X_B3_TRACE_ID,
+                X_B3_SPAN_ID);
     }
 
     @Test
