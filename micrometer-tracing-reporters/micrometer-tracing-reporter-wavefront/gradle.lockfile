@@ -45,7 +45,6 @@ io.opentelemetry:opentelemetry-api:1.25.0=compileClasspath,runtimeClasspath,test
 io.opentelemetry:opentelemetry-bom-alpha:1.25.0-alpha=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.opentelemetry:opentelemetry-bom:1.25.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.opentelemetry:opentelemetry-context:1.25.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-io.opentelemetry:opentelemetry-extension-aws:1.20.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.opentelemetry:opentelemetry-extension-trace-propagators:1.25.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.opentelemetry:opentelemetry-sdk-common:1.25.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.opentelemetry:opentelemetry-sdk-logs:1.25.0-alpha=runtimeClasspath,testRuntimeClasspath
