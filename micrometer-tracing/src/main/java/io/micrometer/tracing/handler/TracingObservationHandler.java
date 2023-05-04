@@ -147,12 +147,22 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     default Span getParentSpan(Observation.ContextView context) {
         // This would mean that the user has manually created a tracing context
         TracingContext tracingContext = context.get(TracingContext.class);
+        Span currentSpan = getTracer().currentSpan();
         if (tracingContext == null) {
             ObservationView observation = context.getParentObservation();
             if (observation != null) {
                 tracingContext = observation.getContextView().get(TracingContext.class);
                 if (tracingContext != null) {
-                    return tracingContext.getSpan();
+                    Span spanFromParentObservation = tracingContext.getSpan();
+                    if (spanFromParentObservation == null && currentSpan != null) {
+                        return currentSpan;
+                    }
+                    else if (currentSpan != null && !currentSpan.equals(spanFromParentObservation)) {
+                        // User manually created a span
+                        return currentSpan;
+                    }
+                    // No manually created span
+                    return spanFromParentObservation;
                 }
             }
         }

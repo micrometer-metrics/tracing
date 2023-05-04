@@ -173,6 +173,48 @@ class DefaultTracingObservationHandlerOtelTests {
     }
 
     @Test
+    void should_create_parent_child_relationship_via_observations_and_manual_spans() {
+        TestObservationRegistry registry = TestObservationRegistry.create();
+        registry.observationConfig().observationHandler(handler);
+
+        Span surprise = null;
+        Observation parent = Observation.start("parent", registry);
+        try (Observation.Scope scope = parent.openScope()) {
+            surprise = tracer.nextSpan().name("surprise").start();
+            try (Tracer.SpanInScope scope2 = tracer.withSpan(surprise)) {
+                Observation child = Observation.createNotStarted("child", registry).start();
+                child.scoped(() -> {
+                    Observation grandchild = Observation.createNotStarted("grandchild", registry)
+                        .parentObservation(child)
+                        .start();
+                    grandchild.stop();
+                });
+                child.stop();
+            }
+            surprise.end();
+        }
+        parent.stop();
+
+        List<FinishedSpan> spans = testSpanProcessor.spans()
+            .stream()
+            .map(OtelFinishedSpan::fromOtel)
+            .collect(Collectors.toList());
+        SpansAssert.then(spans).haveSameTraceId();
+        FinishedSpan grandchildFinishedSpan = spans.get(0);
+        SpanAssert.then(grandchildFinishedSpan).hasNameEqualTo("grandchild");
+        FinishedSpan childFinishedSpan = spans.get(1);
+        SpanAssert.then(childFinishedSpan).hasNameEqualTo("child");
+        FinishedSpan surpriseSpan = spans.get(2);
+        SpanAssert.then(surpriseSpan).hasNameEqualTo("surprise");
+        FinishedSpan parentFinishedSpan = spans.get(3);
+        SpanAssert.then(parentFinishedSpan).hasNameEqualTo("parent");
+
+        then(grandchildFinishedSpan.getParentId()).isEqualTo(childFinishedSpan.getSpanId());
+        then(childFinishedSpan.getParentId()).isEqualTo(surprise.context().spanId());
+        then(surprise.context().parentId()).isEqualTo(parentFinishedSpan.getSpanId());
+    }
+
+    @Test
     void should_use_contextual_name() {
         Observation.Context context = new Observation.Context();
         context.setName("foo");
