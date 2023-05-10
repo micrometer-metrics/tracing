@@ -37,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
-import reactor.util.context.Context;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -84,19 +83,29 @@ class ScopesTests {
         Span span2 = tracer.currentSpan();
         logger.info("SPAN 2 [" + tracer.currentSpan() + "]");
 
-        Mono.just(1).flatMap(integer -> {
-            return Mono.just(2).doOnNext(integer1 -> {
-                Span spanWEmpty = tracer.currentSpan();
-                logger.info("\n\n[2] SPAN IN EMPTY [" + spanWEmpty + "]");
-                logger.info("[2] SIZE [" + CorrelationFlushScopeArrayReader.size() + "]");
-                then(spanWEmpty).isNull();
-            }).contextWrite(context -> Context.empty());
-        }).doOnNext(integer -> {
+        // enclosing scope 1
+
+        // 3 obs scope
+        Mono.just(1).doOnNext(integer -> {
             Span spanWOnNext = tracer.currentSpan();
             logger.info("\n\n[1] SPAN IN ON NEXT [" + spanWOnNext + "]");
             logger.info("[1] SIZE [" + CorrelationFlushScopeArrayReader.size() + "]");
             then(spanWOnNext).isEqualTo(span2);
-        }).contextWrite(context -> context.put(ObservationThreadLocalAccessor.KEY, obs2)).block();
+        })
+            .contextWrite(context -> context.put(ObservationThreadLocalAccessor.KEY, obs2))
+            .block();
+
+        // enclosing scope 1
+
+        // OBSERVATION
+        // obs2 scope
+        // obs2 scope
+        // obs1 scope
+
+        // BRAVE
+        // span scope 2 (NOOP)
+        // span scope 2
+        // span scope 1
 
         logger.info("\n\nSPAN OUTSIDE REACTOR [" + tracer.currentSpan() + "]");
         logger.info("SIZE AFTER [" + CorrelationFlushScopeArrayReader.size() + "]");
@@ -106,7 +115,7 @@ class ScopesTests {
         obs2.stop();
         logger.info("SIZE OUTSIDE CLOSE 2 [" + CorrelationFlushScopeArrayReader.size() + "]");
         logger.info("SPAN AFTER CLOSE 2 [" + tracer.currentSpan() + "]");
-        then(tracer.currentSpan()).isEqualTo(span1);
+        then(tracer.currentSpan()).as("Scopes should be restored to previous so current span should be Span 1 which is <%s>. Span 2 is <%s>", span1, span2).isEqualTo(span1);
 
         scope.close();
         obs1.stop();

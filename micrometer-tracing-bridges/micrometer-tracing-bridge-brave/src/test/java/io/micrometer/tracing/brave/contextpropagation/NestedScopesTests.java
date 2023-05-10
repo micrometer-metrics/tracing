@@ -118,6 +118,13 @@ class NestedScopesTests {
 
         thenCurrentObservationIsNull();
 
+        // OBS1 SCOPE1 -> enclosing ();
+        // OBS1 SCOPE2 -> enclosing (obs1 scope1)
+        // OBS2 SCOPE1 -> enclosing (obs1 scope2)
+        // OBS2 SCOPE2 -> enclosing (obs1 scope2, obs2 scope1)
+        // OBS1 SCOPE3 -> enclosing (obs1 scope2, obs2 scope2)
+        // OBS1 SCOPE4 -> enclosing (obs1 scope2, obs2 scope2, obs1 scope3)
+
         try (ContextSnapshot.Scope obs1Scope1 = snapshot1.setThreadLocals()) {
             Span spanObs1Scope1 = tracer.currentSpan();
             try (ContextSnapshot.Scope obs1Scope2 = snapshot1.setThreadLocals()) {
