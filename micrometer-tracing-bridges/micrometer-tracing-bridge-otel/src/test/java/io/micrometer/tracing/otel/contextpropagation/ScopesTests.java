@@ -72,6 +72,7 @@ class ScopesTests {
         observationRegistry.observationConfig().observationHandler(handler);
 
         Hooks.enableAutomaticContextPropagation();
+        ObservationThreadLocalAccessor.getInstance().setObservationRegistry(observationRegistry);
     }
 
     @Test
