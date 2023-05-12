@@ -303,13 +303,6 @@ subprojects {
 
 	repositories {
 		mavenCentral()
-		maven {
-			// TODO remove before releasing GA
-			url "https://repo.spring.io/milestone/"
-			content {
-				includeGroup 'io.micrometer'
-			}
-		}
 	}
 
 	def check = tasks.findByName('check')
