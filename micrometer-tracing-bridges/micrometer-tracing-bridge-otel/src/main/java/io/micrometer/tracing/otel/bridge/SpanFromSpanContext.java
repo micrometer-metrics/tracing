@@ -15,16 +15,16 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.time.Instant;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
 import io.micrometer.common.lang.Nullable;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
 
@@ -166,11 +166,18 @@ class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof io.opentelemetry.api.trace.Span)) {
             return false;
         }
-        SpanFromSpanContext that = (SpanFromSpanContext) o;
-        return Objects.equals(span, that.span) && Objects.equals(this.newSpanContext, that.newSpanContext);
+        io.opentelemetry.api.trace.Span that = (io.opentelemetry.api.trace.Span) o;
+        boolean spansEqual = Objects.equals(span, that);
+        if (!spansEqual) {
+            return false;
+        }
+        if (getClass() == o.getClass()) {
+            return Objects.equals(this.newSpanContext, ((SpanFromSpanContext) that).newSpanContext);
+        }
+        return true;
     }
 
     @Override

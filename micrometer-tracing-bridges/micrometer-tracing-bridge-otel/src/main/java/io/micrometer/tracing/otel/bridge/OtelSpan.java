@@ -156,7 +156,11 @@ class OtelSpan implements Span {
             return false;
         }
         OtelSpan otelSpan = (OtelSpan) o;
-        return Objects.equals(this.delegate, otelSpan.delegate);
+        io.opentelemetry.api.trace.Span span = otelSpan.delegate;
+        if (span instanceof SpanFromSpanContext) {
+            span = ((SpanFromSpanContext) span).span;
+        }
+        return Objects.equals(this.delegate, span);
     }
 
     @Override
