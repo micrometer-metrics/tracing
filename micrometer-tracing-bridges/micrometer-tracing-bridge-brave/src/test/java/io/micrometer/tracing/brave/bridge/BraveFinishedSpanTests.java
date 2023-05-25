@@ -58,6 +58,7 @@ class BraveFinishedSpanTests {
 
         then(finishedSpan.getStartTimestamp().toEpochMilli()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(startMicros));
         then(finishedSpan.getEndTimestamp().toEpochMilli()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(endMicros));
+        then(finishedSpan.getDuration().toNanos()).isEqualTo(TimeUnit.MICROSECONDS.toNanos(endMicros - startMicros));
     }
 
     @Test

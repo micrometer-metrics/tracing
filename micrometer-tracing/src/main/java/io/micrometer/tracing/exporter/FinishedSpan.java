@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.exporter;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +35,7 @@ import io.micrometer.tracing.Span;
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
+ * @author Yanming Zhou
  * @since 1.0.0
  */
 public interface FinishedSpan {
@@ -59,6 +61,14 @@ public interface FinishedSpan {
      * @return span's end timestamp
      */
     Instant getEndTimestamp();
+
+    /**
+     * @return span's duration
+     * @since 1.2.0
+     */
+    default Duration getDuration() {
+        return Duration.between(getStartTimestamp(), getEndTimestamp());
+    }
 
     /**
      * Sets the tags.

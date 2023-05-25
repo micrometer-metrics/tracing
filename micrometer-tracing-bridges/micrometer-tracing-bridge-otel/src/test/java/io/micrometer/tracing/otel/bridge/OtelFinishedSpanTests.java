@@ -142,6 +142,7 @@ class OtelFinishedSpanTests {
 
         then(finishedSpan.getStartTimestamp().toEpochMilli()).isEqualTo(TimeUnit.NANOSECONDS.toMillis(startMicros));
         then(finishedSpan.getEndTimestamp().toEpochMilli()).isEqualTo(TimeUnit.NANOSECONDS.toMillis(endMicros));
+        then(finishedSpan.getDuration().toNanos()).isEqualTo(endMicros - startMicros);
     }
 
     @Test
