@@ -2,7 +2,7 @@ def VERSIONS = [
 	'javax.servlet:javax.servlet-api:latest.release',
 	'jakarta.platform:jakarta.jakartaee-web-api:9.+',
 
-	'io.micrometer:context-propagation:1.0.+',
+	'io.micrometer:context-propagation:1.0.3-SNAPSHOT',
 
 	'aopalliance:aopalliance:1.0',
 	// logging
@@ -36,7 +36,7 @@ def PLATFORM_VERSIONS = [
 	// opentelemetry-instrumentation-api dependency above with this
 	'io.opentelemetry:opentelemetry-bom:1.19.+',
 	'io.opentelemetry:opentelemetry-bom-alpha:1.19.+',
-	'io.projectreactor:reactor-bom:2022.0.+', // latest release for tests
+	'io.projectreactor:reactor-bom:2022.0.8-SNAPSHOT', // latest release for tests
 	'org.junit:junit-bom:5.9.+'
 ]
 

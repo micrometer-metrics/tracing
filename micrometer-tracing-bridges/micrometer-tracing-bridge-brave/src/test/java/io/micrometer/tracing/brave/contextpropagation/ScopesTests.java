@@ -130,7 +130,8 @@ class ScopesTests {
     private static void assertInReactor(AtomicReference<AssertionError> errors, Span spanWOnNext, Span expectedSpan) {
         try {
             then(spanWOnNext).isEqualTo(expectedSpan);
-        } catch (AssertionError er) {
+        }
+        catch (AssertionError er) {
             errors.set(er);
         }
     }
