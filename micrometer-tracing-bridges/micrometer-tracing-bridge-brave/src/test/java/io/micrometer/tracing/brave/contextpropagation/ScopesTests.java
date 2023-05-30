@@ -34,7 +34,6 @@ import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
@@ -71,9 +70,9 @@ class ScopesTests {
         observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(this.tracer));
 
         Hooks.enableAutomaticContextPropagation();
+        ObservationThreadLocalAccessor.getInstance().setObservationRegistry(observationRegistry);
     }
 
-    @Disabled("TODO: Bug")
     @Test
     void should_open_and_close_scopes_with_reactor() {
         Observation obs1 = Observation.start("1", observationRegistry);

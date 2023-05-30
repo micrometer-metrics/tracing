@@ -15,7 +15,6 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import brave.propagation.ThreadLocalCurrentTraceContext;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 
@@ -76,10 +75,6 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
 
     @Override
     public Scope maybeScope(TraceContext context) {
-        if (context == null && delegate instanceof ThreadLocalCurrentTraceContext) {
-            ((ThreadLocalCurrentTraceContext) delegate).clear();
-            return Scope.NOOP;
-        }
         return new BraveScope(
                 this.delegate.maybeScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
     }
