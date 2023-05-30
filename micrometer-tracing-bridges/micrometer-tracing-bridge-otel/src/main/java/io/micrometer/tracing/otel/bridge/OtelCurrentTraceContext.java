@@ -48,6 +48,13 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         return new OtelTraceContext(currentSpan);
     }
 
+    /**
+     * Since OpenTelemetry works on statics, and we would like to pass the tracing
+     * information on the {@link TraceContext} we are checking what we have currently in
+     * ThreadLocal and what was passed on {@link TraceContext}.
+     * @param context span to place into scope or {@code null} to clear the scope
+     * @return scope that always must be closed
+     */
     @Override
     public Scope newScope(TraceContext context) {
         OtelTraceContext otelTraceContext = (OtelTraceContext) context;
@@ -56,30 +63,37 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         }
         Context current = Context.current();
         Context old = otelTraceContext.context();
-
-        Span currentSpan = Span.fromContext(current);
-        Span oldSpan = Span.fromContext(otelTraceContext.context());
+        // Check if there's a span in the static OTel context
+        Span spanFromCurrentCtx = Span.fromContext(current);
+        // Check if there's a span in the ctx attached to TraceContext
+        Span spanFromCtxOnNewSpan = Span.fromContext(otelTraceContext.context());
         SpanContext spanContext = otelTraceContext.delegate;
-        boolean sameSpan = currentSpan.getSpanContext().equals(oldSpan.getSpanContext())
-                && currentSpan.getSpanContext().equals(spanContext);
+        boolean sameSpan = spanFromCurrentCtx.getSpanContext().equals(spanFromCtxOnNewSpan.getSpanContext())
+                && spanFromCurrentCtx.getSpanContext().equals(spanContext);
         SpanFromSpanContext fromContext = new SpanFromSpanContext(((OtelTraceContext) context).span, spanContext,
                 otelTraceContext);
-
         Baggage currentBaggage = Baggage.fromContext(current);
         Baggage oldBaggage = Baggage.fromContext(old);
         boolean sameBaggage = sameBaggage(currentBaggage, oldBaggage);
-
         if (sameSpan && sameBaggage) {
             return io.opentelemetry.context.Scope::noop;
         }
+        Baggage updatedBaggage = mergeBaggage(currentBaggage, oldBaggage);
+        Context newContext = old.with(fromContext).with(updatedBaggage);
+        io.opentelemetry.context.Scope attach = newContext.makeCurrent();
+        otelTraceContext.updateContext(newContext);
+        return () -> {
+            otelTraceContext.updateContext(old);
+            attach.close();
+        };
+    }
 
+    private static Baggage mergeBaggage(Baggage currentBaggage, Baggage oldBaggage) {
         BaggageBuilder baggageBuilder = currentBaggage.toBuilder();
         oldBaggage.forEach(
                 (key, baggageEntry) -> baggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
         Baggage updatedBaggage = baggageBuilder.build();
-
-        io.opentelemetry.context.Scope attach = old.with(fromContext).with(updatedBaggage).makeCurrent();
-        return attach::close;
+        return updatedBaggage;
     }
 
     private boolean sameBaggage(Baggage currentBaggage, Baggage oldBaggage) {
@@ -89,7 +103,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     @Override
     public Scope maybeScope(TraceContext context) {
         if (context == null) {
-            io.opentelemetry.context.Scope scope = Context.current().with(Span.getInvalid()).makeCurrent();
+            io.opentelemetry.context.Scope scope = Context.root().makeCurrent();
             return scope::close;
         }
         return newScope(context);
