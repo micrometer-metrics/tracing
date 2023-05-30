@@ -28,7 +28,7 @@ def VERSIONS = [
 ]
 
 def MICROMETER_PLATFORM_VERSIONS = [
-	'io.micrometer:micrometer-bom:1.10.+'
+	'io.micrometer:micrometer-bom:1.10.8-SNAPSHOT'
 ]
 
 def PLATFORM_VERSIONS = [
