@@ -116,6 +116,9 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     public void setValue(Span value) {
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         Tracer.SpanInScope scope = this.tracer.withSpan(value);
+        if (spanAction == null) {
+            spanAction = new SpanAction(SpanSituation.NO_OBSERVATION_PRESENT, spanActions);
+        }
         spanAction.setScope(scope);
     }
 
@@ -135,7 +138,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
             return;
         }
-        closeScope(spanAction);
+        spanAction.close();
         Span currentSpan = tracer.currentSpan();
         if (!(previousValue.equals(currentSpan))) {
             String msg = "After closing the scope, current span <" + currentSpan
@@ -146,26 +149,13 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         }
     }
 
-    private static void closeScope(SpanAction spanAction) {
-        Closeable closeable = spanAction.scope;
-        if (closeable != null) {
-            try {
-                closeable.close();
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
     @Override
     public void restore() {
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
             return;
         }
-        log.warn("Restore called with <null> span. This should not happen. Will fallback to scope close");
-        closeScope(spanAction);
+        spanAction.close();
     }
 
     static class SpanAction implements Closeable {
@@ -184,17 +174,26 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
             this.todo = spanActions;
         }
 
-        Closeable getScope() {
-            return scope;
-        }
-
         void setScope(Closeable scope) {
             this.scope = scope;
         }
 
         @Override
         public void close() {
-            this.todo.put(Thread.currentThread(), this.previous);
+            if (this.scope != null) {
+                try {
+                    this.scope.close();
+                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (this.previous != null) {
+                this.todo.put(Thread.currentThread(), this.previous);
+            }
+            else {
+                this.todo.remove(Thread.currentThread());
+            }
         }
 
     }
