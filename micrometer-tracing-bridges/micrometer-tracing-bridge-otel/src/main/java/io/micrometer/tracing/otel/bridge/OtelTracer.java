@@ -73,7 +73,8 @@ public class OtelTracer implements Tracer {
         AtomicReference<Context> context = otelSpan.context().context;
         Context otelContext = context.get();
         Scope scope = null;
-        if (otelContext != null) {
+        if (otelContext != null && Context.current() != otelContext) { // This shouldn't
+                                                                       // happen
             scope = otelContext.makeCurrent();
         }
         try {

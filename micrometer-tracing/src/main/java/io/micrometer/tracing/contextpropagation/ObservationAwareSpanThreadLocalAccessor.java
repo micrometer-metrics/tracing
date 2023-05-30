@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.contextpropagation;
 
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
 import io.micrometer.context.ThreadLocalAccessor;
 import io.micrometer.observation.Observation;
@@ -24,12 +26,17 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * A {@link ThreadLocalAccessor} to put and restore current {@link Span} depending on
  * whether {@link ObservationThreadLocalAccessor} did some work or not (if
  * {@link ObservationThreadLocalAccessor} opened a scope, then this class doesn't want to
  * create yet another span).
- *
+ * <p>
  * In essence logic of this class is as follows:
  *
  * <ul>
@@ -47,6 +54,11 @@ import io.micrometer.tracing.handler.TracingObservationHandler;
  * @since 1.0.4
  */
 public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAccessor<Span> {
+
+    private static final InternalLogger log = InternalLoggerFactory
+        .getInstance(ObservationAwareSpanThreadLocalAccessor.class);
+
+    private final Map<Thread, SpanAction> spanActions = new ConcurrentHashMap<>();
 
     /**
      * Key under which Micrometer Tracing is being registered.
@@ -76,7 +88,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         if (currentObservation != null) {
             // There's a current observation so OTLA hooked in
             // we will now check if the user created spans manually or not
-            TracingObservationHandler.TracingContext tracingContext = currentObservation.getContextView()
+            TracingObservationHandler.TracingContext tracingContext = currentObservation.getContext()
                 .getOrDefault(TracingObservationHandler.TracingContext.class,
                         new TracingObservationHandler.TracingContext());
             Span currentSpan = tracer.currentSpan();
@@ -86,23 +98,110 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
             if (currentSpan != null && !currentSpan.equals(tracingContext.getSpan())) {
                 // User created child spans manually and scoped them
                 // the current span is not the same as the one from observation
+                spanActions.put(Thread.currentThread(),
+                        new SpanAction(SpanSituation.OBSERVATION_AND_MANUAL_SPAN_PRESENT, spanActions));
                 return currentSpan;
             }
             // Current span is same as the one from observation, we will skip this
+            spanActions.put(Thread.currentThread(),
+                    new SpanAction(SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP, spanActions));
             return null;
         }
         // No current observation so let's check the tracer
+        spanActions.put(Thread.currentThread(), new SpanAction(SpanSituation.NO_OBSERVATION_PRESENT, spanActions));
         return this.tracer.currentSpan();
     }
 
     @Override
     public void setValue(Span value) {
-        this.tracer.withSpan(value);
+        SpanAction spanAction = spanActions.get(Thread.currentThread());
+        Tracer.SpanInScope scope = this.tracer.withSpan(value);
+        if (spanAction == null) {
+            spanAction = new SpanAction(SpanSituation.NO_OBSERVATION_PRESENT, spanActions);
+        }
+        spanAction.setScope(scope);
     }
 
     @Override
-    public void reset() {
-        this.tracer.withSpan(null);
+    public void setValue() {
+        SpanAction spanAction = spanActions.get(Thread.currentThread());
+        if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
+            return;
+        }
+        Tracer.SpanInScope scope = this.tracer.withSpan(null);
+        spanAction.setScope(scope);
+    }
+
+    @Override
+    public void restore(Span previousValue) {
+        SpanAction spanAction = spanActions.get(Thread.currentThread());
+        if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
+            return;
+        }
+        spanAction.close();
+        Span currentSpan = tracer.currentSpan();
+        if (!(previousValue.equals(currentSpan))) {
+            String msg = "After closing the scope, current span <" + currentSpan
+                    + "> is not the same as the one to which you want to revert <" + previousValue
+                    + ">. Most likely you've opened a scope and forgotten to close it";
+            log.warn(msg);
+            assert false : msg;
+        }
+    }
+
+    @Override
+    public void restore() {
+        SpanAction spanAction = spanActions.get(Thread.currentThread());
+        if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
+            return;
+        }
+        spanAction.close();
+    }
+
+    static class SpanAction implements Closeable {
+
+        final SpanSituation spanSituation;
+
+        final SpanAction previous;
+
+        final Map<Thread, SpanAction> todo;
+
+        Closeable scope;
+
+        SpanAction(SpanSituation spanSituation, Map<Thread, SpanAction> spanActions) {
+            this.spanSituation = spanSituation;
+            this.previous = spanActions.get(Thread.currentThread());
+            this.todo = spanActions;
+        }
+
+        void setScope(Closeable scope) {
+            this.scope = scope;
+        }
+
+        @Override
+        public void close() {
+            if (this.scope != null) {
+                try {
+                    this.scope.close();
+                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (this.previous != null) {
+                this.todo.put(Thread.currentThread(), this.previous);
+            }
+            else {
+                this.todo.remove(Thread.currentThread());
+            }
+        }
+
+    }
+
+    enum SpanSituation {
+
+        OBSERVATION_AND_MANUAL_SPAN_PRESENT, NO_OBSERVATION_PRESENT, SPAN_SAME_AS_OBSERVATION_SO_SKIP
+
     }
 
 }

@@ -33,7 +33,6 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
@@ -74,9 +73,9 @@ class ScopesTests {
         observationRegistry.observationConfig().observationHandler(handler);
 
         Hooks.enableAutomaticContextPropagation();
+        ObservationThreadLocalAccessor.getInstance().setObservationRegistry(observationRegistry);
     }
 
-    @Disabled("TODO: Bug")
     @Test
     void should_open_and_close_scopes_with_reactor() {
         Observation obs1 = Observation.start("1", observationRegistry);
