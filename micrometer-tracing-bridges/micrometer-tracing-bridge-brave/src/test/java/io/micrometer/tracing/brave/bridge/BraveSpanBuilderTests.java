@@ -18,15 +18,23 @@ package io.micrometer.tracing.brave.bridge;
 import brave.Tracer;
 import brave.Tracing;
 import io.micrometer.tracing.Span;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
 class BraveSpanBuilderTests {
 
+    Tracing tracing = Tracing.newBuilder().build();
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
+
     @Test
     void should_set_child_span_when_using_builders() {
-        Tracer tracer = Tracing.newBuilder().build().tracer();
+        Tracer tracer = tracing.tracer();
         Span.Builder builder = new BraveSpanBuilder(tracer);
         Span parentSpan = BraveSpan.fromBrave(tracer.nextSpan());
 
