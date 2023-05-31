@@ -17,6 +17,7 @@ package io.micrometer.tracing.brave.bridge;
 
 import brave.Tracing;
 import brave.test.TestSpanHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +27,11 @@ public class BraveSpanTest {
     TestSpanHandler handler = new TestSpanHandler();
 
     Tracing tracing = Tracing.newBuilder().addSpanHandler(handler).build();
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
 
     @Test
     void should_set_non_string_tags() {
