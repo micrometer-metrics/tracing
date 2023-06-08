@@ -6,29 +6,23 @@ executors:
     environment:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: cimg/openjdk:19.0.1
-  circle-jdk8-executor:
-    working_directory: ~/micrometer-tracing
-    environment:
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
-    docker:
-      - image: cimg/openjdk:8.0.362
+      - image: cimg/openjdk:20.0.1
   circle-jdk11-executor:
     working_directory: ~/micrometer-tracing
     environment:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: cimg/openjdk:11.0.18
+      - image: cimg/openjdk:11.0.19
   circle-jdk17-executor:
     working_directory: ~/micrometer-tracing
     environment:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
-      - image: cimg/openjdk:17.0.6
+      - image: cimg/openjdk:17.0.7
   machine-executor:
     working_directory: ~/micrometer-tracing
     machine:
-      image: ubuntu-2204:2023.02.1
+      image: ubuntu-2204:2023.04.2
 
 commands:
   gradlew-build:
@@ -40,12 +34,12 @@ commands:
     steps:
       - checkout
       - restore_cache:
-          key: gradle-dependencies-{{ checksum "build.gradle" }}
+          key: gradle-dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
       - run:
           name: downloadDependencies
           command: ./gradlew downloadDependencies --console=plain
       - save_cache:
-          key: gradle-dependencies-{{ checksum "build.gradle" }}
+          key: gradle-dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
           paths:
             - ~/.gradle
       - run:
@@ -65,11 +59,6 @@ commands:
 jobs:
   build:
     executor: circle-jdk-executor
-    steps:
-      - gradlew-build
-
-  build-jdk8:
-    executor: circle-jdk8-executor
     steps:
       - gradlew-build
 
@@ -94,7 +83,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: gradle-dependencies-{{ checksum "build.gradle" }}
+          key: gradle-dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
       - deploy:
           name: Deployment
           command: sh ./gradle/deploy.sh
@@ -104,14 +93,12 @@ workflows:
   build_prs_deploy_snapshots:
     jobs:
       - build
-      - build-jdk8
       - build-jdk11
       - build-jdk17
       - docker-tests
       - deploy:
           requires:
             - build
-            - build-jdk8
             - build-jdk11
             - build-jdk17
             - docker-tests
@@ -123,12 +110,6 @@ workflows:
   build_deploy_releases:
     jobs:
       - build:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+(-(RC|M)\d+)?$/
-      - build-jdk8:
           filters:
             branches:
               ignore: /.*/
@@ -155,7 +136,6 @@ workflows:
       - deploy:
           requires:
             - build
-            - build-jdk8
             - build-jdk11
             - build-jdk17
             - docker-tests
