@@ -2,7 +2,7 @@ def VERSIONS = [
 	'javax.servlet:javax.servlet-api:latest.release',
 	'jakarta.platform:jakarta.jakartaee-web-api:9.+',
 
-	'io.micrometer:context-propagation:1.0.3-SNAPSHOT',
+	'io.micrometer:context-propagation:1.0.3',
 
 	'aopalliance:aopalliance:1.0',
 	// logging
