@@ -34,6 +34,7 @@ import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
@@ -43,6 +44,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
+// TODO re-enable after upgrading to reactor 2020.0.8
+@Disabled("See gh-287")
 class ScopesTests {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(ScopesTests.class);
