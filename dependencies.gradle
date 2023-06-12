@@ -36,7 +36,7 @@ def PLATFORM_VERSIONS = [
 	// opentelemetry-instrumentation-api dependency above with this
 	'io.opentelemetry:opentelemetry-bom:1.19.+',
 	'io.opentelemetry:opentelemetry-bom-alpha:1.19.+',
-	'io.projectreactor:reactor-bom:2022.0.8-SNAPSHOT', // latest release for tests
+	'io.projectreactor:reactor-bom:2022.0.7',
 	'org.junit:junit-bom:5.9.+'
 ]
 
