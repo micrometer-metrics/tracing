@@ -26,6 +26,8 @@ include 'micrometer-tracing', 'micrometer-tracing-bom'
 ['brave', 'otel'].each { bridge ->
 	include "micrometer-tracing-bridge-$bridge"
 	project(":micrometer-tracing-bridge-$bridge").projectDir = new File(rootProject.projectDir, "micrometer-tracing-bridges/micrometer-tracing-bridge-$bridge")
+	include "micrometer-benchmarks-$bridge"
+	project(":micrometer-benchmarks-$bridge").projectDir = new File(rootProject.projectDir, "benchmarks/benchmarks-$bridge")
 }
 
 ['wavefront'].each { reporter ->
