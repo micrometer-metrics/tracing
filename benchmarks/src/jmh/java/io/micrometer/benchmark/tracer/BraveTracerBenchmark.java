@@ -16,12 +16,10 @@
 package io.micrometer.benchmark.tracer;
 
 import brave.Tracing;
-import brave.propagation.StrictCurrentTraceContext;
+import brave.handler.SpanHandler;
+import brave.propagation.ThreadLocalCurrentTraceContext;
 import brave.propagation.TraceContextOrSamplingFlags;
 import brave.sampler.Sampler;
-import brave.test.TestSpanHandler;
-import io.micrometer.tracing.ScopedSpan;
-import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
@@ -30,7 +28,7 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 @BenchmarkMode(Mode.Throughput)
-public class BraveTracerBenchmark {
+public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
 
     @State(Scope.Benchmark)
     public static class MicrometerTracingState {
@@ -38,7 +36,7 @@ public class BraveTracerBenchmark {
         @Param({"5"})
         public int childSpanCount;
 
-        StrictCurrentTraceContext braveCurrentTraceContext;
+        ThreadLocalCurrentTraceContext braveCurrentTraceContext;
 
         BraveCurrentTraceContext bridgeContext;
 
@@ -50,13 +48,12 @@ public class BraveTracerBenchmark {
 
         @Setup
         public void setup() {
-            TestSpanHandler spanHandler = new TestSpanHandler();
-            this.braveCurrentTraceContext = StrictCurrentTraceContext.create();
+            this.braveCurrentTraceContext = ThreadLocalCurrentTraceContext.newBuilder().build();
             this.bridgeContext = new BraveCurrentTraceContext(this.braveCurrentTraceContext);
             this.tracing = Tracing.newBuilder()
                 .currentTraceContext(this.braveCurrentTraceContext)
-                .sampler(Sampler.ALWAYS_SAMPLE)
-                .addSpanHandler(spanHandler)
+                .sampler(Sampler.NEVER_SAMPLE)
+                .addSpanHandler(SpanHandler.NOOP)
                 .build();
             this.tracing.setNoop(true);
             this.braveTracer = this.tracing.tracer();
@@ -66,31 +63,18 @@ public class BraveTracerBenchmark {
         @TearDown
         public void close() {
             this.tracing.close();
-            this.braveCurrentTraceContext.close();
         }
 
     }
 
     @Benchmark
     public void micrometerTracing(MicrometerTracingState state, Blackhole blackhole) {
-        Span parentSpan = state.tracer.nextSpan().name("parent-span").start();
-        for (int i=0; i< state.childSpanCount; i++) {
-            io.micrometer.tracing.Span span = state.tracer.nextSpan(parentSpan).name("new-span");
-            span.start().tag("key", "value").event("event").end();
-        }
-        parentSpan.end();
-        blackhole.consume(parentSpan);
+        micrometerTracing(state.tracer, state.childSpanCount, blackhole);
     }
 
     @Benchmark
     public void micrometerTracingWithScope(MicrometerTracingState state, Blackhole blackhole) {
-        ScopedSpan parentSpan = state.tracer.startScopedSpan("parent-span");
-        for (int i=0; i< state.childSpanCount; i++) {
-            ScopedSpan scopedSpan = state.tracer.startScopedSpan("new-span");
-            scopedSpan.tag("key", "value").event("event").end();
-        }
-        parentSpan.end();
-        blackhole.consume(parentSpan);
+        micrometerTracingWithScope(state.tracer, state.childSpanCount, blackhole);
     }
 
     @State(Scope.Benchmark)
@@ -99,7 +83,7 @@ public class BraveTracerBenchmark {
         @Param({"5"})
         public int childSpanCount;
 
-        StrictCurrentTraceContext braveCurrentTraceContext;
+        ThreadLocalCurrentTraceContext braveCurrentTraceContext;
 
         Tracing tracing;
 
@@ -108,12 +92,11 @@ public class BraveTracerBenchmark {
 
         @Setup
         public void setup() {
-            TestSpanHandler spanHandler = new TestSpanHandler();
-            this.braveCurrentTraceContext = StrictCurrentTraceContext.create();
+            this.braveCurrentTraceContext = ThreadLocalCurrentTraceContext.newBuilder().build();
             this.tracing = Tracing.newBuilder()
                 .currentTraceContext(this.braveCurrentTraceContext)
-                .sampler(Sampler.ALWAYS_SAMPLE)
-                .addSpanHandler(spanHandler)
+                .sampler(Sampler.NEVER_SAMPLE)
+                .addSpanHandler(SpanHandler.NOOP)
                 .build();
             this.tracing.setNoop(true);
             this.tracer = this.tracing.tracer();
@@ -121,7 +104,6 @@ public class BraveTracerBenchmark {
 
         @TearDown
         public void close() {
-            this.braveCurrentTraceContext.close();
             this.tracing.close();
         }
 
@@ -131,9 +113,25 @@ public class BraveTracerBenchmark {
     public void braveTracing(BraveState state, Blackhole blackhole) {
         brave.Span parentSpan = state.tracer.nextSpan().name("parent-span").start();
         TraceContextOrSamplingFlags traceContext = TraceContextOrSamplingFlags.create(parentSpan.context());
-        for (int i=0; i< state.childSpanCount; i++) {
-            brave.Span span = state.tracer.nextSpan(traceContext).name("new-span");
+        for (int i = 0; i < state.childSpanCount; i++) {
+            brave.Span span = state.tracer.nextSpan(traceContext).name("new-span" + i);
             span.start().tag("key", "value").annotate("event").finish();
+        }
+        parentSpan.finish();
+        blackhole.consume(parentSpan);
+    }
+
+    @Benchmark
+    public void braveTracingWithScope(BraveState state, Blackhole blackhole) {
+        brave.Span parentSpan = state.tracer.nextSpan().name("parent-span").start();
+        try (brave.Tracer.SpanInScope spanInScope = state.tracer.withSpanInScope(parentSpan)) {
+            for (int i = 0; i < state.childSpanCount; i++) {
+                brave.Span childSpan = state.tracer.nextSpan().name("new-span" + i);
+                try (brave.Tracer.SpanInScope spanInScope2 = state.tracer.withSpanInScope(childSpan.start())) {
+                    childSpan.tag("key", "value").annotate("event");
+                }
+                childSpan.finish();
+            }
         }
         parentSpan.finish();
         blackhole.consume(parentSpan);

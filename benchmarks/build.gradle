@@ -1,6 +1,8 @@
 dependencies {
+    jmh project(':micrometer-tracing-bridge-brave')
     jmh project(':micrometer-tracing-bridge-otel')
     jmh 'org.openjdk.jmh:jmh-core:latest.release'
+    jmh 'io.zipkin.brave:brave-tests'
 
     jmh 'ch.qos.logback:logback-classic'
 

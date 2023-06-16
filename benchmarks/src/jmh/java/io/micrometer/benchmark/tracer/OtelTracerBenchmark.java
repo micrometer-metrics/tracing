@@ -16,30 +16,24 @@
 package io.micrometer.benchmark.tracer;
 
 import io.micrometer.tracing.Span;
-import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
-import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
-import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
-
-@State(Scope.Benchmark)
-@OutputTimeUnit(TimeUnit.SECONDS)
-public class OtelTracerBenchmark {
+@BenchmarkMode(Mode.Throughput)
+public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder().include(OtelTracerBenchmark.class.getSimpleName())
@@ -55,7 +49,8 @@ public class OtelTracerBenchmark {
     @State(Scope.Benchmark)
     public static class MicrometerTracingState {
 
-        ArrayListSpanProcessor spans;
+        @Param({"5"})
+        public int childSpanCount;
 
         SdkTracerProvider sdkTracerProvider;
 
@@ -73,14 +68,11 @@ public class OtelTracerBenchmark {
 
         @Setup
         public void setup() {
-            this.spans = new ArrayListSpanProcessor();
             this.sdkTracerProvider = SdkTracerProvider.builder()
-                .setSampler(alwaysOn())
-                .addSpanProcessor(spans)
+                .setSampler(Sampler.alwaysOff())
                 .build();
             this.openTelemetrySdk = OpenTelemetrySdk.builder()
                 .setTracerProvider(sdkTracerProvider)
-                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
                 .build();
             this.otelTracer = openTelemetrySdk.getTracerProvider()
                 .get("io.micrometer.micrometer-tracing");
@@ -91,17 +83,24 @@ public class OtelTracerBenchmark {
             this.startedSpan = this.tracer.nextSpan().name("started-span").start();
         }
 
-        @TearDown
-        public void close() {
-            spans.close();
-        }
-
     }
+
+    @Benchmark
+    public void micrometerTracing(MicrometerTracingState state, Blackhole blackhole) {
+        micrometerTracing(state.tracer, state.childSpanCount, blackhole);
+    }
+
+    @Benchmark
+    public void micrometerTracingWithScope(MicrometerTracingState state, Blackhole blackhole) {
+        micrometerTracingWithScope(state.tracer, state.childSpanCount, blackhole);
+    }
+
 
     @State(Scope.Benchmark)
     public static class OtelState {
 
-        ArrayListSpanProcessor spans;
+        @Param({"5"})
+        public int childSpanCount;
 
         SdkTracerProvider sdkTracerProvider;
 
@@ -109,109 +108,52 @@ public class OtelTracerBenchmark {
 
         io.opentelemetry.api.trace.Tracer tracer;
 
-        SpanBuilder createdSpan;
-
         io.opentelemetry.api.trace.Span startedSpan;
 
         Context parentContext;
 
         @Setup
         public void setup() {
-            this.spans = new ArrayListSpanProcessor();
             this.sdkTracerProvider = SdkTracerProvider.builder()
-                .setSampler(alwaysOn())
-                .addSpanProcessor(spans)
+                .setSampler(Sampler.alwaysOff())
                 .build();
             this.openTelemetrySdk = OpenTelemetrySdk.builder()
                 .setTracerProvider(sdkTracerProvider)
-                .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
                 .build();
             this.tracer = openTelemetrySdk.getTracerProvider()
                 .get("io.micrometer.micrometer-tracing");
-            this.createdSpan = this.tracer.spanBuilder("created-span");
             this.startedSpan = this.tracer.spanBuilder("started-span").startSpan();
             this.parentContext = Context.root().with(this.startedSpan);
         }
 
-        @TearDown
-        public void close() {
-            spans.close();
+    }
+
+
+    @Benchmark
+    public void otelTracing(OtelState state, Blackhole blackhole) {
+        io.opentelemetry.api.trace.Span parentSpan = state.tracer.spanBuilder("parent-span").startSpan();
+        for (int i = 0; i < state.childSpanCount; i++) {
+            io.opentelemetry.api.trace.Span span = state.tracer.spanBuilder("new-span" + i).setParent(state.parentContext).startSpan();
+            span.setAttribute("key", "value").addEvent("event").end();
         }
-
-    }
-
-    // TODO: Add randomness in state
-    // TODO: Add a typical use-case full scenario with all steps (create, start, stop, scope, tag, event)
-    // TODO: A noop case with micrometer tracing
-
-    @Benchmark
-    public void micrometerTracing_createSpan(MicrometerTracingState state) {
-        state.tracer.nextSpan();
+        parentSpan.end();
+        blackhole.consume(parentSpan);
     }
 
     @Benchmark
-    public void micrometerTracing_createSpanWithParent(MicrometerTracingState state) {
-        state.tracer.nextSpan(state.startedSpan);
-    }
-
-    @Benchmark
-    public void micrometerTracing_startStopSpan(MicrometerTracingState state) {
-        state.createdSpan.start().end();
-    }
-
-    @Benchmark
-    public void micrometerTracing_openCloseScope(MicrometerTracingState state) {
-        state.tracer.withSpan(state.startedSpan).close();
-    }
-
-    @Benchmark
-    public void micrometerTracing_tagASpan(MicrometerTracingState state) {
-        state.startedSpan.tag("foo", "bar");
-    }
-
-    @Benchmark
-    public void micrometerTracing_annotateASpan(MicrometerTracingState state) {
-        state.startedSpan.event("event");
-    }
-
-    @Benchmark
-    public void micrometerTracing_getCurrentSpanWhenNoSpanPresent(MicrometerTracingState state) {
-        state.tracer.currentSpan();
-    }
-
-    @Benchmark
-    public void tracer_createSpan(OtelState state) {
-        state.tracer.spanBuilder("new-span").startSpan();
-    }
-
-    @Benchmark
-    public void tracer_createSpanWithParent(OtelState state) {
-        state.tracer.spanBuilder("with-parent").setParent(state.parentContext).startSpan();
-    }
-
-    @Benchmark
-    public void tracer_startStopSpan(OtelState state) {
-        state.createdSpan.startSpan().end();
-    }
-
-    @Benchmark
-    public void tracer_openCloseScope(OtelState state) {
-        state.startedSpan.makeCurrent().close();
-    }
-
-    @Benchmark
-    public void tracer_tagASpan(OtelState state) {
-        state.startedSpan.setAttribute("foo", "bar");
-    }
-
-    @Benchmark
-    public void tracer_annotateASpan(OtelState state) {
-        state.startedSpan.addEvent("event");
-    }
-
-    @Benchmark
-    public void tracer_getCurrentSpanWhenNoSpanPresent(OtelState state) {
-        io.opentelemetry.api.trace.Span.current();
+    public void otelTracingWithScope(OtelState state, Blackhole blackhole) {
+        io.opentelemetry.api.trace.Span parentSpan = state.tracer.spanBuilder("parent-span").startSpan();
+        try (io.opentelemetry.context.Scope scope = parentSpan.makeCurrent()) {
+            for (int i = 0; i < state.childSpanCount; i++) {
+                io.opentelemetry.api.trace.Span span = state.tracer.spanBuilder("new-span" + i).startSpan();
+                try (io.opentelemetry.context.Scope scope2 = span.makeCurrent()) {
+                    span.setAttribute("key", "value").addEvent("event");
+                }
+                span.end();
+            }
+        }
+        parentSpan.end();
+        blackhole.consume(parentSpan);
     }
 
 }
