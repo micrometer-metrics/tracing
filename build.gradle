@@ -16,6 +16,7 @@ buildscript {
 		classpath 'io.spring.nohttp:nohttp-gradle:0.0.11'
 		classpath 'io.github.gradle-nexus:publish-plugin:1.3.0'
 		classpath 'io.spring.javaformat:spring-javaformat-gradle-plugin:0.0.39'
+		classpath 'me.champeau.jmh:jmh-gradle-plugin:0.7.1'
 
 		constraints {
 			classpath('org.ow2.asm:asm:7.3.1') {
@@ -55,6 +56,7 @@ subprojects {
 		apply plugin: 'checkstyle'
 		apply plugin: 'io.spring.nohttp'
 		apply plugin: 'io.spring.javaformat'
+		apply plugin: 'me.champeau.jmh'
 
 		java {
 			// It is more idiomatic to define different features for different sets of optional
@@ -74,6 +76,14 @@ subprojects {
 			// JSR-305 only used for non-required meta-annotations
 			optionalApi 'com.google.code.findbugs:jsr305:latest.release'
 			checkstyle 'io.spring.javaformat:spring-javaformat-checkstyle:latest.release'
+			jmh 'org.openjdk.jmh:jmh-core:1.36'
+			jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
+			jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
+			jmh 'net.sf.jopt-simple:jopt-simple'
+		}
+
+		jmh {
+			duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 		}
 
 		tasks {
