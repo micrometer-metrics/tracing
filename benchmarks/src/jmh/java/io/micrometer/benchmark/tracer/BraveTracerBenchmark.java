@@ -33,7 +33,7 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
     @State(Scope.Benchmark)
     public static class MicrometerTracingState {
 
-        @Param({"5"})
+        @Param({ "5" })
         public int childSpanCount;
 
         ThreadLocalCurrentTraceContext braveCurrentTraceContext;
@@ -73,6 +73,11 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
     }
 
     @Benchmark
+    public void micrometerTracingNewSpan(MicrometerTracingState state, Blackhole blackhole) {
+        micrometerTracingNewSpan(state.tracer, blackhole);
+    }
+
+    @Benchmark
     public void micrometerTracingWithScope(MicrometerTracingState state, Blackhole blackhole) {
         micrometerTracingWithScope(state.tracer, state.childSpanCount, blackhole);
     }
@@ -80,7 +85,7 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
     @State(Scope.Benchmark)
     public static class BraveState {
 
-        @Param({"5"})
+        @Param({ "5" })
         public int childSpanCount;
 
         ThreadLocalCurrentTraceContext braveCurrentTraceContext;
@@ -88,7 +93,6 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
         Tracing tracing;
 
         brave.Tracer tracer;
-
 
         @Setup
         public void setup() {
@@ -119,6 +123,13 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
         }
         parentSpan.finish();
         blackhole.consume(parentSpan);
+    }
+
+    @Benchmark
+    public void braveTracingNewSpan(BraveState state, Blackhole blackhole) {
+        brave.Span span = state.tracer.nextSpan().name("child-span").start();
+        span.finish();
+        blackhole.consume(span);
     }
 
     @Benchmark

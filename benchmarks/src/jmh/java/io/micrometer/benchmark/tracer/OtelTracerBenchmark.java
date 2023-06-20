@@ -49,7 +49,7 @@ public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
     @State(Scope.Benchmark)
     public static class MicrometerTracingState {
 
-        @Param({"5"})
+        @Param({ "5" })
         public int childSpanCount;
 
         SdkTracerProvider sdkTracerProvider;
@@ -68,14 +68,9 @@ public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
 
         @Setup
         public void setup() {
-            this.sdkTracerProvider = SdkTracerProvider.builder()
-                .setSampler(Sampler.alwaysOff())
-                .build();
-            this.openTelemetrySdk = OpenTelemetrySdk.builder()
-                .setTracerProvider(sdkTracerProvider)
-                .build();
-            this.otelTracer = openTelemetrySdk.getTracerProvider()
-                .get("io.micrometer.micrometer-tracing");
+            this.sdkTracerProvider = SdkTracerProvider.builder().setSampler(Sampler.alwaysOff()).build();
+            this.openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider).build();
+            this.otelTracer = openTelemetrySdk.getTracerProvider().get("io.micrometer.micrometer-tracing");
             this.otelCurrentTraceContext = new OtelCurrentTraceContext();
             this.tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
             }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
@@ -91,15 +86,19 @@ public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
     }
 
     @Benchmark
+    public void micrometerTracingNewSpan(MicrometerTracingState state, Blackhole blackhole) {
+        micrometerTracingNewSpan(state.tracer, blackhole);
+    }
+
+    @Benchmark
     public void micrometerTracingWithScope(MicrometerTracingState state, Blackhole blackhole) {
         micrometerTracingWithScope(state.tracer, state.childSpanCount, blackhole);
     }
 
-
     @State(Scope.Benchmark)
     public static class OtelState {
 
-        @Param({"5"})
+        @Param({ "5" })
         public int childSpanCount;
 
         SdkTracerProvider sdkTracerProvider;
@@ -114,28 +113,31 @@ public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
 
         @Setup
         public void setup() {
-            this.sdkTracerProvider = SdkTracerProvider.builder()
-                .setSampler(Sampler.alwaysOff())
-                .build();
-            this.openTelemetrySdk = OpenTelemetrySdk.builder()
-                .setTracerProvider(sdkTracerProvider)
-                .build();
-            this.tracer = openTelemetrySdk.getTracerProvider()
-                .get("io.micrometer.micrometer-tracing");
+            this.sdkTracerProvider = SdkTracerProvider.builder().setSampler(Sampler.alwaysOff()).build();
+            this.openTelemetrySdk = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider).build();
+            this.tracer = openTelemetrySdk.getTracerProvider().get("io.micrometer.micrometer-tracing");
             this.startedSpan = this.tracer.spanBuilder("started-span").startSpan();
             this.parentContext = Context.root().with(this.startedSpan);
         }
 
     }
 
-
     @Benchmark
     public void otelTracing(OtelState state, Blackhole blackhole) {
         io.opentelemetry.api.trace.Span parentSpan = state.tracer.spanBuilder("parent-span").startSpan();
         for (int i = 0; i < state.childSpanCount; i++) {
-            io.opentelemetry.api.trace.Span span = state.tracer.spanBuilder("new-span" + i).setParent(state.parentContext).startSpan();
+            io.opentelemetry.api.trace.Span span = state.tracer.spanBuilder("new-span" + i)
+                .setParent(state.parentContext)
+                .startSpan();
             span.setAttribute("key", "value").addEvent("event").end();
         }
+        parentSpan.end();
+        blackhole.consume(parentSpan);
+    }
+
+    @Benchmark
+    public void otelTracingNewSpan(OtelState state, Blackhole blackhole) {
+        io.opentelemetry.api.trace.Span parentSpan = state.tracer.spanBuilder("child-span").startSpan();
         parentSpan.end();
         blackhole.consume(parentSpan);
     }

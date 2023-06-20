@@ -31,6 +31,12 @@ interface MicrometerTracingBenchmarks {
         blackhole.consume(parentSpan);
     }
 
+    default void micrometerTracingNewSpan(Tracer tracer, Blackhole blackhole) {
+        Span span = tracer.nextSpan().name("child-span").start();
+        span.end();
+        blackhole.consume(span);
+    }
+
     default void micrometerTracingWithScope(Tracer tracer, int childSpanCount, Blackhole blackhole) {
         Span parentSpan = tracer.nextSpan().name("parent-span").start();
         try (Tracer.SpanInScope ws = tracer.withSpan(parentSpan)) {
@@ -45,4 +51,5 @@ interface MicrometerTracingBenchmarks {
         parentSpan.end();
         blackhole.consume(parentSpan);
     }
+
 }
