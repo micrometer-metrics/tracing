@@ -86,8 +86,8 @@ public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
     }
 
     @Benchmark
-    public void micrometerTracingNewSpan(MicrometerTracingState state, Blackhole blackhole) {
-        micrometerTracingNewSpan(state.tracer, blackhole);
+    public Span micrometerTracingNewSpan(MicrometerTracingState state) {
+        return micrometerTracingNewSpan(state.tracer);
     }
 
     @Benchmark
@@ -130,16 +130,17 @@ public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
                 .setParent(state.parentContext)
                 .startSpan();
             span.setAttribute("key", "value").addEvent("event").end();
+            blackhole.consume(span);
         }
         parentSpan.end();
         blackhole.consume(parentSpan);
     }
 
     @Benchmark
-    public void otelTracingNewSpan(OtelState state, Blackhole blackhole) {
+    public io.opentelemetry.api.trace.Span otelTracingNewSpan(OtelState state) {
         io.opentelemetry.api.trace.Span parentSpan = state.tracer.spanBuilder("child-span").startSpan();
         parentSpan.end();
-        blackhole.consume(parentSpan);
+        return parentSpan;
     }
 
     @Benchmark
@@ -152,6 +153,7 @@ public class OtelTracerBenchmark implements MicrometerTracingBenchmarks {
                     span.setAttribute("key", "value").addEvent("event");
                 }
                 span.end();
+                blackhole.consume(span);
             }
         }
         parentSpan.end();

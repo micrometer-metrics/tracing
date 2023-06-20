@@ -15,6 +15,7 @@
  */
 package io.micrometer.benchmark.tracer;
 
+import brave.Span;
 import brave.Tracing;
 import brave.handler.SpanHandler;
 import brave.propagation.ThreadLocalCurrentTraceContext;
@@ -73,8 +74,8 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
     }
 
     @Benchmark
-    public void micrometerTracingNewSpan(MicrometerTracingState state, Blackhole blackhole) {
-        micrometerTracingNewSpan(state.tracer, blackhole);
+    public io.micrometer.tracing.Span micrometerTracingNewSpan(MicrometerTracingState state) {
+        return micrometerTracingNewSpan(state.tracer);
     }
 
     @Benchmark
@@ -120,16 +121,17 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
         for (int i = 0; i < state.childSpanCount; i++) {
             brave.Span span = state.tracer.nextSpan(traceContext).name("new-span" + i);
             span.start().tag("key", "value").annotate("event").finish();
+            blackhole.consume(span);
         }
         parentSpan.finish();
         blackhole.consume(parentSpan);
     }
 
     @Benchmark
-    public void braveTracingNewSpan(BraveState state, Blackhole blackhole) {
+    public Span braveTracingNewSpan(BraveState state, Blackhole blackhole) {
         brave.Span span = state.tracer.nextSpan().name("child-span").start();
         span.finish();
-        blackhole.consume(span);
+        return span;
     }
 
     @Benchmark
@@ -142,6 +144,7 @@ public class BraveTracerBenchmark implements MicrometerTracingBenchmarks {
                     childSpan.tag("key", "value").annotate("event");
                 }
                 childSpan.finish();
+                blackhole.consume(childSpan);
             }
         }
         parentSpan.finish();
