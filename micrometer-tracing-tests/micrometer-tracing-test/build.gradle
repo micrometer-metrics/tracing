@@ -9,4 +9,8 @@ dependencies {
 	// Tests for tests
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+
+	testImplementation 'io.projectreactor:reactor-core'
+	testImplementation 'io.projectreactor:reactor-core-micrometer'
+	testImplementation 'io.projectreactor:reactor-test'
 }
