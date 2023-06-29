@@ -14,4 +14,8 @@ dependencies {
 	// aspects
 	testImplementation 'org.springframework:spring-context'
 	testImplementation 'org.aspectj:aspectjweaver'
+
+	testImplementation 'io.projectreactor:reactor-core'
+	testImplementation 'io.projectreactor:reactor-core-micrometer'
+	testImplementation 'io.projectreactor:reactor-test'
 }
