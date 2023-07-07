@@ -33,8 +33,12 @@ import java.util.List;
 public class DefaultHttpServerAttributesExtractor
         implements HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> {
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. It should not be used since
+     * always returned null in Micrometer Tracing.
+     */
     @Nullable
-    @Override
+    @Deprecated
     public String getFlavor(HttpServerRequest httpServerRequest) {
         return null;
     }

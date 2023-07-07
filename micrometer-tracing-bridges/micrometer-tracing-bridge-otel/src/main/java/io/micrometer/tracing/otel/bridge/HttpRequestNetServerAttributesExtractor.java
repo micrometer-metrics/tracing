@@ -17,6 +17,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.http.HttpServerRequest;
+import io.micrometer.tracing.http.HttpServerResponse;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetServerAttributesGetter;
 
 import java.net.URI;
@@ -26,7 +27,8 @@ import java.net.URI;
  *
  * @author Nikita Salnikov-Tarnovski
  */
-class HttpRequestNetServerAttributesExtractor implements NetServerAttributesGetter<HttpServerRequest> {
+class HttpRequestNetServerAttributesExtractor
+        implements NetServerAttributesGetter<HttpServerRequest, HttpServerResponse> {
 
     @Nullable
     @Override

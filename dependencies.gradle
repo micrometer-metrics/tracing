@@ -2,7 +2,7 @@ def VERSIONS = [
 	'javax.servlet:javax.servlet-api:latest.release',
 	'jakarta.platform:jakarta.jakartaee-web-api:9.+',
 
-	'io.micrometer:context-propagation:1.0.3',
+	'io.micrometer:context-propagation:latest.release',
 
 	'aopalliance:aopalliance:1.0',
 	'org.aspectj:aspectjweaver:1.8.+',
@@ -14,12 +14,12 @@ def VERSIONS = [
 	'org.apache.logging.log4j:log4j-core:2.+',
 	'org.slf4j:slf4j-api:1.7.+',
 	// otel
-	'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.24.+',
+	'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.+',
 	// zipkin
 	'io.zipkin.aws:brave-propagation-aws:latest.release',
 	// wavefront
-	'com.wavefront:wavefront-sdk-java:3.0.+',
-	'com.wavefront:wavefront-internal-reporter-java:1.7.+',
+	'com.wavefront:wavefront-sdk-java:3.+',
+	'com.wavefront:wavefront-internal-reporter-java:1.+',
 	// test
 	'org.assertj:assertj-core:latest.release',
 	'org.awaitility:awaitility:latest.release',
@@ -32,15 +32,15 @@ def VERSIONS = [
 ]
 
 def MICROMETER_PLATFORM_VERSIONS = [
-	'io.micrometer:micrometer-bom:1.11.2-SNAPSHOT'
+	'io.micrometer:micrometer-bom:1.12.0-SNAPSHOT'
 ]
 
 def PLATFORM_VERSIONS = [
-	'io.zipkin.brave:brave-bom:5.14.+',
+	'io.zipkin.brave:brave-bom:5.+',
 	// opentelemetry-instrumentation-api dependency above with this
-	'io.opentelemetry:opentelemetry-bom:1.25.+',
-	'io.opentelemetry:opentelemetry-bom-alpha:1.25.+',
-	'io.projectreactor:reactor-bom:2022.0.8',
+	'io.opentelemetry:opentelemetry-bom:1.+',
+	'io.opentelemetry:opentelemetry-bom-alpha:1.+',
+	'io.projectreactor:reactor-bom:latest.release',
 	'org.junit:junit-bom:5.9.+'
 ]
 

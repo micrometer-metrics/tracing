@@ -38,8 +38,12 @@ public class DefaultHttpClientAttributesGetter
         return httpClientRequest.url();
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. It should not be used since
+     * always returned null in Micrometer Tracing.
+     */
     @Nullable
-    @Override
+    @Deprecated
     public String getFlavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
         return null;
     }
