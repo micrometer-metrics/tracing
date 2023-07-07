@@ -19,9 +19,9 @@ def VERSIONS = [
 	// test
 	'org.assertj:assertj-core:latest.release',
 	'org.awaitility:awaitility:latest.release',
-	'org.mockito:mockito-core:4.+',
-	'org.mockito:mockito-inline:4.+',
-	'org.mockito:mockito-junit-jupiter:4.+',
+	'org.mockito:mockito-core:latest.release',
+	'org.mockito:mockito-inline:latest.release',
+	'org.mockito:mockito-junit-jupiter:latest.release',
 	'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
 	'org.testcontainers:testcontainers:latest.release',
 	'org.testcontainers:junit-jupiter:latest.release'
