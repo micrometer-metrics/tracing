@@ -59,7 +59,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     public Scope newScope(TraceContext context) {
         OtelTraceContext otelTraceContext = (OtelTraceContext) context;
         if (otelTraceContext == null) {
-            return io.opentelemetry.context.Scope::noop;
+            return new WrappedScope(io.opentelemetry.context.Scope.noop());
         }
         Context current = Context.current();
         Context old = otelTraceContext.context();
@@ -76,24 +76,20 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         Baggage oldBaggage = Baggage.fromContext(old);
         boolean sameBaggage = sameBaggage(currentBaggage, oldBaggage);
         if (sameSpan && sameBaggage) {
-            return io.opentelemetry.context.Scope::noop;
+            return new WrappedScope(io.opentelemetry.context.Scope.noop());
         }
         Baggage updatedBaggage = mergeBaggage(currentBaggage, oldBaggage);
         Context newContext = old.with(fromContext).with(updatedBaggage);
         io.opentelemetry.context.Scope attach = newContext.makeCurrent();
         otelTraceContext.updateContext(newContext);
-        return () -> {
-            otelTraceContext.updateContext(old);
-            attach.close();
-        };
+        return new WrappedScope(attach, otelTraceContext, old);
     }
 
     private static Baggage mergeBaggage(Baggage currentBaggage, Baggage oldBaggage) {
         BaggageBuilder baggageBuilder = currentBaggage.toBuilder();
         oldBaggage.forEach(
                 (key, baggageEntry) -> baggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
-        Baggage updatedBaggage = baggageBuilder.build();
-        return updatedBaggage;
+        return baggageBuilder.build();
     }
 
     private boolean sameBaggage(Baggage currentBaggage, Baggage oldBaggage) {
@@ -104,7 +100,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     public Scope maybeScope(TraceContext context) {
         if (context == null) {
             io.opentelemetry.context.Scope scope = Context.root().makeCurrent();
-            return scope::close;
+            return new WrappedScope(scope);
         }
         return newScope(context);
     }
@@ -127,6 +123,34 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     @Override
     public ExecutorService wrap(ExecutorService delegate) {
         return Context.current().wrap(delegate);
+    }
+
+    static class WrappedScope implements Scope {
+
+        final io.opentelemetry.context.Scope scope;
+
+        final OtelTraceContext otelTraceContext;
+
+        final Context old;
+
+        WrappedScope(io.opentelemetry.context.Scope scope) {
+            this(scope, null, null);
+        }
+
+        WrappedScope(io.opentelemetry.context.Scope scope, OtelTraceContext otelTraceContext, Context old) {
+            this.scope = scope;
+            this.otelTraceContext = otelTraceContext;
+            this.old = old;
+        }
+
+        @Override
+        public void close() {
+            if (this.otelTraceContext != null) {
+                otelTraceContext.updateContext(old);
+            }
+            this.scope.close();
+        }
+
     }
 
 }

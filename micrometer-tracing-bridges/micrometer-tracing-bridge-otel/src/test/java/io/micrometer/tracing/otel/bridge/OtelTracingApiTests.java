@@ -21,17 +21,16 @@ import io.micrometer.context.ContextSnapshot;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
-import io.micrometer.tracing.Baggage;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.*;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
+import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -268,6 +267,48 @@ class OtelTracingApiTests {
                 }
             }
         });
+    }
+
+    @Test
+    void should_work_with_with_scope_for_tracer_and_current_trace_context() {
+        Span span = tracer.nextSpan();
+
+        BDDAssertions.then(io.opentelemetry.api.trace.Span.current())
+            .isSameAs(io.opentelemetry.api.trace.Span.getInvalid());
+
+        try (Tracer.SpanInScope ws = tracer.withSpan(span.start())) {
+            OtelCurrentTraceContext.WrappedScope wrappedScope = getScopeFromTracerScope(
+                    (OtelTracer.WrappedSpanInScope) ws);
+            BDDAssertions.then(wrappedScope.scope).isNotSameAs(Scope.noop());
+            BDDAssertions.then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+            try (Tracer.SpanInScope ws2 = tracer.withSpan(span)) {
+                OtelCurrentTraceContext.WrappedScope wrappedScope2 = getScopeFromTracerScope(
+                        (OtelTracer.WrappedSpanInScope) ws2);
+                BDDAssertions.then(wrappedScope2.scope).isSameAs(Scope.noop());
+                BDDAssertions.then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+            }
+        }
+
+        BDDAssertions.then(io.opentelemetry.api.trace.Span.current())
+            .isSameAs(io.opentelemetry.api.trace.Span.getInvalid());
+
+        try (CurrentTraceContext.Scope ws = otelCurrentTraceContext.maybeScope(span.context())) {
+            Scope scope = ((OtelCurrentTraceContext.WrappedScope) ws).scope;
+            BDDAssertions.then(scope).isNotSameAs(Scope.noop());
+            BDDAssertions.then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+            try (CurrentTraceContext.Scope ws2 = otelCurrentTraceContext.maybeScope(span.context())) {
+                Scope scope2 = ((OtelCurrentTraceContext.WrappedScope) ws2).scope;
+                BDDAssertions.then(scope2).isSameAs(Scope.noop());
+                BDDAssertions.then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+            }
+        }
+
+        BDDAssertions.then(io.opentelemetry.api.trace.Span.current())
+            .isSameAs(io.opentelemetry.api.trace.Span.getInvalid());
+    }
+
+    private static OtelCurrentTraceContext.WrappedScope getScopeFromTracerScope(OtelTracer.WrappedSpanInScope ws) {
+        return (OtelCurrentTraceContext.WrappedScope) ws.scope;
     }
 
 }
