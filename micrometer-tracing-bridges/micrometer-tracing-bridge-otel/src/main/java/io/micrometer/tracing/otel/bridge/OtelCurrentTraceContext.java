@@ -129,24 +129,25 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
         final io.opentelemetry.context.Scope scope;
 
-        final OtelTraceContext otelTraceContext;
+        final OtelTraceContext currentOtelTraceContext;
 
-        final Context old;
+        final Context oldContext;
 
         WrappedScope(io.opentelemetry.context.Scope scope) {
             this(scope, null, null);
         }
 
-        WrappedScope(io.opentelemetry.context.Scope scope, OtelTraceContext otelTraceContext, Context old) {
+        WrappedScope(io.opentelemetry.context.Scope scope, OtelTraceContext currentOtelTraceContext,
+                Context oldContext) {
             this.scope = scope;
-            this.otelTraceContext = otelTraceContext;
-            this.old = old;
+            this.currentOtelTraceContext = currentOtelTraceContext;
+            this.oldContext = oldContext;
         }
 
         @Override
         public void close() {
-            if (this.otelTraceContext != null) {
-                otelTraceContext.updateContext(old);
+            if (this.currentOtelTraceContext != null) {
+                currentOtelTraceContext.updateContext(oldContext);
             }
             this.scope.close();
         }

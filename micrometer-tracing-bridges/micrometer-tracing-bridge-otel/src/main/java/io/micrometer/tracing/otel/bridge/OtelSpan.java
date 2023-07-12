@@ -57,9 +57,6 @@ class OtelSpan implements Span {
     }
 
     static Span fromOtel(io.opentelemetry.api.trace.Span span) {
-        if (span instanceof OtelSpan) {
-            return (OtelSpan) span;
-        }
         return new OtelSpan(span);
     }
 
