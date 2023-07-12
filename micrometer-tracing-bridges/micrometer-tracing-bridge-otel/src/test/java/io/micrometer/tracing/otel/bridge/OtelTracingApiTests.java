@@ -15,20 +15,10 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import io.micrometer.tracing.Baggage;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.Link;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.*;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -38,6 +28,13 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
 import static org.assertj.core.api.BDDAssertions.then;
@@ -363,6 +360,52 @@ class OtelTracingApiTests {
         then(linkData.getSpanContext().getTraceId()).isEqualTo("0af7651916cd43ddb7ad6b7169203331");
         then(linkData.getSpanContext().getSpanId()).isEqualTo("8448eb211c80319c");
         then(linkData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("tag"), "value");
+    }
+
+    @Test
+    void should_work_with_with_scope_for_tracer_and_current_trace_context() {
+        Span span = tracer.nextSpan();
+
+        then(io.opentelemetry.api.trace.Span.current()).isSameAs(io.opentelemetry.api.trace.Span.getInvalid());
+        then(tracer.currentSpan()).isNull();
+
+        try (Tracer.SpanInScope ws = tracer.withSpan(span.start())) {
+            OtelCurrentTraceContext.WrappedScope wrappedScope = getScopeFromTracerScope(
+                    (OtelTracer.WrappedSpanInScope) ws);
+            then(wrappedScope.scope).isNotSameAs(Scope.noop());
+            then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+            then(tracer.currentSpan()).isEqualTo(span);
+            try (Tracer.SpanInScope ws2 = tracer.withSpan(span)) {
+                OtelCurrentTraceContext.WrappedScope wrappedScope2 = getScopeFromTracerScope(
+                        (OtelTracer.WrappedSpanInScope) ws2);
+                then(wrappedScope2.scope).isSameAs(Scope.noop());
+                then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+                then(tracer.currentSpan()).isEqualTo(span);
+            }
+        }
+
+        then(io.opentelemetry.api.trace.Span.current()).isSameAs(io.opentelemetry.api.trace.Span.getInvalid());
+        then(tracer.currentSpan()).isNull();
+
+        try (CurrentTraceContext.Scope ws = otelCurrentTraceContext.maybeScope(span.context())) {
+            Scope scope = ((OtelCurrentTraceContext.WrappedScope) ws).scope;
+            then(scope).isNotSameAs(Scope.noop());
+            then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+            then(tracer.currentSpan()).isEqualTo(span);
+            try (CurrentTraceContext.Scope ws2 = otelCurrentTraceContext.maybeScope(span.context())) {
+                Scope scope2 = ((OtelCurrentTraceContext.WrappedScope) ws2).scope;
+                then(scope2).isSameAs(Scope.noop());
+                then(io.opentelemetry.api.trace.Span.current()).isSameAs(OtelSpan.toOtel(span));
+                then(tracer.currentSpan()).isEqualTo(span);
+            }
+        }
+
+        then(io.opentelemetry.api.trace.Span.current()).isSameAs(io.opentelemetry.api.trace.Span.getInvalid());
+        then(tracer.currentSpan()).isNull();
+    }
+
+    private static OtelCurrentTraceContext.WrappedScope getScopeFromTracerScope(OtelTracer.WrappedSpanInScope ws) {
+        return (OtelCurrentTraceContext.WrappedScope) ws.scope;
     }
 
 }
