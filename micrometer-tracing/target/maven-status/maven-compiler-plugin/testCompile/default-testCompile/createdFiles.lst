@@ -1,0 +1,11 @@
+io/micrometer/tracing/internal/DefaultSpanNamerTests$WithToString.class
+io/micrometer/tracing/exporter/SpanIgnoringSpanExportingPredicateTests.class
+io/micrometer/tracing/NoopTracerTests.class
+io/micrometer/tracing/internal/DefaultSpanNamerTests$WithDefaultToString.class
+io/micrometer/tracing/internal/SpanNameUtilTests.class
+io/micrometer/tracing/handler/TracingAwareMeterObservationHandlerTests.class
+io/micrometer/tracing/internal/DefaultSpanNamerTests.class
+io/micrometer/tracing/internal/EncodingUtilsTests.class
+io/micrometer/tracing/annotation/NoOpTagValueResolverTests.class
+io/micrometer/tracing/internal/DefaultSpanNamerTests$WithAnnotation.class
+io/micrometer/tracing/handler/TracingObservationHandlerTests.class

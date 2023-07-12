@@ -1,0 +1,7 @@
+/home/marcin/repo/observability/tracing/micrometer-tracing-tests/micrometer-tracing-test/src/test/java/io/micrometer/tracing/test/simple/SpanAssertTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing-tests/micrometer-tracing-test/src/test/java/io/micrometer/tracing/test/contextpropagation/ObservationAwareSpanThreadLocalAccessorTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing-tests/micrometer-tracing-test/src/test/java/io/micrometer/tracing/test/contextpropagation/ObservationThreadLocalAccessorTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing-tests/micrometer-tracing-test/src/test/java/io/micrometer/tracing/test/simple/TracerAssertTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing-tests/micrometer-tracing-test/src/test/java/io/micrometer/tracing/test/simple/SimpleTracerTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing-tests/micrometer-tracing-test/src/test/java/io/micrometer/tracing/test/simple/SimpleSpanBuilderTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing-tests/micrometer-tracing-test/src/test/java/io/micrometer/tracing/test/simple/SpansAssertTests.java

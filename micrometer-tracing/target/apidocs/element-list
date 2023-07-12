@@ -1,0 +1,9 @@
+io.micrometer.tracing
+io.micrometer.tracing.annotation
+io.micrometer.tracing.contextpropagation
+io.micrometer.tracing.docs
+io.micrometer.tracing.exporter
+io.micrometer.tracing.handler
+io.micrometer.tracing.http
+io.micrometer.tracing.internal
+io.micrometer.tracing.propagation

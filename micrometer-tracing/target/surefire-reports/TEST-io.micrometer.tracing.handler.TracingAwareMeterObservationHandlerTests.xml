@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="io.micrometer.tracing.handler.TracingAwareMeterObservationHandlerTests" time="0.726" tests="2" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/marcin/repo/observability/tracing/micrometer-tracing/target/test-classes:/home/marcin/repo/observability/tracing/micrometer-tracing/target/classes:/home/marcin/.m2/repository/io/micrometer/micrometer-observation/1.10.8-SNAPSHOT/micrometer-observation-1.10.8-SNAPSHOT.jar:/home/marcin/.m2/repository/io/micrometer/micrometer-commons/1.10.8-SNAPSHOT/micrometer-commons-1.10.8-SNAPSHOT.jar:/home/marcin/.m2/repository/io/micrometer/context-propagation/1.0.3-SNAPSHOT/context-propagation-1.0.3-SNAPSHOT.jar:/home/marcin/.m2/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar:/home/marcin/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/home/marcin/.m2/repository/io/micrometer/micrometer-core/1.10.8-SNAPSHOT/micrometer-core-1.10.8-SNAPSHOT.jar:/home/marcin/.m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12.jar:/home/marcin/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/marcin/.m2/repository/ch/qos/logback/logback-classic/1.2.12/logback-classic-1.2.12.jar:/home/marcin/.m2/repository/ch/qos/logback/logback-core/1.2.12/logback-core-1.2.12.jar:/home/marcin/.m2/repository/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar:/home/marcin/.m2/repository/org/apache/logging/log4j/log4j-core/2.19.0/log4j-core-2.19.0.jar:/home/marcin/.m2/repository/org/apache/logging/log4j/log4j-api/2.19.0/log4j-api-2.19.0.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter/5.9.3/junit-jupiter-5.9.3.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.9.3/junit-jupiter-api-5.9.3.jar:/home/marcin/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/marcin/.m2/repository/org/junit/platform/junit-platform-commons/1.9.3/junit-platform-commons-1.9.3.jar:/home/marcin/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.9.3/junit-jupiter-params-5.9.3.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.9.3/junit-jupiter-engine-5.9.3.jar:/home/marcin/.m2/repository/org/junit/platform/junit-platform-engine/1.9.3/junit-platform-engine-1.9.3.jar:/home/marcin/.m2/repository/org/assertj/assertj-core/3.24.2/assertj-core-3.24.2.jar:/home/marcin/.m2/repository/net/bytebuddy/byte-buddy/1.12.21/byte-buddy-1.12.21.jar:/home/marcin/.m2/repository/org/mockito/mockito-core/5.4.0/mockito-core-5.4.0.jar:/home/marcin/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.5/byte-buddy-agent-1.14.5.jar:/home/marcin/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/marcin/.m2/repository/org/mockito/mockito-junit-jupiter/5.4.0/mockito-junit-jupiter-5.4.0.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Europe/Warsaw"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="/home/marcin/.sdkman/candidates/java/17.0.1-tem/lib"/>
+    <property name="sun.java.command" value="/home/marcin/repo/observability/tracing/micrometer-tracing/target/surefire/surefirebooter-20230712175932875_3.jar /home/marcin/repo/observability/tracing/micrometer-tracing/target/surefire 2023-07-12T17-59-32_837-jvmRun1 surefire-20230712175932875_1tmp surefire_0-20230712175932875_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/marcin/repo/observability/tracing/micrometer-tracing/target/test-classes:/home/marcin/repo/observability/tracing/micrometer-tracing/target/classes:/home/marcin/.m2/repository/io/micrometer/micrometer-observation/1.10.8-SNAPSHOT/micrometer-observation-1.10.8-SNAPSHOT.jar:/home/marcin/.m2/repository/io/micrometer/micrometer-commons/1.10.8-SNAPSHOT/micrometer-commons-1.10.8-SNAPSHOT.jar:/home/marcin/.m2/repository/io/micrometer/context-propagation/1.0.3-SNAPSHOT/context-propagation-1.0.3-SNAPSHOT.jar:/home/marcin/.m2/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar:/home/marcin/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/home/marcin/.m2/repository/io/micrometer/micrometer-core/1.10.8-SNAPSHOT/micrometer-core-1.10.8-SNAPSHOT.jar:/home/marcin/.m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12.jar:/home/marcin/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/marcin/.m2/repository/ch/qos/logback/logback-classic/1.2.12/logback-classic-1.2.12.jar:/home/marcin/.m2/repository/ch/qos/logback/logback-core/1.2.12/logback-core-1.2.12.jar:/home/marcin/.m2/repository/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar:/home/marcin/.m2/repository/org/apache/logging/log4j/log4j-core/2.19.0/log4j-core-2.19.0.jar:/home/marcin/.m2/repository/org/apache/logging/log4j/log4j-api/2.19.0/log4j-api-2.19.0.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter/5.9.3/junit-jupiter-5.9.3.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.9.3/junit-jupiter-api-5.9.3.jar:/home/marcin/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/marcin/.m2/repository/org/junit/platform/junit-platform-commons/1.9.3/junit-platform-commons-1.9.3.jar:/home/marcin/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.9.3/junit-jupiter-params-5.9.3.jar:/home/marcin/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.9.3/junit-jupiter-engine-5.9.3.jar:/home/marcin/.m2/repository/org/junit/platform/junit-platform-engine/1.9.3/junit-platform-engine-1.9.3.jar:/home/marcin/.m2/repository/org/assertj/assertj-core/3.24.2/assertj-core-3.24.2.jar:/home/marcin/.m2/repository/net/bytebuddy/byte-buddy/1.12.21/byte-buddy-1.12.21.jar:/home/marcin/.m2/repository/org/mockito/mockito-core/5.4.0/mockito-core-5.4.0.jar:/home/marcin/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.5/byte-buddy-agent-1.14.5.jar:/home/marcin/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/marcin/.m2/repository/org/mockito/mockito-junit-jupiter/5.4.0/mockito-junit-jupiter-5.4.0.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/marcin"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2021-10-19"/>
+    <property name="java.home" value="/home/marcin/.sdkman/candidates/java/17.0.1-tem"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/marcin/repo/observability/tracing/micrometer-tracing"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="/home/marcin/repo/observability/tracing/micrometer-tracing/target/surefire/surefirebooter-20230712175932875_3.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.1+12"/>
+    <property name="user.name" value="marcin"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="5.15.0-76-generic"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-17.0.1+12"/>
+    <property name="localRepository" value="/home/marcin/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="java.version" value="17.0.1"/>
+    <property name="user.dir" value="/home/marcin/repo/observability/tracing/micrometer-tracing"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="17.0.1+12"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="spanShouldBeAvailableOnStop" classname="io.micrometer.tracing.handler.TracingAwareMeterObservationHandlerTests" time="0.715"/>
+  <testcase name="callsShouldBeDelegated" classname="io.micrometer.tracing.handler.TracingAwareMeterObservationHandlerTests" time="0.004"/>
+</testsuite>

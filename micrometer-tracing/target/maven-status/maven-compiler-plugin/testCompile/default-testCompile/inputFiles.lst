@@ -1,0 +1,8 @@
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/NoopTracerTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/annotation/NoOpTagValueResolverTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/internal/SpanNameUtilTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/internal/DefaultSpanNamerTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/internal/EncodingUtilsTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/exporter/SpanIgnoringSpanExportingPredicateTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/handler/TracingAwareMeterObservationHandlerTests.java
+/home/marcin/repo/observability/tracing/micrometer-tracing/src/test/java/io/micrometer/tracing/handler/TracingObservationHandlerTests.java

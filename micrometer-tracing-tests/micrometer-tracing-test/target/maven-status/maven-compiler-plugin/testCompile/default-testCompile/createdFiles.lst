@@ -1,0 +1,8 @@
+io/micrometer/tracing/test/simple/SpansAssertTests.class
+io/micrometer/tracing/test/simple/SimpleSpanBuilderTests.class
+io/micrometer/tracing/test/simple/TracerAssertTests.class
+io/micrometer/tracing/test/contextpropagation/ObservationAwareSpanThreadLocalAccessorTests.class
+io/micrometer/tracing/test/contextpropagation/ObservationThreadLocalAccessorTests.class
+io/micrometer/tracing/test/simple/SimpleTracerTests$1.class
+io/micrometer/tracing/test/simple/SpanAssertTests.class
+io/micrometer/tracing/test/simple/SimpleTracerTests.class
