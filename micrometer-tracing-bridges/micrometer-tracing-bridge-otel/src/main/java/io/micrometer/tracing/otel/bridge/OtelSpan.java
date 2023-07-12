@@ -86,13 +86,13 @@ class OtelSpan implements Span {
     @Override
     public Span name(String name) {
         this.delegate.updateName(name);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
     public Span event(String value) {
         this.delegate.addEvent(value);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
@@ -104,7 +104,7 @@ class OtelSpan implements Span {
     @Override
     public Span tag(String key, String value) {
         this.delegate.setAttribute(key, value);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
@@ -123,7 +123,7 @@ class OtelSpan implements Span {
     public Span error(Throwable throwable) {
         this.delegate.recordException(throwable);
         this.delegate.setStatus(StatusCode.ERROR, throwable.getMessage());
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
