@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.micrometer</groupId>
     <artifactId>micrometer-tracing-bom</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.9-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
     <description>Micrometer Tracing BOM (Bill of Materials) for managing Micrometer Tracing artifact versions</description>

@@ -33,6 +33,7 @@ import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
 import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
@@ -71,6 +72,11 @@ class ScopesTests {
 
         Hooks.enableAutomaticContextPropagation();
         ObservationThreadLocalAccessor.getInstance().setObservationRegistry(observationRegistry);
+    }
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
     }
 
     @Test

@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-tracing-parent</artifactId>
-        <version>1.0.7-SNAPSHOT</version>
+        <version>1.0.9-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
     <artifactId>micrometer-tracing-bridge-otel</artifactId>

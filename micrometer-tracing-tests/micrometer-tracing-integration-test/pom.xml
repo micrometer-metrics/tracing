@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-tracing-parent</artifactId>
-        <version>1.0.7-SNAPSHOT</version>
+        <version>1.0.9-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
     <artifactId>micrometer-tracing-integration-test</artifactId>
@@ -164,6 +164,18 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
             <scope>compile</scope>
             <optional>true</optional>
         </dependency>

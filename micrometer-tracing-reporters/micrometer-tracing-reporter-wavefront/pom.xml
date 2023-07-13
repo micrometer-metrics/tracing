@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-tracing-parent</artifactId>
-        <version>1.0.7-SNAPSHOT</version>
+        <version>1.0.9-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
     <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.wavefront</groupId>
             <artifactId>wavefront-internal-reporter-java</artifactId>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>io.zipkin.brave</groupId>
             <artifactId>brave</artifactId>
-            <scope>runtime</scope>
+            <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>
@@ -53,53 +53,19 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-brave</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.zipkin.brave</groupId>
-            <artifactId>brave-instrumentation-http</artifactId>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>*</artifactId>
-                    <groupId>io.zipkin.zipkin2</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>*</artifactId>
-                    <groupId>io.zipkin.reporter2</groupId>
-                </exclusion>
-            </exclusions>
+            <scope>compile</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
-            <scope>runtime</scope>
+            <scope>compile</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-sdk-trace</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-extension-trace-propagators</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry.instrumentation</groupId>
-            <artifactId>opentelemetry-instrumentation-api-semconv</artifactId>
-            <scope>runtime</scope>
+            <scope>compile</scope>
             <optional>true</optional>
         </dependency>
 

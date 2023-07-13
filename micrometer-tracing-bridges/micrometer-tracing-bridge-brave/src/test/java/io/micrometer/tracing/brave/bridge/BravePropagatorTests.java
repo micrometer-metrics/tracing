@@ -20,7 +20,6 @@ import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
 import brave.baggage.BaggagePropagationConfig;
 import brave.propagation.B3Propagation;
-import brave.propagation.CurrentTraceContext;
 import brave.propagation.Propagation;
 import brave.propagation.StrictCurrentTraceContext;
 import io.micrometer.tracing.BaggageInScope;
@@ -35,7 +34,7 @@ import java.util.Map;
 
 class BravePropagatorTests {
 
-    CurrentTraceContext currentTraceContext = new StrictCurrentTraceContext();
+    StrictCurrentTraceContext currentTraceContext = new StrictCurrentTraceContext();
 
     Tracing tracing = Tracing.newBuilder()
         .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
@@ -52,6 +51,7 @@ class BravePropagatorTests {
     @AfterEach
     void cleanup() {
         tracing.close();
+        currentTraceContext.close();
     }
 
     @Test

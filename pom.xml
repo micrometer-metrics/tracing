@@ -5,18 +5,19 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.micrometer</groupId>
     <artifactId>micrometer-tracing-parent</artifactId>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.9-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Micrometer Tracing Parent</name>
     <description>Facade over tracing concepts</description>
     <modules>
-        <module>micrometer-tracing</module>
         <module>micrometer-tracing-bom</module>
+        <module>micrometer-tracing</module>
         <module>micrometer-tracing-bridges/micrometer-tracing-bridge-brave</module>
         <module>micrometer-tracing-bridges/micrometer-tracing-bridge-otel</module>
-        <module>micrometer-tracing-reporters/micrometer-tracing-reporter-wavefront</module>
-        <module>micrometer-tracing-tests/micrometer-tracing-integration-test</module>
         <module>micrometer-tracing-tests/micrometer-tracing-test</module>
+        <module>micrometer-tracing-tests/micrometer-tracing-integration-test</module>
+        <module>micrometer-tracing-reporters/micrometer-tracing-reporter-wavefront</module>
+        <module>benchmarks</module>
     </modules>
     <url>https://github.com/micrometer-metrics/tracing</url>
     <properties>
@@ -25,6 +26,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.testSource>11</maven.compiler.testSource>
+        <maven.compiler.testTarget>11</maven.compiler.testTarget>
 
         <!-- Plugins versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -35,26 +38,28 @@
         <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
         <spring-javaformat.version>0.0.39</spring-javaformat.version>
         <maven-checkstyle-plugin.version>3.3.0</maven-checkstyle-plugin.version>
-        <checkstyle.version>10.12.1</checkstyle.version>
+        <checkstyle.version>9.3</checkstyle.version>
         <spring-javaformat-checkstyle.version>${spring-javaformat.version}</spring-javaformat-checkstyle.version>
         <nohttp-checkstyle.version>0.0.11</nohttp-checkstyle.version>
-        <git-commit-id-plugin.version>5.0.1</git-commit-id-plugin.version>
+        <git-commit-id-maven-plugin.version>5.0.1</git-commit-id-maven-plugin.version>
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <maven-gpg-plugin.phase>verify</maven-gpg-plugin.phase>
         <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
+        <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
 
         <!-- Plugins configuration -->
         <disable.checks>false</disable.checks>
-        <checkstyle.suppressions.file>${maven.multiModuleProjectDirectory}/config/checkstyle-suppressions.xml</checkstyle.suppressions.file>
-        <checkstyle.additional.suppressions.file>${maven.multiModuleProjectDirectory}/config/suppressions.xml</checkstyle.additional.suppressions.file>
+        <checkstyle.root.dir>${maven.multiModuleProjectDirectory}/config/checkstyle</checkstyle.root.dir>
+        <checkstyle.suppressions.file>${checkstyle.root.dir}/checkstyle-suppressions.xml</checkstyle.suppressions.file>
+        <checkstyle.additional.suppressions.file>${checkstyle.root.dir}/suppressions.xml</checkstyle.additional.suppressions.file>
         <maven-checkstyle-plugin.includeTestSourceDirectory>true</maven-checkstyle-plugin.includeTestSourceDirectory>
         <maven-checkstyle-plugin.failOnViolation>true</maven-checkstyle-plugin.failOnViolation>
-        <disable.nohttp.checks>false</disable.nohttp.checks>
-        <checkstyle.nohttp.file>${maven.multiModuleProjectDirectory}/config/nohttp-checkstyle.xml</checkstyle.nohttp.file>
         <maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
         <maven-checkstyle-plugin.failsOnWarning>false</maven-checkstyle-plugin.failsOnWarning>
         <javadoc.failOnError>false</javadoc.failOnError>
-        <javadoc.failOnWarning>false</javadoc.failOnWarning>
+        <javadoc.failOnWarnings>false</javadoc.failOnWarnings>
+        <surefire.rerunFailingTestsCount>2</surefire.rerunFailingTestsCount> <!-- Aligns with what we had in Gradle -->
+        <surefire.runOrder>random</surefire.runOrder> <!-- To catch flakey tests -->
 
         <!-- Versions -->
         <micrometer.version>1.10.8-SNAPSHOT</micrometer.version>
@@ -77,7 +82,7 @@
         <opentelemetry-semconv.version>1.19.2-alpha</opentelemetry-semconv.version> <!-- Override of alpha bom -->
 
         <!-- Wavefront -->
-        <wavefront-internal-reporter-java.version>1.17.16</wavefront-internal-reporter-java.version>
+        <wavefront-internal-reporter-java.version>1.7.16</wavefront-internal-reporter-java.version>
         <wavefront-sdk-java.version>3.0.4</wavefront-sdk-java.version>
 
         <!-- Testing -->
@@ -87,6 +92,7 @@
         <awaitility.version>4.2.0</awaitility.version>
         <mockito.version>5.4.0</mockito.version>
         <wiremock.version>2.35.0</wiremock.version>
+        <testcontainers.version>1.18.3</testcontainers.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -136,6 +142,13 @@
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
                 <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -259,6 +272,148 @@
     </developers>
     <build>
         <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <!-- Tidy up all POMs before they are published -->
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                        <configuration>
+                            <updatePomFile>true</updatePomFile>
+                            <flattenMode>oss</flattenMode>
+                            <pomElements>
+                                <parent>expand</parent>
+                                <distributionManagement>remove</distributionManagement>
+                                <repositories>remove</repositories>
+                            </pomElements>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Apply more sensible defaults for user projects -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <testSource>${maven.compiler.testSource}</testSource>
+                    <testTarget>${maven.compiler.testTarget}</testTarget>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Tests.*</include>
+                        <include>**/*Test.*</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/Abstract*.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.spring.javaformat</groupId>
+                <artifactId>spring-javaformat-maven-plugin</artifactId>
+                <version>${spring-javaformat.version}</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <configuration>
+                            <skip>${disable.checks}</skip>
+                        </configuration>
+                        <goals>
+                            <goal>apply</goal>
+                            <goal>validate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.spring.javaformat</groupId>
+                        <artifactId>spring-javaformat-checkstyle</artifactId>
+                        <version>${spring-javaformat-checkstyle.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.spring.nohttp</groupId>
+                        <artifactId>nohttp-checkstyle</artifactId>
+                        <version>${nohttp-checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>checkstyle-validation</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <skip>${disable.checks}</skip>
+                            <configLocation>${checkstyle.root.dir}/checkstyle.xml</configLocation>
+                            <headerLocation>${checkstyle.root.dir}/checkstyle-header.txt</headerLocation>
+                            <propertyExpansion>
+                                config_loc=${checkstyle.root.dir}
+                                checkstyle.build.directory=${project.build.directory}
+                                checkstyle.suppressions.file=${checkstyle.suppressions.file}
+                                checkstyle.additional.suppressions.file=${checkstyle.additional.suppressions.file}
+                            </propertyExpansion>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestSourceDirectory>
+                                ${maven-checkstyle-plugin.includeTestSourceDirectory}
+                            </includeTestSourceDirectory>
+                            <failsOnError>${maven-checkstyle-plugin.failsOnError}
+                            </failsOnError>
+                            <failOnViolation>
+                                ${maven-checkstyle-plugin.failOnViolation}
+                            </failOnViolation>
+                            <excludes>**/.idea/**/*,**/.git/**/*,**/target/**/*,**/*.log,**/jmh_generated/*</excludes>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>${git-commit-id-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <verbose>true</verbose>
+                    <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>
+                        ${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
+                    <skipPoms>false</skipPoms>
+                    <useNativeGit>true</useNativeGit>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
@@ -277,6 +432,7 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>${maven-source-plugin.version}</version>
                 <executions>
@@ -289,164 +445,30 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>1.8</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>flatten-maven-plugin</artifactId>
-                    <version>${flatten-maven-plugin.version}</version>
-                    <inherited>true</inherited>
-                    <executions>
-                        <execution>
-                            <!-- Tidy up all POMs before they are published -->
-                            <id>flatten</id>
-                            <phase>process-resources</phase>
-                            <goals>
-                                <goal>flatten</goal>
-                            </goals>
-                            <configuration>
-                                <updatePomFile>true</updatePomFile>
-                                <flattenMode>oss</flattenMode>
-                                <pomElements>
-                                    <parent>expand</parent>
-                                    <distributionManagement>remove</distributionManagement>
-                                    <repositories>remove</repositories>
-                                </pomElements>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <!-- Apply more sensible defaults for user projects -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
-                    <configuration>
-                        <source>${maven.compiler.source}</source>
-                        <target>${maven.compiler.target}</target>
-                        <compilerArgument>-parameters</compilerArgument>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven-surefire-plugin.version}</version>
-                    <configuration>
-                        <includes>
-                            <include>**/*Tests.java</include>
-                            <include>**/*Test.java</include>
-                        </includes>
-                        <excludes>
-                            <exclude>**/Abstract*.java</exclude>
-                        </excludes>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>io.spring.javaformat</groupId>
-                    <artifactId>spring-javaformat-maven-plugin</artifactId>
-                    <version>${spring-javaformat.version}</version>
-                    <executions>
-                        <execution>
-                            <phase>validate</phase>
-                            <configuration>
-                                <skip>${disable.checks}</skip>
-                            </configuration>
-                            <goals>
-                                <goal>apply</goal>
-                                <goal>validate</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${maven-checkstyle-plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>com.puppycrawl.tools</groupId>
-                            <artifactId>checkstyle</artifactId>
-                            <version>${checkstyle.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>io.spring.javaformat</groupId>
-                            <artifactId>spring-javaformat-checkstyle</artifactId>
-                            <version>${spring-javaformat-checkstyle.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>io.spring.nohttp</groupId>
-                            <artifactId>nohttp-checkstyle</artifactId>
-                            <version>${nohttp-checkstyle.version}</version>
-                        </dependency>
-                    </dependencies>
-                    <executions>
-                        <execution>
-                            <id>checkstyle-validation</id>
-                            <phase>validate</phase>
-                            <inherited>true</inherited>
-                            <configuration>
-                                <skip>${disable.checks}</skip>
-                                <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle.xml</configLocation>
-                                <headerLocation>${maven.multiModuleProjectDirectory}/config/checkstyle-header.txt</headerLocation>
-                                <propertyExpansion>
-                                    checkstyle.build.directory=${project.build.directory}
-                                    checkstyle.suppressions.file=${checkstyle.suppressions.file}
-                                    checkstyle.additional.suppressions.file=${checkstyle.additional.suppressions.file}
-                                </propertyExpansion>
-                                <consoleOutput>true</consoleOutput>
-                                <includeTestSourceDirectory>
-                                    ${maven-checkstyle-plugin.includeTestSourceDirectory}
-                                </includeTestSourceDirectory>
-                                <failsOnError>${maven-checkstyle-plugin.failsOnError}
-                                </failsOnError>
-                                <failOnViolation>
-                                    ${maven-checkstyle-plugin.failOnViolation}
-                                </failOnViolation>
-                            </configuration>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>no-http-checkstyle-validation</id>
-                            <phase>validate</phase>
-                            <inherited>true</inherited>
-                            <configuration>
-                                <skip>${disable.nohttp.checks}</skip>
-                                <configLocation>${checkstyle.nohttp.file}</configLocation>
-                                <includes>**/*</includes>
-                                <excludes>**/.idea/**/*,**/.git/**/*,**/target/**/*,**/*.log</excludes>
-                                <sourceDirectories>./</sourceDirectories>
-                            </configuration>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>pl.project13.maven</groupId>
-                    <artifactId>git-commit-id-plugin</artifactId>
-                    <version>${git-commit-id-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>revision</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <verbose>true</verbose>
-                        <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
-                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                        <generateGitPropertiesFilename>
-                            ${project.build.outputDirectory}/git.properties
-                        </generateGitPropertiesFilename>
-                        <skipPoms>false</skipPoms>
-                        <useNativeGit>true</useNativeGit>
-                    </configuration>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
