@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
  * {@link NewSpan @NewSpan} or {@link ContinueSpan @ContinueSpan}.
  *
  * @author Marcin Grzejszczak
+ * @author Yanming Zhou
  * @since 1.1.0
  * @see ImperativeMethodInvocationProcessor
  */
@@ -43,19 +44,17 @@ public class SpanAspect {
         this.methodInvocationProcessor = methodInvocationProcessor;
     }
 
-    @Around("@annotation(io.micrometer.tracing.annotation.ContinueSpan)")
+    @Around(value = "@annotation(continueSpan)", argNames = "pjp,continueSpan")
     @Nullable
-    public Object continueSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
+    public Object continueSpanMethod(ProceedingJoinPoint pjp, ContinueSpan continueSpan) throws Throwable {
         Method method = getMethod(pjp);
-        ContinueSpan continueSpan = method.getAnnotation(ContinueSpan.class);
         return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), null, continueSpan);
     }
 
-    @Around("@annotation(io.micrometer.tracing.annotation.NewSpan)")
+    @Around(value = "@annotation(newSpan)", argNames = "pjp,newSpan")
     @Nullable
-    public Object newSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
+    public Object newSpanMethod(ProceedingJoinPoint pjp, NewSpan newSpan) throws Throwable {
         Method method = getMethod(pjp);
-        NewSpan newSpan = method.getAnnotation(NewSpan.class);
         return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), newSpan, null);
     }
 
