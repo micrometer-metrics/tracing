@@ -92,7 +92,9 @@ public class OtelTracer implements Tracer {
     @Override
     public Tracer.SpanInScope withSpan(Span span) {
         io.opentelemetry.api.trace.Span delegate = delegate(span);
-        return new OtelSpanInScope((OtelSpan) span, delegate);
+        CurrentTraceContext.Scope scope = this.otelCurrentTraceContext
+            .maybeScope(OtelSpan.fromOtel(delegate).context());
+        return new WrappedSpanInScope(scope);
     }
 
     private io.opentelemetry.api.trace.Span delegate(Span span) {
@@ -192,6 +194,21 @@ public class OtelTracer implements Tracer {
          * @param event event to publish
          */
         void publishEvent(Object event);
+
+    }
+
+    static class WrappedSpanInScope implements SpanInScope {
+
+        final CurrentTraceContext.Scope scope;
+
+        WrappedSpanInScope(CurrentTraceContext.Scope scope) {
+            this.scope = scope;
+        }
+
+        @Override
+        public void close() {
+            this.scope.close();
+        }
 
     }
 
