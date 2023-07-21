@@ -36,13 +36,13 @@ class HttpRequestNetClientAttributesExtractor
 
     @Nullable
     @Override
-    public String getPeerName(HttpClientRequest httpClientRequest) {
+    public String getServerAddress(HttpClientRequest httpClientRequest) {
         return null;
     }
 
     @Nullable
     @Override
-    public Integer getPeerPort(HttpClientRequest httpClientRequest) {
+    public Integer getServerPort(HttpClientRequest httpClientRequest) {
         return httpClientRequest == null ? null : httpClientRequest.remotePort();
     }
 

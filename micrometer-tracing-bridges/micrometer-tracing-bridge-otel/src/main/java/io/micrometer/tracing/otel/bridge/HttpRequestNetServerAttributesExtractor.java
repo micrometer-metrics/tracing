@@ -43,8 +43,8 @@ class HttpRequestNetServerAttributesExtractor
 
     @Nullable
     @Override
-    public String getHostName(HttpServerRequest httpRequest) {
-        String url = httpRequest.url();
+    public String getServerAddress(HttpServerRequest httpServerRequest) {
+        String url = httpServerRequest.url();
         if (url == null) {
             return null;
         }
@@ -52,21 +52,24 @@ class HttpRequestNetServerAttributesExtractor
         return uri.getHost();
     }
 
+    @Nullable
     @Override
-    public Integer getHostPort(HttpServerRequest httpRequest) {
-        return httpRequest.remotePort();
+    public Integer getServerPort(HttpServerRequest httpServerRequest) {
+        return httpServerRequest.remotePort();
     }
 
     @Nullable
     @Override
-    public String getSockPeerAddr(HttpServerRequest httpRequest) {
-        return httpRequest.remoteIp();
+    public String getClientSocketAddress(HttpServerRequest httpServerRequest,
+            @Nullable HttpServerResponse httpServerResponse) {
+        return httpServerRequest.remoteIp();
     }
 
     @Nullable
     @Override
-    public Integer getSockPeerPort(HttpServerRequest httpRequest) {
-        return httpRequest.remotePort();
+    public Integer getClientSocketPort(HttpServerRequest httpServerRequest,
+            @Nullable HttpServerResponse httpServerResponse) {
+        return httpServerRequest.remotePort();
     }
 
 }

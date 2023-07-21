@@ -45,12 +45,33 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    public String getTarget(HttpServerRequest httpServerRequest) {
+    public String getUrlPath(HttpServerRequest httpServerRequest) {
         URI uri = toUri(httpServerRequest);
         if (uri == null) {
             return null;
         }
-        return uri.getPath() + queryPart(uri);
+        return uri.getPath();
+    }
+
+    @Nullable
+    @Override
+    public String getUrlQuery(HttpServerRequest httpServerRequest) {
+        URI uri = toUri(httpServerRequest);
+        if (uri == null) {
+            return null;
+        }
+        return queryPart(uri);
+    }
+
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getUrlPath(HttpServerRequest)} and {@link #getUrlQuery(HttpServerRequest)}
+     * instead.
+     */
+    @Nullable
+    @Deprecated
+    public String getTarget(HttpServerRequest httpServerRequest) {
+        return this.getUrlPath(httpServerRequest) + this.getUrlQuery(httpServerRequest);
     }
 
     private URI toUri(HttpServerRequest request) {
@@ -65,13 +86,23 @@ public class DefaultHttpServerAttributesExtractor
 
     @Nullable
     @Override
-    public String getRoute(HttpServerRequest httpServerRequest) {
+    public String getHttpRoute(HttpServerRequest httpServerRequest) {
         return httpServerRequest.route();
+    }
+
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpRoute(HttpServerRequest)} instead.
+     */
+    @Nullable
+    @Deprecated
+    public String getRoute(HttpServerRequest httpServerRequest) {
+        return this.getHttpRoute(httpServerRequest);
     }
 
     @Nullable
     @Override
-    public String getScheme(HttpServerRequest httpServerRequest) {
+    public String getUrlScheme(HttpServerRequest httpServerRequest) {
         String url = httpServerRequest.url();
         if (url == null) {
             return null;
@@ -85,30 +116,82 @@ public class DefaultHttpServerAttributesExtractor
         return null;
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getUrlScheme(HttpServerRequest)} instead.
+     */
+    @Nullable
+    @Deprecated
+    public String getScheme(HttpServerRequest httpServerRequest) {
+        return this.getUrlScheme(httpServerRequest);
+    }
+
     @Nullable
     @Override
-    public String getMethod(HttpServerRequest httpServerRequest) {
+    public String getHttpRequestMethod(HttpServerRequest httpServerRequest) {
         return httpServerRequest.method();
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpRequestMethod(HttpServerRequest)} instead.
+     */
+    @Nullable
+    @Deprecated
+    public String getMethod(HttpServerRequest httpServerRequest) {
+        return this.getHttpRequestMethod(httpServerRequest);
+    }
+
     @Override
-    public List<String> getRequestHeader(HttpServerRequest httpServerRequest, String name) {
+    public List<String> getHttpRequestHeader(HttpServerRequest httpServerRequest, String name) {
         String value = httpServerRequest.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpRequestHeader(HttpServerRequest, String)} instead.
+     */
+    @Deprecated
+    public List<String> getRequestHeader(HttpServerRequest httpServerRequest, String name) {
+        return this.getHttpRequestHeader(httpServerRequest, name);
+    }
+
     @Nullable
     @Override
-    public Integer getStatusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
-            Throwable error) {
+    public Integer getHttpResponseStatusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+            @Nullable Throwable error) {
         return httpServerResponse.statusCode();
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpResponseStatusCode(HttpServerRequest, HttpServerResponse, Throwable)}
+     * instead.
+     */
+    @Nullable
+    @Deprecated
+    public Integer getStatusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+            Throwable error) {
+        return this.getHttpResponseStatusCode(httpServerRequest, httpServerResponse, error);
+    }
+
     @Override
-    public List<String> getResponseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
-            String name) {
+    public List<String> getHttpResponseHeader(HttpServerRequest httpServerRequest,
+            HttpServerResponse httpServerResponse, String name) {
         String value = httpServerResponse.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
+    }
+
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpResponseHeader(HttpServerRequest, HttpServerResponse, String)}
+     * instead.
+     */
+    @Deprecated
+    public List<String> getResponseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
+            String name) {
+        return this.getHttpResponseHeader(httpServerRequest, httpServerResponse, name);
     }
 
 }

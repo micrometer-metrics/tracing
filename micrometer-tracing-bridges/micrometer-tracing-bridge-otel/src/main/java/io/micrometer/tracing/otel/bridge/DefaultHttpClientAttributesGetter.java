@@ -34,8 +34,18 @@ public class DefaultHttpClientAttributesGetter
 
     @Nullable
     @Override
-    public String getUrl(HttpClientRequest httpClientRequest) {
+    public String getUrlFull(HttpClientRequest httpClientRequest) {
         return httpClientRequest.url();
+    }
+
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getUrlFull(HttpClientRequest)} instead.
+     */
+    @Nullable
+    @Deprecated
+    public String getUrl(HttpClientRequest httpClientRequest) {
+        return this.getUrlFull(httpClientRequest);
     }
 
     /**
@@ -48,13 +58,24 @@ public class DefaultHttpClientAttributesGetter
         return null;
     }
 
+    @Nullable
     @Override
-    public String getMethod(HttpClientRequest httpClientRequest) {
+    public String getHttpRequestMethod(HttpClientRequest httpClientRequest) {
         return httpClientRequest.method();
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpRequestMethod(HttpClientRequest)} instead.
+     */
+    @Nullable
+    @Deprecated
+    public String getMethod(HttpClientRequest httpClientRequest) {
+        return this.getHttpRequestMethod(httpClientRequest);
+    }
+
     @Override
-    public List<String> getRequestHeader(HttpClientRequest httpClientRequest, String name) {
+    public List<String> getHttpRequestHeader(HttpClientRequest httpClientRequest, String name) {
         if (httpClientRequest == null) {
             return Collections.emptyList();
         }
@@ -62,19 +83,40 @@ public class DefaultHttpClientAttributesGetter
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpRequestHeader(HttpClientRequest, String)} instead.
+     */
+    @Deprecated
+    public List<String> getRequestHeader(HttpClientRequest httpClientRequest, String name) {
+        return this.getHttpRequestHeader(httpClientRequest, name);
+    }
+
     @Nullable
     @Override
-    public Integer getStatusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
-            Throwable error) {
+    public Integer getHttpResponseStatusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+            @Nullable Throwable error) {
         if (httpClientResponse == null) {
             return null;
         }
         return httpClientResponse.statusCode();
     }
 
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpResponseStatusCode(HttpClientRequest, HttpClientResponse, Throwable)}
+     * instead.
+     */
+    @Nullable
+    @Deprecated
+    public Integer getStatusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+            Throwable error) {
+        return this.getHttpResponseStatusCode(httpClientRequest, httpClientResponse, error);
+    }
+
     @Override
-    public List<String> getResponseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
-            String name) {
+    public List<String> getHttpResponseHeader(HttpClientRequest httpClientRequest,
+            HttpClientResponse httpClientResponse, String name) {
         if (httpClientResponse == null) {
             return Collections.emptyList();
         }
@@ -85,6 +127,17 @@ public class DefaultHttpClientAttributesGetter
         catch (Exception e) {
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * @deprecated This method was removed from OpenTelemetry. Please use
+     * {@link #getHttpResponseHeader(HttpClientRequest, HttpClientResponse, String)}
+     * instead.
+     */
+    @Deprecated
+    public List<String> getResponseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
+            String name) {
+        return this.getHttpResponseHeader(httpClientRequest, httpClientResponse, name);
     }
 
 }
