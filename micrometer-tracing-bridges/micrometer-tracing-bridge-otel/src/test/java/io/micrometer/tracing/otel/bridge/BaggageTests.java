@@ -40,6 +40,10 @@ class BaggageTests {
 
     public static final String VALUE_1 = "value1";
 
+    public static final String KEY_2 = "key2";
+
+    public static final String VALUE_2 = "value2";
+
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
         .build();
@@ -71,9 +75,11 @@ class BaggageTests {
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
             // WHEN
-            try (BaggageInScope bs = this.tracer.createBaggageInScope(KEY_1, VALUE_1)) {
+            try (BaggageInScope bs1 = this.tracer.createBaggageInScope(KEY_1, VALUE_1);
+                    BaggageInScope bs2 = this.tracer.createBaggageInScope(KEY_2, VALUE_2)) {
                 // THEN
                 then(tracer.getBaggage(KEY_1).get()).isEqualTo(VALUE_1);
+                then(tracer.getBaggage(KEY_2).get()).isEqualTo(VALUE_2);
             }
         }
     }
