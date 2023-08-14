@@ -41,7 +41,7 @@ def PLATFORM_VERSIONS = [
 	'io.opentelemetry:opentelemetry-bom:1.+',
 	'io.opentelemetry:opentelemetry-bom-alpha:1.+',
 	'io.projectreactor:reactor-bom:latest.release',
-	'org.junit:junit-bom:5.9.+'
+	'org.junit:junit-bom:5.10.+'
 ]
 
 subprojects {
