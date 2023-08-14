@@ -2,7 +2,7 @@ def VERSIONS = [
 	'javax.servlet:javax.servlet-api:latest.release',
 	'jakarta.platform:jakarta.jakartaee-web-api:9.+',
 
-	'io.micrometer:context-propagation:1.0.+',
+	'io.micrometer:context-propagation:1.0.5',
 
 	'aopalliance:aopalliance:1.0',
 	// logging
@@ -28,7 +28,7 @@ def VERSIONS = [
 ]
 
 def MICROMETER_PLATFORM_VERSIONS = [
-	'io.micrometer:micrometer-bom:1.10.+'
+	'io.micrometer:micrometer-bom:1.10.10'
 ]
 
 def PLATFORM_VERSIONS = [
