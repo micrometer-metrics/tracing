@@ -2,7 +2,7 @@ def VERSIONS = [
 	'javax.servlet:javax.servlet-api:latest.release',
 	'jakarta.platform:jakarta.jakartaee-web-api:9.+',
 
-	'io.micrometer:context-propagation:1.1.+',
+	'io.micrometer:context-propagation:1.0.+',
 
 	'aopalliance:aopalliance:1.0',
 	'org.aspectj:aspectjweaver:1.8.+',
