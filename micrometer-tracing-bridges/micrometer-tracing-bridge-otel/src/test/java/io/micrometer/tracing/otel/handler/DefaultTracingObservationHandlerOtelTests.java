@@ -43,6 +43,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -248,7 +249,8 @@ class DefaultTracingObservationHandlerOtelTests {
 
     @Test
     void should_signal_events() {
-        Event event = Event.of("foo", "bar");
+        long timestamp = System.currentTimeMillis();
+        Event event = Event.of("foo", "bar", timestamp);
         Observation.Context context = new Observation.Context();
         context.setName("foo");
 
@@ -258,6 +260,10 @@ class DefaultTracingObservationHandlerOtelTests {
 
         SpanData data = takeOnlySpan();
         then(data.getEvents()).hasSize(1).element(0).extracting(EventData::getName).isEqualTo("bar");
+        then(data.getEvents()).hasSize(1)
+            .element(0)
+            .extracting(EventData::getEpochNanos)
+            .isEqualTo(TimeUnit.MILLISECONDS.toNanos(timestamp));
     }
 
     @Test

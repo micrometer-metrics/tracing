@@ -32,6 +32,7 @@ import io.micrometer.tracing.internal.SpanNameUtil;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Marker interface for tracing handlers.
@@ -119,7 +120,8 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
     @Override
     default void onEvent(Event event, T context) {
-        getRequiredSpan(context).event(event.getContextualName());
+        long timestamp = event.getWallTime();
+        getRequiredSpan(context).event(event.getContextualName(), timestamp, TimeUnit.MILLISECONDS);
     }
 
     @Override
