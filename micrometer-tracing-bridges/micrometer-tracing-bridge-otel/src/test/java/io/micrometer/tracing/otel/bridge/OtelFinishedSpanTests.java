@@ -15,14 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
@@ -41,6 +33,9 @@ import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import org.junit.jupiter.api.Test;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -158,7 +153,7 @@ class OtelFinishedSpanTests {
             .build();
         io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
-        Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));
+        Span.Builder builder = new OtelSpanBuilder(otelTracer).name("foo");
         Span span1 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
         Span span2 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
         Span span3 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
