@@ -20,6 +20,7 @@ import io.micrometer.tracing.http.HttpClientRequest;
 import io.micrometer.tracing.http.HttpClientResponse;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,6 +37,30 @@ public class DefaultHttpClientAttributesGetter
     @Override
     public String getUrlFull(HttpClientRequest httpClientRequest) {
         return httpClientRequest.url();
+    }
+
+    @Nullable
+    @Override
+    public String getServerAddress(HttpClientRequest httpClientRequest) {
+        try {
+            URI uri = URI.create(httpClientRequest.url());
+            return uri.getHost();
+        }
+        catch (Exception ex) {
+            return null;
+        }
+    }
+
+    @Nullable
+    @Override
+    public Integer getServerPort(HttpClientRequest httpClientRequest) {
+        try {
+            URI uri = URI.create(httpClientRequest.url());
+            return uri.getPort();
+        }
+        catch (Exception ex) {
+            return null;
+        }
     }
 
     /**
