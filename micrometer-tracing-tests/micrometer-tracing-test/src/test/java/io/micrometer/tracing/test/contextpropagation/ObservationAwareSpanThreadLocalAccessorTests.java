@@ -50,11 +50,13 @@ class ObservationAwareSpanThreadLocalAccessorTests {
     ExecutorService executorService = ContextExecutorService.wrap(Executors.newSingleThreadExecutor(),
             () -> ContextSnapshot.captureAll(contextRegistry));
 
+    ObservationAwareSpanThreadLocalAccessor accessor = new ObservationAwareSpanThreadLocalAccessor(observationRegistry,
+            tracer);
+
     @BeforeEach
     void setup() {
         observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
-        contextRegistry.loadThreadLocalAccessors()
-            .registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(observationRegistry, tracer));
+        contextRegistry.loadThreadLocalAccessors().registerThreadLocalAccessor(accessor);
     }
 
     @AfterEach
