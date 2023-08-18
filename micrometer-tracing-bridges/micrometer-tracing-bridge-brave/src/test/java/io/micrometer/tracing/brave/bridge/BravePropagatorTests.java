@@ -24,6 +24,7 @@ import brave.propagation.Propagation;
 import brave.propagation.StrictCurrentTraceContext;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,9 @@ class BravePropagatorTests {
         .build();
 
     BraveBaggageManager braveBaggageManager = new BraveBaggageManager();
+
+    Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()),
+            braveBaggageManager);
 
     BravePropagator bravePropagator = new BravePropagator(tracing);
 

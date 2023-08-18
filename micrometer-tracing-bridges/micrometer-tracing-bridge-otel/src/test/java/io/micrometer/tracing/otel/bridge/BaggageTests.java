@@ -139,6 +139,29 @@ class BaggageTests {
 
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
+            try (BaggageInScope scope = this.tracer.createBaggageInScope(KEY_1, VALUE_1)) {
+                String baggageOutside = this.tracer.getBaggage(KEY_1).get();
+                then(baggageOutside).isEqualTo(VALUE_1);
+                log.info(
+                        "BAGGAGE OUTSIDE OF REACTOR [" + baggageOutside + "], thread [" + Thread.currentThread() + "]");
+                Baggage baggageFromReactor = Mono.just(KEY_1)
+                    .publishOn(Schedulers.boundedElastic())
+                    .flatMap(s -> Mono.just(this.tracer.getBaggage(s))
+                        .doOnNext(baggage -> log.info("BAGGAGE IN OF REACTOR [" + baggageOutside + "], thread ["
+                                + Thread.currentThread() + "]")))
+                    .block();
+                then(baggageFromReactor).isNotNull();
+                then(baggageFromReactor.get()).isEqualTo(VALUE_1);
+            }
+        }
+    }
+
+    @Test
+    void baggageWithContextPropagationWithLegacyApi() {
+        Hooks.enableAutomaticContextPropagation();
+
+        Span span = tracer.nextSpan().start();
+        try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
             try (BaggageInScope scope = this.tracer.createBaggage(KEY_1, VALUE_1).makeCurrent()) {
                 String baggageOutside = this.tracer.getBaggage(KEY_1).get();
                 then(baggageOutside).isEqualTo(VALUE_1);
