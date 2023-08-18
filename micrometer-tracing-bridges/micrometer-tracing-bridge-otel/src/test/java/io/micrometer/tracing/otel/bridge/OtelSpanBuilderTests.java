@@ -37,7 +37,7 @@ class OtelSpanBuilderTests {
             .build();
         io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
 
-        Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));
+        Span.Builder builder = new OtelSpanBuilder(otelTracer).name("foo");
         Span parentSpan = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
 
         Span child = builder.setParent(parentSpan.context()).start();

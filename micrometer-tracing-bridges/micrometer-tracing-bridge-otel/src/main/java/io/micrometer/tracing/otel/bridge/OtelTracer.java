@@ -134,7 +134,7 @@ public class OtelTracer implements Tracer {
 
     @Override
     public Span.Builder spanBuilder() {
-        return new OtelSpanBuilder(this.tracer.spanBuilder(""));
+        return new OtelSpanBuilder(this.tracer);
     }
 
     @Override
