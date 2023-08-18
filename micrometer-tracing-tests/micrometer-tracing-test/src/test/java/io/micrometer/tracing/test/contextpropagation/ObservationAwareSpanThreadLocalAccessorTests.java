@@ -23,6 +23,7 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
+import io.micrometer.tracing.contextpropagation.TestObservationAwareSpanThreadLocalAccessor;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.test.simple.SimpleSpan;
 import io.micrometer.tracing.test.simple.SimpleTracer;
@@ -64,6 +65,7 @@ class ObservationAwareSpanThreadLocalAccessorTests {
         executorService.shutdown();
         then(tracer.currentSpan()).isNull();
         then(observationRegistry.getCurrentObservationScope()).isNull();
+        then(TestObservationAwareSpanThreadLocalAccessor.spanActions(accessor)).isEmpty();
     }
 
     @Test
