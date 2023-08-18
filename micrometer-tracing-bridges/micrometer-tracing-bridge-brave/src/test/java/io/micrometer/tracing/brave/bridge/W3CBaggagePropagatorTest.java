@@ -204,36 +204,37 @@ class W3CBaggagePropagatorTest {
         ThreadLocalCurrentTraceContext currentTraceContext = ThreadLocalCurrentTraceContext.newBuilder()
             .addScopeDecorator(correlationScopeDecorator(mdcCorrelationScopeDecoratorBuilder()))
             .build();
-        Tracing tracing = Tracing.newBuilder()
+        try (Tracing tracing = Tracing.newBuilder()
             .propagationFactory(micrometerTracingPropagationWithBaggage(w3cPropagationFactory(braveBaggageManager)))
             // .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
             .currentTraceContext(currentTraceContext)
-            .build();
-        Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()),
-                braveBaggageManager);
-        BravePropagator bravePropagator = new BravePropagator(tracing);
+            .build()) {
+            Tracer tracer = new BraveTracer(tracing.tracer(),
+                    new BraveCurrentTraceContext(tracing.currentTraceContext()), braveBaggageManager);
+            BravePropagator bravePropagator = new BravePropagator(tracing);
 
-        // Observation
-        TestObservationRegistry registry = TestObservationRegistry.create();
-        registry.observationConfig()
-            .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
-                    new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
-                    new DefaultTracingObservationHandler(tracer)));
+            // Observation
+            TestObservationRegistry registry = TestObservationRegistry.create();
+            registry.observationConfig()
+                .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
+                        new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
+                        new DefaultTracingObservationHandler(tracer)));
 
-        ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
-        receiverContext.setCarrier(carrier);
-        Observation parent = Observation.start("foo", () -> receiverContext, registry);
-        parent.scoped(() -> {
-            assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value")
-                .containsEntry("key2", "value2")
-                .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
-            Observation child = Observation.start("bar", registry);
-            child.scoped(() -> {
+            ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
+            receiverContext.setCarrier(carrier);
+            Observation parent = Observation.start("foo", () -> receiverContext, registry);
+            parent.scoped(() -> {
                 assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value")
                     .containsEntry("key2", "value2")
                     .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+                Observation child = Observation.start("bar", registry);
+                child.scoped(() -> {
+                    assertThat(MDC.getCopyOfContextMap()).containsEntry("key", "value")
+                        .containsEntry("key2", "value2")
+                        .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+                });
             });
-        });
+        }
 
     }
 
@@ -251,35 +252,38 @@ class W3CBaggagePropagatorTest {
         ThreadLocalCurrentTraceContext currentTraceContext = ThreadLocalCurrentTraceContext.newBuilder()
             .addScopeDecorator(correlationScopeDecorator(mdcCorrelationScopeDecoratorBuilder()))
             .build();
-        Tracing tracing = Tracing.newBuilder()
+        try (Tracing tracing = Tracing.newBuilder()
             .propagationFactory(micrometerTracingPropagationWithBaggage(w3cPropagationFactoryWithoutBaggage()))
             // .propagationFactory(micrometerTracingPropagationWithBaggage(b3PropagationFactory()))
             .currentTraceContext(currentTraceContext)
-            .build();
-        Tracer tracer = new BraveTracer(tracing.tracer(), new BraveCurrentTraceContext(tracing.currentTraceContext()));
-        BravePropagator bravePropagator = new BravePropagator(tracing);
+            .build()) {
 
-        // Observation
-        TestObservationRegistry registry = TestObservationRegistry.create();
-        registry.observationConfig()
-            .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
-                    new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
-                    new DefaultTracingObservationHandler(tracer)));
+            Tracer tracer = new BraveTracer(tracing.tracer(),
+                    new BraveCurrentTraceContext(tracing.currentTraceContext()));
+            BravePropagator bravePropagator = new BravePropagator(tracing);
 
-        ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
-        receiverContext.setCarrier(carrier);
-        Observation parent = Observation.start("foo", () -> receiverContext, registry);
-        parent.scoped(() -> {
-            assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
-                .doesNotContainEntry("key2", "value2")
-                .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
-            Observation child = Observation.start("bar", registry);
-            child.scoped(() -> {
+            // Observation
+            TestObservationRegistry registry = TestObservationRegistry.create();
+            registry.observationConfig()
+                .observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
+                        new PropagatingReceiverTracingObservationHandler<>(tracer, bravePropagator),
+                        new DefaultTracingObservationHandler(tracer)));
+
+            ReceiverContext<Map<String, String>> receiverContext = new ReceiverContext<>((c, key) -> c.get(key));
+            receiverContext.setCarrier(carrier);
+            Observation parent = Observation.start("foo", () -> receiverContext, registry);
+            parent.scoped(() -> {
                 assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
                     .doesNotContainEntry("key2", "value2")
                     .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+                Observation child = Observation.start("bar", registry);
+                child.scoped(() -> {
+                    assertThat(MDC.getCopyOfContextMap()).doesNotContainEntry("key", "value")
+                        .doesNotContainEntry("key2", "value2")
+                        .containsEntry("traceId", "4bf92f3577b34da6a3ce929d0e0e4736");
+                });
             });
-        });
+        }
 
     }
 
