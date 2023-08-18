@@ -23,6 +23,7 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
+import io.micrometer.tracing.contextpropagation.TestObservationAwareSpanThreadLocalAccessor;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.test.simple.SimpleSpan;
 import io.micrometer.tracing.test.simple.SimpleTracer;
@@ -63,6 +64,7 @@ class ObservationAwareSpanThreadLocalAccessorTests {
         executorService.shutdown();
         then(tracer.currentSpan()).isNull();
         then(observationRegistry.getCurrentObservationScope()).isNull();
+        then(TestObservationAwareSpanThreadLocalAccessor.spanActions(accessor)).isEmpty();
     }
 
     @Test
@@ -77,7 +79,7 @@ class ObservationAwareSpanThreadLocalAccessorTests {
             try (Tracer.SpanInScope scope2 = this.tracer.withSpan(secondSpan.start())) {
                 logWithSpan("Async in test with span - before call");
                 Future<String> future = executorService.submit(this::asyncCall);
-                String spanIdFromFuture = future.get(100, TimeUnit.SECONDS);
+                String spanIdFromFuture = future.get(1, TimeUnit.SECONDS);
                 logWithSpan("Async in test with span - after call");
                 then(spanIdFromFuture).isEqualTo(secondSpan.context().spanId());
             }
