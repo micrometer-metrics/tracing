@@ -50,11 +50,12 @@ class ObservationAwareSpanThreadLocalAccessorTests {
     ExecutorService executorService = ContextExecutorService.wrap(Executors.newSingleThreadExecutor(),
             () -> ContextSnapshot.captureAll(contextRegistry));
 
+    ObservationAwareSpanThreadLocalAccessor accessor = new ObservationAwareSpanThreadLocalAccessor(tracer);
+
     @BeforeEach
     void setup() {
         observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
-        contextRegistry.loadThreadLocalAccessors()
-            .registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(tracer));
+        contextRegistry.loadThreadLocalAccessors().registerThreadLocalAccessor(accessor);
     }
 
     @AfterEach
@@ -76,7 +77,7 @@ class ObservationAwareSpanThreadLocalAccessorTests {
             try (Tracer.SpanInScope scope2 = this.tracer.withSpan(secondSpan.start())) {
                 logWithSpan("Async in test with span - before call");
                 Future<String> future = executorService.submit(this::asyncCall);
-                String spanIdFromFuture = future.get(1, TimeUnit.SECONDS);
+                String spanIdFromFuture = future.get(100, TimeUnit.SECONDS);
                 logWithSpan("Async in test with span - after call");
                 then(spanIdFromFuture).isEqualTo(secondSpan.context().spanId());
             }

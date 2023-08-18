@@ -58,7 +58,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     private static final InternalLogger log = InternalLoggerFactory
         .getInstance(ObservationAwareSpanThreadLocalAccessor.class);
 
-    private final Map<Thread, SpanAction> spanActions = new ConcurrentHashMap<>();
+    final Map<Thread, SpanAction> spanActions = new ConcurrentHashMap<>();
 
     /**
      * Key under which Micrometer Tracing is being registered.
@@ -98,17 +98,10 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
             if (currentSpan != null && !currentSpan.equals(tracingContext.getSpan())) {
                 // User created child spans manually and scoped them
                 // the current span is not the same as the one from observation
-                spanActions.put(Thread.currentThread(),
-                        new SpanAction(SpanSituation.OBSERVATION_AND_MANUAL_SPAN_PRESENT, spanActions));
                 return currentSpan;
             }
-            // Current span is same as the one from observation, we will skip this
-            spanActions.put(Thread.currentThread(),
-                    new SpanAction(SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP, spanActions));
             return null;
         }
-        // No current observation so let's check the tracer
-        spanActions.put(Thread.currentThread(), new SpanAction(SpanSituation.NO_OBSERVATION_PRESENT, spanActions));
         return this.tracer.currentSpan();
     }
 
@@ -117,7 +110,8 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         Tracer.SpanInScope scope = this.tracer.withSpan(value);
         if (spanAction == null) {
-            spanAction = new SpanAction(SpanSituation.NO_OBSERVATION_PRESENT, spanActions);
+            spanAction = new SpanAction(spanActions);
+            spanActions.put(Thread.currentThread(), spanAction);
         }
         spanAction.setScope(scope);
     }
@@ -125,7 +119,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     @Override
     public void setValue() {
         SpanAction spanAction = spanActions.get(Thread.currentThread());
-        if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
+        if (spanAction == null) {
             return;
         }
         Tracer.SpanInScope scope = this.tracer.withSpan(null);
@@ -135,7 +129,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     @Override
     public void restore(Span previousValue) {
         SpanAction spanAction = spanActions.get(Thread.currentThread());
-        if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
+        if (spanAction == null) {
             return;
         }
         spanAction.close();
@@ -152,15 +146,12 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     @Override
     public void restore() {
         SpanAction spanAction = spanActions.get(Thread.currentThread());
-        if (spanAction == null || spanAction.spanSituation == SpanSituation.SPAN_SAME_AS_OBSERVATION_SO_SKIP) {
-            return;
+        if (spanAction != null) {
+            spanAction.close();
         }
-        spanAction.close();
     }
 
     static class SpanAction implements Closeable {
-
-        final SpanSituation spanSituation;
 
         final SpanAction previous;
 
@@ -168,8 +159,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
 
         Closeable scope;
 
-        SpanAction(SpanSituation spanSituation, Map<Thread, SpanAction> spanActions) {
-            this.spanSituation = spanSituation;
+        SpanAction(Map<Thread, SpanAction> spanActions) {
             this.previous = spanActions.get(Thread.currentThread());
             this.todo = spanActions;
         }
@@ -195,12 +185,6 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
                 this.todo.remove(Thread.currentThread());
             }
         }
-
-    }
-
-    enum SpanSituation {
-
-        OBSERVATION_AND_MANUAL_SPAN_PRESENT, NO_OBSERVATION_PRESENT, SPAN_SAME_AS_OBSERVATION_SO_SKIP
 
     }
 
