@@ -30,6 +30,7 @@ import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -50,6 +51,11 @@ class PropagatingSenderTracingObservationHandlerBraveTests {
 
     PropagatingSenderTracingObservationHandler<? super SenderContext<?>> handler = new PropagatingSenderTracingObservationHandler<>(
             tracer, new BravePropagator(tracing));
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
 
     @Test
     void should_be_applicable_for_non_null_context() {

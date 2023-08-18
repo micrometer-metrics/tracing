@@ -34,6 +34,7 @@ import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.TracingObservationHandler;
 import io.micrometer.tracing.test.simple.SpanAssert;
 import io.micrometer.tracing.test.simple.SpansAssert;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -57,6 +58,11 @@ class DefaultTracingObservationHandlerBraveTests {
             new BraveBaggageManager());
 
     DefaultTracingObservationHandler handler = new DefaultTracingObservationHandler(tracer);
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
 
     @Test
     void should_be_applicable_for_non_null_context() {

@@ -28,6 +28,7 @@ import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.TracingAwareMeterObservationHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +49,11 @@ class TracingAwareMeterObservationHandlerBraveTests {
 
     private final TracingAwareMeterObservationHandler<Observation.Context> handler = new TracingAwareMeterObservationHandler<>(
             delegate, tracer);
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
 
     @Test
     void delegateShouldGetTheCurrentSpanAtStop() {

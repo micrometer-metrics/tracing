@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micrometer.tracing.otel.bridge;
+package io.micrometer.tracing.brave.bridge;
 
+import brave.Tracing;
+import brave.baggage.BaggageField;
+import brave.baggage.BaggagePropagation;
+import brave.baggage.BaggagePropagationConfig;
+import brave.handler.SpanHandler;
+import brave.propagation.B3Propagation;
+import brave.propagation.StrictCurrentTraceContext;
+import brave.sampler.Sampler;
+import brave.test.TestSpanHandler;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.tracing.Baggage;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
-import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
-import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
-import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.context.propagation.TextMapPropagator;
-import io.opentelemetry.extension.trace.propagation.B3Propagator;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.micrometer.tracing.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,30 +46,33 @@ class BaggageTests {
 
     public static final String VALUE_1 = "value1";
 
-    SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-        .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+    SpanHandler spanHandler = new TestSpanHandler();
+
+    StrictCurrentTraceContext braveCurrentTraceContext = StrictCurrentTraceContext.create();
+
+    CurrentTraceContext bridgeContext = new BraveCurrentTraceContext(this.braveCurrentTraceContext);
+
+    Tracing tracing = Tracing.newBuilder()
+        .currentTraceContext(this.braveCurrentTraceContext)
+        .supportsJoin(false)
+        .traceId128Bit(true)
+        .propagationFactory(BaggagePropagation.newFactoryBuilder(B3Propagation.FACTORY)
+            .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create(KEY_1)))
+            .build())
+        .sampler(Sampler.ALWAYS_SAMPLE)
+        .addSpanHandler(this.spanHandler)
         .build();
 
-    OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
-        .setTracerProvider(sdkTracerProvider)
-        .setPropagators(ContextPropagators.create(B3Propagator.injectingSingleHeader()))
-        .build();
+    brave.Tracer braveTracer = this.tracing.tracer();
 
-    io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+    BravePropagator propagator = new BravePropagator(tracing);
 
-    OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
+    Tracer tracer = new BraveTracer(this.braveTracer, this.bridgeContext, new BraveBaggageManager());
 
-    OtelBaggageManager otelBaggageManager = new OtelBaggageManager(otelCurrentTraceContext,
-            Collections.singletonList(KEY_1), Collections.emptyList());
-
-    ContextPropagators contextPropagators = ContextPropagators
-        .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                new BaggageTextMapPropagator(Collections.singletonList(KEY_1), otelBaggageManager)));
-
-    OtelPropagator propagator = new OtelPropagator(contextPropagators, otelTracer);
-
-    Tracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
-    }, otelBaggageManager);
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
 
     @Test
     void canSetAndGetBaggage() {

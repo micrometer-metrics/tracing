@@ -29,6 +29,7 @@ import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.TracingObservationHandler;
 import org.assertj.core.api.BDDAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,11 @@ class NestedScopesTests {
     @BeforeEach
     void setup() {
         observationRegistry.observationConfig().observationHandler(handler);
+    }
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
     }
 
     @Test
