@@ -16,6 +16,7 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.tracing.*;
+import io.micrometer.tracing.CurrentTraceContext.Scope;
 
 /**
  * A test implementation of a span in scope.
@@ -39,7 +40,7 @@ public class SimpleSpanInScope implements Tracer.SpanInScope {
      * Creates a new instance of {@link SimpleSpanInScope}.
      * @param span span
      * @param scopedSpans scoped spans
-     * @deprecated use {@link SimpleSpanInScope(CurrentTraceContext.Scope)}
+     * @deprecated use {@link #SimpleSpanInScope(Scope)}
      */
     @Deprecated
     public SimpleSpanInScope(Span span, ThreadLocal<SpanAndScope> scopedSpans) {

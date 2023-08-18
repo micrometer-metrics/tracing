@@ -15,10 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.opentelemetry.api.common.AttributeKey;
@@ -28,6 +24,10 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -50,7 +50,7 @@ class OtelSpanBuilderTests {
     @Test
     void should_set_child_span_when_using_builders() {
 
-        Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));
+        Span.Builder builder = new OtelSpanBuilder(otelTracer).name("foo");
         Span parentSpan = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
 
         Span child = builder.setParent(parentSpan.context()).start();
@@ -61,7 +61,7 @@ class OtelSpanBuilderTests {
 
     @Test
     void should_set_links() {
-        Span.Builder builder = new OtelSpanBuilder(otelTracer.spanBuilder("foo"));
+        Span.Builder builder = new OtelSpanBuilder(otelTracer).name("foo");
         Span span1 = OtelSpan.fromOtel(otelTracer.spanBuilder("bar").startSpan());
         Span span2 = OtelSpan.fromOtel(otelTracer.spanBuilder("baz").startSpan());
 
@@ -83,7 +83,8 @@ class OtelSpanBuilderTests {
 
     @Test
     void should_set_non_string_tags() {
-        new OtelSpanBuilder(otelTracer.spanBuilder("foo")).tag("string", "string")
+        new OtelSpanBuilder(otelTracer).name("foo")
+            .tag("string", "string")
             .tag("double", 2.5)
             .tag("long", 2)
             .tag("boolean", true)
