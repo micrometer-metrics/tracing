@@ -48,6 +48,10 @@ class BaggageTests {
 
     public static final String VALUE_1 = "value1";
 
+    public static final String KEY_2 = "key2";
+
+    public static final String VALUE_2 = "value2";
+
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
         .build();
@@ -79,10 +83,12 @@ class BaggageTests {
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
             // WHEN
-            this.tracer.getBaggage(KEY_1).set(VALUE_1);
-
-            // THEN
-            then(tracer.getBaggage(KEY_1).get()).isEqualTo(VALUE_1);
+            try (BaggageInScope bs1 = this.tracer.createBaggage(KEY_1, VALUE_1).makeCurrent();
+                    BaggageInScope bs2 = this.tracer.createBaggage(KEY_2, VALUE_2).makeCurrent()) {
+                // THEN
+                then(tracer.getBaggage(KEY_1).get()).isEqualTo(VALUE_1);
+                then(tracer.getBaggage(KEY_2).get()).isEqualTo(VALUE_2);
+            }
         }
     }
 
@@ -93,13 +99,14 @@ class BaggageTests {
 
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
-            this.tracer.createBaggage(KEY_1, VALUE_1);
+            try (BaggageInScope scope = this.tracer.createBaggage(KEY_1, VALUE_1).makeCurrent()) {
+                // WHEN
+                this.propagator.inject(tracer.currentTraceContext().context(), carrier, Map::put);
 
-            // WHEN
-            this.propagator.inject(tracer.currentTraceContext().context(), carrier, Map::put);
+                // THEN
+                then(carrier.get(KEY_1)).isEqualTo(VALUE_1);
+            }
 
-            // THEN
-            then(carrier.get(KEY_1)).isEqualTo(VALUE_1);
         }
 
         // WHEN
