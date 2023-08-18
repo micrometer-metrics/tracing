@@ -26,6 +26,7 @@ import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BravePropagator;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -45,6 +46,11 @@ class PropagatingReceiverTracingObservationHandlerBraveTests {
 
     PropagatingReceiverTracingObservationHandler<ReceiverContext<?>> handler = new PropagatingReceiverTracingObservationHandler<>(
             tracer, new BravePropagator(tracing));
+
+    @AfterEach
+    void cleanup() {
+        tracing.close();
+    }
 
     @Test
     void should_be_applicable_for_non_null_context() {
