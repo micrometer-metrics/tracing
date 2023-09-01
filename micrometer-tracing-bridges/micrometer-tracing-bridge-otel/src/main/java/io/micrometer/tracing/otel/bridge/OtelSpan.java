@@ -15,14 +15,13 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.tracing.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * OpenTelemetry implementation of a {@link Span}.
@@ -34,22 +33,21 @@ class OtelSpan implements Span {
 
     final io.opentelemetry.api.trace.Span delegate;
 
-    private final AtomicReference<Context> context;
+    final OtelTraceContext otelTraceContext;
 
     OtelSpan(io.opentelemetry.api.trace.Span delegate) {
         this.delegate = delegate;
-        if (delegate instanceof SpanFromSpanContext) {
-            SpanFromSpanContext fromSpanContext = (SpanFromSpanContext) delegate;
-            this.context = fromSpanContext.otelTraceContext.context;
-        }
-        else {
-            this.context = new AtomicReference<>(Context.current());
-        }
+        this.otelTraceContext = new OtelTraceContext(delegate.getSpanContext(), delegate);
     }
 
     OtelSpan(io.opentelemetry.api.trace.Span delegate, Context context) {
         this.delegate = delegate;
-        this.context = new AtomicReference<>(context);
+        this.otelTraceContext = new OtelTraceContext(context, delegate.getSpanContext(), delegate);
+    }
+
+    OtelSpan(OtelTraceContext traceContext) {
+        this.delegate = traceContext.span != null ? traceContext.span : io.opentelemetry.api.trace.Span.current();
+        this.otelTraceContext = traceContext;
     }
 
     static io.opentelemetry.api.trace.Span toOtel(Span span) {
@@ -74,7 +72,7 @@ class OtelSpan implements Span {
         if (this.delegate == null) {
             return null;
         }
-        return new OtelTraceContext(this.context, this.delegate.getSpanContext(), this.delegate);
+        return this.otelTraceContext;
     }
 
     @Override

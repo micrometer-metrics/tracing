@@ -15,12 +15,19 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.tracing.*;
+import java.util.Map;
+
+import io.micrometer.tracing.Baggage;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.BaggageManager;
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.ScopedSpan;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.SpanCustomizer;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * OpenTelemetry implementation of a {@link Tracer}.
@@ -70,8 +77,7 @@ public class OtelTracer implements Tracer {
             return nextSpan();
         }
         OtelSpan otelSpan = (OtelSpan) parent;
-        AtomicReference<Context> context = otelSpan.context().context;
-        Context otelContext = context.get();
+        Context otelContext = otelSpan.context().context();
         Scope scope = null;
         if (otelContext != null && Context.current() != otelContext) { // This shouldn't
                                                                        // happen
@@ -91,20 +97,22 @@ public class OtelTracer implements Tracer {
 
     @Override
     public Tracer.SpanInScope withSpan(Span span) {
-        io.opentelemetry.api.trace.Span delegate = delegate(span);
-        CurrentTraceContext.Scope scope = this.otelCurrentTraceContext
-            .maybeScope(OtelSpan.fromOtel(delegate).context());
+        TraceContext traceContext = traceContext(span);
+        CurrentTraceContext.Scope scope = this.otelCurrentTraceContext.maybeScope(traceContext);
         return new WrappedSpanInScope(scope);
     }
 
-    private io.opentelemetry.api.trace.Span delegate(Span span) {
+    private TraceContext traceContext(Span span) {
         if (span == null) {
             // remove any existing span/baggage data from the current state of anything
             // that might be holding on to it.
             this.publisher.publishEvent(new EventPublishingContextWrapper.ScopeClosedEvent());
-            return io.opentelemetry.api.trace.Span.getInvalid();
+            return new OtelTraceContext(io.opentelemetry.api.trace.Span.getInvalid());
         }
-        return ((OtelSpan) span).delegate;
+        else if (span instanceof OtelSpan) {
+            return span.context();
+        }
+        return new OtelTraceContext(io.opentelemetry.api.trace.Span.getInvalid());
     }
 
     @Override
@@ -114,6 +122,10 @@ public class OtelTracer implements Tracer {
 
     @Override
     public Span currentSpan() {
+        OtelTraceContext context = (OtelTraceContext) this.otelCurrentTraceContext.context();
+        if (context != null && context.span != null) {
+            return new OtelSpan(context);
+        }
         io.opentelemetry.api.trace.Span currentSpan = io.opentelemetry.api.trace.Span.current();
         if (currentSpan == null || currentSpan.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
             return null;
@@ -150,6 +162,11 @@ public class OtelTracer implements Tracer {
     @Override
     public Map<String, String> getAllBaggage() {
         return this.otelBaggageManager.getAllBaggage();
+    }
+
+    @Override
+    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+        return this.otelBaggageManager.getAllBaggage(traceContext);
     }
 
     @Override

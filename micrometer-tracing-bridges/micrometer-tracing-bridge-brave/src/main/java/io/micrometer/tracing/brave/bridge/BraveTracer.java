@@ -107,6 +107,11 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
+    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+        return this.braveBaggageManager.getAllBaggage(traceContext);
+    }
+
+    @Override
     public Map<String, String> getAllBaggage() {
         return this.braveBaggageManager.getAllBaggage();
     }

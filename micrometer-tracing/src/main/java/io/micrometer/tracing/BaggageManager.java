@@ -76,6 +76,18 @@ public interface BaggageManager {
     Map<String, String> getAllBaggage();
 
     /**
+     * @param traceContext trace context with baggage. If {@code null} will try to get all
+     * baggage from current available context
+     * @return mapping of all baggage entries from the given scope
+     */
+    default Map<String, String> getAllBaggage(@Nullable TraceContext traceContext) {
+        if (traceContext == null) {
+            return getAllBaggage();
+        }
+        return Collections.emptyMap();
+    }
+
+    /**
      * Retrieves {@link Baggage} for the given name.
      * @param name baggage name
      * @return baggage if present or creates a new one if missing with {@code null} value

@@ -16,6 +16,9 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.baggage.BaggageField;
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.common.util.internal.logging.InternalLogger;
+import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.TraceContext;
@@ -28,10 +31,19 @@ import io.micrometer.tracing.TraceContext;
  */
 class BraveBaggageInScope implements Baggage, BaggageInScope {
 
+    private static final InternalLogger logger = InternalLoggerFactory.getInstance(BraveBaggageInScope.class);
+
     private final BaggageField delegate;
 
-    BraveBaggageInScope(BaggageField delegate) {
+    private final String previousBaggage;
+
+    @Nullable
+    private brave.propagation.TraceContext traceContext;
+
+    BraveBaggageInScope(BaggageField delegate, @Nullable brave.propagation.TraceContext traceContext) {
         this.delegate = delegate;
+        this.traceContext = traceContext;
+        this.previousBaggage = delegate.getValue();
     }
 
     @Override
@@ -41,7 +53,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     @Override
     public String get() {
-        return this.delegate.getValue();
+        return this.traceContext != null ? this.delegate.getValue(traceContext) : this.delegate.getValue();
     }
 
     @Override
@@ -52,15 +64,32 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     @Override
     @Deprecated
     public Baggage set(String value) {
-        this.delegate.updateValue(value);
+        if (this.traceContext != null) {
+            this.delegate.updateValue(this.traceContext, value);
+        }
+        else {
+            this.delegate.updateValue(value);
+        }
         return this;
     }
 
     @Override
     @Deprecated
     public Baggage set(TraceContext traceContext, String value) {
-        this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
+        brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
+        this.delegate.updateValue(braveContext, value);
         return this;
+    }
+
+    private brave.propagation.TraceContext updateBraveTraceContext(TraceContext traceContext) {
+        brave.propagation.TraceContext braveContext = BraveTraceContext.toBrave(traceContext);
+        if (this.traceContext != braveContext) {
+            logger.debug(
+                    "Create on baggage was called on <{}> but now you want to set baggage on <{}>. That's unexpected.",
+                    this.traceContext, traceContext);
+            this.traceContext = braveContext;
+        }
+        return braveContext;
     }
 
     @Override
@@ -70,18 +99,27 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     @Override
     public BaggageInScope makeCurrent(String value) {
-        this.delegate.updateValue(value);
+        if (this.traceContext != null) {
+            this.delegate.updateValue(this.traceContext, value);
+        }
+        else {
+            this.delegate.updateValue(value);
+        }
         return makeCurrent();
     }
 
     @Override
     public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
-        this.delegate.updateValue(BraveTraceContext.toBrave(traceContext), value);
+        brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
+        this.delegate.updateValue(braveContext, value);
         return makeCurrent();
     }
 
     @Override
     public void close() {
+        if (this.traceContext != null) {
+            this.delegate.updateValue(this.traceContext, this.previousBaggage);
+        }
     }
 
 }

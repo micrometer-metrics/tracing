@@ -29,6 +29,7 @@ import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.internal.SpanNameUtil;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -93,10 +94,16 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     default void setMaybeScopeOnTracingContext(TracingContext tracingContext, @Nullable Span newSpan) {
         Span spanFromThisObservation = tracingContext.getSpan();
         TraceContext newContext = newSpan != null ? newSpan.context() : null;
+        Map<String, String> previousBaggage = Collections.emptyMap();
+        if (spanFromThisObservation != null) {
+            previousBaggage = getTracer().getAllBaggage(spanFromThisObservation.context());
+        }
         CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(newContext);
         CurrentTraceContext.Scope previousScopeOnThisObservation = tracingContext.getScope();
+        Map<String, String> newBaggage = getTracer().getAllBaggage(newContext);
+        tracingContext.setBaggage(newBaggage);
         tracingContext.setSpanAndScope(spanFromThisObservation,
-                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation));
+                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation, previousBaggage));
     }
 
     @Override
@@ -198,6 +205,17 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     }
 
     /**
+     * Ends span and clears resources.
+     * @param context context
+     * @param span span to end
+     */
+    default void endSpan(T context, Span span) {
+        TracingContext tracingContext = getTracingContext(context);
+        tracingContext.close();
+        span.end();
+    }
+
+    /**
      * Returns the {@link Tracer}.
      * @return tracer
      */
@@ -209,11 +227,13 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
      * @author Marcin Grzejszczak
      * @since 1.0.0
      */
-    class TracingContext {
+    class TracingContext implements AutoCloseable {
 
         private Span span;
 
         private Map<Thread, CurrentTraceContext.Scope> scopes = new ConcurrentHashMap<>();
+
+        private Map<Thread, Map<String, String>> baggage = new ConcurrentHashMap<>();
 
         /**
          * Returns the span.
@@ -253,6 +273,27 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         }
 
         /**
+         * Returns the baggage corresponding to this span.
+         * @return baggage attached to the span
+         */
+        public Map<String, String> getBaggage() {
+            return this.baggage.get(Thread.currentThread());
+        }
+
+        /**
+         * Sets the baggage
+         * @param baggage baggage to set
+         */
+        public void setBaggage(Map<String, String> baggage) {
+            if (baggage == null) {
+                this.baggage.remove(Thread.currentThread());
+            }
+            else {
+                this.baggage.put(Thread.currentThread(), baggage);
+            }
+        }
+
+        /**
          * Convenience method to set both span and scope.
          * @param span span to set
          * @param scope scope to set
@@ -263,8 +304,14 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         }
 
         @Override
+        public void close() {
+            this.baggage.clear();
+            this.scopes.clear();
+        }
+
+        @Override
         public String toString() {
-            return "TracingContext{" + "span=" + traceContextFromSpan() + '}';
+            return "TracingContext{" + "span=" + traceContextFromSpan() + ",baggage=" + baggage + '}';
         }
 
         private String traceContextFromSpan() {
