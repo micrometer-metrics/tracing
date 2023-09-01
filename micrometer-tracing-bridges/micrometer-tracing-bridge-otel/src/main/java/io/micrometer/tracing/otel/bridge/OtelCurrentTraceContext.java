@@ -15,6 +15,10 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.baggage.Baggage;
@@ -22,10 +26,7 @@ import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
+import io.opentelemetry.context.ContextKey;
 
 /**
  * OpenTelemetry implementation of a {@link CurrentTraceContext}.
@@ -36,14 +37,22 @@ import java.util.concurrent.ExecutorService;
  */
 public class OtelCurrentTraceContext implements CurrentTraceContext {
 
+    private static final String TRACING_OTEL_CONTEXT_KEY = "otelTraceContext";
+
+    private static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
+
     @Override
     public TraceContext context() {
+        OtelTraceContext otelTraceContext = Context.current().get(OTEL_CONTEXT_KEY);
+        if (otelTraceContext != null) {
+            return otelTraceContext;
+        }
         Span currentSpan = Span.current();
         if (Span.getInvalid().equals(currentSpan)) {
             return null;
         }
         if (currentSpan instanceof SpanFromSpanContext) {
-            return new OtelTraceContext((SpanFromSpanContext) currentSpan);
+            return ((SpanFromSpanContext) currentSpan).parentTraceContext;
         }
         return new OtelTraceContext(currentSpan);
     }
@@ -62,7 +71,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
             return new WrappedScope(io.opentelemetry.context.Scope.noop());
         }
         Context current = Context.current();
-        Context old = otelTraceContext.context();
+        Context oldContext = otelTraceContext.context();
         // Check if there's a span in the static OTel context
         Span spanFromCurrentCtx = Span.fromContext(current);
         // Check if there's a span in the ctx attached to TraceContext
@@ -73,16 +82,16 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         SpanFromSpanContext fromContext = new SpanFromSpanContext(((OtelTraceContext) context).span, spanContext,
                 otelTraceContext);
         Baggage currentBaggage = Baggage.fromContext(current);
-        Baggage oldBaggage = Baggage.fromContext(old);
+        Baggage oldBaggage = Baggage.fromContext(oldContext);
         boolean sameBaggage = sameBaggage(currentBaggage, oldBaggage);
         if (sameSpan && sameBaggage) {
             return new WrappedScope(io.opentelemetry.context.Scope.noop());
         }
         Baggage updatedBaggage = mergeBaggage(currentBaggage, oldBaggage);
-        Context newContext = old.with(fromContext).with(updatedBaggage);
-        io.opentelemetry.context.Scope attach = newContext.makeCurrent();
+        Context newContext = oldContext.with(fromContext).with(updatedBaggage).with(OTEL_CONTEXT_KEY, otelTraceContext);
+        io.opentelemetry.context.Scope newScope = newContext.makeCurrent();
         otelTraceContext.updateContext(newContext);
-        return new WrappedScope(attach, otelTraceContext, old);
+        return new WrappedScope(newScope, otelTraceContext, oldContext);
     }
 
     private static Baggage mergeBaggage(Baggage currentBaggage, Baggage oldBaggage) {

@@ -15,6 +15,10 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.time.Instant;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.common.lang.Nullable;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -22,23 +26,19 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 
-import java.time.Instant;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
 class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
 
     final io.opentelemetry.api.trace.Span span;
 
     final SpanContext newSpanContext;
 
-    final OtelTraceContext otelTraceContext;
+    final OtelTraceContext parentTraceContext;
 
     SpanFromSpanContext(io.opentelemetry.api.trace.Span span, SpanContext newSpanContext,
-            OtelTraceContext otelTraceContext) {
+            OtelTraceContext parentTraceContext) {
         this.span = span != null ? span : io.opentelemetry.api.trace.Span.wrap(newSpanContext);
         this.newSpanContext = newSpanContext;
-        this.otelTraceContext = otelTraceContext;
+        this.parentTraceContext = parentTraceContext;
     }
 
     @Override

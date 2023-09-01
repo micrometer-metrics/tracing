@@ -50,7 +50,7 @@ public class DefaultTracingObservationHandler implements TracingObservationHandl
         Span span = getRequiredSpan(context);
         span.name(getSpanName(context));
         tagSpan(context, span);
-        span.end();
+        endSpan(context, span);
     }
 
     @Override

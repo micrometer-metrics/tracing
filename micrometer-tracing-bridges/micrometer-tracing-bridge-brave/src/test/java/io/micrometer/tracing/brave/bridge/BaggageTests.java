@@ -15,6 +15,9 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import brave.Tracing;
 import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
@@ -26,15 +29,17 @@ import brave.sampler.Sampler;
 import brave.test.TestSpanHandler;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.tracing.*;
+import io.micrometer.context.ContextRegistry;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -158,6 +163,7 @@ class BaggageTests {
 
     @Test
     void baggageWithContextPropagation() {
+        ContextRegistry.getInstance().registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(tracer));
         Hooks.enableAutomaticContextPropagation();
 
         Span span = tracer.nextSpan().start();
@@ -167,20 +173,20 @@ class BaggageTests {
                 then(baggageOutside).isEqualTo(VALUE_1);
                 log.info(
                         "BAGGAGE OUTSIDE OF REACTOR [" + baggageOutside + "], thread [" + Thread.currentThread() + "]");
-                Baggage baggageFromReactor = Mono.just(KEY_1)
+                String baggageFromReactor = Mono.just(KEY_1)
                     .publishOn(Schedulers.boundedElastic())
-                    .flatMap(s -> Mono.just(this.tracer.getBaggage(s))
+                    .flatMap(s -> Mono.just(this.tracer.getBaggage(s).get())
                         .doOnNext(baggage -> log.info("BAGGAGE IN OF REACTOR [" + baggageOutside + "], thread ["
                                 + Thread.currentThread() + "]")))
                     .block();
-                then(baggageFromReactor).isNotNull();
-                then(baggageFromReactor.get()).isEqualTo(VALUE_1);
+                then(baggageFromReactor).isEqualTo(VALUE_1);
             }
         }
     }
 
     @Test
     void baggageWithContextPropagationWithLegacyApi() {
+        ContextRegistry.getInstance().registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(tracer));
         Hooks.enableAutomaticContextPropagation();
 
         Span span = tracer.nextSpan().start();
@@ -190,14 +196,13 @@ class BaggageTests {
                 then(baggageOutside).isEqualTo(VALUE_1);
                 log.info(
                         "BAGGAGE OUTSIDE OF REACTOR [" + baggageOutside + "], thread [" + Thread.currentThread() + "]");
-                Baggage baggageFromReactor = Mono.just(KEY_1)
+                String baggageFromReactor = Mono.just(KEY_1)
                     .publishOn(Schedulers.boundedElastic())
-                    .flatMap(s -> Mono.just(this.tracer.getBaggage(s))
+                    .flatMap(s -> Mono.just(this.tracer.getBaggage(s).get())
                         .doOnNext(baggage -> log.info("BAGGAGE IN OF REACTOR [" + baggageOutside + "], thread ["
                                 + Thread.currentThread() + "]")))
                     .block();
-                then(baggageFromReactor).isNotNull();
-                then(baggageFromReactor.get()).isEqualTo(VALUE_1);
+                then(baggageFromReactor).isEqualTo(VALUE_1);
             }
         }
     }

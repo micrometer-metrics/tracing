@@ -15,15 +15,15 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import java.io.Closeable;
+import java.util.Map;
+
+import brave.Tracing;
 import brave.baggage.BaggageField;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.TraceContext;
-
-import java.io.Closeable;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Brave implementation of a {@link BaggageManager}.
@@ -33,11 +33,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BraveBaggageManager implements Closeable, BaggageManager {
 
-    private static final Map<String, BraveBaggageInScope> CACHE = new ConcurrentHashMap<>();
-
     @Override
     public Map<String, String> getAllBaggage() {
         return BaggageField.getAllValues();
+    }
+
+    @Override
+    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+        if (traceContext == null) {
+            return getAllBaggage();
+        }
+        return BaggageField.getAllValues(BraveTraceContext.toBrave(traceContext));
     }
 
     @Override
@@ -51,7 +57,7 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
         if (baggageField == null) {
             return null;
         }
-        return new BraveBaggageInScope(baggageField);
+        return new BraveBaggageInScope(baggageField, BraveTraceContext.toBrave(traceContext));
     }
 
     @Override
@@ -60,8 +66,18 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
         return baggage(name);
     }
 
+    private BraveBaggageInScope baggage(String name, TraceContext traceContext) {
+        return new BraveBaggageInScope(BaggageField.create(name), BraveTraceContext.toBrave(traceContext));
+    }
+
     private BraveBaggageInScope baggage(String name) {
-        return CACHE.computeIfAbsent(name, s -> new BraveBaggageInScope(BaggageField.create(s)));
+        return new BraveBaggageInScope(BaggageField.create(name), currentTraceContext());
+    }
+
+    // Taken from BraveField
+    private static brave.propagation.TraceContext currentTraceContext() {
+        Tracing tracing = Tracing.current();
+        return tracing != null ? tracing.currentTraceContext().get() : null;
     }
 
     @Override
@@ -77,12 +93,12 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
 
     @Override
     public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
-        return baggage(name).makeCurrent(traceContext, value);
+        return baggage(name, traceContext).makeCurrent(traceContext, value);
     }
 
     @Override
     public void close() {
-        CACHE.clear();
+        // We used to cache baggage fields
     }
 
 }

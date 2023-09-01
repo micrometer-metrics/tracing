@@ -101,7 +101,7 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         tagSpan(context, span);
         customizeSenderSpan(context, span);
         span.name(context.getContextualName() != null ? context.getContextualName() : context.getName());
-        span.end();
+        endSpan(context, span);
     }
 
     /**

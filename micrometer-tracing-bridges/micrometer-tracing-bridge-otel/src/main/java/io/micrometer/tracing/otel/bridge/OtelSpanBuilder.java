@@ -15,6 +15,13 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
@@ -27,10 +34,6 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-
-import java.util.*;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.concurrent.TimeUnit;
 
 /**
  * OpenTelemetry implementation of a {@link Span.Builder}.
@@ -218,12 +221,11 @@ class OtelSpanBuilder implements Span.Builder {
             span.recordException(this.error);
         }
         this.annotations.forEach(span::addEvent);
-        Span otelSpan = OtelSpan.fromOtel(span);
         if (this.parentTraceContext != null) {
             return OtelSpan.fromOtel(
                     new SpanFromSpanContext(span, span.getSpanContext(), (OtelTraceContext) this.parentTraceContext));
         }
-        return otelSpan;
+        return OtelSpan.fromOtel(span);
     }
 
 }

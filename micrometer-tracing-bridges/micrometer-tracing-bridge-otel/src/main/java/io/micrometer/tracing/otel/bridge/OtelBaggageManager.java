@@ -15,6 +15,18 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
@@ -25,9 +37,6 @@ import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.baggage.BaggageEntry;
 import io.opentelemetry.api.baggage.BaggageEntryMetadata;
 import io.opentelemetry.context.Context;
-
-import java.util.*;
-import java.util.function.BiConsumer;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
@@ -68,19 +77,34 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public Map<String, String> getAllBaggage() {
+        return toMap(currentBaggage());
+    }
+
+    private Map<String, String> toMap(CompositeBaggage compositeBaggage) {
         Map<String, String> baggage = new HashMap<>();
-        currentBaggage().getEntries().forEach(entry -> baggage.put(entry.getKey(), entry.getValue()));
+        compositeBaggage.getEntries().forEach(entry -> baggage.put(entry.getKey(), entry.getValue()));
         return baggage;
     }
 
+    @Override
+    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+        if (traceContext == null) {
+            return getAllBaggage();
+        }
+        return toMap(baggage((OtelTraceContext) traceContext));
+    }
+
     CompositeBaggage currentBaggage() {
-        OtelTraceContext traceContext = (OtelTraceContext) currentTraceContext.context();
+        return baggage((OtelTraceContext) currentTraceContext.context());
+    }
+
+    private CompositeBaggage baggage(OtelTraceContext traceContext) {
         Context context = Context.current();
         Deque<Context> stack = new ArrayDeque<>();
-        if (traceContext != null) {
+        stack.addFirst(context);
+        if (traceContext != null && traceContext.context() != null) {
             stack.addFirst(traceContext.context());
         }
-        stack.addFirst(context);
         return new CompositeBaggage(stack);
     }
 
@@ -104,11 +128,11 @@ public class OtelBaggageManager implements BaggageManager {
     @Override
     public io.micrometer.tracing.Baggage getBaggage(TraceContext traceContext, String name) {
         OtelTraceContext context = (OtelTraceContext) traceContext;
-        Deque<Context> stack = new ArrayDeque<>();
+        LinkedList<Context> stack = new LinkedList<>();
         Context current = Context.current();
         Context traceContextContext = context.context();
         stack.addFirst(current);
-        if (current != traceContextContext) {
+        if (!Objects.equals(current, traceContextContext)) {
             stack.addFirst(traceContextContext);
         }
         Context ctx = removeFirst(stack);
@@ -118,7 +142,7 @@ public class OtelBaggageManager implements BaggageManager {
             ctx = removeFirst(stack);
         }
         if (entry != null) {
-            return otelBaggage(entry);
+            return otelBaggage(context, entry);
         }
         return null;
     }
@@ -143,6 +167,10 @@ public class OtelBaggageManager implements BaggageManager {
 
     private io.micrometer.tracing.Baggage otelBaggage(Entry entry) {
         return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
+    }
+
+    private io.micrometer.tracing.Baggage otelBaggage(OtelTraceContext otelTraceContext, Entry entry) {
+        return new OtelBaggageInScope(this, this.currentTraceContext, otelTraceContext, this.tagFields, entry);
     }
 
     @Override
