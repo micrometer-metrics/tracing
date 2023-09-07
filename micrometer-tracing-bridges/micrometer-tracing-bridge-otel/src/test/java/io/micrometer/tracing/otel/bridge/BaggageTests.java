@@ -15,10 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
@@ -38,6 +34,10 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
