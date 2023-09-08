@@ -39,8 +39,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -199,7 +200,8 @@ class DefaultTracingObservationHandlerBraveTests {
 
     @Test
     void should_signal_events() {
-        Event event = Event.of("foo", "bar");
+        long timestamp = System.currentTimeMillis();
+        Event event = Event.of("foo", "bar", timestamp);
         Observation.Context context = new Observation.Context();
         context.setName("foo");
 
@@ -209,7 +211,9 @@ class DefaultTracingObservationHandlerBraveTests {
 
         MutableSpan data = takeOnlySpan();
         then(data.annotations()).hasSize(1);
-        then(data.annotations().stream().findFirst()).isPresent().get().extracting(Map.Entry::getValue).isSameAs("bar");
+        then(data.annotations().stream().findFirst()).isPresent()
+            .get()
+            .isEqualTo(new SimpleEntry<>(TimeUnit.MILLISECONDS.toMicros(timestamp), "bar"));
     }
 
     @Test
