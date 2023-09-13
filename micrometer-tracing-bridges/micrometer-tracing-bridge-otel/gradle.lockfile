@@ -50,6 +50,7 @@ io.opentelemetry:opentelemetry-semconv:1.25.0-alpha=compileClasspath,jmhCompileC
 io.opentracing:opentracing-api:0.33.0=compileClasspath,jmhRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.opentracing:opentracing-noop:0.33.0=jmhRuntimeClasspath,runtimeClasspath,testRuntimeClasspath
 io.projectreactor:reactor-bom:2022.0.8=compileClasspath,jmhCompileClasspath,jmhRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+io.projectreactor:reactor-core-micrometer:1.0.7=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.projectreactor:reactor-core:3.5.7=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.spring.javaformat:spring-javaformat-checkstyle:0.0.39=checkstyle
 io.spring.javaformat:spring-javaformat-config:0.0.39=checkstyle

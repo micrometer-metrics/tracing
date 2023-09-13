@@ -35,6 +35,7 @@ io.micrometer:micrometer-observation:1.11.5-SNAPSHOT=compileClasspath,jmhCompile
 io.opentelemetry:opentelemetry-bom-alpha:1.25.0-alpha=compileClasspath,jmhCompileClasspath,jmhRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.opentelemetry:opentelemetry-bom:1.25.0=compileClasspath,jmhCompileClasspath,jmhRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.projectreactor:reactor-bom:2022.0.8=compileClasspath,jmhCompileClasspath,jmhRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+io.projectreactor:reactor-core-micrometer:1.0.7=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.projectreactor:reactor-core:3.5.7=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.spring.javaformat:spring-javaformat-checkstyle:0.0.39=checkstyle
 io.spring.javaformat:spring-javaformat-config:0.0.39=checkstyle

@@ -18,8 +18,12 @@ package io.micrometer.tracing.brave.bridge;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import brave.Tracing;
 import brave.baggage.BaggageField;
@@ -41,6 +45,7 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.observability.micrometer.Micrometer;
@@ -226,6 +231,11 @@ class BaggageTests {
                 then(baggageFromReactor).isEqualTo(VALUE_1);
             }
         }
+    }
+
+    @AfterAll
+    static void clear() {
+        ContextRegistry.getInstance().removeThreadLocalAccessor(ObservationAwareSpanThreadLocalAccessor.KEY);
     }
 
 }
