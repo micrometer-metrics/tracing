@@ -210,4 +210,5 @@ class BaggageTests {
     static void clear() {
         ContextRegistry.getInstance().removeThreadLocalAccessor(ObservationAwareSpanThreadLocalAccessor.KEY);
     }
+
 }
