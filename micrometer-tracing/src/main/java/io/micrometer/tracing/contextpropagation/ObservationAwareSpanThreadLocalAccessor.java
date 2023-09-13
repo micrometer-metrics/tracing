@@ -15,6 +15,12 @@
  */
 package io.micrometer.tracing.contextpropagation;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
@@ -25,12 +31,6 @@ import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccess
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A {@link ThreadLocalAccessor} to put and restore current {@link Span} depending on
@@ -121,11 +121,9 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     public void setValue(Span value) {
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         Tracer.SpanInScope scope = this.tracer.withSpan(value);
-        if (spanAction == null) {
-            spanAction = new SpanAction(spanActions);
-            spanActions.put(Thread.currentThread(), spanAction);
-        }
-        spanAction.setScope(scope);
+        SpanAction newSpanAction = new SpanAction(spanActions, spanAction);
+        spanActions.put(Thread.currentThread(), newSpanAction);
+        newSpanAction.setScope(scope);
     }
 
     @Override
@@ -171,8 +169,8 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
 
         Closeable scope;
 
-        SpanAction(Map<Thread, SpanAction> spanActions) {
-            this.previous = spanActions.get(Thread.currentThread());
+        SpanAction(Map<Thread, SpanAction> spanActions, SpanAction previous) {
+            this.previous = previous;
             this.todo = spanActions;
         }
 

@@ -15,9 +15,22 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -30,14 +43,14 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -77,6 +90,8 @@ class BaggageTests {
 
     Tracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
     }, otelBaggageManager);
+
+    ObservationRegistry observationRegistry = ObservationThreadLocalAccessor.getInstance().getObservationRegistry();
 
     @Test
     void canSetAndGetBaggage() {
@@ -135,9 +150,11 @@ class BaggageTests {
     }
 
     @Test
-    void baggageWithContextPropagation() {
+    void baggageWithContextPropagation() throws InterruptedException, ExecutionException, TimeoutException {
         ContextRegistry.getInstance().registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(tracer));
         Hooks.enableAutomaticContextPropagation();
+        ExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        Scheduler scheduler = Schedulers.fromExecutor(executorService);
 
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
@@ -147,14 +164,23 @@ class BaggageTests {
                 log.info(
                         "BAGGAGE OUTSIDE OF REACTOR [" + baggageOutside + "], thread [" + Thread.currentThread() + "]");
                 String baggageFromReactor = Mono.just(KEY_1)
+                    .delayElement(Duration.ofMillis(1), scheduler)
+                    .tap(Micrometer.observation(observationRegistry))
                     .publishOn(Schedulers.boundedElastic())
                     .flatMap(s -> Mono.just(this.tracer.getBaggage(s).get())
                         .doOnNext(baggage -> log.info("BAGGAGE IN OF REACTOR [" + baggageOutside + "], thread ["
                                 + Thread.currentThread() + "]")))
                     .block();
                 then(baggageFromReactor).isEqualTo(VALUE_1);
+                then(tracer.currentSpan()).isEqualTo(span);
             }
         }
+        then(tracer.currentSpan()).isNull();
+
+        Future<Boolean> submit = executorService.submit(() -> tracer.currentSpan() == null);
+        boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
+
+        Assertions.assertThat(noCurrentSpan).isTrue();
     }
 
     @Test
@@ -180,4 +206,8 @@ class BaggageTests {
         }
     }
 
+    @AfterAll
+    static void clear() {
+        ContextRegistry.getInstance().removeThreadLocalAccessor(ObservationAwareSpanThreadLocalAccessor.KEY);
+    }
 }
