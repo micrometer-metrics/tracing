@@ -26,4 +26,5 @@ dependencies {
 	testImplementation 'org.mockito:mockito-core'
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'io.projectreactor:reactor-core'
+	testImplementation 'io.projectreactor:reactor-core-micrometer'
 }
