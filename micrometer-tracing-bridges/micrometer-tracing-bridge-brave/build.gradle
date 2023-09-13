@@ -25,4 +25,5 @@ dependencies {
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'io.projectreactor:reactor-core'
+	testImplementation 'io.projectreactor:reactor-core-micrometer'
 }
