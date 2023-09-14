@@ -12,7 +12,7 @@ antora:
       root_component_name: 'tracing'
 site:
   title: Micrometer Tracing
-  url: https://docs.micrometer.io/micrometer/reference/
+  url: https://docs.micrometer.io/tracing/reference/
 content:
   sources:
     - url: ./..
