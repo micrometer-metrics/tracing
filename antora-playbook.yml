@@ -8,7 +8,7 @@ antora:
     - require: '@springio/antora-extensions/root-component-extension'
       root_component_name: 'tracing'
 site:
-  title: Micrometer Tracing Propagation
+  title: Micrometer Tracing
   url: https://docs.micrometer.io/tracing/reference/
   robots: allow
 content:
