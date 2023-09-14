@@ -1,55 +1,25 @@
-# Micrometer Tracing Facade
+# Tracing Docs Build
 
-[![Build Status](https://circleci.com/gh/micrometer-metrics/tracing.svg?style=shield)](https://circleci.com/gh/micrometer-metrics/tracing)
-[![Apache 2.0](https://img.shields.io/github/license/micrometer-metrics/tracing.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Maven Central](https://img.shields.io/maven-central/v/io.micrometer/micrometer-tracing.svg)](https://search.maven.org/artifact/io.micrometer/micrometer-tracing)
-[![Javadocs](https://www.javadoc.io/badge/io.micrometer/micrometer-tracing.svg)](https://www.javadoc.io/doc/io.micrometer/micrometer-tracing)
-[![Revved up by Gradle Enterprise](https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.micrometer.io/)
+You're currently viewing the Antora playbook branch.
+The playbook branch hosts the docs build that is used to build and publish the production docs site.
 
-A application tracing facade.
+The Micrometer reference docs are built using https://antora.org[Antora].
+This README covers how to build the docs in a software branch as well as how to build the production docs site locally.
 
-## Join the discussion
+## Building the Site
 
-Join the [Micrometer Slack](https://slack.micrometer.io) to share your questions, concerns, and feature requests.
+You can build the entire site by invoking the following and then viewing the site at `build/site/index.html`
 
-## Snapshot builds
+[source,bash]
+----
+./gradlew antora
+----
 
-Snapshots are published to `repo.spring.io` for every successful build on the `main` branch and maintenance branches.
+## Building a Specific Branch
 
-To use:
+You can build a specific branch and then viewing the branch specific site at `build/site/index.html`.
 
-```groovy
-repositories {
-    maven { url 'https://repo.spring.io/snapshot' }
-}
-
-dependencies {
-    implementation 'io.micrometer:micrometer-tracing:latest.integration'
-}
-```
-
-## Milestone releases
-
-Milestone releases are published to https://repo.spring.io/milestone. Include that as a maven repository in your build
-configuration to use milestone releases. Note that milestone releases are for testing purposes and are not intended for
-production use.
-
-## Documentation
-
-The documentation is available at https://micrometer.io/docs/tracing.
-
-## Contributing
-
-See our [Contributing Guide](CONTRIBUTING.md) for information about contributing to Micrometer Tracing.
-
-## Code formatting
-
-The [spring-javaformat plugin](https://github.com/spring-io/spring-javaformat) is configured to check and apply consistent formatting in the codebase through the build.
-The `checkFormat` task checks the formatting as part of the `check` task.
-Apply formatting with the `format` task.
-You should rely on the formatting the `format` task applies instead of your IDE's configured formatting.
-
--------------------------------------
-_Licensed under [Apache Software License 2.0](https://www.apache.org/licenses/LICENSE-2.0)_
-
-_Sponsored by [VMware](https://tanzu.vmware.com)_
+[source,bash]
+----
+./gradlew antora
+----
