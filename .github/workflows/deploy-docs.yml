@@ -42,11 +42,11 @@ jobs:
         with:
          token: ${{ secrets.DOCS_PAGES_TOKEN }}
          repository-name: micrometer-metrics/docs-pages
-         target-folder: context-propagation/reference
+         target-folder: tracing/reference
          folder: build/site # The folder the action should deploy.
       - name: Bust Clouflare Cache
         uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.11
         with:
-          context-root: context-propagation
+          context-root: tracing
           cloudflare-zone-id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           cloudflare-cache-token: ${{ secrets.CLOUDFLARE_CACHE_TOKEN }}
