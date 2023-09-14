@@ -21,7 +21,7 @@ gradleEnterprise {
 	server = 'https://ge.micrometer.io'
 }
 
-include 'micrometer-tracing', 'micrometer-tracing-bom', 'benchmarks'
+include 'docs', 'micrometer-tracing', 'micrometer-tracing-bom', 'benchmarks'
 
 ['brave', 'otel'].each { bridge ->
 	include "micrometer-tracing-bridge-$bridge"

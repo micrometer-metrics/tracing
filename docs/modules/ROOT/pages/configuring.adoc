@@ -1,0 +1,61 @@
+== Configuring with Micrometer Observation
+
+=== Handler Configuration
+
+// TODO: We need to separately document that Micrometer provides a TimerObservationHandler
+
+For Micrometer Tracing to work with Micrometer Observation, you need to add a tracing related `ObservationHandler`.
+Check the example below for an example of adding and using a single `DefaultTracingObservationHandler`.
+
+[source,java,subs=+attributes]
+-----
+include::{include-java}/tracing/TracingConfiguringTests.java[tags=handler_configuration,indent=0]
+-----
+
+You can also use a shorter version to perform measurements via the `observe` method.
+
+[source,java,subs=+attributes]
+-----
+include::{include-java}/tracing/TracingConfiguringTests.java[tags=handler_configuration_observe,indent=0]
+-----
+
+This will result in the following Micrometer Metrics:
+
+```
+Gathered the following metrics
+    Meter with name <my.operation> and type <TIMER> has the following measurements
+        <[
+            Measurement{statistic='COUNT', value=1.0},
+            Measurement{statistic='TOTAL_TIME', value=1.011949454},
+            Measurement{statistic='MAX', value=1.011949454}
+        ]>
+        and has the following tags <[tag(this.tag=will end up as a meter tag and a span tag)]>
+```
+
+And the following trace view in e.g. Zipkin
+
+image::tracing/zipkin.jpg[Trace Info propagation]
+
+==== Ordered Handler Configuration
+
+Micrometer Tracing comes with multiple `ObservationHandler` implementations.
+To introduce ordering, you can use the `ObservationHandler.AllMatchingCompositeObservationHandler` to run logic for all ``ObservationHandler``s that are matching the given predicate and `ObservationHandler.FirstMatchingCompositeObservationHandler` to run logic only for the first `ObservationHandler` that matches the predicate.
+The former can group handlers and the latter can be chosen to e.g. run only one matching `TracingObservationHandler`.
+
+=== Context Propagation with Micrometer Tracing
+
+In order to make https://micrometer.io/docs/contextPropagation[Context Propagation] work with Micrometer Tracing you need to manually register the proper `ThreadLocalAccessor` as presented below.
+
+[source,java,subs=+attributes]
+-----
+include::{include-java}/tracing/TracingConfiguringTests.java[tags=span_thread_local_accessor,indent=0]
+-----
+
+=== Exemplars
+
+To add support for https://grafana.com/docs/grafana/latest/fundamentals/exemplars/[exemplars] instead of using the `DefaultMeterObservationHandler` you should use the `TracingAwareMeterObservationHandler` like presented below.
+
+[source,java,subs=+attributes]
+-----
+include::{include-java}/tracing/TracingConfiguringTests.java[tags=exemplars,indent=0]
+-----

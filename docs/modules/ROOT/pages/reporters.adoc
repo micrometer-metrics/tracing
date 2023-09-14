@@ -1,0 +1,74 @@
+== Supported Reporters
+
+Micrometer Tracing supports directly the following Reporters.
+
+* https://tanzu.vmware.com/observability[*Tanzu Observability by Wavefront*]
+* https://zipkin.io[*OpenZipkin Zipkin*]
+
+=== Installing
+
+The following example shows the required dependency in Gradle (assuming that Micrometer Tracing BOM has been added):
+
+.Tanzu Observability by Wavefront
+[source,groovy,subs=+attributes]
+----
+implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
+----
+
+.OpenZipkin Zipkin with Brave
+[source,groovy,subs=+attributes]
+----
+implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+----
+
+.OpenZipkin Zipkin with OpenTelemetry
+[source,groovy,subs=+attributes]
+----
+implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+----
+
+.An OpenZipkin URL sender dependency to send out spans to Zipkin via a `URLConnectionSender`
+[source,groovy,subs=+attributes]
+----
+implementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
+----
+
+The following example shows the required dependency in Maven (assuming that Micrometer Tracing BOM has been added):
+
+.Tanzu Observability by Wavefront
+[source,xml,subs=+attributes]
+----
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
+</dependency>
+----
+
+.OpenZipkin Zipkin with Brave
+[source,xml,subs=+attributes]
+----
+<dependency>
+    <groupId>io.zipkin.reporter2</groupId>
+    <artifactId>zipkin-reporter-brave</artifactId>
+</dependency>
+----
+
+.OpenZipkin Zipkin with OpenTelemetry
+[source,xml,subs=+attributes]
+----
+<dependency>
+    <groupId>io.opentelemetry</groupId>
+    <artifactId>opentelemetry-exporter-zipkin</artifactId>
+</dependency>
+----
+
+.An OpenZipkin URL sender dependency to send out spans to Zipkin via a `URLConnectionSender`
+[source,xml,subs=+attributes]
+----
+<dependency>
+    <groupId>io.zipkin.reporter2</groupId>
+    <artifactId>zipkin-sender-urlconnection</artifactId>
+</dependency>
+----
+
+IMPORTANT: Remember that Brave by default adds Zipkin as a dependency. If you want to use just Wavefront and you're using classpath dependant solutions such as Spring Boot, you might be required to exclude the transitive dependency on Zipkin when using Brave (e.g. via exlcuding the `io.zipkin.reporter2` group).

@@ -1,0 +1,20 @@
+name: tracing
+version: true
+title: Micrometer Tracing
+nav:
+  - modules/ROOT/nav.adoc
+ext:
+  collector:
+    run:
+      command: gradlew -q -PbuildSrc.skipTests=true -Pantora "-Dorg.gradle.jvmargs=-Xmx3g -XX:+HeapDumpOnOutOfMemoryError" :docs:generateAntoraResources
+      local: true
+    scan:
+      dir: ./build/generated-antora-resources
+
+asciidoc:
+  attributes:
+    attribute-missing: 'warn'
+    chomp: 'all'
+    include-java: 'example$docs-src/test/java/io/micrometer/docs'
+    include-bridges-java: 'example$bridges-src'
+    include-resources: 'example$docs-src/test/resources'

@@ -163,6 +163,7 @@ class OtelTracingApiTests {
 
     @Test
     void should_work_with_baggage_with_legacy_api() {
+        // tag::baggage_api_1_11_0[]
         Span span = tracer.nextSpan().name("parent").start();
 
         // Assuming that there's a span in scope...
@@ -213,10 +214,12 @@ class OtelTracingApiTests {
 
         // Baggage is present only within the scope
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3").isNull();
+        // end::baggage_api_1_11_0[]
     }
 
     @Test
     void should_work_with_baggage() {
+        // tag::baggage_api[]
         Span span = tracer.nextSpan().name("parent").start();
 
         // Assuming that there's a span in scope...
@@ -257,6 +260,7 @@ class OtelTracingApiTests {
 
         // Baggage is present only within the scope
         then(tracer.getBaggage("from_span").get(span.context())).as("[Out of scope - with context] Baggage 3").isNull();
+        // end::baggage_api[]
     }
 
     @Test
