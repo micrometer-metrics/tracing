@@ -30,10 +30,8 @@ buildscript {
 
 // TODO: remove this hack, see: https://github.com/nebula-plugins/nebula-release-plugin/issues/213
 def releaseStage = findProperty('release.stage')
-if (!project.hasProperty("antora")) {
-	apply plugin: 'nebula.release'
-	release.defaultVersionStrategy = nebula.plugin.release.git.opinion.Strategies.SNAPSHOT
-}
+apply plugin: 'nebula.release'
+release.defaultVersionStrategy = nebula.plugin.release.git.opinion.Strategies.SNAPSHOT
 
 apply plugin: 'io.github.gradle-nexus.publish-plugin'
 apply from: 'dependencies.gradle'
@@ -59,10 +57,6 @@ subprojects {
 		apply plugin: 'io.spring.nohttp'
 		apply plugin: 'io.spring.javaformat'
 		apply plugin: 'me.champeau.jmh'
-
-		nohttp {
-			source.exclude "**/build/**"
-		}
 
 		java {
 			// It is more idiomatic to define different features for different sets of optional
@@ -290,10 +284,8 @@ subprojects {
 		apply plugin: 'com.netflix.nebula.maven-apache-license'
 		apply plugin: 'com.netflix.nebula.publish-verification'
 		apply plugin: 'com.netflix.nebula.contacts'
-		if (!project.hasProperty("antora")) {
-			apply plugin: 'com.netflix.nebula.info'
-			apply plugin: 'com.netflix.nebula.project'
-		}
+		apply plugin: 'com.netflix.nebula.info'
+		apply plugin: 'com.netflix.nebula.project'
 
 		if (project.name != 'micrometer-tracing-bom') {
 			jar {
@@ -336,8 +328,7 @@ subprojects {
 	}
 
 	def check = tasks.findByName('check')
-	boolean antora = project.hasProperty("antora")
-	if (check && !antora) project.rootProject.tasks.releaseCheck.dependsOn check
+	if (check) project.rootProject.tasks.releaseCheck.dependsOn check
 }
 
 nexusPublishing {
