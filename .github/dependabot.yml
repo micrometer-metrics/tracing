@@ -5,19 +5,62 @@ registries:
     url: https://plugins.gradle.org/m2
     username: dummy # Required by dependabot
     password: dummy # Required by dependabot
+  maven-central:
+    type: maven-repository
+    url: https://repo1.maven.org/maven2/
+    username: dummy # Required by dependabot
+    password: dummy # Required by dependabot
 updates:
-  - package-ecosystem: "gradle"
-    directory: "/"
-    target-branch: "1.0.x" # oldest OSS supported branch
-    allow:
-      - dependency-name: "com.gradle*"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "1.0.x" # oldest OSS supported branch
     schedule:
       interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "1.1.x" # oldest OSS supported branch
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: 1.0.x
+    ignore:
+      # only upgrade patch versions for maintenance branch
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+    registries:
+      - gradle-plugin-portal
+      - maven-central
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: 1.1.x
+    ignore:
+      # only upgrade patch versions for maintenance branch
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+    registries:
+      - gradle-plugin-portal
+      - maven-central
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: main
+    ignore:
+      # only upgrade by minor or patch
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major

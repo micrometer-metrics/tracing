@@ -28,6 +28,17 @@ buildscript {
 	configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 0, 'minutes'
 }
 
+plugins {
+	alias libs.plugins.license apply false
+	alias libs.plugins.nebulaRelease
+	alias libs.plugins.nebulaPublishing apply false
+	alias libs.plugins.nebulaProject apply false
+	alias libs.plugins.noHttp
+	alias libs.plugins.nexusPublish
+	alias libs.plugins.javaformat
+	alias libs.plugins.jmh
+}
+
 // TODO: remove this hack, see: https://github.com/nebula-plugins/nebula-release-plugin/issues/213
 def releaseStage = findProperty('release.stage')
 apply plugin: 'nebula.release'

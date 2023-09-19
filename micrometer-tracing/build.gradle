@@ -5,17 +5,17 @@ plugins {
 dependencies {
 	api 'io.micrometer:micrometer-observation'
 	api 'io.micrometer:context-propagation'
-	api 'aopalliance:aopalliance'
+	api libs.aopAlliance
 
 	// exemplars support
 	optionalApi 'io.micrometer:micrometer-core'
 
 	// log monitoring
-	optionalApi 'ch.qos.logback:logback-classic'
-	optionalApi 'org.apache.logging.log4j:log4j-core'
+	optionalApi libs.logback
+	optionalApi libs.log4j
 
 	testImplementation 'org.junit.jupiter:junit-jupiter'
-	testImplementation 'org.assertj:assertj-core'
-	testImplementation 'org.mockito:mockito-core'
-	testImplementation 'org.mockito:mockito-junit-jupiter'
+	testImplementation libs.assertj
+	testImplementation libs.mockitoCore
+	testImplementation libs.mockitoJunit
 }

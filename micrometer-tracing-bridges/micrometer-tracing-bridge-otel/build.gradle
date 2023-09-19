@@ -22,8 +22,8 @@ dependencies {
 	testImplementation 'io.micrometer:micrometer-core'
 	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
-	testImplementation 'org.assertj:assertj-core'
+	testImplementation libs.assertj
 	testImplementation 'org.awaitility:awaitility'
-	testImplementation 'org.mockito:mockito-core'
+	testImplementation libs.mockitoCore
 	testImplementation 'io.projectreactor:reactor-core'
 }

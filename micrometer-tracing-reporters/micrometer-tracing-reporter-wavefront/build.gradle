@@ -24,10 +24,10 @@ dependencies {
 	// Tests
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
-	testImplementation 'org.assertj:assertj-core'
+	testImplementation libs.assertj
 	testImplementation 'org.awaitility:awaitility'
 	testImplementation 'ch.qos.logback:logback-classic'
-	testImplementation 'org.mockito:mockito-core'
+	testImplementation libs.mockitoCore
 }
 
 configurations.optionalImplementation {
