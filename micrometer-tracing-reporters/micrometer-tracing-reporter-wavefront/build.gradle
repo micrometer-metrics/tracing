@@ -7,15 +7,9 @@ dependencies {
 	api 'io.micrometer:micrometer-observation'
 
 	// Brave
-	optionalImplementation('io.zipkin.brave:brave') {
-		exclude group: 'io.zipkin.reporter2'
-		exclude group: 'io.zipkin.zipkin2'
-	}
 	optionalImplementation project(':micrometer-tracing-bridge-brave')
-	optionalImplementation('io.zipkin.brave:brave-instrumentation-http') {
-		exclude group: "io.zipkin.reporter2"
-		exclude group: "io.zipkin.zipkin2"
-	}
+	optionalImplementation 'io.zipkin.brave:brave'
+	optionalImplementation 'io.zipkin.brave:brave-instrumentation-http'
 
 	// OTel
 	optionalImplementation project(':micrometer-tracing-bridge-otel')
@@ -34,4 +28,9 @@ dependencies {
 	testImplementation 'org.awaitility:awaitility'
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'org.mockito:mockito-core'
+}
+
+configurations.optionalImplementation {
+	exclude group: 'io.zipkin.reporter2'
+	exclude group: 'io.zipkin.zipkin2'
 }
