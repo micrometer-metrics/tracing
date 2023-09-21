@@ -8,13 +8,10 @@ dependencies {
 	optionalApi 'javax.servlet:javax.servlet-api'
 	optionalApi 'jakarta.platform:jakarta.jakartaee-web-api'
 
-	api("io.zipkin.brave:brave") {
-		exclude group: "io.zipkin.reporter2"
-		exclude group: "io.zipkin.zipkin2"
-	}
-	api("io.zipkin.brave:brave-context-slf4j")
-	api("io.zipkin.brave:brave-instrumentation-http")
-	api("io.zipkin.aws:brave-propagation-aws")
+	api 'io.zipkin.brave:brave'
+	api 'io.zipkin.brave:brave-context-slf4j'
+	api 'io.zipkin.brave:brave-instrumentation-http'
+	api 'io.zipkin.aws:brave-propagation-aws'
 
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'io.micrometer:micrometer-core'
@@ -25,4 +22,9 @@ dependencies {
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
 	testImplementation 'ch.qos.logback:logback-classic'
 	testImplementation 'io.projectreactor:reactor-core'
+}
+
+configurations.api {
+	exclude group: 'io.zipkin.reporter2'
+	exclude group: 'io.zipkin.zipkin2'
 }
