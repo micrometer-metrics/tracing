@@ -19,14 +19,14 @@ dependencies {
 	optionalImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv'
 
 	// Wavefront
-	implementation 'com.wavefront:wavefront-internal-reporter-java'
+	implementation libs.wavefrontReporter
 
 	// Tests
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation libs.assertj
-	testImplementation 'org.awaitility:awaitility'
-	testImplementation 'ch.qos.logback:logback-classic'
+	testImplementation libs.awaitility
+	testImplementation libs.logback
 	testImplementation libs.mockitoCore
 }
 

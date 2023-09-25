@@ -40,17 +40,17 @@ dependencies {
 	}
 
 	// Wavefront
-	api 'com.wavefront:wavefront-internal-reporter-java'
+	api libs.wavefrontReporter
 
 	// Tests
 	api 'org.junit.jupiter:junit-jupiter'
-	api 'org.assertj:assertj-core'
+	api libs.assertj
 
 	// Tests for tests
 	testImplementation libs.mockitoCore
-	testImplementation 'com.github.tomakehurst:wiremock-jre8-standalone'
-	testImplementation 'org.awaitility:awaitility'
-	testImplementation 'ch.qos.logback:logback-classic'
+	testImplementation libs.wiremock
+	testImplementation libs.awaitility
+	testImplementation libs.logback
 	testImplementation 'org.testcontainers:testcontainers'
 	testImplementation 'org.testcontainers:junit-jupiter'
 }

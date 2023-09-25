@@ -4,23 +4,23 @@ plugins {
 
 dependencies {
 	api project(':micrometer-tracing')
-	api 'org.slf4j:slf4j-api'
-	optionalApi 'javax.servlet:javax.servlet-api'
-	optionalApi 'jakarta.platform:jakarta.jakartaee-web-api'
+	api libs.slf4j
+	optionalApi libs.javaxServlet
+	optionalApi libs.jakartaWeb
 
 	api 'io.zipkin.brave:brave'
 	api 'io.zipkin.brave:brave-context-slf4j'
 	api 'io.zipkin.brave:brave-instrumentation-http'
-	api 'io.zipkin.aws:brave-propagation-aws'
+	api libs.zipkinAws
 
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'io.micrometer:micrometer-core'
 	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation libs.assertj
-	testImplementation 'org.awaitility:awaitility'
+	testImplementation libs.awaitility
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
-	testImplementation 'ch.qos.logback:logback-classic'
+	testImplementation libs.logback
 	testImplementation 'io.projectreactor:reactor-core'
 }
 

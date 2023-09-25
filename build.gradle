@@ -9,34 +9,23 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1'
-		classpath 'com.netflix.nebula:nebula-release-plugin:16.1.0'
-		classpath 'com.netflix.nebula:nebula-publishing-plugin:20.1.0'
-		classpath 'com.netflix.nebula:nebula-project-plugin:10.1.2'
-		classpath 'io.spring.nohttp:nohttp-gradle:0.0.11'
-		classpath 'io.github.gradle-nexus:publish-plugin:1.3.0'
-		classpath 'io.spring.javaformat:spring-javaformat-gradle-plugin:0.0.39'
-		classpath 'me.champeau.jmh:jmh-gradle-plugin:0.7.1'
+		classpath libs.plugin.license
+		classpath libs.plugin.nebulaRelease
+		classpath libs.plugin.nebulaPublishing
+		classpath libs.plugin.nebulaProject
+		classpath libs.plugin.noHttp
+		classpath libs.plugin.nexusPublish
+		classpath libs.plugin.javaformat
+		classpath libs.plugin.jmh
 
 		constraints {
-			classpath('org.ow2.asm:asm:7.3.1') {
+			classpath(libs.asmForPlugins) {
 				because 'Supports modern JDKs'
 			}
 		}
 	}
 
 	configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 0, 'minutes'
-}
-
-plugins {
-	alias libs.plugins.license apply false
-	alias libs.plugins.nebulaRelease
-	alias libs.plugins.nebulaPublishing apply false
-	alias libs.plugins.nebulaProject apply false
-	alias libs.plugins.noHttp
-	alias libs.plugins.nexusPublish
-	alias libs.plugins.javaformat
-	alias libs.plugins.jmh
 }
 
 // TODO: remove this hack, see: https://github.com/nebula-plugins/nebula-release-plugin/issues/213

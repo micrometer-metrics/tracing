@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
 	api project(':micrometer-tracing')
-	api 'org.slf4j:slf4j-api'
+	api libs.slf4j
 	api 'io.micrometer:micrometer-observation'
 
 	api 'io.opentelemetry:opentelemetry-api'
@@ -23,7 +23,7 @@ dependencies {
 	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testImplementation libs.assertj
-	testImplementation 'org.awaitility:awaitility'
+	testImplementation libs.awaitility
 	testImplementation libs.mockitoCore
 	testImplementation 'io.projectreactor:reactor-core'
 }
