@@ -14,17 +14,7 @@ updates:
   # Github Actions
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "1.0.x"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    target-branch: "1.1.x"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    target-branch: "main"
+    target-branch: "1.0.x" # oldest supported branch, we will merge forward
     schedule:
       interval: "weekly"
   # Build dependencies
