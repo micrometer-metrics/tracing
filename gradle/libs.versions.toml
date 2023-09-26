@@ -9,7 +9,7 @@ otelInstrumentation="1.30.0-alpha"
 aopalliance="1.0"
 zipkinAws="0.23.5"
 otelBom="1.30.1"
-logback = "1.2.12"
+logback = "1.4.11"
 wavefrontSdk="3.4.0"
 otelBomAlpha="1.30.1-alpha"
 log4j = "2.20.0"
@@ -26,7 +26,7 @@ asmForPlugins = "7.3.1"
 javaFormatForPlugins = "0.0.39"
 jsr305 = "3.0.2"
 aspectjweaver = "1.9.20.1"
-spring = "5.3.29"
+spring = "5.3.30"
 
 [libraries]
 aopAlliance = { module = "aopalliance:aopalliance", version.ref = "aopalliance" }
