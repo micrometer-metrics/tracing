@@ -9,8 +9,8 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'io.spring.gradle.antora:spring-antora-plugin:0.0.1'
-		classpath 'org.antora:gradle-antora-plugin:1.0.0'
+		classpath libs.plugin.spring.antora
+		classpath libs.plugin.antora
 	}
 }
 
@@ -26,18 +26,18 @@ repositories {
 
 dependencies {
 	implementation project(':micrometer-tracing')
-	implementation 'ch.qos.logback:logback-classic'
-	implementation 'org.slf4j:slf4j-api'
+	implementation libs.logback
+	implementation libs.slf4j
 
 	testImplementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
 
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation project(':micrometer-tracing-integration-test')
-	testImplementation 'org.aspectj:aspectjweaver'
+	testImplementation libs.aspectjweaver
 	testImplementation 'org.junit.jupiter:junit-jupiter'
-	testImplementation 'org.mockito:mockito-core'
-	testImplementation 'org.assertj:assertj-core'
-	testImplementation 'org.springframework:spring-context'
+	testImplementation libs.mockitoCore
+	testImplementation libs.assertj
+	testImplementation libs.springContext
 }
 
 antora {
