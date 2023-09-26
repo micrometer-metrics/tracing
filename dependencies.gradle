@@ -1,47 +1,46 @@
 def VERSIONS = [
-	'javax.servlet:javax.servlet-api:latest.release',
-	'jakarta.platform:jakarta.jakartaee-web-api:9.+',
+	libs.javaxServlet,
+	libs.jakartaWeb,
 
-	'io.micrometer:context-propagation:1.0.+',
+	libs.micrometerContextPropagation,
 
-	'aopalliance:aopalliance:1.0',
-	'org.aspectj:aspectjweaver:1.8.+',
-	'org.springframework:spring-context:5.+',
-	'org.springframework:spring-core:5+',
+	libs.aopAlliance,
+	libs.aspectjweaver,
+	libs.springContext,
+	libs.springCore,
 
 	// logging
-	'ch.qos.logback:logback-classic:1.2.+',
-	'org.apache.logging.log4j:log4j-core:2.+',
-	'org.slf4j:slf4j-api:1.7.+',
+	libs.logback,
+	libs.log4j,
+	libs.slf4j,
 	// otel
-	'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:1.+',
+	libs.otelInstrumentation,
 	// zipkin
-	'io.zipkin.aws:brave-propagation-aws:latest.release',
+	libs.zipkinAws,
 	// wavefront
-	'com.wavefront:wavefront-sdk-java:3.+',
-	'com.wavefront:wavefront-internal-reporter-java:1.+',
+	libs.wavefrontSdk,
+	libs.wavefrontReporter,
 	// test
-	'org.assertj:assertj-core:latest.release',
-	'org.awaitility:awaitility:latest.release',
-	'org.mockito:mockito-core:latest.release',
-	'org.mockito:mockito-inline:latest.release',
-	'org.mockito:mockito-junit-jupiter:latest.release',
-	'com.github.tomakehurst:wiremock-jre8-standalone:latest.release',
-	'org.testcontainers:testcontainers:latest.release',
-	'org.testcontainers:junit-jupiter:latest.release'
+	libs.assertj,
+	libs.awaitility,
+	libs.mockitoCore,
+	libs.mockitoJunit,
+	libs.wiremock,
+	libs.testcontainers,
+	libs.testcontainersJunit
 ]
 
 def MICROMETER_PLATFORM_VERSIONS = [
-	'io.micrometer:micrometer-bom:1.12.+'
+		libs.micrometerBom
 ]
 
 def PLATFORM_VERSIONS = [
-	'io.zipkin.brave:brave-bom:5.+',
+	libs.braveBom,
 	// opentelemetry-instrumentation-api dependency above with this
-	'io.opentelemetry:opentelemetry-bom:1.+',
-	'io.opentelemetry:opentelemetry-bom-alpha:1.+',
-	'io.projectreactor:reactor-bom:latest.release',
-	'org.junit:junit-bom:5.10.+'
+	libs.otelBom,
+	libs.otelBomAlpha,
+	libs.reactorBom,
+	libs.junitBom
 ]
 
 subprojects {
