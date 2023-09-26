@@ -4,10 +4,10 @@ plugins {
 
 dependencies {
 	api project(':micrometer-tracing')
-	api 'org.assertj:assertj-core'
+	api libs.assertj
 
 	// Tests for tests
-	testImplementation 'ch.qos.logback:logback-classic'
+	testImplementation libs.logback
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 
 	testImplementation 'io.projectreactor:reactor-core'
