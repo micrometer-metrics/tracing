@@ -1,7 +1,4 @@
 buildscript {
-	dependencyLocking {
-		lockAllConfigurations()
-	}
 
 	repositories {
 		mavenCentral()
@@ -253,28 +250,6 @@ subprojects {
 		}
 	}
 
-	dependencyLocking {
-		lockAllConfigurations()
-	}
-
-	tasks.register('resolveAndLockAll') {
-		description = 'Resolves dependencies of all configurations and writes them into the lock file.'
-		outputs.upToDateWhen { false }
-		doFirst {
-			assert gradle.startParameter.writeDependencyLocks || gradle.startParameter.lockedDependenciesToUpdate: 'Execute resolveAndLockAll --write-locks or --update-locks <dependencies>'
-		}
-		doLast {
-			project.configurations.findAll { it.canBeResolved }*.resolve()
-		}
-	}
-
-	tasks.register('downloadDependencies') {
-		outputs.upToDateWhen { false }
-		doLast {
-			project.configurations.findAll { it.canBeResolved }*.files
-		}
-	}
-
 	if (!['samples', 'benchmarks'].find { project.name.contains(it) }) {
 		apply plugin: 'com.netflix.nebula.maven-publish'
 		apply plugin: 'com.netflix.nebula.maven-manifest'
@@ -340,10 +315,6 @@ nexusPublishing {
 			password = findProperty('MAVEN_CENTRAL_PASSWORD')
 		}
 	}
-}
-
-task deleteLockFiles(type: Delete) {
-	delete fileTree(dir: '.', include: '**/gradle.lockfile')
 }
 
 wrapper {
