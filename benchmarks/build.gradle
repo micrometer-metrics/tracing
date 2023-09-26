@@ -1,18 +1,18 @@
 dependencies {
     jmh project(':micrometer-tracing-bridge-brave')
     jmh project(':micrometer-tracing-bridge-otel')
-    jmh 'org.openjdk.jmh:jmh-core:latest.release'
+    jmh libs.jmh
     jmh 'io.zipkin.brave:brave-tests'
 
-    jmh 'ch.qos.logback:logback-classic'
+    jmh libs.logback
 
     // Nebula doesn't like having jmhAnnotationProcessor without jmh so we just add it twice.
-    jmh 'org.openjdk.jmh:jmh-generator-annprocess:latest.release'
-    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:latest.release'
+    jmh libs.jmhGeneratorAnnProcess
+    jmhAnnotationProcessor libs.jmhGeneratorAnnProcess
 }
 
 jmh {
-    jmhVersion = '1.36'
+    jmhVersion = '1.37'
     fork = 1
     warmupIterations = 1
     iterations = 1

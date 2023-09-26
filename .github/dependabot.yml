@@ -5,19 +5,119 @@ registries:
     url: https://plugins.gradle.org/m2
     username: dummy # Required by dependabot
     password: dummy # Required by dependabot
+  maven-central:
+    type: maven-repository
+    url: https://repo1.maven.org/maven2/
+    username: dummy # Required by dependabot
+    password: dummy # Required by dependabot
 updates:
-  - package-ecosystem: "gradle"
-    directory: "/"
-    target-branch: "1.0.x" # oldest OSS supported branch
-    allow:
-      - dependency-name: "com.gradle*"
-    registries:
-      - gradle-plugin-portal
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
+  # Github Actions
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "1.0.x" # oldest OSS supported branch
+    target-branch: "1.0.x"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "1.1.x"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+  # Build dependencies
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: 1.0.x
+    groups:
+      netflix-plugins:
+        patterns:
+          - "com.netflix.nebula*"
+        update-types:
+          - minor
+          - patch
+    allow:
+      - dependency-name: "gradle.plugin.com.hierynomus.gradle.plugins*"
+      - dependency-name: "com.netflix.nebula*"
+      - dependency-name: "io.spring.nohttp*"
+      - dependency-name: "io.github.gradle-nexus*"
+      - dependency-name: "io.spring.javaformat*"
+      - dependency-name: "io.spring.ge.conventions*"
+      - dependency-name: "com.gradle*"
+      - dependency-name: "org.gradle*"
+    ignore:
+      # only upgrade minor and patch versions for plugin dependencies
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+    registries:
+      - gradle-plugin-portal
+      - maven-central
+    milestone: 10
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: 1.1.x
+    groups:
+      netflix-plugins:
+        patterns:
+          - "com.netflix.nebula*"
+        update-types:
+          - minor
+          - patch
+    allow:
+      - dependency-name: "gradle.plugin.com.hierynomus.gradle.plugins*"
+      - dependency-name: "com.netflix.nebula*"
+      - dependency-name: "io.spring.nohttp*"
+      - dependency-name: "io.github.gradle-nexus*"
+      - dependency-name: "io.spring.javaformat*"
+      - dependency-name: "io.spring.ge.conventions*"
+      - dependency-name: "com.gradle*"
+      - dependency-name: "org.gradle*"
+    ignore:
+      # only upgrade minor and patch versions for plugin dependencies
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+    registries:
+      - gradle-plugin-portal
+      - maven-central
+    milestone: 10
+  # Non-build dependencies maintenance branch
+  - package-ecosystem: gradle
+    directory: /gradle
+    schedule:
+      interval: daily
+    target-branch: 1.0.x
+    ignore:
+      # only upgrade patch versions
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+  - package-ecosystem: gradle
+    directory: /gradle
+    schedule:
+      interval: daily
+    target-branch: 1.1.x
+    ignore:
+      # only upgrade patch versions
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: main
+    ignore:
+      # only upgrade by minor or patch
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
