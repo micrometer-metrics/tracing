@@ -74,11 +74,11 @@ subprojects {
 		// have to add the dependency in every project, which is tedious so just do it here.
 		dependencies {
 			// JSR-305 only used for non-required meta-annotations
-			optionalApi 'com.google.code.findbugs:jsr305:latest.release'
-			checkstyle 'io.spring.javaformat:spring-javaformat-checkstyle:latest.release'
-			jmh 'org.openjdk.jmh:jmh-core:1.36'
-			jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
-			jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
+			optionalApi libs.jsr305
+			checkstyle libs.javaFormatForPlugins
+			jmh libs.jmh
+			jmh libs.jmhGeneratorAnnProcess
+			jmhAnnotationProcessor libs.jmhGeneratorAnnProcess
 			jmh 'net.sf.jopt-simple:jopt-simple'
 		}
 
