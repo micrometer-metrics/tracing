@@ -306,7 +306,6 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         @Override
         public void close() {
             this.baggage.clear();
-            this.scopes.clear();
         }
 
         @Override
