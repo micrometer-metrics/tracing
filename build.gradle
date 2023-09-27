@@ -10,6 +10,7 @@ buildscript {
 		classpath libs.plugin.nebulaRelease
 		classpath libs.plugin.nebulaPublishing
 		classpath libs.plugin.nebulaProject
+		classpath libs.plugin.nebulaInfo
 		classpath libs.plugin.noHttp
 		classpath libs.plugin.nexusPublish
 		classpath libs.plugin.javaformat
@@ -23,6 +24,15 @@ buildscript {
 	}
 
 	configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 0, 'minutes'
+}
+
+// Antora uses worktrees to check out branches/tags.
+// The nebula release, project, and info plugins use jgit to fetch git-related info.
+// Unfortunately jgit does not support worktrees: https://bugs.eclipse.org/bugs/show_bug.cgi?id=477475
+// TODO: remove this hack once jgit supports worktrees and nebula upgrades.
+if (project.hasProperty('antora')) {
+    'git fetch --unshallow --all --tags'.execute().text // antora shallow-clones so there is no history
+    ext['git.root'] = 'git rev-parse --path-format=absolute --git-common-dir'.execute().text.trim()
 }
 
 // TODO: remove this hack, see: https://github.com/nebula-plugins/nebula-release-plugin/issues/213
