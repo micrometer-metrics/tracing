@@ -17,6 +17,7 @@ package io.micrometer.tracing.annotation;
 
 import io.micrometer.common.annotation.ValueExpressionResolver;
 import io.micrometer.common.annotation.ValueResolver;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -25,9 +26,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import java.util.function.Function;
 
 /**
- * Method Invocation processor for imperative code.
- *
- * Code ported from Spring Cloud Sleuth.
+ * Method Invocation processor for imperative code. Code ported from Spring Cloud Sleuth.
  *
  * @author Marcin Grzejszczak
  * @since 1.1.0
@@ -45,8 +44,28 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
     public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
             Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
             Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
-        super(newSpanParser, tracer, tracer.currentTraceContext(),
-                new SpanTagAnnotationHandler(resolverProvider, expressionResolverProvider));
+        this(newSpanParser, tracer, new SpanTagAnnotationHandler(resolverProvider, expressionResolverProvider));
+    }
+
+    /**
+     * Creates a new instance of {@link ImperativeMethodInvocationProcessor}.
+     * @param newSpanParser new span parser
+     * @param tracer tracer
+     */
+    public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer) {
+        this(newSpanParser, tracer, null);
+    }
+
+    /**
+     * Creates a new instance of {@link ImperativeMethodInvocationProcessor}.
+     * @param newSpanParser new span parser
+     * @param tracer tracer
+     * @param spanTagAnnotationHandler resolves tags to be added to the span from the
+     * annotations
+     */
+    public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
+            @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler) {
+        super(newSpanParser, tracer, tracer.currentTraceContext(), spanTagAnnotationHandler);
     }
 
     @Override
@@ -67,7 +86,7 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
         }
         String log = log(continueSpan);
         boolean hasLog = StringUtils.isNotBlank(log);
-        try (Tracer.SpanInScope scope = tracer.withSpan(span)) {
+        try (Tracer.SpanInScope ignored = tracer.withSpan(span)) {
             before(invocation, span, log, hasLog);
             return invocation.proceed();
         }

@@ -43,9 +43,16 @@ class SpanCreatorAspectTests {
     }
 
     private TestBeanInterface testBean() {
+        MethodInvocationProcessor methodInvocationProcessor = new ImperativeMethodInvocationProcessor(
+                new DefaultNewSpanParser(), tracer, aClass -> null, aClass -> null);
+        return testBean(methodInvocationProcessor);
+    }
+
+    private TestBeanInterface testBean(MethodInvocationProcessor methodInvocationProcessor) {
         AspectJProxyFactory pf = new AspectJProxyFactory(this.testBean);
-        pf.addAspect(new SpanAspect(new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(), tracer,
-                aClass -> null, aClass -> null)));
+        SpanAspect spanAspect = new SpanAspect(methodInvocationProcessor);
+        pf.addAspect(spanAspect);
+
         return pf.getProxy();
     }
 
@@ -105,6 +112,35 @@ class SpanCreatorAspectTests {
     @Test
     void shouldCreateSpanWithTagWhenAnnotationOnClassMethod() {
         testBean().testMethod6("test");
+
+        BDDAssertions.then(this.spans).hasSize(1);
+        BDDAssertions.then(this.spans.peek().getName()).isEqualTo("custom-name-on-test-method6");
+        BDDAssertions.then(this.spans.peek().getTags()).containsEntry("testTag6", "test");
+        BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
+        BDDAssertions.then(this.tracer.currentSpan()).isNull();
+    }
+
+    @Test
+    void shouldCreateSpanWhenSpanTagAnnotationHandlerIsMissing() {
+        ImperativeMethodInvocationProcessor methodInvocationProcessor = new ImperativeMethodInvocationProcessor(
+                new DefaultNewSpanParser(), tracer);
+        testBean(methodInvocationProcessor).testMethod6("test");
+
+        BDDAssertions.then(this.spans).hasSize(1);
+        BDDAssertions.then(this.spans.peek().getName()).isEqualTo("custom-name-on-test-method6");
+        BDDAssertions.then(this.spans.peek().getTags()).doesNotContainEntry("testTag6", "test");
+        BDDAssertions.then(this.spans.peek().getEndTimestamp().toEpochMilli()).isNotZero();
+        BDDAssertions.then(this.tracer.currentSpan()).isNull();
+    }
+
+    @Test
+    void shouldCreateSpanWhenSpanTagAnnotationHandlerIsSet() {
+        ImperativeMethodInvocationProcessor methodInvocationProcessor = new ImperativeMethodInvocationProcessor(
+                new DefaultNewSpanParser(), tracer);
+        SpanTagAnnotationHandler spanTagAnnotationHandler = new SpanTagAnnotationHandler(aClass -> null,
+                aClass -> null);
+        methodInvocationProcessor.setSpanTagAnnotationHandler(spanTagAnnotationHandler);
+        testBean(methodInvocationProcessor).testMethod6("test");
 
         BDDAssertions.then(this.spans).hasSize(1);
         BDDAssertions.then(this.spans.peek().getName()).isEqualTo("custom-name-on-test-method6");

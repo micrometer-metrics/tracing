@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.annotation;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.CurrentTraceContext;
@@ -33,10 +34,11 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
 
     final CurrentTraceContext currentTraceContext;
 
-    final SpanTagAnnotationHandler spanTagAnnotationHandler;
+    @Nullable
+    SpanTagAnnotationHandler spanTagAnnotationHandler;
 
     AbstractMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
-            CurrentTraceContext currentTraceContext, SpanTagAnnotationHandler spanTagAnnotationHandler) {
+            CurrentTraceContext currentTraceContext, @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler) {
         this.newSpanParser = newSpanParser;
         this.tracer = tracer;
         this.currentTraceContext = currentTraceContext;
@@ -49,7 +51,10 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
         }
         if (invocation instanceof SpanAspectMethodInvocation) {
             SpanAspectMethodInvocation spanInvocation = (SpanAspectMethodInvocation) invocation;
-            spanTagAnnotationHandler.addAnnotatedParameters(tracer.currentSpanCustomizer(), spanInvocation.getPjp());
+            if (spanTagAnnotationHandler != null) {
+                spanTagAnnotationHandler.addAnnotatedParameters(tracer.currentSpanCustomizer(),
+                        spanInvocation.getPjp());
+            }
         }
         addTags(invocation, span);
     }
@@ -98,6 +103,14 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
             return continueSpan.log();
         }
         return "";
+    }
+
+    /**
+     * Setting this enables support for {@link SpanTag}.
+     * @param spanTagAnnotationHandler span tag annotation handler
+     */
+    public void setSpanTagAnnotationHandler(SpanTagAnnotationHandler spanTagAnnotationHandler) {
+        this.spanTagAnnotationHandler = spanTagAnnotationHandler;
     }
 
 }
