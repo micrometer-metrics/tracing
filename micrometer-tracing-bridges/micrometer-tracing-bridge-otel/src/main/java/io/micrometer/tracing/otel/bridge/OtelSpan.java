@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
 import io.micrometer.tracing.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
+
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * OpenTelemetry implementation of a {@link Span}.
