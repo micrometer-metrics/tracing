@@ -24,6 +24,10 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import io.opentelemetry.semconv.SemanticAttributes;
 
+/**
+ * @deprecated scheduled for removal in 1.4.0
+ */
+@Deprecated
 class PathAttributeExtractor implements AttributesExtractor<HttpRequest, HttpResponse> {
 
     private static final AttributeKey<String> HTTP_PATH = AttributeKey.stringKey("http.path");

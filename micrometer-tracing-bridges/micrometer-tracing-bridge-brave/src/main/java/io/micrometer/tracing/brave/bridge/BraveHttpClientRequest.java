@@ -15,17 +15,19 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import io.micrometer.tracing.http.HttpClientRequest;
+
 import java.util.Collection;
 import java.util.Collections;
-
-import io.micrometer.tracing.http.HttpClientRequest;
 
 /**
  * Brave implementation of a {@link HttpClientRequest}.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 class BraveHttpClientRequest implements HttpClientRequest {
 
     final brave.http.HttpClientRequest delegate;

@@ -39,7 +39,9 @@ import java.util.regex.Pattern;
  * @author Marcin Grzejszczak
  * @author Nikita Salnikov-Tarnovski
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public class OtelHttpServerHandler implements HttpServerHandler {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelHttpClientHandler.class);

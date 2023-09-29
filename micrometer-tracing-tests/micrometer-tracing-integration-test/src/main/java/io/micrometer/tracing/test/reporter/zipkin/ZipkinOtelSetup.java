@@ -113,8 +113,10 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
+        @Deprecated
         private Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler;
 
+        @Deprecated
         private Function<OpenTelemetrySdk, HttpClientHandler> httpClientHandler;
 
         private Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
@@ -140,8 +142,10 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             private final OtelPropagator propagator;
 
+            @Deprecated
             private final HttpServerHandler httpServerHandler;
 
+            @Deprecated
             private final HttpClientHandler httpClientHandler;
 
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
@@ -194,11 +198,21 @@ public final class ZipkinOtelSetup implements AutoCloseable {
                 return this.otelTracer;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http server handler
+             */
+            @Deprecated
             @Override
             public HttpServerHandler getHttpServerHandler() {
                 return this.httpServerHandler;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http client handler
+             */
+            @Deprecated
             @Override
             public HttpClientHandler getHttpClientHandler() {
                 return this.httpClientHandler;

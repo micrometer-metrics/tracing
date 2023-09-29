@@ -15,9 +15,9 @@
  */
 package io.micrometer.tracing.http;
 
-import java.util.Collection;
-
 import io.micrometer.observation.transport.Kind;
+
+import java.util.Collection;
 
 /**
  * This API is taken from OpenZipkin Brave.
@@ -27,7 +27,9 @@ import io.micrometer.observation.transport.Kind;
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
  * @since 1.10.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public interface Request {
 
     /**

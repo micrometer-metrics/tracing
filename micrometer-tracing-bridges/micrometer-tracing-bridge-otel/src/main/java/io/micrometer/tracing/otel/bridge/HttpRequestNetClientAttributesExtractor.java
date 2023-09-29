@@ -24,7 +24,9 @@ import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributes
  * Extracts OpenTelemetry network semantic attributes value for client http spans.
  *
  * @author Nikita Salnikov-Tarnovski
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 class HttpRequestNetClientAttributesExtractor
         implements NetClientAttributesGetter<HttpClientRequest, HttpClientResponse> {
 

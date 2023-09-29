@@ -15,18 +15,20 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import io.micrometer.observation.transport.Kind;
 import io.micrometer.tracing.http.HttpServerRequest;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Brave implementation of a {@link HttpServerRequest}.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 class BraveHttpServerRequest implements HttpServerRequest {
 
     private static final boolean JAVAX_SERVLET_ON_THE_CLASSPATH = isClassPresent("javax.servlet.ServletRequest");

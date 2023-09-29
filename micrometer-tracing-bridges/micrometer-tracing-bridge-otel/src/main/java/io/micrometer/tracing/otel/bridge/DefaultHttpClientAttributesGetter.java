@@ -29,7 +29,9 @@ import java.util.List;
  *
  * @author Nikita Salnikov-Tarnovski
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public class DefaultHttpClientAttributesGetter
         implements HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> {
 

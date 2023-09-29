@@ -15,17 +15,6 @@
  */
 package io.micrometer.tracing.test.reporter.wavefront;
 
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.clients.WavefrontClient;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -39,16 +28,7 @@ import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandle
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
-import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
-import io.micrometer.tracing.otel.bridge.DefaultHttpClientAttributesGetter;
-import io.micrometer.tracing.otel.bridge.DefaultHttpServerAttributesExtractor;
-import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
-import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
-import io.micrometer.tracing.otel.bridge.OtelFinishedSpan;
-import io.micrometer.tracing.otel.bridge.OtelHttpClientHandler;
-import io.micrometer.tracing.otel.bridge.OtelHttpServerHandler;
-import io.micrometer.tracing.otel.bridge.OtelPropagator;
-import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.micrometer.tracing.otel.bridge.*;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.reporter.wavefront.WavefrontOtelSpanExporter;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
@@ -60,6 +40,13 @@ import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Provides Wavefront setup with OTel.
@@ -130,8 +117,10 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
         private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
+        @Deprecated
         private Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler;
 
+        @Deprecated
         private Function<OpenTelemetrySdk, HttpClientHandler> httpClientHandler;
 
         private Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
@@ -201,11 +190,21 @@ public final class WavefrontOtelSetup implements AutoCloseable {
                 return this.propagator;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http server handler
+             */
+            @Deprecated
             @Override
             public HttpServerHandler getHttpServerHandler() {
                 return this.httpServerHandler;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http client handler
+             */
+            @Deprecated
             @Override
             public HttpClientHandler getHttpClientHandler() {
                 return this.httpClientHandler;

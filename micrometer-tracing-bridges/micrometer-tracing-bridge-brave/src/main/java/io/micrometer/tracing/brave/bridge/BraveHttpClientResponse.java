@@ -15,18 +15,20 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import io.micrometer.tracing.http.HttpClientRequest;
 import io.micrometer.tracing.http.HttpClientResponse;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Brave implementation of a {@link HttpClientResponse}.
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 class BraveHttpClientResponse implements HttpClientResponse {
 
     final brave.http.HttpClientResponse delegate;
