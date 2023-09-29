@@ -39,7 +39,7 @@ import java.util.function.Function;
  * @author Christian Schwerdtfeger
  * @since 1.1.0
  */
-class SpanTagAnnotationHandler extends AnnotationHandler<SpanCustomizer> {
+public class SpanTagAnnotationHandler extends AnnotationHandler<SpanCustomizer> {
 
     public SpanTagAnnotationHandler(Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
             Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
