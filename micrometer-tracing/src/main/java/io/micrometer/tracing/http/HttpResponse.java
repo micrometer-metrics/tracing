@@ -25,7 +25,9 @@ import io.micrometer.common.lang.Nullable;
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
  * @since 1.10.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public interface HttpResponse extends Response {
 
     @Nullable

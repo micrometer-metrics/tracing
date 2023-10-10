@@ -15,7 +15,6 @@
  */
 package io.micrometer.tracing.http;
 
-import io.micrometer.tracing.http.HttpResponse;
 import io.micrometer.tracing.SpanCustomizer;
 import io.micrometer.tracing.TraceContext;
 
@@ -27,7 +26,9 @@ import io.micrometer.tracing.TraceContext;
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public interface HttpResponseParser {
 
     /**

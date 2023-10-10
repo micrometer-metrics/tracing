@@ -26,7 +26,9 @@ import java.net.URI;
  * Extracts OpenTelemetry network semantic attributes value for server http spans.
  *
  * @author Nikita Salnikov-Tarnovski
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 class HttpRequestNetServerAttributesExtractor
         implements NetServerAttributesGetter<HttpServerRequest, HttpServerResponse> {
 

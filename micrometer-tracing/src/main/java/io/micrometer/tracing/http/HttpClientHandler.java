@@ -15,11 +15,9 @@
  */
 package io.micrometer.tracing.http;
 
-import io.micrometer.tracing.http.HttpClientRequest;
-import io.micrometer.tracing.http.HttpClientResponse;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
-import io.micrometer.common.lang.Nullable;
 
 /**
  * This API is taken from OpenZipkin Brave.
@@ -31,7 +29,9 @@ import io.micrometer.common.lang.Nullable;
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public interface HttpClientHandler {
 
     /**

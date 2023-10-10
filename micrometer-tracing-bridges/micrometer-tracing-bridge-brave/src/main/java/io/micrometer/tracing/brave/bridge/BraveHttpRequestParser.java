@@ -25,7 +25,9 @@ import io.micrometer.tracing.http.HttpRequestParser;
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public class BraveHttpRequestParser implements HttpRequestParser {
 
     final brave.http.HttpRequestParser delegate;

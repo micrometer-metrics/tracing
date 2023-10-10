@@ -15,10 +15,6 @@
  */
 package io.micrometer.tracing.test.reporter;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.function.BiConsumer;
-
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.tracing.Tracer;
@@ -26,6 +22,10 @@ import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;
+
+import java.util.Deque;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * Building blocks for reporters and tracers.
@@ -51,13 +51,17 @@ public interface BuildingBlocks {
     /**
      * Returns an {@link HttpServerHandler}.
      * @return http server handler
+     * @deprecated scheduled for removal in 1.4.0
      */
+    @Deprecated
     HttpServerHandler getHttpServerHandler();
 
     /**
      * Returns an {@link HttpClientHandler}.
      * @return http client handler
+     * @deprecated scheduled for removal in 1.4.0
      */
+    @Deprecated
     HttpClientHandler getHttpClientHandler();
 
     /**

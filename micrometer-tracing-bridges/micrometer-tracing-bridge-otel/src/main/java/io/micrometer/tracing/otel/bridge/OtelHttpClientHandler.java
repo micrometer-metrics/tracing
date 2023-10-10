@@ -44,7 +44,9 @@ import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributes
  * @author Marcin Grzejszczak
  * @author Nikita Salnikov-Tarnovski
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public class OtelHttpClientHandler implements HttpClientHandler {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelHttpClientHandler.class);

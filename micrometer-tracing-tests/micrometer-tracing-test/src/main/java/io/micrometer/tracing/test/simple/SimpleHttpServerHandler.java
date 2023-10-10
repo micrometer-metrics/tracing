@@ -25,7 +25,9 @@ import io.micrometer.tracing.http.HttpServerHandler;
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public class SimpleHttpServerHandler implements HttpServerHandler {
 
     private final SimpleTracer simpleTracer;

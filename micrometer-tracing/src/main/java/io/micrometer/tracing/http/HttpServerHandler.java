@@ -15,8 +15,6 @@
  */
 package io.micrometer.tracing.http;
 
-import io.micrometer.tracing.http.HttpServerRequest;
-import io.micrometer.tracing.http.HttpServerResponse;
 import io.micrometer.tracing.Span;
 
 /**
@@ -29,7 +27,9 @@ import io.micrometer.tracing.Span;
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 public interface HttpServerHandler {
 
     /**

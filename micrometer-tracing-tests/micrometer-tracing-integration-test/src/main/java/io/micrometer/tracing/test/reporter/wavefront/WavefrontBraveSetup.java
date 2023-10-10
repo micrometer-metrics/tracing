@@ -15,15 +15,6 @@
  */
 package io.micrometer.tracing.test.reporter.wavefront;
 
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import brave.Tracing;
 import brave.handler.SpanHandler;
 import brave.http.HttpTracing;
@@ -37,13 +28,7 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
-import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
-import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
-import io.micrometer.tracing.brave.bridge.BraveHttpClientHandler;
-import io.micrometer.tracing.brave.bridge.BraveHttpServerHandler;
-import io.micrometer.tracing.brave.bridge.BravePropagator;
-import io.micrometer.tracing.brave.bridge.BraveTracer;
+import io.micrometer.tracing.brave.bridge.*;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
@@ -53,6 +38,15 @@ import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontBraveSpanHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
+
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Provides Wavefront setup with Brave.
@@ -119,8 +113,10 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private Function<Tracing, HttpTracing> httpTracing;
 
+        @Deprecated
         private Function<HttpTracing, HttpServerHandler> httpServerHandler;
 
+        @Deprecated
         private Function<HttpTracing, HttpClientHandler> httpClientHandler;
 
         private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
@@ -155,8 +151,10 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
             private final HttpTracing httpTracing;
 
+            @Deprecated
             private final HttpServerHandler httpServerHandler;
 
+            @Deprecated
             private final HttpClientHandler httpClientHandler;
 
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
@@ -201,11 +199,21 @@ public final class WavefrontBraveSetup implements AutoCloseable {
                 return this.propagator;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http server handler
+             */
+            @Deprecated
             @Override
             public HttpServerHandler getHttpServerHandler() {
                 return this.httpServerHandler;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http client handler
+             */
+            @Deprecated
             @Override
             public HttpClientHandler getHttpClientHandler() {
                 return this.httpClientHandler;

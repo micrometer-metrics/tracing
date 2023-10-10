@@ -105,8 +105,10 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private Function<Tracing, HttpTracing> httpTracing;
 
+        @Deprecated
         private Function<HttpTracing, HttpServerHandler> httpServerHandler;
 
+        @Deprecated
         private Function<HttpTracing, HttpClientHandler> httpClientHandler;
 
         private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
@@ -132,8 +134,10 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             private final HttpTracing httpTracing;
 
+            @Deprecated
             private final HttpServerHandler httpServerHandler;
 
+            @Deprecated
             private final HttpClientHandler httpClientHandler;
 
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
@@ -188,11 +192,21 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                 return this.propagator;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http server handler
+             */
+            @Deprecated
             @Override
             public HttpServerHandler getHttpServerHandler() {
                 return this.httpServerHandler;
             }
 
+            /**
+             * @deprecated scheduled for removal in 1.4.0
+             * @return http client handler
+             */
+            @Deprecated
             @Override
             public HttpClientHandler getHttpClientHandler() {
                 return this.httpClientHandler;
