@@ -309,10 +309,6 @@ subprojects {
 
 	repositories {
 		maven {
-			url 'https://repo.spring.io/snapshot/'
-			content { includeGroup 'io.micrometer' }
-		}
-		maven {
 			url 'https://repo.spring.io/milestone/'
 			content { includeGroup 'io.micrometer' }
 		}
