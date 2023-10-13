@@ -298,6 +298,10 @@ subprojects {
 	description = 'Facade over tracing concepts'
 
 	repositories {
+		maven {
+			url 'https://repo.spring.io/snapshot/'
+			content { includeGroup 'io.micrometer' }
+		}
 		mavenCentral()
 	}
 

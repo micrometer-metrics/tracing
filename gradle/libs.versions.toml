@@ -1,9 +1,9 @@
 [versions]
-micrometer = "1.10.12"
+micrometer = "1.10.13-SNAPSHOT"
+micrometerContextPropagation="1.0.7-SNAPSHOT"
 junit = "5.10.0"
 javaxServlet="4.0.1"
 jmh="1.37"
-micrometerContextPropagation="1.0.6"
 jakartaWeb="9.1.0"
 otelInstrumentation="1.19.2-alpha"
 aopalliance="1.0"
