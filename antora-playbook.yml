@@ -14,12 +14,15 @@ site:
 content:
   sources:
     - url: https://github.com/micrometer-metrics/tracing
-      # Refname matching:
-      # https://docs.antora.org/antora/latest/playbook/content-refname-matching/
-      branches: [ main ]
-      # 1.[3-9][0-9].[0-9] RC, M and GA (e.g. 1.3.1, 1.44.6)
-      # 1.2[0-9].[0-9] RC, M and GA without 1.2.0-M[0-3] (e.g. 1.2.0-M4, 1.2.1, 1.20.0)
-      tags: [ 'v({1..9}).({3..9})({0..9}).+({0..9})?(-{RC,M}+({0..9}))', 'v1.2{0..9}+.({0..9})?(-{RC,M}+({0..9}))', '!v1.2.0-M({0..3}))' ]
+      # Refname matching: https://docs.antora.org/antora/latest/playbook/content-refname-matching/
+      branches:
+        - 'main'
+        - '+({1..9}).+({0..9}).x' # 1.0.x and above
+        - '!(1.{0..1}.x)' # Except 1.0.x and 1.1.x
+      tags:
+        - '+({1..9}).+({0..9}).+({0..9})?(-{RC,M}*)' # 1.0 and above
+        - '!(1.{0..1}.+({0..9})?(-{RC,M}*)' # Except 1.0 and 1.1
+        - '!(v1.2.0-{RC,M}*)' # TODO: Remove this once 1.2.0 is released (antora will skip them)
       start_path: docs
 asciidoc:
   attributes:
