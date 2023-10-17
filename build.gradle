@@ -7,9 +7,9 @@ antora {
 	version = '3.2.0-alpha.2'
 	options = [clean: true, fetch: true, stacktrace: true]
 	environment = [
-			'ALGOLIA_API_KEY': '82c7ead946afbac3cf98c32446154691',
-			'ALGOLIA_APP_ID': '244V8V9FGG',
-			'ALGOLIA_INDEX_NAME': 'tracing'
+			'ALGOLIA_API_KEY': '034ea4b1ae3502073e633a197aa21ce1',
+			'ALGOLIA_APP_ID': 'WB1FQYI187',
+			'ALGOLIA_INDEX_NAME': 'micrometer'
 	]
 	dependencies = [
 			'@antora/atlas-extension': '1.0.0-alpha.1',
