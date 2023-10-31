@@ -180,49 +180,44 @@ class ScopesTests {
         // First, let's open a couple scopes in multiple threads and terminate an
         // Observation upon completion signal.
 
-        Flux.range(0, 2)
-            .flatMap(integer -> {
-                Observation obs3 = Observation.start("3", observationRegistry);
-                Span span3;
-                try (Observation.Scope scope3 = obs3.openScope()) {
-                    span3 = tracer.currentSpan();
-                    logger.info("SPAN 3 [" + tracer.currentSpan() + "]");
-                }
+        Flux.range(0, 2).flatMap(integer -> {
+            Observation obs3 = Observation.start("3", observationRegistry);
+            Span span3;
+            try (Observation.Scope scope3 = obs3.openScope()) {
+                span3 = tracer.currentSpan();
+                logger.info("SPAN 3 [" + tracer.currentSpan() + "]");
+            }
 
-                return Mono.just(integer)
-                           .subscribeOn(scheduler)
-                           .doOnNext(v -> {
-                               Span spanWEmpty = tracer.currentSpan();
-                               logger.info("[inner-flatMap] SPAN IN EMPTY [" + spanWEmpty + "]");
-                               assertInReactor(errorsInFlatMap, spanWEmpty, null);
-                               if (integer == 1) {
-                                   latch.countDown();
-                               } else {
-                                   try {
-                                       latch.await();
-                                   } catch (InterruptedException e) {
-                                       // ignore
-                                   }
-                               }
-                           })
-                           .contextWrite(context -> Context.empty())
-                           .doOnNext(v -> {
-                               Span spanWOnNext = tracer.currentSpan();
-                               logger.info("[inner-doOnNext] SPAN IN ON NEXT [" + spanWOnNext + "]");
-                               assertInReactor(errorsInInnerOnNext, spanWOnNext, span3);
-                           })
-                           .contextWrite(ctx -> ctx.put(ObservationThreadLocalAccessor.KEY, obs3))
-                           // When stop is called in thread A, it mustn't close scopes
-                           // in thread B, which might still be open, as that would
-                           // cause errors and leaks.
-                           .doOnTerminate(obs3::stop);
-            }, 2, 1)
-            .doOnNext(integer -> {
+            return Mono.just(integer).subscribeOn(scheduler).doOnNext(v -> {
+                Span spanWEmpty = tracer.currentSpan();
+                logger.info("[inner-flatMap] SPAN IN EMPTY [" + spanWEmpty + "]");
+                assertInReactor(errorsInFlatMap, spanWEmpty, null);
+                if (integer == 1) {
+                    latch.countDown();
+                }
+                else {
+                    try {
+                        latch.await();
+                    }
+                    catch (InterruptedException e) {
+                        // ignore
+                    }
+                }
+            }).contextWrite(context -> Context.empty()).doOnNext(v -> {
                 Span spanWOnNext = tracer.currentSpan();
-                logger.info("[outer-doOnNext] SPAN IN ON NEXT [" + spanWOnNext + "]");
-                assertInReactor(errorsInOuterOnNext, spanWOnNext, span2);
+                logger.info("[inner-doOnNext] SPAN IN ON NEXT [" + spanWOnNext + "]");
+                assertInReactor(errorsInInnerOnNext, spanWOnNext, span3);
             })
-            .blockLast();
+                .contextWrite(ctx -> ctx.put(ObservationThreadLocalAccessor.KEY, obs3))
+                // When stop is called in thread A, it mustn't close scopes
+                // in thread B, which might still be open, as that would
+                // cause errors and leaks.
+                .doOnTerminate(obs3::stop);
+        }, 2, 1).doOnNext(integer -> {
+            Span spanWOnNext = tracer.currentSpan();
+            logger.info("[outer-doOnNext] SPAN IN ON NEXT [" + spanWOnNext + "]");
+            assertInReactor(errorsInOuterOnNext, spanWOnNext, span2);
+        }).blockLast();
 
         logger.info("Checking if there were no errors in reactor");
         then(errorsInFlatMap).isEmpty();
@@ -240,7 +235,7 @@ class ScopesTests {
         logger.info("SPAN AFTER CLOSE 2 [" + tracer.currentSpan() + "]");
         then(tracer.currentSpan())
             .as("Scopes should be restored to previous so current span should be Span 1 which is <%s>. Span 2 is <%s>",
-                span1, span2)
+                    span1, span2)
             .isEqualTo(span1);
 
         scope.close();
@@ -260,7 +255,8 @@ class ScopesTests {
             try (Observation.Scope scope4 = obs4.openScope()) {
                 logger.info("FRESH SPAN AFTER [{}]", tracer.currentSpan());
                 cleanupLatch.await();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 // ignore
             }
             obs4.stop();
