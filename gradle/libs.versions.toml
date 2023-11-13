@@ -1,6 +1,6 @@
 [versions]
-micrometer = "1.11.6-SNAPSHOT"
-micrometerContextPropagation="1.0.7-SNAPSHOT"
+micrometer = "1.11.6"
+micrometerContextPropagation="1.0.6"
 junit = "5.10.1"
 javaxServlet="4.0.1"
 jmh="1.37"
