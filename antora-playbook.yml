@@ -20,7 +20,7 @@ content:
         - '+({1..9}).+({0..9}).x' # 1.0.x and above
         - '!(1.{0..1}.x)' # Except 1.0.x and 1.1.x
       tags:
-        - '+(v{1..9}).+({0..9}).+({0..9})?(-{RC,M}*)' # 1.0 and above
+        - 'v+({1..9}).+({0..9}).+({0..9})?(-{RC,M}*)' # 1.0 and above
         - '!(v1.{0..1}.*)' # Except 1.0 and 1.1
         - '!(v1.2.0-{RC,M}*)' # Except 1.2 milestones/rc (1.2.0 is ok)
       start_path: docs
