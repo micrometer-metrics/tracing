@@ -37,11 +37,13 @@ public class SkipPatternSampler implements SamplerFunction<HttpRequest> {
      * @param pattern skip pattern
      */
     public SkipPatternSampler(Pattern pattern) {
+        DeprecatedClassLogger.logWarning(getClass());
         this.pattern = pattern;
     }
 
     @Override
     public final Boolean trySample(HttpRequest request) {
+        DeprecatedClassLogger.logWarning(getClass());
         String url = request.path();
         boolean shouldSkip = this.pattern.matcher(url).matches();
         if (shouldSkip) {

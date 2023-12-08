@@ -68,6 +68,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
     public OtelHttpServerHandler(OpenTelemetry openTelemetry, @Nullable HttpRequestParser httpServerRequestParser,
             @Nullable HttpResponseParser httpServerResponseParser, Pattern skipPattern,
             HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> httpAttributesExtractor) {
+        DeprecatedClassLogger.logWarning(getClass());
         this.httpServerRequestParser = httpServerRequestParser;
         this.httpServerResponseParser = httpServerResponseParser;
         this.pattern = skipPattern;
@@ -83,6 +84,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
 
     @Override
     public Span handleReceive(HttpServerRequest request) {
+        DeprecatedClassLogger.logWarning(getClass());
         String url = request.path();
         boolean shouldSkip = !StringUtils.isEmpty(url) && this.pattern.matcher(url).matches();
         if (shouldSkip) {
@@ -109,6 +111,7 @@ public class OtelHttpServerHandler implements HttpServerHandler {
 
     @Override
     public void handleSend(HttpServerResponse response, Span span) {
+        DeprecatedClassLogger.logWarning(getClass());
         OtelSpan otelSpanWrapper = (OtelSpan) span;
         if (!otelSpanWrapper.delegate.getSpanContext().isValid()) {
             if (log.isDebugEnabled()) {

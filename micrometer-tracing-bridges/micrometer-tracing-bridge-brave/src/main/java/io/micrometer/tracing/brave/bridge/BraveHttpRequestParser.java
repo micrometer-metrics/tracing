@@ -36,8 +36,10 @@ public class BraveHttpRequestParser implements HttpRequestParser {
      * Creates a new version of a {@link BraveHttpRequestParser}.
      * @param delegate Brave version of {@link HttpRequestParser}
      */
+    @Deprecated
     public BraveHttpRequestParser(brave.http.HttpRequestParser delegate) {
         this.delegate = delegate;
+        DeprecatedClassLogger.logWarning(getClass());
     }
 
     /**
@@ -46,6 +48,7 @@ public class BraveHttpRequestParser implements HttpRequestParser {
      * @return Brave version of the parser
      */
     public static brave.http.HttpRequestParser toBrave(HttpRequestParser parser) {
+        DeprecatedClassLogger.logWarning(BraveHttpRequestParser.class);
         if (parser instanceof BraveHttpRequestParser) {
             return ((BraveHttpRequestParser) parser).delegate;
         }
@@ -55,6 +58,7 @@ public class BraveHttpRequestParser implements HttpRequestParser {
 
     @Override
     public void parse(HttpRequest request, TraceContext context, SpanCustomizer span) {
+        DeprecatedClassLogger.logWarning(getClass());
         this.delegate.parse(BraveHttpRequest.toBrave(request), BraveTraceContext.toBrave(context),
                 BraveSpanCustomizer.toBrave(span));
     }

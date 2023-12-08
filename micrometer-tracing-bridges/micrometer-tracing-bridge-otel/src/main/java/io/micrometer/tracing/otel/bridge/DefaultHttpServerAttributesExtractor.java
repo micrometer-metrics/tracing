@@ -35,6 +35,10 @@ import java.util.List;
 public class DefaultHttpServerAttributesExtractor
         implements HttpServerAttributesGetter<HttpServerRequest, HttpServerResponse> {
 
+    public DefaultHttpServerAttributesExtractor() {
+        DeprecatedClassLogger.logWarning(getClass());
+    }
+
     /**
      * @deprecated This method was removed from OpenTelemetry. It should not be used since
      * always returned null in Micrometer Tracing.
@@ -42,12 +46,14 @@ public class DefaultHttpServerAttributesExtractor
     @Nullable
     @Deprecated
     public String getFlavor(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return null;
     }
 
     @Nullable
     @Override
     public String getUrlPath(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         URI uri = toUri(httpServerRequest);
         if (uri == null) {
             return null;
@@ -58,6 +64,7 @@ public class DefaultHttpServerAttributesExtractor
     @Nullable
     @Override
     public String getUrlQuery(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         URI uri = toUri(httpServerRequest);
         if (uri == null) {
             return null;
@@ -73,6 +80,7 @@ public class DefaultHttpServerAttributesExtractor
     @Nullable
     @Deprecated
     public String getTarget(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getUrlPath(httpServerRequest) + this.getUrlQuery(httpServerRequest);
     }
 
@@ -89,6 +97,7 @@ public class DefaultHttpServerAttributesExtractor
     @Nullable
     @Override
     public String getHttpRoute(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return httpServerRequest.route();
     }
 
@@ -99,12 +108,14 @@ public class DefaultHttpServerAttributesExtractor
     @Nullable
     @Deprecated
     public String getRoute(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpRoute(httpServerRequest);
     }
 
     @Nullable
     @Override
     public String getUrlScheme(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         String url = httpServerRequest.url();
         if (url == null) {
             return null;
@@ -125,12 +136,14 @@ public class DefaultHttpServerAttributesExtractor
     @Nullable
     @Deprecated
     public String getScheme(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getUrlScheme(httpServerRequest);
     }
 
     @Nullable
     @Override
     public String getHttpRequestMethod(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return httpServerRequest.method();
     }
 
@@ -141,11 +154,13 @@ public class DefaultHttpServerAttributesExtractor
     @Nullable
     @Deprecated
     public String getMethod(HttpServerRequest httpServerRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpRequestMethod(httpServerRequest);
     }
 
     @Override
     public List<String> getHttpRequestHeader(HttpServerRequest httpServerRequest, String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         String value = httpServerRequest.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
@@ -156,6 +171,7 @@ public class DefaultHttpServerAttributesExtractor
      */
     @Deprecated
     public List<String> getRequestHeader(HttpServerRequest httpServerRequest, String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpRequestHeader(httpServerRequest, name);
     }
 
@@ -163,6 +179,7 @@ public class DefaultHttpServerAttributesExtractor
     @Override
     public Integer getHttpResponseStatusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
             @Nullable Throwable error) {
+        DeprecatedClassLogger.logWarning(getClass());
         return httpServerResponse.statusCode();
     }
 
@@ -175,12 +192,14 @@ public class DefaultHttpServerAttributesExtractor
     @Deprecated
     public Integer getStatusCode(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
             Throwable error) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpResponseStatusCode(httpServerRequest, httpServerResponse, error);
     }
 
     @Override
     public List<String> getHttpResponseHeader(HttpServerRequest httpServerRequest,
             HttpServerResponse httpServerResponse, String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         String value = httpServerResponse.header(name);
         return value == null ? Collections.emptyList() : Collections.singletonList(value);
     }
@@ -193,6 +212,7 @@ public class DefaultHttpServerAttributesExtractor
     @Deprecated
     public List<String> getResponseHeader(HttpServerRequest httpServerRequest, HttpServerResponse httpServerResponse,
             String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpResponseHeader(httpServerRequest, httpServerResponse, name);
     }
 

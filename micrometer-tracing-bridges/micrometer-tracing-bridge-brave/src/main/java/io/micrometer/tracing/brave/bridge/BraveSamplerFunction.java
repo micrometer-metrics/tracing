@@ -24,7 +24,9 @@ import io.micrometer.tracing.http.HttpRequest;
  * @param <T> type of the input, for example a request or method
  * @author Marcin Grzejszczak
  * @since 1.0.0
+ * @deprecated scheduled for removal in 1.4.0
  */
+@Deprecated
 @SuppressWarnings("unchecked")
 public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
 
@@ -35,6 +37,7 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
      * @param samplerFunction Brave {@link SamplerFunction}
      */
     public BraveSamplerFunction(brave.sampler.SamplerFunction<T> samplerFunction) {
+        DeprecatedClassLogger.logWarning(getClass());
         this.samplerFunction = samplerFunction;
     }
 
@@ -47,11 +50,13 @@ public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
     @Deprecated
     public static brave.sampler.SamplerFunction<brave.http.HttpRequest> toHttpBrave(
             SamplerFunction<HttpRequest> samplerFunction) {
+        DeprecatedClassLogger.logWarning(BraveSamplerFunction.class);
         return arg -> samplerFunction.trySample(BraveHttpRequest.fromBrave(arg));
     }
 
     @Override
     public Boolean trySample(T arg) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.samplerFunction.trySample(arg);
     }
 

@@ -92,6 +92,7 @@ public class OtelHttpClientHandler implements HttpClientHandler {
             @Nullable HttpResponseParser httpClientResponseParser, SamplerFunction<HttpRequest> samplerFunction,
             HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> httpAttributesExtractor,
             NetClientAttributesGetter<HttpClientRequest, HttpClientResponse> netAttributesGetter) {
+        DeprecatedClassLogger.logWarning(getClass());
         this.httpClientRequestParser = httpClientRequestParser;
         this.httpClientResponseParser = httpClientResponseParser;
         this.samplerFunction = samplerFunction;
@@ -107,12 +108,14 @@ public class OtelHttpClientHandler implements HttpClientHandler {
 
     @Override
     public Span handleSend(HttpClientRequest request) {
+        DeprecatedClassLogger.logWarning(getClass());
         Context parentContext = Context.current();
         return startSpan(request, parentContext);
     }
 
     @Override
     public Span handleSend(HttpClientRequest request, TraceContext parent) {
+        DeprecatedClassLogger.logWarning(getClass());
         Context parentContext = OtelTraceContext.toOtelContext(parent);
         return startSpan(request, parentContext);
     }
@@ -147,6 +150,7 @@ public class OtelHttpClientHandler implements HttpClientHandler {
 
     @Override
     public void handleReceive(HttpClientResponse response, Span span) {
+        DeprecatedClassLogger.logWarning(getClass());
         OtelSpan otelSpanWrapper = (OtelSpan) span;
         if (!otelSpanWrapper.delegate.getSpanContext().isValid()) {
             if (log.isDebugEnabled()) {

@@ -38,6 +38,7 @@ public class BraveHttpResponseParser implements HttpResponseParser {
      */
     public BraveHttpResponseParser(brave.http.HttpResponseParser delegate) {
         this.delegate = delegate;
+        DeprecatedClassLogger.logWarning(getClass());
     }
 
     /**
@@ -46,6 +47,7 @@ public class BraveHttpResponseParser implements HttpResponseParser {
      * @return Brave parser
      */
     public static brave.http.HttpResponseParser toBrave(HttpResponseParser parser) {
+        DeprecatedClassLogger.logWarning(BraveHttpRequestParser.class);
         if (parser instanceof BraveHttpResponseParser) {
             return ((BraveHttpResponseParser) parser).delegate;
         }
@@ -55,6 +57,7 @@ public class BraveHttpResponseParser implements HttpResponseParser {
 
     @Override
     public void parse(HttpResponse response, TraceContext context, SpanCustomizer span) {
+        DeprecatedClassLogger.logWarning(getClass());
         this.delegate.parse(BraveHttpResponse.toBrave(response), BraveTraceContext.toBrave(context),
                 BraveSpanCustomizer.toBrave(span));
     }

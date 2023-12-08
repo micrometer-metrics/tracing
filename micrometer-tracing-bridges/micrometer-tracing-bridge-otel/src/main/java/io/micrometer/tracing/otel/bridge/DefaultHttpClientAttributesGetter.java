@@ -35,15 +35,21 @@ import java.util.List;
 public class DefaultHttpClientAttributesGetter
         implements HttpClientAttributesGetter<HttpClientRequest, HttpClientResponse> {
 
+    public DefaultHttpClientAttributesGetter() {
+        DeprecatedClassLogger.logWarning(getClass());
+    }
+
     @Nullable
     @Override
     public String getUrlFull(HttpClientRequest httpClientRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return httpClientRequest.url();
     }
 
     @Nullable
     @Override
     public String getServerAddress(HttpClientRequest httpClientRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         try {
             URI uri = URI.create(httpClientRequest.url());
             return uri.getHost();
@@ -56,6 +62,7 @@ public class DefaultHttpClientAttributesGetter
     @Nullable
     @Override
     public Integer getServerPort(HttpClientRequest httpClientRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         try {
             URI uri = URI.create(httpClientRequest.url());
             return uri.getPort();
@@ -72,6 +79,7 @@ public class DefaultHttpClientAttributesGetter
     @Nullable
     @Deprecated
     public String getUrl(HttpClientRequest httpClientRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getUrlFull(httpClientRequest);
     }
 
@@ -82,12 +90,14 @@ public class DefaultHttpClientAttributesGetter
     @Nullable
     @Deprecated
     public String getFlavor(HttpClientRequest httpClientRequest, @Nullable HttpClientResponse httpClientResponse) {
+        DeprecatedClassLogger.logWarning(getClass());
         return null;
     }
 
     @Nullable
     @Override
     public String getHttpRequestMethod(HttpClientRequest httpClientRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return httpClientRequest.method();
     }
 
@@ -98,11 +108,13 @@ public class DefaultHttpClientAttributesGetter
     @Nullable
     @Deprecated
     public String getMethod(HttpClientRequest httpClientRequest) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpRequestMethod(httpClientRequest);
     }
 
     @Override
     public List<String> getHttpRequestHeader(HttpClientRequest httpClientRequest, String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         if (httpClientRequest == null) {
             return Collections.emptyList();
         }
@@ -116,6 +128,7 @@ public class DefaultHttpClientAttributesGetter
      */
     @Deprecated
     public List<String> getRequestHeader(HttpClientRequest httpClientRequest, String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpRequestHeader(httpClientRequest, name);
     }
 
@@ -123,6 +136,7 @@ public class DefaultHttpClientAttributesGetter
     @Override
     public Integer getHttpResponseStatusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
             @Nullable Throwable error) {
+        DeprecatedClassLogger.logWarning(getClass());
         if (httpClientResponse == null) {
             return null;
         }
@@ -138,12 +152,14 @@ public class DefaultHttpClientAttributesGetter
     @Deprecated
     public Integer getStatusCode(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
             Throwable error) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpResponseStatusCode(httpClientRequest, httpClientResponse, error);
     }
 
     @Override
     public List<String> getHttpResponseHeader(HttpClientRequest httpClientRequest,
             HttpClientResponse httpClientResponse, String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         if (httpClientResponse == null) {
             return Collections.emptyList();
         }
@@ -164,6 +180,7 @@ public class DefaultHttpClientAttributesGetter
     @Deprecated
     public List<String> getResponseHeader(HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse,
             String name) {
+        DeprecatedClassLogger.logWarning(getClass());
         return this.getHttpResponseHeader(httpClientRequest, httpClientResponse, name);
     }
 

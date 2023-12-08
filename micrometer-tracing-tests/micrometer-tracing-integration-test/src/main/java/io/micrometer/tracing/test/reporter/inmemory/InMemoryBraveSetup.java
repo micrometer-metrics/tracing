@@ -163,7 +163,8 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             }
 
             /**
-             * @deprecated scheduled for removal in 1.4.0
+             * @deprecated scheduled for removal in 1.4.0, returns {@code null} starting
+             * from 1.3.0 unless explicitly set by the builder
              * @return http server handler
              */
             @Deprecated
@@ -173,7 +174,8 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             }
 
             /**
-             * @deprecated scheduled for removal in 1.4.0
+             * @deprecated scheduled for removal in 1.4.0, returns {@code null} starting
+             * from 1.3.0 unless explicitly set by the builder
              * @return http client handler
              */
             @Deprecated
@@ -252,7 +254,9 @@ public final class InMemoryBraveSetup implements AutoCloseable {
          * Overrides Http Server Handler.
          * @param httpServerHandler http server handler provider
          * @return this for chaining
+         * @deprecated scheduled for removal in 1.4.0
          */
+        @Deprecated
         public Builder httpServerHandler(Function<HttpTracing, HttpServerHandler> httpServerHandler) {
             this.httpServerHandler = httpServerHandler;
             return this;
@@ -262,7 +266,9 @@ public final class InMemoryBraveSetup implements AutoCloseable {
          * Overrides Http Client Handler.
          * @param httpClientHandler http client handler provider
          * @return this for chaining
+         * @deprecated scheduled for removal in 1.4.0
          */
+        @Deprecated
         public Builder httpClientHandler(Function<HttpTracing, HttpClientHandler> httpClientHandler) {
             this.httpClientHandler = httpClientHandler;
             return this;
@@ -302,9 +308,9 @@ public final class InMemoryBraveSetup implements AutoCloseable {
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             HttpServerHandler httpServerHandler = this.httpServerHandler != null
-                    ? this.httpServerHandler.apply(httpTracing) : httpServerHandler(httpTracing);
+                    ? this.httpServerHandler.apply(httpTracing) : null;
             HttpClientHandler httpClientHandler = this.httpClientHandler != null
-                    ? this.httpClientHandler.apply(httpTracing) : httpClientHandler(httpTracing);
+                    ? this.httpClientHandler.apply(httpTracing) : null;
             BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null
                     ? this.customizers : (t, h) -> {
                     };
@@ -335,14 +341,6 @@ public final class InMemoryBraveSetup implements AutoCloseable {
 
         private static HttpTracing httpTracing(Tracing tracing) {
             return HttpTracing.newBuilder(tracing).build();
-        }
-
-        private static HttpServerHandler httpServerHandler(HttpTracing httpTracing) {
-            return new BraveHttpServerHandler(brave.http.HttpServerHandler.create(httpTracing));
-        }
-
-        private static HttpClientHandler httpClientHandler(HttpTracing httpTracing) {
-            return new BraveHttpClientHandler(brave.http.HttpClientHandler.create(httpTracing));
         }
 
         private static Consumer<BraveBuildingBlocks> closingFunction() {

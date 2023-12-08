@@ -21,7 +21,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
-import io.micrometer.tracing.SamplerFunction;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
@@ -45,7 +44,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -191,7 +189,8 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             }
 
             /**
-             * @deprecated scheduled for removal in 1.4.0
+             * @deprecated scheduled for removal in 1.4.0, returns {@code null} starting
+             * from 1.3.0 unless explicitly set by the builder
              * @return http server handler
              */
             @Deprecated
@@ -201,7 +200,8 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             }
 
             /**
-             * @deprecated scheduled for removal in 1.4.0
+             * @deprecated scheduled for removal in 1.4.0, returns {@code null} starting
+             * from 1.3.0 unless explicitly set by the builder
              * @return http client handler
              */
             @Deprecated
@@ -320,7 +320,9 @@ public final class WavefrontOtelSetup implements AutoCloseable {
          * Overrides Http Server Handler.
          * @param httpServerHandler http server handler provider
          * @return this for chaining
+         * @deprecated scheduled for removal in 1.4.0
          */
+        @Deprecated
         public Builder httpServerHandler(Function<OpenTelemetrySdk, HttpServerHandler> httpServerHandler) {
             this.httpServerHandler = httpServerHandler;
             return this;
@@ -330,7 +332,9 @@ public final class WavefrontOtelSetup implements AutoCloseable {
          * Overrides Http Client Handler.
          * @param httpClientHandler http client handler provider
          * @return this for chaining
+         * @deprecated scheduled for removal in 1.4.0
          */
+        @Deprecated
         public Builder httpClientHandler(Function<OpenTelemetrySdk, HttpClientHandler> httpClientHandler) {
             this.httpClientHandler = httpClientHandler;
             return this;
@@ -379,9 +383,9 @@ public final class WavefrontOtelSetup implements AutoCloseable {
                     ? this.customizers : (b, t) -> {
                     };
             HttpServerHandler httpServerHandler = this.httpServerHandler != null
-                    ? this.httpServerHandler.apply(openTelemetrySdk) : httpServerHandler(openTelemetrySdk);
+                    ? this.httpServerHandler.apply(openTelemetrySdk) : null;
             HttpClientHandler httpClientHandler = this.httpClientHandler != null
-                    ? this.httpClientHandler.apply(openTelemetrySdk) : httpClientHandler(openTelemetrySdk);
+                    ? this.httpClientHandler.apply(openTelemetrySdk) : null;
             OtelBuildingBlocks otelBuildingBlocks = new OtelBuildingBlocks(wavefrontOTelSpanExporter, otelTracer,
                     new OtelPropagator(propagators(Collections.singletonList(B3Propagator.injectingMultiHeaders())),
                             tracer),
@@ -443,16 +447,6 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
             return new OtelTracer(tracer, otelCurrentTraceContext, event -> {
             }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
-        }
-
-        private static HttpServerHandler httpServerHandler(OpenTelemetrySdk openTelemetrySdk) {
-            return new OtelHttpServerHandler(openTelemetrySdk, null, null, Pattern.compile(""),
-                    new DefaultHttpServerAttributesExtractor());
-        }
-
-        private static HttpClientHandler httpClientHandler(OpenTelemetrySdk openTelemetrySdk) {
-            return new OtelHttpClientHandler(openTelemetrySdk, null, null, SamplerFunction.alwaysSample(),
-                    new DefaultHttpClientAttributesGetter());
         }
 
         private static Consumer<OtelBuildingBlocks> closingFunction() {
