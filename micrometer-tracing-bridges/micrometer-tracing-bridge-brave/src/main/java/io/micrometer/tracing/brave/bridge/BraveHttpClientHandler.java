@@ -44,15 +44,18 @@ public class BraveHttpClientHandler implements HttpClientHandler {
     public BraveHttpClientHandler(
             brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate) {
         this.delegate = delegate;
+        DeprecatedClassLogger.logWarning(getClass());
     }
 
     @Override
     public Span handleSend(HttpClientRequest request) {
+        DeprecatedClassLogger.logWarning(getClass());
         return BraveSpan.fromBrave(this.delegate.handleSend(BraveHttpClientRequest.toBrave(request)));
     }
 
     @Override
     public Span handleSend(HttpClientRequest request, TraceContext parent) {
+        DeprecatedClassLogger.logWarning(getClass());
         brave.Span span = this.delegate.handleSendWithParent(BraveHttpClientRequest.toBrave(request),
                 BraveTraceContext.toBrave(parent));
         if (!span.isNoop()) {
@@ -63,6 +66,7 @@ public class BraveHttpClientHandler implements HttpClientHandler {
 
     @Override
     public void handleReceive(HttpClientResponse response, Span span) {
+        DeprecatedClassLogger.logWarning(getClass());
         if (response == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Response is null, will not handle receiving of span [" + span + "]");

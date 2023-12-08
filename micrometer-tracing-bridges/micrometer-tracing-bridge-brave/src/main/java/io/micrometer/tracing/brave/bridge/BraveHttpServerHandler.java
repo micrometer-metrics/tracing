@@ -39,15 +39,18 @@ public class BraveHttpServerHandler implements HttpServerHandler {
     public BraveHttpServerHandler(
             brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
         this.delegate = delegate;
+        DeprecatedClassLogger.logWarning(getClass());
     }
 
     @Override
     public Span handleReceive(HttpServerRequest request) {
+        DeprecatedClassLogger.logWarning(getClass());
         return BraveSpan.fromBrave(this.delegate.handleReceive(BraveHttpServerRequest.toBrave(request)));
     }
 
     @Override
     public void handleSend(HttpServerResponse response, Span span) {
+        DeprecatedClassLogger.logWarning(getClass());
         this.delegate.handleSend(BraveHttpServerResponse.toBrave(response), BraveSpan.toBrave(span));
     }
 
