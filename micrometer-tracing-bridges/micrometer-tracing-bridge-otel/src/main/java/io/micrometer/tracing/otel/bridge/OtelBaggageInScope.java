@@ -101,7 +101,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         Context withBaggage = current.with(baggage);
         ctx.updateContext(withBaggage);
         contextWithBaggage.set(withBaggage);
-        if (this.tagFields.stream().map(String::toLowerCase).anyMatch(s -> s.equals(entry().getKey()))) {
+        if (this.tagFields.stream().anyMatch(s -> s.equalsIgnoreCase(entry().getKey()))) {
             currentSpan.setAttribute(entry().getKey(), value);
         }
         Entry previous = entry();

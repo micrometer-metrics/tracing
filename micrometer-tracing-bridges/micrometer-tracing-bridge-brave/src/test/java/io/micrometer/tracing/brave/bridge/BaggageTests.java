@@ -15,10 +15,12 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.Tags;
 import brave.Tracing;
 import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
 import brave.baggage.BaggagePropagationConfig;
+import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.B3Propagation;
 import brave.propagation.StrictCurrentTraceContext;
@@ -46,7 +48,11 @@ class BaggageTests {
 
     public static final String VALUE_1 = "value1";
 
-    SpanHandler spanHandler = new TestSpanHandler();
+    public static final String TAG_KEY = "tagKey";
+
+    public static final String TAG_VALUE = "tagValue";
+
+    TestSpanHandler spanHandler = new TestSpanHandler();
 
     StrictCurrentTraceContext braveCurrentTraceContext = StrictCurrentTraceContext.create();
 
@@ -58,9 +64,11 @@ class BaggageTests {
         .traceId128Bit(true)
         .propagationFactory(BaggagePropagation.newFactoryBuilder(B3Propagation.FACTORY)
             .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create(KEY_1)))
+            .add(BaggagePropagationConfig.SingleBaggageField.local(BaggageField.create(TAG_KEY)))
             .build())
         .sampler(Sampler.ALWAYS_SAMPLE)
         .addSpanHandler(this.spanHandler)
+        .addSpanHandler(new BaggageTagSpanHandler(new BaggageField[] { BaggageField.create(TAG_KEY) }))
         .build();
 
     brave.Tracer braveTracer = this.tracing.tracer();
@@ -136,6 +144,45 @@ class BaggageTests {
                 then(baggageFromReactor.get()).isEqualTo(VALUE_1);
             }
         }
+    }
+
+    @Test
+    void baggageTagKey() {
+        ScopedSpan span = this.tracer.startScopedSpan("call1");
+        try {
+            try (BaggageInScope scope7 = this.tracer.createBaggage(TAG_KEY, TAG_VALUE).makeCurrent()) {
+                // span should get tagged with baggage
+            }
+        }
+        catch (RuntimeException | Error ex) {
+            span.error(ex);
+            throw ex;
+        }
+        finally {
+            span.end();
+        }
+
+        then(spanHandler.spans()).hasSize(1);
+        MutableSpan mutableSpan = spanHandler.spans().get(0);
+        then(mutableSpan.tags().get(TAG_KEY)).isEqualTo(TAG_VALUE);
+    }
+
+    static final class BaggageTagSpanHandler extends SpanHandler {
+
+        final BaggageField[] fieldsToTag;
+
+        BaggageTagSpanHandler(BaggageField[] fieldsToTag) {
+            this.fieldsToTag = fieldsToTag;
+        }
+
+        @Override
+        public boolean end(brave.propagation.TraceContext context, MutableSpan span, Cause cause) {
+            for (BaggageField field : fieldsToTag) {
+                Tags.BAGGAGE_FIELD.tag(field, context, span);
+            }
+            return true;
+        }
+
     }
 
 }
