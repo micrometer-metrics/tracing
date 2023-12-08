@@ -15,21 +15,11 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import brave.Tracing;
 import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
 import brave.baggage.BaggagePropagationConfig;
-import brave.handler.SpanHandler;
+import brave.handler.MutableSpan;
 import brave.propagation.B3Propagation;
 import brave.propagation.StrictCurrentTraceContext;
 import brave.sampler.Sampler;
@@ -39,10 +29,7 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.*;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -54,6 +41,12 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.*;
+
 import static org.assertj.core.api.BDDAssertions.then;
 
 class BaggageTests {
@@ -64,7 +57,11 @@ class BaggageTests {
 
     public static final String VALUE_1 = "value1";
 
-    SpanHandler spanHandler = new TestSpanHandler();
+    public static final String TAG_KEY = "tagKey";
+
+    public static final String TAG_VALUE = "tagValue";
+
+    TestSpanHandler spanHandler = new TestSpanHandler();
 
     StrictCurrentTraceContext braveCurrentTraceContext = StrictCurrentTraceContext.create();
 
@@ -76,6 +73,7 @@ class BaggageTests {
         .traceId128Bit(true)
         .propagationFactory(BaggagePropagation.newFactoryBuilder(B3Propagation.FACTORY)
             .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create(KEY_1)))
+            .add(BaggagePropagationConfig.SingleBaggageField.local(BaggageField.create(TAG_KEY)))
             .build())
         .sampler(Sampler.ALWAYS_SAMPLE)
         .addSpanHandler(this.spanHandler)
@@ -85,7 +83,8 @@ class BaggageTests {
 
     BravePropagator propagator = new BravePropagator(tracing);
 
-    Tracer tracer = new BraveTracer(this.braveTracer, this.bridgeContext, new BraveBaggageManager());
+    Tracer tracer = new BraveTracer(this.braveTracer, this.bridgeContext,
+            new BraveBaggageManager(Collections.singletonList(TAG_KEY)));
 
     ObservationRegistry observationRegistry = ObservationThreadLocalAccessor.getInstance().getObservationRegistry();
 
@@ -236,6 +235,48 @@ class BaggageTests {
     @AfterAll
     static void clear() {
         ContextRegistry.getInstance().removeThreadLocalAccessor(ObservationAwareSpanThreadLocalAccessor.KEY);
+    }
+
+    @Test
+    void baggageTagKey() {
+        ScopedSpan span = this.tracer.startScopedSpan("call1");
+        try {
+            try (BaggageInScope scope7 = this.tracer.createBaggageInScope(TAG_KEY, TAG_VALUE)) {
+                // span should get tagged with baggage
+            }
+        }
+        catch (RuntimeException | Error ex) {
+            span.error(ex);
+            throw ex;
+        }
+        finally {
+            span.end();
+        }
+
+        then(spanHandler.spans()).hasSize(1);
+        MutableSpan mutableSpan = spanHandler.spans().get(0);
+        then(mutableSpan.tags().get(TAG_KEY)).isEqualTo(TAG_VALUE);
+    }
+
+    @Test
+    void baggageTagKeyWithLegacyApi() {
+        ScopedSpan span = this.tracer.startScopedSpan("call1");
+        try {
+            try (BaggageInScope scope7 = this.tracer.createBaggage(TAG_KEY, TAG_VALUE).makeCurrent()) {
+                // span should get tagged with baggage
+            }
+        }
+        catch (RuntimeException | Error ex) {
+            span.error(ex);
+            throw ex;
+        }
+        finally {
+            span.end();
+        }
+
+        then(spanHandler.spans()).hasSize(1);
+        MutableSpan mutableSpan = spanHandler.spans().get(0);
+        then(mutableSpan.tags().get(TAG_KEY)).isEqualTo(TAG_VALUE);
     }
 
 }

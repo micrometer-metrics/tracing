@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.Span;
+import brave.Tags;
 import brave.baggage.BaggageField;
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
@@ -22,6 +24,8 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.TraceContext;
+
+import java.util.List;
 
 /**
  * Brave implementation of a {@link BaggageInScope}.
@@ -37,13 +41,21 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     private final String previousBaggage;
 
+    private final List<String> tagFields;
+
     @Nullable
     private brave.propagation.TraceContext traceContext;
 
-    BraveBaggageInScope(BaggageField delegate, @Nullable brave.propagation.TraceContext traceContext) {
+    @Nullable
+    private final Span span;
+
+    BraveBaggageInScope(BaggageField delegate, @Nullable brave.propagation.TraceContext traceContext,
+            @Nullable Span span, List<String> tagFields) {
         this.delegate = delegate;
         this.traceContext = traceContext;
         this.previousBaggage = delegate.getValue();
+        this.tagFields = tagFields;
+        this.span = span;
     }
 
     @Override
@@ -70,7 +82,17 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
         else {
             this.delegate.updateValue(value);
         }
+        tagSpanIfOnTagList();
         return this;
+    }
+
+    private void tagSpanIfOnTagList() {
+        if (this.span != null) {
+            this.tagFields.stream()
+                .filter(s -> s.equalsIgnoreCase(name()))
+                .findFirst()
+                .ifPresent(s -> Tags.BAGGAGE_FIELD.tag(this.delegate, span));
+        }
     }
 
     @Override
@@ -78,6 +100,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     public Baggage set(TraceContext traceContext, String value) {
         brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
         this.delegate.updateValue(braveContext, value);
+        tagSpanIfOnTagList();
         return this;
     }
 
@@ -105,6 +128,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
         else {
             this.delegate.updateValue(value);
         }
+        tagSpanIfOnTagList();
         return makeCurrent();
     }
 
@@ -112,6 +136,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
         brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
         this.delegate.updateValue(braveContext, value);
+        tagSpanIfOnTagList();
         return makeCurrent();
     }
 

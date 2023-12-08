@@ -15,34 +15,27 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.ScopedSpan;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
 import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -51,6 +44,12 @@ import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+
+import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.*;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -66,8 +65,15 @@ class BaggageTests {
 
     public static final String VALUE_2 = "value2";
 
+    public static final String TAG_KEY = "tagKey";
+
+    public static final String TAG_VALUE = "tagValue";
+
+    ArrayListSpanProcessor spanExporter = new ArrayListSpanProcessor();
+
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .addSpanProcessor(SimpleSpanProcessor.create(spanExporter))
         .build();
 
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
@@ -80,7 +86,7 @@ class BaggageTests {
     OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
 
     OtelBaggageManager otelBaggageManager = new OtelBaggageManager(otelCurrentTraceContext,
-            Collections.singletonList(KEY_1), Collections.emptyList());
+            Collections.singletonList(KEY_1), Collections.singletonList(TAG_KEY));
 
     ContextPropagators contextPropagators = ContextPropagators
         .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
@@ -209,6 +215,48 @@ class BaggageTests {
     @AfterAll
     static void clear() {
         ContextRegistry.getInstance().removeThreadLocalAccessor(ObservationAwareSpanThreadLocalAccessor.KEY);
+    }
+
+    @Test
+    void baggageTagKey() {
+        ScopedSpan span = this.tracer.startScopedSpan("call1");
+        try {
+            try (BaggageInScope scope7 = this.tracer.createBaggageInScope(TAG_KEY, TAG_VALUE)) {
+                // span should get tagged with baggage
+            }
+        }
+        catch (RuntimeException | Error ex) {
+            span.error(ex);
+            throw ex;
+        }
+        finally {
+            span.end();
+        }
+
+        then(spanExporter.spans()).hasSize(1);
+        SpanData spanData = spanExporter.spans().poll();
+        then(spanData.getAttributes().get(AttributeKey.stringKey(TAG_KEY))).isEqualTo(TAG_VALUE);
+    }
+
+    @Test
+    void baggageTagKeyWithLegacyApi() {
+        ScopedSpan span = this.tracer.startScopedSpan("call1");
+        try {
+            try (BaggageInScope scope7 = this.tracer.createBaggage(TAG_KEY, TAG_VALUE).makeCurrent()) {
+                // span should get tagged with baggage
+            }
+        }
+        catch (RuntimeException | Error ex) {
+            span.error(ex);
+            throw ex;
+        }
+        finally {
+            span.end();
+        }
+
+        then(spanExporter.spans()).hasSize(1);
+        SpanData spanData = spanExporter.spans().poll();
+        then(spanData.getAttributes().get(AttributeKey.stringKey(TAG_KEY))).isEqualTo(TAG_VALUE);
     }
 
 }

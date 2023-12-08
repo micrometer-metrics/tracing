@@ -15,15 +15,18 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.io.Closeable;
-import java.util.Map;
-
+import brave.Span;
 import brave.Tracing;
 import brave.baggage.BaggageField;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.TraceContext;
+
+import java.io.Closeable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Brave implementation of a {@link BaggageManager}.
@@ -32,6 +35,24 @@ import io.micrometer.tracing.TraceContext;
  * @since 1.0.0
  */
 public class BraveBaggageManager implements Closeable, BaggageManager {
+
+    private final List<String> tagFields;
+
+    /**
+     * Create an instance of {@link BraveBaggageManager}.
+     * @param tagFields fields of baggage keys that should become tags on a span
+     */
+    public BraveBaggageManager(List<String> tagFields) {
+        this.tagFields = tagFields;
+    }
+
+    /**
+     * Create an instance of {@link BraveBaggageManager} that uses no tag fields (span
+     * will not be tagged with baggage entries).
+     */
+    public BraveBaggageManager() {
+        this.tagFields = Collections.emptyList();
+    }
 
     @Override
     public Map<String, String> getAllBaggage() {
@@ -57,7 +78,8 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
         if (baggageField == null) {
             return null;
         }
-        return new BraveBaggageInScope(baggageField, BraveTraceContext.toBrave(traceContext));
+        Span span = currentSpan();
+        return new BraveBaggageInScope(baggageField, BraveTraceContext.toBrave(traceContext), span, this.tagFields);
     }
 
     @Override
@@ -67,17 +89,21 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     private BraveBaggageInScope baggage(String name, TraceContext traceContext) {
-        return new BraveBaggageInScope(BaggageField.create(name), BraveTraceContext.toBrave(traceContext));
+        Span span = currentSpan();
+        return new BraveBaggageInScope(BaggageField.create(name), BraveTraceContext.toBrave(traceContext), span,
+                tagFields);
     }
 
     private BraveBaggageInScope baggage(String name) {
-        return new BraveBaggageInScope(BaggageField.create(name), currentTraceContext());
+        Span span = currentSpan();
+        return new BraveBaggageInScope(BaggageField.create(name), span != null ? span.context() : null, span,
+                this.tagFields);
     }
 
     // Taken from BraveField
-    private static brave.propagation.TraceContext currentTraceContext() {
+    private static Span currentSpan() {
         Tracing tracing = Tracing.current();
-        return tracing != null ? tracing.currentTraceContext().get() : null;
+        return tracing != null ? tracing.tracer().currentSpan() : null;
     }
 
     @Override
