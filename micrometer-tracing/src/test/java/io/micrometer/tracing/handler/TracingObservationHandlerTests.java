@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Event;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -25,6 +26,7 @@ import org.mockito.BDDMockito;
 import org.mockito.InOrder;
 
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.thenNoException;
@@ -93,6 +95,36 @@ class TracingObservationHandlerTests {
         handler.onScopeReset(context);
 
         assertThat(tracingContext.getSpan()).isSameAs(span);
+    }
+
+    @Test
+    void eventTimestamp() {
+        Span span = mock(Span.class);
+        Observation.Context context = new Observation.Context();
+        TracingObservationHandler.TracingContext tracingContext = new TracingObservationHandler.TracingContext();
+        tracingContext.setSpan(span);
+        context.put(TracingObservationHandler.TracingContext.class, tracingContext);
+        TracingObservationHandler<Observation.Context> handler = () -> tracer;
+
+        Event defaultEvent = () -> "default-event";
+        handler.onEvent(defaultEvent, context);
+        BDDMockito.then(span).should().event("default-event");
+
+        BDDMockito.reset(span);
+
+        Event eventWithWallTime = new Event() {
+            @Override
+            public String getName() {
+                return "walltime-event";
+            }
+
+            @Override
+            public long getWallTime() {
+                return 100;
+            }
+        };
+        handler.onEvent(eventWithWallTime, context);
+        BDDMockito.then(span).should().event("walltime-event", 100, TimeUnit.MILLISECONDS);
     }
 
 }
