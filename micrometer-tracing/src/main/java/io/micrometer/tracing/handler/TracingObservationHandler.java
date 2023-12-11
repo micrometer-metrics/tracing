@@ -121,7 +121,12 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     @Override
     default void onEvent(Event event, T context) {
         long timestamp = event.getWallTime();
-        getRequiredSpan(context).event(event.getContextualName(), timestamp, TimeUnit.MILLISECONDS);
+        if (timestamp == 0) {
+            getRequiredSpan(context).event(event.getContextualName());
+        }
+        else {
+            getRequiredSpan(context).event(event.getContextualName(), timestamp, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
