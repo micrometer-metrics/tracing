@@ -15,9 +15,8 @@
  */
 package io.micrometer.tracing.contextpropagation;
 
-import java.util.Map;
-
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor.SpanAction;
+import java.util.Map;
 
 public class TestObservationAwareSpanThreadLocalAccessor {
 

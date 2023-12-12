@@ -1,17 +1,15 @@
 /**
- * Copyright 2022 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
+ * Copyright 2023 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * <p>
  * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package io.micrometer.tracing.test.simple;
 
@@ -37,7 +35,7 @@ import java.util.stream.Collectors;
  */
 public class SimpleBaggageManager implements BaggageManager {
 
-    private final Map<TraceContext, Set<SimpleBaggageInScope>> baggagesByContext = new ConcurrentHashMap<>();
+    private final Map<TraceContext, ThreadLocal<Set<SimpleBaggageInScope>>> baggagesByContext = new ConcurrentHashMap<>();
 
     private final SimpleTracer simpleTracer;
 
@@ -55,9 +53,17 @@ public class SimpleBaggageManager implements BaggageManager {
         if (context == null) {
             return Collections.emptyMap();
         }
-        return this.baggagesByContext.getOrDefault(context, Collections.emptySet())
+        return getAllBaggageForCtx(context);
+    }
+
+    Map<String, String> getAllBaggageForCtx(TraceContext context) {
+        Map<String, String> map = this.baggagesByContext
+            .getOrDefault(context, ThreadLocal.withInitial(Collections::emptySet))
+            .get()
             .stream()
-            .collect(Collectors.toMap(Baggage::name, Baggage::get));
+            .collect(Collectors.toMap(Baggage::name, baggage -> baggage.get(context)));
+        map.putAll(((SimpleTraceContext) context).baggageFromParent());
+        return map;
     }
 
     @Override
@@ -84,7 +90,8 @@ public class SimpleBaggageManager implements BaggageManager {
         if (traceContext == null) {
             return null;
         }
-        return this.baggagesByContext.getOrDefault(traceContext, Collections.emptySet())
+        return this.baggagesByContext.getOrDefault(traceContext, ThreadLocal.withInitial(Collections::emptySet))
+            .get()
             .stream()
             .filter(bag -> name.equalsIgnoreCase(bag.name()))
             .findFirst()
@@ -103,8 +110,9 @@ public class SimpleBaggageManager implements BaggageManager {
         if (baggage == null) {
             baggage = new SimpleBaggageInScope(simpleTracer.currentTraceContext(), name, current);
         }
-        Set<SimpleBaggageInScope> baggages = this.baggagesByContext.getOrDefault(current, new HashSet<>());
-        baggages.add(baggage);
+        ThreadLocal<Set<SimpleBaggageInScope>> baggages = this.baggagesByContext.getOrDefault(current,
+                ThreadLocal.withInitial(HashSet::new));
+        baggages.get().add(baggage);
         this.baggagesByContext.put(current, baggages);
         return baggage;
     }

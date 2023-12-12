@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,18 @@
  */
 package io.micrometer.tracing.test.simple;
 
+import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * A test implementation of a current trace context.
@@ -59,7 +63,13 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
         }
         SimpleSpan previous = SimpleTracer.getCurrentSpan();
         SimpleTracer.setCurrentSpan(context);
-        return previous != null ? new RevertToPreviousScope(previous) : new RevertToNullScope();
+        Map<String, String> baggageFromParent = ((SimpleTraceContext) context).baggageFromParent();
+        List<BaggageInScope> baggageInScope = baggageFromParent.entrySet()
+            .stream()
+            .map(entry -> simpleTracer.simpleBaggageManager.createBaggageInScope(context, entry.getKey(),
+                    entry.getValue()))
+            .collect(Collectors.toList());
+        return previous != null ? new RevertToPreviousScope(previous, baggageInScope) : new RevertToNullScope();
     }
 
     @Override
@@ -108,13 +118,17 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
 
         final SimpleSpan previous;
 
-        RevertToPreviousScope(SimpleSpan previous) {
+        final List<BaggageInScope> baggageInScope;
+
+        RevertToPreviousScope(SimpleSpan previous, List<BaggageInScope> baggageInScope) {
             this.previous = previous;
+            this.baggageInScope = baggageInScope;
         }
 
         @Override
         public void close() {
             SimpleTracer.setCurrentSpan(this.previous);
+            this.baggageInScope.forEach(BaggageInScope::close);
         }
 
     }
