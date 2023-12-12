@@ -1,22 +1,21 @@
 /**
- * Copyright 2022 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
+ * Copyright 2023 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * <p>
  * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.tracing.*;
 
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +35,7 @@ public class SimpleTracer implements Tracer {
 
     private final SimpleCurrentTraceContext currentTraceContext;
 
-    private final SimpleBaggageManager simpleBaggageManager = new SimpleBaggageManager(this);
+    final SimpleBaggageManager simpleBaggageManager = new SimpleBaggageManager(this);
 
     private final Deque<SimpleSpan> spans = new LinkedBlockingDeque<>();
 
@@ -55,14 +54,17 @@ public class SimpleTracer implements Tracer {
     }
 
     private SimpleSpan simpleSpan(Span parent) {
+        Map<String, String> baggageFromParent = Collections.emptyMap();
         SimpleSpan span = new SimpleSpan();
         boolean hasParent = parent != null;
         if (hasParent) {
             span.context().setParentId(parent.context().spanId());
+            baggageFromParent = simpleBaggageManager.getAllBaggageForCtx(parent.context());
         }
         String traceId = hasParent ? parent.context().traceId() : span.context().generateId();
         span.context().setTraceId(traceId);
         span.context().setSpanId(hasParent ? span.context().generateId() : traceId);
+        span.context().addParentBaggage(baggageFromParent);
         return span;
     }
 
@@ -154,6 +156,11 @@ public class SimpleTracer implements Tracer {
     @Override
     public Baggage getBaggage(TraceContext traceContext, String name) {
         return this.simpleBaggageManager.getBaggage(traceContext, name);
+    }
+
+    @Override
+    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+        return this.simpleBaggageManager.getAllBaggageForCtx(traceContext);
     }
 
     @Override
