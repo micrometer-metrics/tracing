@@ -1,21 +1,22 @@
 plugins {
-	id 'idea'
+    id 'idea'
 }
 
 dependencies {
-	api project(':micrometer-tracing')
-	api libs.assertj
+    api project(':micrometer-tracing')
+    api libs.assertj
 
-	// Tests for tests
-	testImplementation libs.logback
-	testImplementation 'org.junit.jupiter:junit-jupiter'
-	testImplementation 'org.mockito:mockito-core'
+    // Tests for tests
+    testImplementation libs.logback
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core'
 
-	// aspects
-	testImplementation libs.springContext
-	testImplementation libs.aspectjweaver
+    // aspects
+    testImplementation libs.springContext
+    testImplementation libs.aspectjweaver
 
-	testImplementation 'io.projectreactor:reactor-core'
-	testImplementation 'io.projectreactor:reactor-core-micrometer'
-	testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'io.projectreactor:reactor-core'
+    testImplementation 'io.projectreactor:reactor-core-micrometer'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation libs.awaitility
 }
