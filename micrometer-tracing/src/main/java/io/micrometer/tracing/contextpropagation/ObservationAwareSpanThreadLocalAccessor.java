@@ -15,12 +15,8 @@
  */
 package io.micrometer.tracing.contextpropagation;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-
+import io.micrometer.common.lang.NonNull;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
@@ -28,9 +24,20 @@ import io.micrometer.context.ThreadLocalAccessor;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
+import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.Tracer.SpanInScope;
 import io.micrometer.tracing.handler.TracingObservationHandler;
+
+import java.io.Closeable;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * A {@link ThreadLocalAccessor} to put and restore current {@link Span} depending on
@@ -110,20 +117,68 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
             if (currentSpan != null && !currentSpan.equals(tracingContext.getSpan())) {
                 // User created child spans manually and scoped them
                 // the current span is not the same as the one from observation
-                return currentSpan;
+                return new SpanWithBaggage(this.tracer, currentSpan);
             }
             return null;
         }
-        return this.tracer.currentSpan();
+        Span span = tracer.currentSpan();
+        if (span == null) {
+            return span;
+        }
+        return new SpanWithBaggage(this.tracer, span);
     }
 
     @Override
     public void setValue(Span value) {
         SpanAction spanAction = spanActions.get(Thread.currentThread());
-        Tracer.SpanInScope scope = this.tracer.withSpan(value);
+        Tracer.SpanInScope scope;
+        if (value instanceof SpanWithBaggage) {
+            scope = this.tracer.withSpan(((SpanWithBaggage) value).delegate);
+        }
+        else {
+            scope = this.tracer.withSpan(value);
+        }
         SpanAction newSpanAction = new SpanAction(spanActions, spanAction);
         spanActions.put(Thread.currentThread(), newSpanAction);
-        newSpanAction.setScope(scope);
+        Consumer<?> consumer = null;
+        if (value instanceof SpanWithBaggage) {
+            consumer = createNewScopesForAllPreviouslyStoredBaggage(value, consumer, scope);
+        }
+        else {
+            consumer = o -> scope.close();
+        }
+        newSpanAction.setScope(consumer);
+    }
+
+    private Consumer<?> createNewScopesForAllPreviouslyStoredBaggage(Span value, Consumer<?> consumer,
+            SpanInScope scope) {
+        TraceContext context = value.context();
+        SpanWithBaggage spanWithBaggage = (SpanWithBaggage) value;
+        Map<String, String> storedBaggage = spanWithBaggage.baggage;
+        for (Entry<String, String> entry : storedBaggage.entrySet()) {
+            consumer = appendBaggageScopeClosing(entry, context, consumer);
+        }
+        return appendSpanScopeClosing(consumer, scope);
+    }
+
+    private Consumer<?> appendBaggageScopeClosing(Entry<String, String> entry, TraceContext context,
+            @Nullable Consumer<?> consumer) {
+        String baggageKey = entry.getKey();
+        String baggageValue = entry.getValue();
+        BaggageInScope baggageInScope = this.tracer.createBaggageInScope(context, baggageKey, baggageValue);
+        if (consumer == null) {
+            // first pass
+            return o -> baggageInScope.close();
+        }
+        return consumer.andThen(o -> baggageInScope.close());
+    }
+
+    private static Consumer<?> appendSpanScopeClosing(Consumer<?> consumer, SpanInScope scope) {
+        if (consumer != null) {
+            return consumer.andThen(o -> scope.close());
+        }
+        // no baggage was present
+        return o -> scope.close();
     }
 
     @Override
@@ -133,7 +188,8 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
             return;
         }
         Tracer.SpanInScope scope = this.tracer.withSpan(null);
-        spanAction.setScope(scope);
+        Consumer<?> consumer = o -> scope.close();
+        spanAction.setScope(consumer);
     }
 
     @Override
@@ -144,7 +200,10 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         }
         spanAction.close();
         Span currentSpan = tracer.currentSpan();
-        if (!(previousValue.equals(currentSpan))) {
+        if (previousValue instanceof SpanWithBaggage) {
+            previousValue = ((SpanWithBaggage) previousValue).delegate;
+        }
+        if (!(Objects.equals(previousValue, currentSpan))) {
             String msg = "After closing the scope, current span <" + currentSpan
                     + "> is not the same as the one to which you want to revert <" + previousValue
                     + ">. Most likely you've opened a scope and forgotten to close it";
@@ -167,26 +226,21 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
 
         final Map<Thread, SpanAction> todo;
 
-        Closeable scope;
+        Consumer<?> scope;
 
         SpanAction(Map<Thread, SpanAction> spanActions, SpanAction previous) {
             this.previous = previous;
             this.todo = spanActions;
         }
 
-        void setScope(Closeable scope) {
+        void setScope(Consumer<?> scope) {
             this.scope = scope;
         }
 
         @Override
         public void close() {
             if (this.scope != null) {
-                try {
-                    this.scope.close();
-                }
-                catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                this.scope.accept(null);
             }
             if (this.previous != null) {
                 this.todo.put(Thread.currentThread(), this.previous);
@@ -194,6 +248,99 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
             else {
                 this.todo.remove(Thread.currentThread());
             }
+        }
+
+    }
+
+    static class SpanWithBaggage implements Span {
+
+        private final Span delegate;
+
+        final Map<String, String> baggage;
+
+        SpanWithBaggage(Tracer tracer, @NonNull Span delegate) {
+            this.delegate = delegate;
+            this.baggage = tracer.getAllBaggage(delegate.context());
+        }
+
+        @Override
+        public boolean isNoop() {
+            return this.delegate.isNoop();
+        }
+
+        @Override
+        public TraceContext context() {
+            return this.delegate.context();
+        }
+
+        @Override
+        public Span start() {
+            return this.delegate.start();
+        }
+
+        @Override
+        public Span name(String name) {
+            return this.delegate.name(name);
+        }
+
+        @Override
+        public Span event(String value) {
+            return this.delegate.event(value);
+        }
+
+        @Override
+        public Span event(String value, long time, TimeUnit timeUnit) {
+            return this.delegate.event(value, time, timeUnit);
+        }
+
+        @Override
+        public Span tag(String key, String value) {
+            return this.delegate.tag(key, value);
+        }
+
+        @Override
+        public Span tag(String key, long value) {
+            return this.delegate.tag(key, value);
+        }
+
+        @Override
+        public Span tag(String key, double value) {
+            return this.delegate.tag(key, value);
+        }
+
+        @Override
+        public Span tag(String key, boolean value) {
+            return this.delegate.tag(key, value);
+        }
+
+        @Override
+        public Span error(Throwable throwable) {
+            return this.delegate.error(throwable);
+        }
+
+        @Override
+        public void end() {
+            this.delegate.end();
+        }
+
+        @Override
+        public void end(long time, TimeUnit timeUnit) {
+            this.delegate.end(time, timeUnit);
+        }
+
+        @Override
+        public void abandon() {
+            this.delegate.abandon();
+        }
+
+        @Override
+        public Span remoteServiceName(String remoteServiceName) {
+            return this.delegate.remoteServiceName(remoteServiceName);
+        }
+
+        @Override
+        public Span remoteIpAndPort(String ip, int port) {
+            return this.delegate.remoteIpAndPort(ip, port);
         }
 
     }

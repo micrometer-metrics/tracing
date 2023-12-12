@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package io.micrometer.tracing.test.simple;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.internal.EncodingUtils;
 
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A test implementation of a trace context.
@@ -37,6 +39,8 @@ public class SimpleTraceContext implements TraceContext {
     private volatile String spanId = "";
 
     private volatile Boolean sampled = false;
+
+    private Map<String, String> baggageFromParent = new ConcurrentHashMap<>();
 
     @Override
     public String traceId() {
@@ -98,6 +102,14 @@ public class SimpleTraceContext implements TraceContext {
     public String toString() {
         return "SimpleTraceContext{" + "traceId='" + traceId + '\'' + ", parentId='" + parentId + '\'' + ", spanId='"
                 + spanId + '\'' + ", sampled=" + sampled + '}';
+    }
+
+    void addParentBaggage(Map<String, String> baggageFromParent) {
+        this.baggageFromParent.putAll(baggageFromParent);
+    }
+
+    Map<String, String> baggageFromParent() {
+        return this.baggageFromParent;
     }
 
 }

@@ -47,6 +47,7 @@ dependencies {
 	api libs.assertj
 
 	// Tests for tests
+	testImplementation libs.springContext
 	testImplementation libs.mockitoCore
 	testImplementation libs.wiremock
 	testImplementation libs.awaitility
