@@ -25,29 +25,54 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleTraceContextBuilder implements TraceContext.Builder {
 
+    private String traceId;
+
+    private String parentId;
+
+    private String spanId;
+
+    private Boolean sampled;
+
     @Override
     public TraceContext.Builder traceId(String traceId) {
+        this.traceId = traceId;
         return this;
     }
 
     @Override
     public TraceContext.Builder parentId(String parentId) {
+        this.parentId = parentId;
         return this;
     }
 
     @Override
     public TraceContext.Builder spanId(String spanId) {
+        this.spanId = spanId;
         return this;
     }
 
     @Override
     public TraceContext.Builder sampled(Boolean sampled) {
+        this.sampled = sampled;
         return this;
     }
 
     @Override
     public TraceContext build() {
-        return new SimpleTraceContext();
+        SimpleTraceContext traceContext = new SimpleTraceContext();
+        if (this.traceId != null) {
+            traceContext.setTraceId(this.traceId);
+        }
+        if (this.spanId != null) {
+            traceContext.setSpanId(this.spanId);
+        }
+        if (this.parentId != null) {
+            traceContext.setParentId(this.parentId);
+        }
+        if (this.sampled != null) {
+            traceContext.setSampled(this.sampled);
+        }
+        return traceContext;
     }
 
 }
