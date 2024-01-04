@@ -61,6 +61,7 @@ public class SimpleBaggageManager implements BaggageManager {
             .getOrDefault(context, ThreadLocal.withInitial(Collections::emptySet))
             .get()
             .stream()
+            .filter(s -> s.get(context) != null)
             .collect(Collectors.toMap(Baggage::name, baggage -> baggage.get(context)));
         map.putAll(((SimpleTraceContext) context).baggageFromParent());
         return map;

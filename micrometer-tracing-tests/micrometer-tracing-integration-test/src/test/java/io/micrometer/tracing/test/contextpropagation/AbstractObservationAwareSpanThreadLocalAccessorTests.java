@@ -25,7 +25,9 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.Tracer.SpanInScope;
+import io.micrometer.tracing.contextpropagation.BaggageThreadLocalAccessor;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
+import io.micrometer.tracing.contextpropagation.TestBaggageThreadLocalAccessor;
 import io.micrometer.tracing.contextpropagation.TestObservationAwareSpanThreadLocalAccessor;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.assertj.core.api.Assertions;
@@ -59,13 +61,18 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
 
     ObservationAwareSpanThreadLocalAccessor accessor;
 
+    BaggageThreadLocalAccessor baggageThreadLocalAccessor;
+
     abstract Tracer getTracer();
 
     @BeforeEach
     void setup() {
         accessor = new ObservationAwareSpanThreadLocalAccessor(observationRegistry, getTracer());
+        baggageThreadLocalAccessor = new BaggageThreadLocalAccessor(getTracer());
         observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(getTracer()));
-        contextRegistry.loadThreadLocalAccessors().registerThreadLocalAccessor(accessor);
+        contextRegistry.loadThreadLocalAccessors()
+            .registerThreadLocalAccessor(accessor)
+            .registerThreadLocalAccessor(baggageThreadLocalAccessor);
     }
 
     @AfterEach
@@ -75,6 +82,7 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         then(getTracer().currentSpan()).isNull();
         then(observationRegistry.getCurrentObservationScope()).isNull();
         BDDAssertions.then(TestObservationAwareSpanThreadLocalAccessor.spanActions(accessor)).isEmpty();
+        BDDAssertions.then(TestBaggageThreadLocalAccessor.baggageInScope(baggageThreadLocalAccessor)).isEmpty();
     }
 
     @Test
@@ -260,7 +268,7 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
     private String asyncBaggageCall() {
         logWithSpan("TASK EXECUTOR BAGGAGE");
         if (getTracer().getBaggage("tenant") == null) {
-            throw new AssertionError("Baggage for <tenant> key. Context propagation failed");
+            throw new AssertionError("Baggage for <tenant> key is empty. Context propagation failed");
         }
         return getTracer().getBaggage("tenant").get();
     }

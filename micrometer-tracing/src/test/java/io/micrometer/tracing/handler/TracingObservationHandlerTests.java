@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.mockito.InOrder;
 
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,9 +61,8 @@ class TracingObservationHandlerTests {
         TracingObservationHandler.TracingContext tracingContext = new TracingObservationHandler.TracingContext();
         CurrentTraceContext.Scope scope1 = mock(CurrentTraceContext.Scope.class);
         CurrentTraceContext.Scope scope2 = mock(CurrentTraceContext.Scope.class);
-        RevertingScope revertingScope1 = new RevertingScope(tracingContext, scope1, null, Collections.emptyMap());
-        RevertingScope revertingScope2 = new RevertingScope(tracingContext, scope2, revertingScope1,
-                Collections.emptyMap());
+        RevertingScope revertingScope1 = new RevertingScope(tracingContext, scope1, null);
+        RevertingScope revertingScope2 = new RevertingScope(tracingContext, scope2, revertingScope1);
         tracingContext.setScope(revertingScope2);
         context.put(TracingObservationHandler.TracingContext.class, tracingContext);
 
