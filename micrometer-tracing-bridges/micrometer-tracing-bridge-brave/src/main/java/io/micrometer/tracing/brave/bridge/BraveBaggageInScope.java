@@ -43,6 +43,8 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     private final List<String> tagFields;
 
+    // Null TC would happen pretty much in exceptional cases (there was no span in scope)
+    // but someone wanted to set baggage
     @Nullable
     private brave.propagation.TraceContext traceContext;
 
@@ -79,13 +81,13 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
         if (this.traceContext != null) {
             boolean success = this.delegate.updateValue(this.traceContext, value);
             if (logger.isTraceEnabled()) {
-                logger.trace("Managed to update the baggage on set [" + success + "]");
+                logger.trace("Managed to update the baggage on set [" + success + "]. Provided value [" + value + "]");
             }
         }
         else {
             boolean success = this.delegate.updateValue(value);
             if (logger.isTraceEnabled()) {
-                logger.trace("Managed to update the baggage on set [" + success + "]");
+                logger.trace("Managed to update the baggage on set [" + success + "]. Provided value [" + value + "]");
             }
         }
         tagSpanIfOnTagList();
@@ -107,7 +109,8 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
         brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
         boolean success = this.delegate.updateValue(braveContext, value);
         if (logger.isTraceEnabled()) {
-            logger.trace("Managed to update the baggage on set [" + success + "]");
+            logger.trace("Managed to update the baggage on set [" + success + "]. Provided value [" + value
+                    + "], trace context [" + traceContext + "]");
         }
         tagSpanIfOnTagList();
         return this;
@@ -152,7 +155,8 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
         brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
         boolean success = this.delegate.updateValue(braveContext, value);
         if (logger.isTraceEnabled()) {
-            logger.trace("Managed to update the baggage on close [" + success + "]");
+            logger.trace("Managed to update the baggage on close [" + success + "]. Provided value [" + value
+                    + "], trace context [" + traceContext + "]");
         }
         tagSpanIfOnTagList();
         return makeCurrent();

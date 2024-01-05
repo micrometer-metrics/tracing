@@ -27,7 +27,6 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -180,7 +179,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     @Override
     public void restore() {
         if (log.isTraceEnabled()) {
-            log.trace("Restoring no args");
+            log.trace("Restoring to empty span scope");
         }
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         if (spanAction != null) {
@@ -188,13 +187,13 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         }
     }
 
-    static class SpanAction implements Closeable {
+    static class SpanAction implements AutoCloseable {
 
         final SpanAction previous;
 
         final Map<Thread, SpanAction> todo;
 
-        Closeable scope;
+        AutoCloseable scope;
 
         SpanAction(Map<Thread, SpanAction> spanActions, SpanAction previous) {
             this.previous = previous;
@@ -211,7 +210,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
                 try {
                     this.scope.close();
                 }
-                catch (IOException e) {
+                catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }

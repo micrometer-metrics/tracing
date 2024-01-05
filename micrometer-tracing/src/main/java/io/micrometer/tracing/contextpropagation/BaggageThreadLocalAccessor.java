@@ -75,11 +75,11 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
 
     @Override
     public void setValue(BaggageToPropagate value) {
-        BaggageAndScope previousConsumer = baggageInScope.get(Thread.currentThread());
+        BaggageAndScope previousScope = baggageInScope.get(Thread.currentThread());
         if (log.isTraceEnabled()) {
-            log.trace("Baggage to set [" + value + "]. Previous consumer [" + previousConsumer + "]");
+            log.trace("Baggage to set [" + value + "]. Previous scope [" + previousScope + "]");
         }
-        BaggageAndScope consumer = null;
+        BaggageAndScope scope = null;
         Map<String, String> storedMap = value.getBaggage();
         Set<Entry<String, String>> entries = storedMap.entrySet();
         Span span = tracer.currentSpan();
@@ -87,15 +87,15 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
             log.warn("There is no span to which we can attach baggage, will not set baggage");
             return;
         }
-        consumer = openConsumerForEachBaggageEntry(entries, span, consumer);
-        baggageInScope.put(Thread.currentThread(), scopeRestoringBaggageAndScope(consumer, previousConsumer));
+        scope = openScopeForEachBaggageEntry(entries, span, scope);
+        baggageInScope.put(Thread.currentThread(), scopeRestoringBaggageAndScope(scope, previousScope));
         if (log.isTraceEnabled()) {
             log.trace("Finished setting value [" + baggageInScope.get(Thread.currentThread()) + "]");
         }
     }
 
-    private BaggageAndScope openConsumerForEachBaggageEntry(Set<Entry<String, String>> entries, Span span,
-            BaggageAndScope consumer) {
+    private BaggageAndScope openScopeForEachBaggageEntry(Set<Entry<String, String>> entries, Span span,
+            BaggageAndScope scope) {
         for (Entry<String, String> entry : entries) {
             String previousBaggage = tracer.getBaggage(entry.getKey()).get();
             if (log.isTraceEnabled()) {
@@ -107,18 +107,18 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
                 log.trace("New baggage [" + baggage + " ] hashcode [" + baggage.hashCode() + "]. Entry to set ["
                         + entry.getValue() + "] already stored value [" + storedBaggage + "]");
             }
-            consumer = baggageScopeClosingConsumer(entry, consumer, baggage);
+            scope = baggageScopeClosingScope(entry, scope, baggage);
         }
-        return consumer;
+        return scope;
     }
 
     @NonNull
-    private static BaggageAndScope baggageScopeClosingConsumer(Entry<String, String> entry, BaggageAndScope consumer,
+    private static BaggageAndScope baggageScopeClosingScope(Entry<String, String> entry, BaggageAndScope scope,
             BaggageInScope baggage) {
-        if (consumer == null) {
+        if (scope == null) {
             return scopeClosingBaggageAndScope(entry, baggage);
         }
-        return consumer.andThen(scopeClosingBaggageAndScope(entry, baggage));
+        return scope.andThen(scopeClosingBaggageAndScope(entry, baggage));
     }
 
     private static BaggageAndScope scopeClosingBaggageAndScope(Entry<String, String> entry, BaggageInScope baggage) {
@@ -132,24 +132,24 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
 
     @Override
     public void setValue() {
-        BaggageAndScope previousConsumer = baggageInScope.get(Thread.currentThread());
+        BaggageAndScope previousScope = baggageInScope.get(Thread.currentThread());
         if (log.isTraceEnabled()) {
-            log.trace("setValue no args, current baggage scope [" + baggageInScope.get(Thread.currentThread()) + "]");
+            log.trace("setValue to empty baggage scope, current baggage scope ["
+                    + baggageInScope.get(Thread.currentThread()) + "]");
         }
         SpanInScope spanInScope = tracer.withSpan(null);
-        BaggageAndScope currentConsumer = new BaggageAndScope(o -> spanInScope.close());
-        baggageInScope.put(Thread.currentThread(), scopeRestoringBaggageAndScope(currentConsumer, previousConsumer));
+        BaggageAndScope currentScope = new BaggageAndScope(o -> spanInScope.close());
+        baggageInScope.put(Thread.currentThread(), scopeRestoringBaggageAndScope(currentScope, previousScope));
         if (log.isTraceEnabled()) {
             log.trace("setValue no args finished, current baggage scope [" + baggageInScope.get(Thread.currentThread())
                     + "]");
         }
     }
 
-    private BaggageAndScope scopeRestoringBaggageAndScope(BaggageAndScope currentConsumer,
-            BaggageAndScope previousConsumer) {
-        return currentConsumer.andThen(o -> {
-            if (previousConsumer != null) {
-                baggageInScope.put(Thread.currentThread(), previousConsumer);
+    private BaggageAndScope scopeRestoringBaggageAndScope(BaggageAndScope currentScope, BaggageAndScope previousScope) {
+        return currentScope.andThen(o -> {
+            if (previousScope != null) {
+                baggageInScope.put(Thread.currentThread(), previousScope);
             }
             else {
                 baggageInScope.remove(Thread.currentThread());
@@ -158,12 +158,12 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
     }
 
     private void closeCurrentScope() {
-        BaggageAndScope consumer = baggageInScope.get(Thread.currentThread());
+        BaggageAndScope scope = baggageInScope.get(Thread.currentThread());
         if (log.isTraceEnabled()) {
             log.trace("Before close scope [" + baggageInScope.get(Thread.currentThread()) + "]");
         }
-        if (consumer != null) {
-            consumer.accept(null);
+        if (scope != null) {
+            scope.accept(null);
         }
         if (log.isTraceEnabled()) {
             log.trace("After close scope [" + baggageInScope.get(Thread.currentThread()) + "]");
@@ -173,7 +173,7 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
     @Override
     public void restore() {
         if (log.isTraceEnabled()) {
-            log.trace("Calling restore()");
+            log.trace("Restoring to empty baggage scope");
         }
         closeCurrentScope();
     }

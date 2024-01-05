@@ -15,20 +15,22 @@
  */
 package io.micrometer.tracing.contextpropagation;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Wrapper around baggage to propagate.
  *
- * @since 1.2.2
  * @author Marcin Grzejszczak
+ * @since 1.2.2
  */
 public class BaggageToPropagate {
 
     private final Map<String, String> baggage;
 
     public BaggageToPropagate(Map<String, String> baggage) {
-        this.baggage = baggage;
+        this.baggage = new HashMap<>(baggage);
     }
 
     public Map<String, String> getBaggage() {
@@ -38,6 +40,23 @@ public class BaggageToPropagate {
     @Override
     public String toString() {
         return "BaggageToPropagate{" + "baggage=" + baggage + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BaggageToPropagate that = (BaggageToPropagate) o;
+        return Objects.equals(baggage, that.baggage);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(baggage);
     }
 
 }
