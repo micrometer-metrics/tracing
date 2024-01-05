@@ -109,12 +109,12 @@ public class SimpleBaggageManager implements BaggageManager {
         TraceContext current = simpleTracer.currentTraceContext().context();
         SimpleBaggageInScope baggage = baggageForName(current, name);
         if (baggage == null) {
+            ThreadLocal<Set<SimpleBaggageInScope>> baggages = this.baggagesByContext.getOrDefault(current,
+                    ThreadLocal.withInitial(HashSet::new));
             baggage = new SimpleBaggageInScope(simpleTracer.currentTraceContext(), name, current);
+            baggages.get().add(baggage);
+            this.baggagesByContext.put(current, baggages);
         }
-        ThreadLocal<Set<SimpleBaggageInScope>> baggages = this.baggagesByContext.getOrDefault(current,
-                ThreadLocal.withInitial(HashSet::new));
-        baggages.get().add(baggage);
-        this.baggagesByContext.put(current, baggages);
         return baggage;
     }
 

@@ -147,6 +147,9 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         }
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         if (spanAction == null) {
+            if (log.isTraceEnabled()) {
+                log.trace("No action to perform");
+            }
             return;
         }
         Tracer.SpanInScope scope = this.tracer.withSpan(null);
@@ -163,6 +166,9 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         }
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         if (spanAction == null) {
+            if (log.isTraceEnabled()) {
+                log.trace("No action to perform");
+            }
             return;
         }
         spanAction.close();
@@ -184,6 +190,9 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         SpanAction spanAction = spanActions.get(Thread.currentThread());
         if (spanAction != null) {
             spanAction.close();
+        }
+        else if (log.isTraceEnabled()) {
+            log.trace("No action to perform");
         }
     }
 

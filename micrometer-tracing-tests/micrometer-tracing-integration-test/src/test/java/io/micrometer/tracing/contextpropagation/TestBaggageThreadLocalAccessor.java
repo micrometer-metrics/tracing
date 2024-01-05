@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class TestBaggageThreadLocalAccessor {
 
-    public static Map<Thread, ? extends Object> baggageInScope(BaggageThreadLocalAccessor accessor) {
+    public static Map<Thread, ? extends Object> baggageInScope(ObservationAwareBaggageThreadLocalAccessor accessor) {
         return accessor.baggageInScope;
     }
 

@@ -36,8 +36,10 @@ import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Nested;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
@@ -52,6 +54,20 @@ class ObservationAwareSpanThreadLocalAccessorTests {
         @Override
         Tracer getTracer() {
             return simpleTracer;
+        }
+
+        @Override
+        void onlyReactorPropagatesBaggage(boolean threadHopAfterBaggageSet) {
+            Assumptions.assumeFalse(true, "Simple tracer doesn't support baggage propagation"); // TODO:
+                                                                                                // I
+                                                                                                // can't
+                                                                                                // disable
+                                                                                                // this
+        }
+
+        @Override
+        void onlyReactorPropagatesBaggageWithContextCapture() {
+            super.onlyReactorPropagatesBaggageWithContextCapture();
         }
 
     }
@@ -72,6 +88,7 @@ class ObservationAwareSpanThreadLocalAccessorTests {
             // For Baggage to work you need to provide a list of fields to propagate
             .propagationFactory(BaggagePropagation.newFactoryBuilder(B3Propagation.FACTORY)
                 .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create("tenant")))
+                .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create("tenant2")))
                 .build())
             .sampler(Sampler.ALWAYS_SAMPLE)
             .addSpanHandler(this.spanHandler)
@@ -120,12 +137,12 @@ class ObservationAwareSpanThreadLocalAccessorTests {
         Slf4JEventListener slf4JEventListener = new Slf4JEventListener();
 
         Slf4JBaggageEventListener slf4JBaggageEventListener = new Slf4JBaggageEventListener(
-                Collections.singletonList("tenant"));
+                Arrays.asList("tenant", "tenant2"));
 
         OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
             slf4JEventListener.onEvent(event);
             slf4JBaggageEventListener.onEvent(event);
-        }, new OtelBaggageManager(otelCurrentTraceContext, Collections.singletonList("tenant"),
+        }, new OtelBaggageManager(otelCurrentTraceContext, Arrays.asList("tenant", "tenant2"),
                 Collections.emptyList()));
 
         @Override

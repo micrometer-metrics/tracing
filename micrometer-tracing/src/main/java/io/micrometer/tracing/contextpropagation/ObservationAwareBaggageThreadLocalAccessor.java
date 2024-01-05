@@ -19,10 +19,14 @@ import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ThreadLocalAccessor;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.Tracer.SpanInScope;
+
+import io.micrometer.tracing.handler.TracingObservationHandler;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,12 +37,13 @@ import java.util.function.Consumer;
 /**
  * {@link ThreadLocalAccessor} used to propagate baggage via {@link BaggageToPropagate}.
  *
- * @since 1.2.2
  * @author Marcin Grzejszczak
+ * @since 1.2.2
  */
-public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageToPropagate> {
+public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageToPropagate> {
 
-    private static final InternalLogger log = InternalLoggerFactory.getInstance(BaggageThreadLocalAccessor.class);
+    private static final InternalLogger log = InternalLoggerFactory
+        .getInstance(ObservationAwareBaggageThreadLocalAccessor.class);
 
     final Map<Thread, BaggageAndScope> baggageInScope = new ConcurrentHashMap<>();
 
@@ -49,13 +54,17 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
 
     private final Tracer tracer;
 
+    private final ObservationRegistry registry;
+
     /**
      * Creates a new instance of this class.
      * @param tracer tracer
+     * @param observationRegistry observation registry
      * @since 1.2.2
      */
-    public BaggageThreadLocalAccessor(Tracer tracer) {
+    public ObservationAwareBaggageThreadLocalAccessor(Tracer tracer, ObservationRegistry observationRegistry) {
         this.tracer = tracer;
+        this.registry = observationRegistry;
     }
 
     @Override
@@ -65,12 +74,45 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
 
     @Override
     public BaggageToPropagate getValue() {
-        Map<String, String> baggage = tracer.getAllBaggage();
+        Observation currentObservation = registry.getCurrentObservation();
+        Span currentSpan = getCurrentSpan(currentObservation);
+        Map<String, String> baggage = currentSpan != null ? tracer.getAllBaggage(currentSpan.context())
+                : tracer.getAllBaggage();
         if (log.isTraceEnabled()) {
-            log.trace("Current baggage in thread local [" + baggageInScope.get(Thread.currentThread())
+            log.trace("Current baggage in scope in thread local [" + baggageInScope.get(Thread.currentThread())
                     + "], current baggage from tracer [" + baggage + "]");
         }
         return (baggage == null || baggage.isEmpty()) ? null : new BaggageToPropagate(baggage);
+    }
+
+    private Span getCurrentSpan(Observation currentObservation) {
+        Span currentSpan = tracer.currentSpan();
+        if (currentObservation != null) {
+            // There's a current observation so OTLA hooked in
+            // we will now check if the user created spans manually or not
+            TracingObservationHandler.TracingContext tracingContext = currentObservation.getContext()
+                .getOrDefault(TracingObservationHandler.TracingContext.class,
+                        new TracingObservationHandler.TracingContext());
+            // If there is a span in ThreadLocal and it's the same one as the one from a
+            // tracing handler
+            // then OTLA did its job and we should back off
+            if (currentSpan != null && !currentSpan.equals(tracingContext.getSpan())) {
+                // User created child spans manually and scoped them
+                // the current span is not the same as the one from observation
+                if (log.isTraceEnabled()) {
+                    log.trace("User created child spans manually and scoped them, returning [" + currentSpan + "]");
+                }
+                return currentSpan;
+            }
+            if (log.isTraceEnabled()) {
+                log.trace("Span created by OTLA, picking one from context [" + tracingContext.getSpan() + "]");
+            }
+            return tracingContext.getSpan();
+        }
+        else if (log.isTraceEnabled()) {
+            log.trace("No span created by OTLA, retrieving current span from tracer [" + currentSpan + "]");
+        }
+        return currentSpan;
     }
 
     @Override
@@ -97,8 +139,8 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
     private BaggageAndScope openScopeForEachBaggageEntry(Set<Entry<String, String>> entries, Span span,
             BaggageAndScope scope) {
         for (Entry<String, String> entry : entries) {
-            String previousBaggage = tracer.getBaggage(entry.getKey()).get();
             if (log.isTraceEnabled()) {
+                String previousBaggage = tracer.getBaggage(entry.getKey()).get();
                 log.trace("Current span [" + span + "], previous baggage [" + previousBaggage + "]");
             }
             BaggageInScope baggage = tracer.createBaggageInScope(span.context(), entry.getKey(), entry.getValue());
@@ -134,8 +176,13 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
     public void setValue() {
         BaggageAndScope previousScope = baggageInScope.get(Thread.currentThread());
         if (log.isTraceEnabled()) {
-            log.trace("setValue to empty baggage scope, current baggage scope ["
-                    + baggageInScope.get(Thread.currentThread()) + "]");
+            log.trace("setValue to empty baggage scope, current baggage scope [" + previousScope + "]");
+        }
+        if (previousScope == null) {
+            if (log.isTraceEnabled()) {
+                log.trace("No action to perform");
+            }
+            return;
         }
         SpanInScope spanInScope = tracer.withSpan(null);
         BaggageAndScope currentScope = new BaggageAndScope(o -> spanInScope.close());
@@ -149,9 +196,15 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
     private BaggageAndScope scopeRestoringBaggageAndScope(BaggageAndScope currentScope, BaggageAndScope previousScope) {
         return currentScope.andThen(o -> {
             if (previousScope != null) {
+                if (log.isTraceEnabled()) {
+                    log.trace("Putting previous scope [" + previousScope + "]");
+                }
                 baggageInScope.put(Thread.currentThread(), previousScope);
             }
             else {
+                if (log.isTraceEnabled()) {
+                    log.trace("No previous scope to put, clearing the thread [" + Thread.currentThread() + "]");
+                }
                 baggageInScope.remove(Thread.currentThread());
             }
         });
@@ -160,13 +213,16 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
     private void closeCurrentScope() {
         BaggageAndScope scope = baggageInScope.get(Thread.currentThread());
         if (log.isTraceEnabled()) {
-            log.trace("Before close scope [" + baggageInScope.get(Thread.currentThread()) + "]");
+            log.trace("Before close scope [" + scope + "]");
         }
         if (scope != null) {
             scope.accept(null);
+            if (log.isTraceEnabled()) {
+                log.trace("After close scope [" + baggageInScope.get(Thread.currentThread()) + "]");
+            }
         }
-        if (log.isTraceEnabled()) {
-            log.trace("After close scope [" + baggageInScope.get(Thread.currentThread()) + "]");
+        else if (log.isTraceEnabled()) {
+            log.trace("No action to perform");
         }
     }
 
@@ -181,7 +237,7 @@ public class BaggageThreadLocalAccessor implements ThreadLocalAccessor<BaggageTo
     @Override
     public void restore(BaggageToPropagate value) {
         if (log.isTraceEnabled()) {
-            log.trace("Calling restore(Map)");
+            log.trace("Calling restore(value)");
         }
         closeCurrentScope();
     }
