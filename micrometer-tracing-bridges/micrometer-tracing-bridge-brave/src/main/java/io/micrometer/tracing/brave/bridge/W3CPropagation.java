@@ -16,7 +16,6 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.internal.baggage.BaggageFields;
-import brave.internal.propagation.StringPropagationAdapter;
 import brave.propagation.Propagation;
 import brave.propagation.TraceContext;
 import brave.propagation.TraceContextOrSamplingFlags;
@@ -175,8 +174,8 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
     }
 
     @Override
-    public <K> Propagation<K> create(KeyFactory<K> keyFactory) {
-        return StringPropagationAdapter.create(this, keyFactory);
+    public Propagation<String> get() {
+        return this;
     }
 
     @Override

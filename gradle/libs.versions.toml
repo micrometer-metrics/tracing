@@ -7,7 +7,8 @@ jmh="1.37"
 jakartaWeb="9.1.0"
 otelInstrumentation="1.32.0-alpha"
 aopalliance="1.0"
-zipkinAws="0.23.5"
+# TODO: Update to 1.0.0 after https://github.com/open-telemetry/opentelemetry-java/pull/6129
+zipkinAws="0.24.0"
 otelBom="1.33.0"
 logback = "1.4.14"
 wavefrontSdk="3.4.3"
@@ -20,7 +21,12 @@ awaitility = "4.2.0"
 mockito = "5.8.0"
 wiremock = "3.0.1"
 testcontainers = "1.19.3"
-braveBom = "5.17.0"
+braveBom = "6.0.0"
+# TODO: Update to 3.1.1 after https://github.com/open-telemetry/opentelemetry-java/pull/6129
+# Then, add an optional bean zipkin2.reporter.BytesEncoder<brave.handler.MutableSpan>
+# When present, use the overload of AsyncZipkinSpanHandler.build, allowing custom formats like
+# OTLP, Wavefront or Stackdriver.
+zipkinReporterBom = "2.17.2"
 reactorBom = "2022.0.14"
 asmForPlugins = "7.3.1"
 javaFormatForPlugins = "0.0.40"
@@ -61,6 +67,7 @@ wavefrontSdk = { module = "com.wavefront:wavefront-sdk-java", version.ref = "wav
 wavefrontReporter = { module = "com.wavefront:wavefront-internal-reporter-java", version.ref = "wavefrontReporter" }
 wiremock = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
 zipkinAws = { module = "io.zipkin.aws:brave-propagation-aws", version.ref = "zipkinAws" }
+zipkinReporterBom = { module = "io.zipkin.reporter2:zipkin-reporter-bom", version.ref = "zipkinReporterBom" }
 
 # plugin dependencies
 plugin-license = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }

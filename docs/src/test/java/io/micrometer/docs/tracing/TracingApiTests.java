@@ -20,7 +20,6 @@ import brave.baggage.BaggageField;
 import brave.baggage.BaggagePropagation;
 import brave.baggage.BaggagePropagationConfig;
 import brave.context.slf4j.MDCScopeDecorator;
-import brave.handler.SpanHandler;
 import brave.propagation.B3Propagation;
 import brave.propagation.ThreadLocalCurrentTraceContext;
 import brave.sampler.Sampler;
@@ -42,7 +41,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import zipkin2.reporter.AsyncReporter;
+import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
@@ -67,8 +66,8 @@ class TracingApiTests {
         // in a Zipkin format to the provided location via the UrlConnectionSender
         // (through the <io.zipkin.reporter2:zipkin-sender-urlconnection> dependency)
         // Another option could be to use a TestSpanHandler for testing purposes.
-        SpanHandler spanHandler = ZipkinSpanHandler
-            .create(AsyncReporter.create(URLConnectionSender.create("http://localhost:9411/api/v2/spans")));
+        AsyncZipkinSpanHandler spanHandler = AsyncZipkinSpanHandler
+            .create(URLConnectionSender.create("http://localhost:9411/api/v2/spans"));
 
         // [Brave component] CurrentTraceContext is a Brave component that allows you to
         // retrieve the current TraceContext.
