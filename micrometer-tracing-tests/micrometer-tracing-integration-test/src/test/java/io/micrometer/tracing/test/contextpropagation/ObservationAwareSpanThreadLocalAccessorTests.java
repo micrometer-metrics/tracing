@@ -66,6 +66,11 @@ class ObservationAwareSpanThreadLocalAccessorTests {
             Assumptions.assumeFalse(true, "Simple tracer doesn't support baggage propagation");
         }
 
+        @Override
+        void onlyReactorPropagatesBaggageForDocs() {
+            Assumptions.assumeFalse(true, "Simple tracer doesn't support baggage propagation");
+        }
+
     }
 
     @Nested

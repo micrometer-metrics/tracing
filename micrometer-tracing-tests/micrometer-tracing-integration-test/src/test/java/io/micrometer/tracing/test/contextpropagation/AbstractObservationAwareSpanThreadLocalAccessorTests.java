@@ -48,9 +48,7 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -63,29 +61,34 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
 
     ObservationRegistry observationRegistry = ObservationRegistry.create();
 
+    // tag::setup[]
     ContextRegistry contextRegistry = ContextRegistry.getInstance();
-
-    ExecutorService executorService = ContextExecutorService.wrap(Executors.newSingleThreadExecutor(),
-            () -> ContextSnapshot.captureAll(contextRegistry));
-
-    ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
 
     ObservationAwareSpanThreadLocalAccessor accessor;
 
     ObservationAwareBaggageThreadLocalAccessor observationAwareBaggageThreadLocalAccessor;
 
+    // end::setup[]
+
+    ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+
+    ExecutorService executorService = ContextExecutorService.wrap(Executors.newSingleThreadExecutor(),
+            () -> ContextSnapshot.captureAll(contextRegistry));
+
     abstract Tracer getTracer();
 
     @BeforeEach
     void setup() {
+        observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(getTracer()));
+        // tag::setup_accessors[]
         accessor = new ObservationAwareSpanThreadLocalAccessor(observationRegistry, getTracer());
         observationAwareBaggageThreadLocalAccessor = new ObservationAwareBaggageThreadLocalAccessor(observationRegistry,
                 getTracer());
-        observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(getTracer()));
         contextRegistry.loadThreadLocalAccessors()
             .registerThreadLocalAccessor(accessor)
             .registerThreadLocalAccessor(observationAwareBaggageThreadLocalAccessor);
         Hooks.enableAutomaticContextPropagation();
+        // end::setup_accessors[]
     }
 
     @AfterEach
@@ -277,6 +280,35 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAtomic(noError, Matchers.is(true));
     }
 
+    // @formatter:off
+    @Test
+    void onlyReactorPropagatesBaggageForDocs() {
+        // tag::docs[]
+        Hooks.enableAutomaticContextPropagation();
+        Observation observation = Observation.start("parent", observationRegistry);
+
+        List<String> hello = Mono.just("hello")
+            .subscribeOn(Schedulers.single())
+            .flatMap(s -> {
+                Mono<List<String>> mono = Mono.defer(() -> Mono.just(Arrays.asList(
+                    getTracer().getBaggage("tenant").get(),
+                    getTracer().getBaggage("tenant2").get())
+                ));
+            return mono.subscribeOn(Schedulers.parallel())
+                .contextWrite(ReactorBaggage.append("tenant", s + ":baggage")); // Appends baggage to existing one (tenant2:baggage2)
+        })
+            .contextWrite(Context.of(ObservationThreadLocalAccessor.KEY, observation, // Puts observation to Reactor Context
+                    ObservationAwareBaggageThreadLocalAccessor.KEY, new BaggageToPropagate("tenant2", "baggage2") // Puts baggage to Reactor Context
+                ))
+            .block();
+        // end::docs[]
+
+        assertThat(hello).hasSize(2);
+        assertThat(hello.get(0)).isEqualTo("hello:baggage");
+        assertThat(hello.get(1)).isEqualTo("baggage2");
+    }
+    // @formatter:on
+
     @ParameterizedTest(name = "{index} Baggage gets propagated through reactor with thread hop enabled [{0}]")
     @ValueSource(booleans = { true, false })
     void onlyReactorPropagatesBaggage(boolean threadHopAfterBaggageSet) {
@@ -294,7 +326,7 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
                 .contextWrite(ReactorBaggage.append("tenant", s + ":baggage"));
         })
             .contextWrite(Context.of(ObservationThreadLocalAccessor.KEY, observation,
-                    ObservationAwareBaggageThreadLocalAccessor.KEY, baggageOf("tenant2", "baggage2")))
+                    ObservationAwareBaggageThreadLocalAccessor.KEY, new BaggageToPropagate("tenant2", "baggage2")))
             .block();
 
         assertThat(hello).hasSize(2);
@@ -363,12 +395,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
     private void logWithSpan(String text) {
         log.info(text + ". Current span ["
                 + (getTracer().currentSpan() != null ? getTracer().currentSpan().context().toString() : null) + "]");
-    }
-
-    private static BaggageToPropagate baggageOf(String key, String value) {
-        Map<String, String> map = new HashMap<>();
-        map.put(key, value);
-        return new BaggageToPropagate(map);
     }
 
 }

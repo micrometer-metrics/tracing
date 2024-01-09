@@ -29,8 +29,30 @@ public class BaggageToPropagate {
 
     private final Map<String, String> baggage;
 
+    /**
+     * Creates a new instance of {@link BaggageToPropagate} with this baggage.
+     * @param baggage baggage entries
+     */
     public BaggageToPropagate(Map<String, String> baggage) {
         this.baggage = new HashMap<>(baggage);
+    }
+
+    /**
+     * Creates a new instance of {@link BaggageToPropagate} with a single baggage entry.
+     * @param baggage array of baggage key, value pairs (e.g. "foo", "foo1", "foo2",
+     * "foo3" will result in baggage foo:foo1, foo2:foo3
+     */
+    public BaggageToPropagate(String... baggage) {
+        this.baggage = new HashMap<>();
+        if (baggage.length % 2 != 0) {
+            throw new IllegalArgumentException(
+                    "You need an even number of baggage entries. You have [" + baggage.length + "] entries");
+        }
+        for (int i = 1; i < baggage.length; i = i + 2) {
+            String key = baggage[i - 1];
+            String value = baggage[i];
+            this.baggage.put(key, value);
+        }
     }
 
     public Map<String, String> getBaggage() {
