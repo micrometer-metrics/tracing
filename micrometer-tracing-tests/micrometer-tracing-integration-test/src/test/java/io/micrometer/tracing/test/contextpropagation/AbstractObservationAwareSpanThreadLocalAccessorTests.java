@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 VMware, Inc.
+ * Copyright 2024 VMware, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,8 +79,8 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
     @BeforeEach
     void setup() {
         accessor = new ObservationAwareSpanThreadLocalAccessor(observationRegistry, getTracer());
-        observationAwareBaggageThreadLocalAccessor = new ObservationAwareBaggageThreadLocalAccessor(getTracer(),
-                observationRegistry);
+        observationAwareBaggageThreadLocalAccessor = new ObservationAwareBaggageThreadLocalAccessor(observationRegistry,
+                getTracer());
         observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(getTracer()));
         contextRegistry.loadThreadLocalAccessors()
             .registerThreadLocalAccessor(accessor)
@@ -121,10 +121,10 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
             try (Tracer.SpanInScope scope2 = getTracer().withSpan(secondSpan.start())) {
                 try (BaggageInScope baggageInScope = getTracer().createBaggageInScope("tenant", "tenantValue")) {
                     logWithSpan("Async in test with span - before call");
-                    // Future<String> future = executorService.submit(this::asyncCall);
-                    // String spanIdFromFuture = future.get(1, TimeUnit.SECONDS);
-                    // logWithSpan("Async in test with span - after call");
-                    // then(spanIdFromFuture).isEqualTo(secondSpan.context().spanId());
+                    Future<String> future = executorService.submit(this::asyncCall);
+                    String spanIdFromFuture = future.get(1, TimeUnit.SECONDS);
+                    logWithSpan("Async in test with span - after call");
+                    then(spanIdFromFuture).isEqualTo(secondSpan.context().spanId());
 
                     Future<String> futureBaggage = executorService.submit(this::asyncBaggageCall);
                     String baggageFromFuture = futureBaggage.get(1, TimeUnit.SECONDS);
@@ -148,7 +148,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -190,7 +189,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -216,7 +214,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -246,7 +243,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -307,9 +303,8 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
     }
 
     @Test
-    @Disabled("New feature in Reactor needed") // TODO: Fails
+    @Disabled("Fix me")
     void onlyReactorPropagatesBaggageWithContextCapture() {
-
         Span span = getTracer().nextSpan().name("test").start();
 
         Mono<String> mono = Mono.defer(() -> Mono.just("asd"));
@@ -327,6 +322,25 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         span.end();
 
         String tenant = mono.map(s -> getTracer().getBaggage("tenant").get()).block();
+        assertThat(tenant).isEqualTo("tenantValue");
+    }
+
+    @Test
+    @Disabled("Fix me")
+    void onlyReactorPropagatesBaggageWithContextCaptureAndObservation() {
+        Observation observation = Observation.start("asd", observationRegistry);
+
+        Mono<String> mono = Mono.defer(() -> Mono.just("asd"));
+        try (BaggageInScope baggageInScope = getTracer().createBaggageInScope("tenant", "tenantValue")) {
+            // mono = mono.contextCapture();
+            ContextSnapshot contextSnapshot = ContextSnapshotFactory.builder().clearMissing(true).build().captureAll();
+            mono = mono.contextWrite(contextSnapshot::updateContext);
+            // mono.contextCaptureNow(); !
+        }
+        String tenant = mono.map(s -> getTracer().getBaggage("tenant").get())
+            .contextWrite(ctx -> ctx.put(ObservationThreadLocalAccessor.KEY, observation))
+            .block();
+
         assertThat(tenant).isEqualTo("tenantValue");
     }
 

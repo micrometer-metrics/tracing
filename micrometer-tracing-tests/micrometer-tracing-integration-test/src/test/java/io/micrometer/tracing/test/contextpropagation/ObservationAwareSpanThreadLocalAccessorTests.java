@@ -58,16 +58,12 @@ class ObservationAwareSpanThreadLocalAccessorTests {
 
         @Override
         void onlyReactorPropagatesBaggage(boolean threadHopAfterBaggageSet) {
-            Assumptions.assumeFalse(true, "Simple tracer doesn't support baggage propagation"); // TODO:
-                                                                                                // I
-                                                                                                // can't
-                                                                                                // disable
-                                                                                                // this
+            Assumptions.assumeFalse(true, "Simple tracer doesn't support baggage propagation");
         }
 
         @Override
         void onlyReactorPropagatesBaggageWithContextCapture() {
-            super.onlyReactorPropagatesBaggageWithContextCapture();
+            Assumptions.assumeFalse(true, "Simple tracer doesn't support baggage propagation");
         }
 
     }

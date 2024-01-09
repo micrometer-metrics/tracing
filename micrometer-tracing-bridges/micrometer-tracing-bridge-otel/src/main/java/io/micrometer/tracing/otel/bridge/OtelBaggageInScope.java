@@ -198,4 +198,9 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         }
     }
 
+    @Override
+    public String toString() {
+        return "OtelBaggageInScope{" + "tagFields=" + tagFields + ", entry=" + entry + '}';
+    }
+
 }

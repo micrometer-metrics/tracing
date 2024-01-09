@@ -21,11 +21,11 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ThreadLocalAccessor;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.Tracer.SpanInScope;
-
 import io.micrometer.tracing.handler.TracingObservationHandler;
 
 import java.util.Map;
@@ -58,13 +58,13 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
 
     /**
      * Creates a new instance of this class.
-     * @param tracer tracer
      * @param observationRegistry observation registry
+     * @param tracer tracer
      * @since 1.2.2
      */
-    public ObservationAwareBaggageThreadLocalAccessor(Tracer tracer, ObservationRegistry observationRegistry) {
-        this.tracer = tracer;
+    public ObservationAwareBaggageThreadLocalAccessor(ObservationRegistry observationRegistry, Tracer tracer) {
         this.registry = observationRegistry;
+        this.tracer = tracer;
     }
 
     @Override
@@ -140,14 +140,16 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
             BaggageAndScope scope) {
         for (Entry<String, String> entry : entries) {
             if (log.isTraceEnabled()) {
-                String previousBaggage = tracer.getBaggage(entry.getKey()).get();
+                Baggage baggage = tracer.getBaggage(span.context(), entry.getKey());
+                String previousBaggage = baggage != null ? baggage.get() : null;
                 log.trace("Current span [" + span + "], previous baggage [" + previousBaggage + "]");
             }
             BaggageInScope baggage = tracer.createBaggageInScope(span.context(), entry.getKey(), entry.getValue());
             if (log.isTraceEnabled()) {
-                String storedBaggage = tracer.getBaggage(entry.getKey()).get();
+                Baggage currentBaggage = tracer.getBaggage(span.context(), entry.getKey());
+                String previousBaggage = currentBaggage != null ? currentBaggage.get() : null;
                 log.trace("New baggage [" + baggage + " ] hashcode [" + baggage.hashCode() + "]. Entry to set ["
-                        + entry.getValue() + "] already stored value [" + storedBaggage + "]");
+                        + entry.getValue() + "] already stored value [" + previousBaggage + "]");
             }
             scope = baggageScopeClosingScope(entry, scope, baggage);
         }
