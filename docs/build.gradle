@@ -38,6 +38,8 @@ dependencies {
 	testImplementation libs.mockitoCore
 	testImplementation libs.assertj
 	testImplementation libs.springContext
+	testImplementation 'io.projectreactor:reactor-core'
+	testImplementation 'io.projectreactor:reactor-core-micrometer'
 }
 
 antora {

@@ -44,6 +44,9 @@ public class BraveTracer implements Tracer {
         this.tracer = tracer;
         this.braveBaggageManager = braveBaggageManager;
         this.currentTraceContext = context;
+        if (braveBaggageManager instanceof BraveBaggageManager) {
+            ((BraveBaggageManager) braveBaggageManager).setTracer(this);
+        }
     }
 
     /**
