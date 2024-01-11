@@ -61,6 +61,7 @@ public class SimpleBaggageManager implements BaggageManager {
             .getOrDefault(context, ThreadLocal.withInitial(Collections::emptySet))
             .get()
             .stream()
+            .filter(s -> s.get(context) != null)
             .collect(Collectors.toMap(Baggage::name, baggage -> baggage.get(context)));
         map.putAll(((SimpleTraceContext) context).baggageFromParent());
         return map;
@@ -108,12 +109,12 @@ public class SimpleBaggageManager implements BaggageManager {
         TraceContext current = simpleTracer.currentTraceContext().context();
         SimpleBaggageInScope baggage = baggageForName(current, name);
         if (baggage == null) {
+            ThreadLocal<Set<SimpleBaggageInScope>> baggages = this.baggagesByContext.getOrDefault(current,
+                    ThreadLocal.withInitial(HashSet::new));
             baggage = new SimpleBaggageInScope(simpleTracer.currentTraceContext(), name, current);
+            baggages.get().add(baggage);
+            this.baggagesByContext.put(current, baggages);
         }
-        ThreadLocal<Set<SimpleBaggageInScope>> baggages = this.baggagesByContext.getOrDefault(current,
-                ThreadLocal.withInitial(HashSet::new));
-        baggages.get().add(baggage);
-        this.baggagesByContext.put(current, baggages);
         return baggage;
     }
 

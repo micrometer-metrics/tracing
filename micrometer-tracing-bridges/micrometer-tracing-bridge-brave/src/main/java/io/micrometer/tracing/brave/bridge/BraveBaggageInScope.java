@@ -43,6 +43,8 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     private final List<String> tagFields;
 
+    // Null TC would happen pretty much in exceptional cases (there was no span in scope)
+    // but someone wanted to set baggage
     @Nullable
     private brave.propagation.TraceContext traceContext;
 
@@ -53,7 +55,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
             @Nullable Span span, List<String> tagFields) {
         this.delegate = delegate;
         this.traceContext = traceContext;
-        this.previousBaggage = delegate.getValue();
+        this.previousBaggage = traceContext != null ? delegate.getValue(traceContext) : delegate.getValue();
         this.tagFields = tagFields;
         this.span = span;
     }
@@ -77,10 +79,16 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     @Deprecated
     public Baggage set(String value) {
         if (this.traceContext != null) {
-            this.delegate.updateValue(this.traceContext, value);
+            boolean success = this.delegate.updateValue(this.traceContext, value);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Managed to update the baggage on set [" + success + "]. Provided value [" + value + "]");
+            }
         }
         else {
-            this.delegate.updateValue(value);
+            boolean success = this.delegate.updateValue(value);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Managed to update the baggage on set [" + success + "]. Provided value [" + value + "]");
+            }
         }
         tagSpanIfOnTagList();
         return this;
@@ -99,7 +107,11 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     @Deprecated
     public Baggage set(TraceContext traceContext, String value) {
         brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
-        this.delegate.updateValue(braveContext, value);
+        boolean success = this.delegate.updateValue(braveContext, value);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Managed to update the baggage on set [" + success + "]. Provided value [" + value
+                    + "], trace context [" + traceContext + "]");
+        }
         tagSpanIfOnTagList();
         return this;
     }
@@ -123,10 +135,16 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     @Override
     public BaggageInScope makeCurrent(String value) {
         if (this.traceContext != null) {
-            this.delegate.updateValue(this.traceContext, value);
+            boolean success = this.delegate.updateValue(this.traceContext, value);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Managed to update the baggage on make current [" + success + "]");
+            }
         }
         else {
-            this.delegate.updateValue(value);
+            boolean success = this.delegate.updateValue(value);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Managed to update the baggage on make current [" + success + "]");
+            }
         }
         tagSpanIfOnTagList();
         return makeCurrent();
@@ -135,7 +153,11 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     @Override
     public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
         brave.propagation.TraceContext braveContext = updateBraveTraceContext(traceContext);
-        this.delegate.updateValue(braveContext, value);
+        boolean success = this.delegate.updateValue(braveContext, value);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Managed to update the baggage on close [" + success + "]. Provided value [" + value
+                    + "], trace context [" + traceContext + "]");
+        }
         tagSpanIfOnTagList();
         return makeCurrent();
     }
@@ -143,8 +165,17 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     @Override
     public void close() {
         if (this.traceContext != null) {
-            this.delegate.updateValue(this.traceContext, this.previousBaggage);
+            boolean success = this.delegate.updateValue(this.traceContext, this.previousBaggage);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Managed to update the baggage on close [" + success + "]");
+            }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "BraveBaggageInScope{" + "delegate=" + delegate + ", previousBaggage='" + previousBaggage + '\''
+                + ", tagFields=" + tagFields + ", traceContext=" + traceContext + ", span=" + span + '}';
     }
 
 }
