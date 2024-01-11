@@ -179,11 +179,6 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
     }
 
     @Override
-    public Propagation<String> get() {
-        return this;
-    }
-
-    @Override
     public List<String> keys() {
         return FIELDS;
     }
