@@ -23,6 +23,7 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.contextpropagation.ObservationAwareBaggageThreadLocalAccessor;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
@@ -107,12 +108,16 @@ class TracingConfiguringTests {
 
     void example_of_setting_ObservationAwareSpanThreadLocalAccessor() {
         Tracer tracer = null;
+        ObservationRegistry registry = ObservationRegistry.create();
 
-        // tag::span_thread_local_accessor[]
+        // tag::thread_local_accessors[]
         ContextRegistry.getInstance().registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(tracer));
-        // end::span_thread_local_accessor[]
+        ContextRegistry.getInstance()
+            .registerThreadLocalAccessor(new ObservationAwareBaggageThreadLocalAccessor(registry, tracer));
+        // end::thread_local_accessors[]
 
         ContextRegistry.getInstance().removeThreadLocalAccessor(ObservationAwareSpanThreadLocalAccessor.KEY);
+        ContextRegistry.getInstance().removeThreadLocalAccessor(ObservationAwareBaggageThreadLocalAccessor.KEY);
     }
 
     void example_of_exemplars() {

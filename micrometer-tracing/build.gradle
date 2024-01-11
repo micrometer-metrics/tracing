@@ -12,6 +12,7 @@ dependencies {
 
 	// exemplars support
 	optionalApi 'io.micrometer:micrometer-core'
+	optionalApi 'io.projectreactor:reactor-core'
 
 	// log monitoring
 	optionalApi libs.logback

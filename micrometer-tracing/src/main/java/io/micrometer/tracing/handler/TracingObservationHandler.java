@@ -95,16 +95,10 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     default void setMaybeScopeOnTracingContext(TracingContext tracingContext, @Nullable Span newSpan) {
         Span spanFromThisObservation = tracingContext.getSpan();
         TraceContext newContext = newSpan != null ? newSpan.context() : null;
-        Map<String, String> previousBaggage = Collections.emptyMap();
-        if (spanFromThisObservation != null) {
-            previousBaggage = getTracer().getAllBaggage(spanFromThisObservation.context());
-        }
         CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(newContext);
         CurrentTraceContext.Scope previousScopeOnThisObservation = tracingContext.getScope();
-        Map<String, String> newBaggage = getTracer().getAllBaggage(newContext);
-        tracingContext.setBaggage(newBaggage);
         tracingContext.setSpanAndScope(spanFromThisObservation,
-                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation, previousBaggage));
+                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation));
     }
 
     @Override
@@ -240,8 +234,6 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
         private Map<Thread, CurrentTraceContext.Scope> scopes = new ConcurrentHashMap<>();
 
-        private Map<Thread, Map<String, String>> baggage = new ConcurrentHashMap<>();
-
         /**
          * Returns the span.
          * @return span
@@ -282,22 +274,20 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         /**
          * Returns the baggage corresponding to this span.
          * @return baggage attached to the span
+         * @deprecated scheduled for removal in 1.5.0
          */
+        @Deprecated
         public Map<String, String> getBaggage() {
-            return this.baggage.get(Thread.currentThread());
+            return Collections.emptyMap();
         }
 
         /**
          * Sets the baggage
          * @param baggage baggage to set
+         * @deprecated scheduled for removal in 1.5.0
          */
+        @Deprecated
         public void setBaggage(Map<String, String> baggage) {
-            if (baggage == null) {
-                this.baggage.remove(Thread.currentThread());
-            }
-            else {
-                this.baggage.put(Thread.currentThread(), baggage);
-            }
         }
 
         /**
@@ -312,12 +302,12 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
 
         @Override
         public void close() {
-            this.baggage.clear();
+
         }
 
         @Override
         public String toString() {
-            return "TracingContext{" + "span=" + traceContextFromSpan() + ",baggage=" + baggage + '}';
+            return "TracingContext{" + "span=" + traceContextFromSpan() + '}';
         }
 
         private String traceContextFromSpan() {
