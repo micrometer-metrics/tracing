@@ -22,6 +22,7 @@ mockito = "5.8.0"
 wiremock = "3.0.1"
 testcontainers = "1.19.3"
 braveBom = "6.0.0"
+bravePropagationW3c = "0.2.0"
 # TODO: Update to 3.1.1 after https://github.com/open-telemetry/opentelemetry-java/pull/6129
 # Then, add an optional bean zipkin2.reporter.BytesEncoder<brave.handler.MutableSpan>
 # When present, use the overload of AsyncZipkinSpanHandler.build, allowing custom formats like
@@ -41,6 +42,7 @@ aspectjweaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectjwe
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 braveBom = { module = "io.zipkin.brave:brave-bom", version.ref = "braveBom" }
+bravePropagationW3c = { module = "io.zipkin.contrib.brave-propagation-w3c:brave-propagation-tracecontext", version.ref = "bravePropagationW3c" }
 jakartaWeb = { module = "jakarta.platform:jakarta.jakartaee-web-api", version.ref = "jakartaWeb" }
 javaFormatForPlugins = { module = "io.spring.javaformat:spring-javaformat-checkstyle", version.ref = "javaFormatForPlugins" }
 javaxServlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
