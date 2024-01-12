@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 VMware, Inc.
+ * Copyright 2024 VMware, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@ import io.micrometer.context.ContextSnapshot;
 import io.micrometer.context.ContextSnapshotFactory;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.Tracer.SpanInScope;
-import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
-import io.micrometer.tracing.contextpropagation.TestObservationAwareSpanThreadLocalAccessor;
+import io.micrometer.tracing.contextpropagation.*;
+import io.micrometer.tracing.contextpropagation.reactor.ReactorBaggage;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.BDDAssertions;
@@ -34,14 +35,24 @@ import org.awaitility.Awaitility;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import reactor.core.publisher.Hooks;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.context.Context;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 
 abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
@@ -50,22 +61,34 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
 
     ObservationRegistry observationRegistry = ObservationRegistry.create();
 
-    ContextRegistry contextRegistry = new ContextRegistry();
+    // tag::setup[]
+    ContextRegistry contextRegistry = ContextRegistry.getInstance();
 
-    ExecutorService executorService = ContextExecutorService.wrap(Executors.newSingleThreadExecutor(),
-            () -> ContextSnapshot.captureAll(contextRegistry));
+    ObservationAwareSpanThreadLocalAccessor accessor;
+
+    ObservationAwareBaggageThreadLocalAccessor observationAwareBaggageThreadLocalAccessor;
+
+    // end::setup[]
 
     ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
 
-    ObservationAwareSpanThreadLocalAccessor accessor;
+    ExecutorService executorService = ContextExecutorService.wrap(Executors.newSingleThreadExecutor(),
+            () -> ContextSnapshot.captureAll(contextRegistry));
 
     abstract Tracer getTracer();
 
     @BeforeEach
     void setup() {
-        accessor = new ObservationAwareSpanThreadLocalAccessor(observationRegistry, getTracer());
         observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(getTracer()));
-        contextRegistry.loadThreadLocalAccessors().registerThreadLocalAccessor(accessor);
+        // tag::setup_accessors[]
+        accessor = new ObservationAwareSpanThreadLocalAccessor(observationRegistry, getTracer());
+        observationAwareBaggageThreadLocalAccessor = new ObservationAwareBaggageThreadLocalAccessor(observationRegistry,
+                getTracer());
+        contextRegistry.loadThreadLocalAccessors()
+            .registerThreadLocalAccessor(accessor)
+            .registerThreadLocalAccessor(observationAwareBaggageThreadLocalAccessor);
+        Hooks.enableAutomaticContextPropagation();
+        // end::setup_accessors[]
     }
 
     @AfterEach
@@ -74,7 +97,19 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         threadPoolTaskExecutor.shutdown();
         then(getTracer().currentSpan()).isNull();
         then(observationRegistry.getCurrentObservationScope()).isNull();
-        BDDAssertions.then(TestObservationAwareSpanThreadLocalAccessor.spanActions(accessor)).isEmpty();
+        Awaitility.await()
+            .atMost(2, TimeUnit.SECONDS)
+            .untilAsserted(() -> BDDAssertions.then(TestObservationAwareSpanThreadLocalAccessor.spanActions(accessor))
+                .isEmpty());
+        Awaitility.await()
+            .atMost(2, TimeUnit.SECONDS)
+            .untilAsserted(() -> BDDAssertions
+                .then(TestBaggageThreadLocalAccessor.baggageInScope(observationAwareBaggageThreadLocalAccessor))
+                .isEmpty());
+        contextRegistry.removeThreadLocalAccessor(ObservationThreadLocalAccessor.KEY);
+        contextRegistry.removeThreadLocalAccessor(ObservationAwareSpanThreadLocalAccessor.KEY);
+        contextRegistry.removeThreadLocalAccessor(ObservationAwareBaggageThreadLocalAccessor.KEY);
+        Hooks.disableAutomaticContextPropagation();
     }
 
     @Test
@@ -116,7 +151,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -158,7 +192,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -184,7 +217,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -214,7 +246,6 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         boolean noCurrentSpan = submit.get(1, TimeUnit.SECONDS);
 
         Assertions.assertThat(noCurrentSpan).isTrue();
-
     }
 
     @Test
@@ -249,6 +280,102 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAtomic(noError, Matchers.is(true));
     }
 
+    // @formatter:off
+    @Test
+    void onlyReactorPropagatesBaggageForDocs() {
+        // tag::docs[]
+        Hooks.enableAutomaticContextPropagation();
+        Observation observation = Observation.start("parent", observationRegistry);
+
+        List<String> hello = Mono.just("hello")
+            .subscribeOn(Schedulers.single())
+            .flatMap(s -> {
+                Mono<List<String>> mono = Mono.defer(() -> Mono.just(Arrays.asList(
+                    getTracer().getBaggage("tenant").get(),
+                    getTracer().getBaggage("tenant2").get())
+                ));
+            return mono.subscribeOn(Schedulers.parallel())
+                .contextWrite(ReactorBaggage.append("tenant", s + ":baggage")); // Appends baggage to existing one (tenant2:baggage2)
+        })
+            .contextWrite(Context.of(ObservationThreadLocalAccessor.KEY, observation, // Puts observation to Reactor Context
+                    ObservationAwareBaggageThreadLocalAccessor.KEY, new BaggageToPropagate("tenant2", "baggage2") // Puts baggage to Reactor Context
+                ))
+            .block();
+        // end::docs[]
+
+        assertThat(hello).hasSize(2);
+        assertThat(hello.get(0)).isEqualTo("hello:baggage");
+        assertThat(hello.get(1)).isEqualTo("baggage2");
+    }
+    // @formatter:on
+
+    @ParameterizedTest(name = "{index} Baggage gets propagated through reactor with thread hop enabled [{0}]")
+    @ValueSource(booleans = { true, false })
+    void onlyReactorPropagatesBaggage(boolean threadHopAfterBaggageSet) {
+        Hooks.enableAutomaticContextPropagation();
+        Observation observation = Observation.start("parent", observationRegistry);
+
+        List<String> hello = Mono.just("hello").subscribeOn(Schedulers.single()).flatMap(s -> {
+            Mono<List<String>> mono = Mono.defer(() -> {
+                log.info("In mono defer, current span [" + getTracer().currentSpan() + "], all baggage ["
+                        + getTracer().getAllBaggage() + "]");
+                return Mono.just(
+                        Arrays.asList(getTracer().getBaggage("tenant").get(), getTracer().getBaggage("tenant2").get()));
+            });
+            return (threadHopAfterBaggageSet ? mono.subscribeOn(Schedulers.parallel()) : mono)
+                .contextWrite(ReactorBaggage.append("tenant", s + ":baggage"));
+        })
+            .contextWrite(Context.of(ObservationThreadLocalAccessor.KEY, observation,
+                    ObservationAwareBaggageThreadLocalAccessor.KEY, new BaggageToPropagate("tenant2", "baggage2")))
+            .block();
+
+        assertThat(hello).hasSize(2);
+        assertThat(hello.get(0)).isEqualTo("hello:baggage");
+        assertThat(hello.get(1)).isEqualTo("baggage2");
+    }
+
+    @Test
+    @Disabled("Fix me")
+    void onlyReactorPropagatesBaggageWithContextCapture() {
+        Span span = getTracer().nextSpan().name("test").start();
+
+        Mono<String> mono = Mono.defer(() -> Mono.just("asd"));
+        try (SpanInScope ws = getTracer().withSpan(span)) {
+            try (BaggageInScope baggageInScope = getTracer().createBaggageInScope("tenant", "tenantValue")) {
+                // mono = mono.contextCapture();
+                ContextSnapshot contextSnapshot = ContextSnapshotFactory.builder()
+                    .clearMissing(true)
+                    .build()
+                    .captureAll();
+                mono = mono.contextWrite(contextSnapshot::updateContext);
+                // mono.contextCaptureNow(); !
+            }
+        }
+        span.end();
+
+        String tenant = mono.map(s -> getTracer().getBaggage("tenant").get()).block();
+        assertThat(tenant).isEqualTo("tenantValue");
+    }
+
+    @Test
+    @Disabled("Fix me")
+    void onlyReactorPropagatesBaggageWithContextCaptureAndObservation() {
+        Observation observation = Observation.start("asd", observationRegistry);
+
+        Mono<String> mono = Mono.defer(() -> Mono.just("asd"));
+        try (BaggageInScope baggageInScope = getTracer().createBaggageInScope("tenant", "tenantValue")) {
+            // mono = mono.contextCapture();
+            ContextSnapshot contextSnapshot = ContextSnapshotFactory.builder().clearMissing(true).build().captureAll();
+            mono = mono.contextWrite(contextSnapshot::updateContext);
+            // mono.contextCaptureNow(); !
+        }
+        String tenant = mono.map(s -> getTracer().getBaggage("tenant").get())
+            .contextWrite(ctx -> ctx.put(ObservationThreadLocalAccessor.KEY, observation))
+            .block();
+
+        assertThat(tenant).isEqualTo("tenantValue");
+    }
+
     private String asyncCall() {
         logWithSpan("TASK EXECUTOR");
         if (getTracer().currentSpan() == null) {
@@ -259,8 +386,8 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
 
     private String asyncBaggageCall() {
         logWithSpan("TASK EXECUTOR BAGGAGE");
-        if (getTracer().getBaggage("tenant") == null) {
-            throw new AssertionError("Baggage for <tenant> key. Context propagation failed");
+        if (getTracer().getBaggage("tenant").get() == null) {
+            throw new AssertionError("Baggage for <tenant> key is empty. Context propagation failed");
         }
         return getTracer().getBaggage("tenant").get();
     }

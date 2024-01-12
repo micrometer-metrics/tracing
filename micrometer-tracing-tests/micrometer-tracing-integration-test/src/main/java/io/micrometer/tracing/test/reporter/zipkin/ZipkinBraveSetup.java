@@ -33,11 +33,8 @@ import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
-import zipkin2.Span;
-import zipkin2.reporter.AsyncReporter;
-import zipkin2.reporter.Reporter;
 import zipkin2.reporter.Sender;
-import zipkin2.reporter.brave.ZipkinSpanHandler;
+import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 import java.util.Deque;
@@ -97,9 +94,9 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private Supplier<Sender> sender;
 
-        private Function<Sender, AsyncReporter<Span>> reporter;
+        private Function<Sender, AsyncZipkinSpanHandler> spanHandler;
 
-        private Function<Reporter, Tracing> tracing;
+        private Function<AsyncZipkinSpanHandler, Tracing> tracing;
 
         private Function<Tracing, Tracer> tracer;
 
@@ -124,7 +121,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             private final Sender sender;
 
-            private final AsyncReporter<Span> reporter;
+            private final AsyncZipkinSpanHandler spanHandler;
 
             private final Tracing tracing;
 
@@ -147,7 +144,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             /**
              * Creates a new instance of {@link BraveBuildingBlocks}.
              * @param sender sender
-             * @param reporter reporter
+             * @param spanHandler spanHandler
              * @param tracing tracing
              * @param tracer tracer
              * @param propagator propagator
@@ -157,13 +154,13 @@ public final class ZipkinBraveSetup implements AutoCloseable {
              * @param customizers observation handler customizers
              * @param testSpanHandler test span handler
              */
-            public BraveBuildingBlocks(Sender sender, AsyncReporter<Span> reporter, Tracing tracing, Tracer tracer,
-                    BravePropagator propagator, HttpTracing httpTracing, HttpServerHandler httpServerHandler,
-                    HttpClientHandler httpClientHandler,
+            public BraveBuildingBlocks(Sender sender, AsyncZipkinSpanHandler spanHandler, Tracing tracing,
+                    Tracer tracer, BravePropagator propagator, HttpTracing httpTracing,
+                    HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler,
                     BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers,
                     TestSpanHandler testSpanHandler) {
                 this.sender = sender;
-                this.reporter = reporter;
+                this.spanHandler = spanHandler;
                 this.tracing = tracing;
                 this.tracer = tracer;
                 this.propagator = propagator;
@@ -260,12 +257,12 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         }
 
         /**
-         * Overrides reporter.
-         * @param reporter reporter provider
+         * Overrides spanHandler.
+         * @param spanHandler spanHandler provider
          * @return this for chaining
          */
-        public Builder reporter(Function<Sender, AsyncReporter<Span>> reporter) {
-            this.reporter = reporter;
+        public Builder spanHandler(Function<Sender, AsyncZipkinSpanHandler> spanHandler) {
+            this.spanHandler = spanHandler;
             return this;
         }
 
@@ -274,7 +271,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          * @param tracing tracing provider
          * @return this for chaining
          */
-        public Builder tracing(Function<Reporter, Tracing> tracing) {
+        public Builder tracing(Function<AsyncZipkinSpanHandler, Tracing> tracing) {
             this.tracing = tracing;
             return this;
         }
@@ -363,10 +360,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          */
         public ZipkinBraveSetup register(ObservationRegistry registry) {
             Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
-            AsyncReporter<Span> reporter = this.reporter != null ? this.reporter.apply(sender) : reporter(sender);
+            AsyncZipkinSpanHandler spanHandler = this.spanHandler != null ? this.spanHandler.apply(sender)
+                    : spanHandler(sender);
             TestSpanHandler testSpanHandler = new TestSpanHandler();
-            Tracing tracing = this.tracing != null ? this.tracing.apply(reporter)
-                    : tracing(reporter, testSpanHandler, this.applicationName);
+            Tracing tracing = this.tracing != null ? this.tracing.apply(spanHandler)
+                    : tracing(spanHandler, testSpanHandler, this.applicationName);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
             @Deprecated
@@ -378,7 +376,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null
                     ? this.customizers : (t, h) -> {
                     };
-            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, reporter, tracing, tracer,
+            BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, spanHandler, tracing, tracer,
                     new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers,
                     testSpanHandler);
             ObservationHandler<? extends Observation.Context> tracingHandlers = this.handlers != null
@@ -399,8 +397,8 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                 .build();
         }
 
-        private static AsyncReporter<Span> reporter(Sender sender) {
-            return AsyncReporter.builder(sender).build();
+        private static AsyncZipkinSpanHandler spanHandler(Sender sender) {
+            return AsyncZipkinSpanHandler.create(sender);
         }
 
         private static Tracer tracer(Tracing tracing) {
@@ -408,11 +406,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                     new BraveBaggageManager());
         }
 
-        private static Tracing tracing(AsyncReporter<Span> reporter, TestSpanHandler testSpanHandler,
+        private static Tracing tracing(AsyncZipkinSpanHandler spanHandler, TestSpanHandler testSpanHandler,
                 String applicationName) {
             return Tracing.newBuilder()
                 .localServiceName(applicationName)
-                .addSpanHandler(ZipkinSpanHandler.newBuilder(reporter).build())
+                .addSpanHandler(spanHandler)
                 .addSpanHandler(testSpanHandler)
                 .currentTraceContext(ThreadLocalCurrentTraceContext.create())
                 .sampler(Sampler.ALWAYS_SAMPLE)
@@ -427,9 +425,9 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             return deps -> {
                 deps.httpTracing.close();
                 deps.tracing.close();
-                AsyncReporter reporter = deps.reporter;
-                reporter.flush();
-                reporter.close();
+                AsyncZipkinSpanHandler spanHandler = deps.spanHandler;
+                spanHandler.flush();
+                spanHandler.close();
             };
         }
 

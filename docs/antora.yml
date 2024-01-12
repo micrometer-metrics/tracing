@@ -17,4 +17,5 @@ asciidoc:
     chomp: 'all'
     include-java: 'example$docs-src/test/java/io/micrometer/docs'
     include-bridges-java: 'example$bridges-src'
+    include-integration-tests: 'example$/integration-src'
     include-resources: 'example$docs-src/test/resources'

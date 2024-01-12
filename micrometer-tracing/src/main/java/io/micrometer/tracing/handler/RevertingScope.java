@@ -19,7 +19,6 @@ import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.CurrentTraceContext.Scope;
 import io.micrometer.tracing.handler.TracingObservationHandler.TracingContext;
 
-import java.util.Map;
 import java.util.Objects;
 
 class RevertingScope implements CurrentTraceContext.Scope {
@@ -30,21 +29,16 @@ class RevertingScope implements CurrentTraceContext.Scope {
 
     private final CurrentTraceContext.Scope previousScope;
 
-    private final Map<String, String> previousBaggage;
-
-    RevertingScope(TracingContext tracingContext, Scope currentScope, Scope previousScope,
-            Map<String, String> previousBaggage) {
+    RevertingScope(TracingContext tracingContext, Scope currentScope, Scope previousScope) {
         this.tracingContext = tracingContext;
         this.currentScope = currentScope;
         this.previousScope = previousScope;
-        this.previousBaggage = previousBaggage;
     }
 
     @Override
     public void close() {
         this.currentScope.close();
         this.tracingContext.setScope(this.previousScope);
-        this.tracingContext.setBaggage(this.previousBaggage);
     }
 
     @Override
@@ -62,13 +56,12 @@ class RevertingScope implements CurrentTraceContext.Scope {
         }
         RevertingScope that = (RevertingScope) o;
         return Objects.equals(tracingContext, that.tracingContext) && Objects.equals(currentScope, that.currentScope)
-                && Objects.equals(previousScope, that.previousScope)
-                && Objects.equals(previousBaggage, that.previousBaggage);
+                && Objects.equals(previousScope, that.previousScope);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tracingContext, currentScope, previousScope, previousBaggage);
+        return Objects.hash(tracingContext, currentScope, previousScope);
     }
 
 }

@@ -52,6 +52,7 @@ dependencies {
 	testImplementation libs.wiremock
 	testImplementation libs.awaitility
 	testImplementation libs.logback
+	testImplementation 'io.projectreactor:reactor-core'
 	testImplementation 'org.testcontainers:testcontainers'
 	testImplementation 'org.testcontainers:junit-jupiter'
 }

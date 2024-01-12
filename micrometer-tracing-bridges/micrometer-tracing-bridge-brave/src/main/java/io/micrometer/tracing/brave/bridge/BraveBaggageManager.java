@@ -18,10 +18,8 @@ package io.micrometer.tracing.brave.bridge;
 import brave.Span;
 import brave.Tracing;
 import brave.baggage.BaggageField;
-import io.micrometer.tracing.Baggage;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.BaggageManager;
-import io.micrometer.tracing.TraceContext;
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.tracing.*;
 
 import java.io.Closeable;
 import java.util.Collections;
@@ -37,6 +35,9 @@ import java.util.Map;
 public class BraveBaggageManager implements Closeable, BaggageManager {
 
     private final List<String> tagFields;
+
+    @Nullable
+    private Tracer tracer;
 
     /**
      * Create an instance of {@link BraveBaggageManager}.
@@ -101,7 +102,11 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     // Taken from BraveField
-    private static Span currentSpan() {
+    private Span currentSpan() {
+        if (tracer != null) {
+            io.micrometer.tracing.Span span = tracer.currentSpan();
+            return BraveSpan.toBrave(span);
+        }
         Tracing tracing = Tracing.current();
         return tracing != null ? tracing.tracer().currentSpan() : null;
     }
@@ -125,6 +130,10 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     @Override
     public void close() {
         // We used to cache baggage fields
+    }
+
+    void setTracer(Tracer tracer) {
+        this.tracer = tracer;
     }
 
 }

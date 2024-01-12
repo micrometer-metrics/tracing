@@ -15,19 +15,11 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.Map;
-
-import io.micrometer.tracing.Baggage;
-import io.micrometer.tracing.BaggageInScope;
-import io.micrometer.tracing.BaggageManager;
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.ScopedSpan;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanCustomizer;
-import io.micrometer.tracing.TraceContext;
-import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+
+import java.util.Map;
 
 /**
  * OpenTelemetry implementation of a {@link Tracer}.
@@ -124,6 +116,9 @@ public class OtelTracer implements Tracer {
     public Span currentSpan() {
         OtelTraceContext context = (OtelTraceContext) this.otelCurrentTraceContext.context();
         if (context != null && context.span != null) {
+            if (io.opentelemetry.api.trace.Span.getInvalid().equals(context.span)) {
+                return null;
+            }
             return new OtelSpan(context);
         }
         io.opentelemetry.api.trace.Span currentSpan = io.opentelemetry.api.trace.Span.current();
