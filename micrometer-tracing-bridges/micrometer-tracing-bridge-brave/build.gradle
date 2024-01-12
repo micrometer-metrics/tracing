@@ -12,6 +12,7 @@ dependencies {
 	api 'io.zipkin.brave:brave-context-slf4j'
 	api 'io.zipkin.brave:brave-instrumentation-http'
 	api libs.zipkinAws
+	api libs.bravePropagationW3c
 
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'io.micrometer:micrometer-core'
