@@ -121,18 +121,27 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
             TraceContext contextFromParentHeader = TraceparentFormat.get().parse(traceParent);
             if (contextFromParentHeader == null) {
                 return withBaggage(TraceContextOrSamplingFlags.EMPTY, carrier, getter);
-            } else {
-                // TODO: the previous implementation always set the shared flag to true. This is
-                // incorrect because it could be a messaging span which is never shared. Setting it
-                // to shared would cause message consumers to all join the same producer span and
-                // make a mess in UI and analysis. Also, some RPC spans are intentionally not
-                // shared. Finally, b3's "don't sample" "b3=0" is conflated with "not yet sampled"
+            }
+            else {
+                // TODO: the previous implementation always set the shared flag to true.
+                // This is
+                // incorrect because it could be a messaging span which is never shared.
+                // Setting it
+                // to shared would cause message consumers to all join the same producer
+                // span and
+                // make a mess in UI and analysis. Also, some RPC spans are intentionally
+                // not
+                // shared. Finally, b3's "don't sample" "b3=0" is conflated with "not yet
+                // sampled"
                 // unless you propagate the b3 bits.
                 //
-                // W3C traceparent has no field to indicate shared status, which is why tracestate
-                // exists, to carry the extra data not possible to encode in traceparent, such as
+                // W3C traceparent has no field to indicate shared status, which is why
+                // tracestate
+                // exists, to carry the extra data not possible to encode in traceparent,
+                // such as
                 // intentionally unsampled, debug and shared flags.
-                // https://github.com/openzipkin-contrib/brave-propagation-w3c has a correct impl.
+                // https://github.com/openzipkin-contrib/brave-propagation-w3c has a
+                // correct impl.
                 contextFromParentHeader = contextFromParentHeader.toBuilder().shared(true).build();
             }
             String traceStateHeader = getter.get(carrier, TRACESTATE);
@@ -172,6 +181,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
             return TraceContextOrSamplingFlags.create(contextFromParentHeader);
         }
     }
+
 }
 
 /**
