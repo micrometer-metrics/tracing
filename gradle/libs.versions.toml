@@ -9,7 +9,7 @@ otelInstrumentation="1.32.0-alpha"
 aopalliance="1.0"
 # TODO: Update to 1.0.0 after https://github.com/open-telemetry/opentelemetry-java/pull/6129
 zipkinAws="0.24.0"
-otelBom="1.34.0"
+otelBom="1.34.1"
 logback = "1.4.14"
 wavefrontSdk="3.4.3"
 otelBomAlpha="1.34.0-alpha"
