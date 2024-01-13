@@ -139,7 +139,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         carrier.put(TRACEPARENT, TRACEPARENT_HEADER_SAMPLED);
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
@@ -148,7 +148,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         carrier.put(TRACEPARENT, TRACEPARENT_HEADER_SAMPLED);
         assertThat(propagationType.get().extractor((request, key) -> carrier.get(key)).extract(null).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
@@ -157,7 +157,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         carrier.put(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(notSampledTraceContext().shared(true).build());
+            .isEqualTo(notSampledTraceContext().build());
     }
 
     @ParameterizedTest
@@ -166,7 +166,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         carrier.put(TRACEPARENT, "01-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-02");
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
@@ -176,7 +176,7 @@ class W3CPropagationTest {
         carrier.put(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
         carrier.put(TRACESTATE, "");
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(notSampledTraceContext().shared(true).build());
+            .isEqualTo(notSampledTraceContext().build());
     }
 
     private TraceContext.Builder notSampledTraceContext() {
@@ -190,7 +190,7 @@ class W3CPropagationTest {
         carrier.put(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
         carrier.put(TRACESTATE, TRACESTATE_NOT_DEFAULT_ENCODING_WITH_SPACES);
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(sharedTraceContext().sampled(false).build());
+            .isEqualTo(sampledTraceContext().sampled(false).build());
     }
 
     @Test
@@ -286,11 +286,7 @@ class W3CPropagationTest {
         invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
         invalidHeaders.put(TRACESTATE, "foo=bar;test=test");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sharedTraceContext().build());
-    }
-
-    private TraceContext.Builder sharedTraceContext() {
-        return sampledTraceContext().shared(true);
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
@@ -299,8 +295,10 @@ class W3CPropagationTest {
         Map<String, String> invalidHeaders = new HashMap<>();
         invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
         invalidHeaders.put(TRACESTATE, "foo=bar,test-test");
+        TraceContext actual = propagationType.get().extractor(getter).extract(invalidHeaders).context();
+        TraceContext expected = sampledTraceContext().build();
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
@@ -310,7 +308,7 @@ class W3CPropagationTest {
         invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
         invalidHeaders.put(TRACESTATE, "test-test");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sampledTraceContext().shared(true).build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
@@ -337,7 +335,7 @@ class W3CPropagationTest {
         Map<String, String> invalidHeaders = new HashMap<>();
         invalidHeaders.put(TRACEPARENT, "01-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
