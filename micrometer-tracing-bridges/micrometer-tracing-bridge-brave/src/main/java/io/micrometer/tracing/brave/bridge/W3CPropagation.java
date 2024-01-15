@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.Span;
+import brave.Tracer;
 import brave.internal.baggage.BaggageFields;
 import brave.propagation.Propagation;
 import brave.propagation.TraceContext;
@@ -110,6 +112,27 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
         }
     }
 
+    /**
+     * <h3>This does not set the shared flag when extracting headers</h3>
+     *
+     * <p>
+     * {@link brave.propagation.TraceContext#shared()} is not set here because it is not a
+     * remote propagation field. {@code shared} is a field in the Zipkin JSON v2 format
+     * only set <em>after</em> header extraction, for {@link Span.Kind#SERVER} spans
+     * implicitly via {@link brave.Tracer#joinSpan(TraceContext)}.
+     *
+     * <p>
+     * Blindly setting {@code shared} regardless of this is harmful when
+     * {@link Tracer#currentSpan()} or similar are used, as any data tagged with these
+     * could also set the shared flag when reporting. Particularly, this can cause
+     * problems for multi- {@linkplain Span.Kind#CONSUMER} spans. Regardless, setting
+     * invalid flags add overhead.
+     *
+     * <p>
+     * In summary, while {@code shared} is propagated in-process, it has never been
+     * propagated out of process, and so should never be set when extracting headers.
+     * Hence, this code will not set {@link brave.propagation.TraceContext#shared()}.
+     */
     @Override
     public <R> TraceContext.Extractor<R> extractor(Getter<R, String> getter) {
         Objects.requireNonNull(getter, "getter");
@@ -121,22 +144,6 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
             TraceContext contextFromParentHeader = TraceparentFormat.get().parse(traceParent);
             if (contextFromParentHeader == null) {
                 return withBaggage(TraceContextOrSamplingFlags.EMPTY, carrier, getter);
-            }
-            else {
-                // TODO: the previous implementation always set the shared flag to true.
-                // This is incorrect because it could be a messaging span which is never
-                // shared. Setting it to shared would cause message consumers to all join
-                // the same producer span and make a mess in UI and analysis. Also, some
-                // RPC spans are intentionally not shared. Finally, b3's "don't sample"
-                // "b3=0" is conflated with "not yet sampled" unless you propagate the b3
-                // bits.
-                //
-                // W3C traceparent has no field to indicate shared status, which is why
-                // tracestate exists, to carry the extra data not possible to encode in
-                // traceparent, such as intentionally unsampled, debug and shared flags.
-                // https://github.com/openzipkin-contrib/brave-propagation-w3c has a
-                // correct impl.
-                contextFromParentHeader = contextFromParentHeader.toBuilder().shared(true).build();
             }
             String traceStateHeader = getter.get(carrier, TRACESTATE);
             TraceContextOrSamplingFlags context = context(contextFromParentHeader, traceStateHeader);
@@ -166,7 +173,6 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
                     .traceIdHigh(contextFromParentHeader.traceIdHigh())
                     .spanId(contextFromParentHeader.spanId())
                     .sampled(contextFromParentHeader.sampled())
-                    .shared(true)
                     .build())
                 .build();
         }
