@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static io.micrometer.tracing.brave.bridge.W3CPropagation.TRACE_PARENT;
+import static io.micrometer.tracing.brave.bridge.W3CPropagation.TRACEPARENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
@@ -62,7 +62,7 @@ class W3CPropagationTest {
         final Map<String, String> carrier = new LinkedHashMap<>();
         TraceContext traceContext = sampledTraceContext().build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, null);
-        assertThat(carrier).containsExactly(entry(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED));
+        assertThat(carrier).containsExactly(entry(TRACEPARENT, TRACEPARENT_HEADER_SAMPLED));
     }
 
     private TraceContext.Builder sampledTraceContext() {
@@ -83,7 +83,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         TraceContext traceContext = sampledTraceContext().build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, carrier);
-        assertThat(carrier).containsExactly(entry(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED));
+        assertThat(carrier).containsExactly(entry(TRACEPARENT, TRACEPARENT_HEADER_SAMPLED));
     }
 
     @Test
@@ -109,7 +109,7 @@ class W3CPropagationTest {
         Map<String, String> carrier = new LinkedHashMap<>();
         TraceContext traceContext = notSampledTraceContext().build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, carrier);
-        assertThat(carrier).containsExactly(entry(TRACE_PARENT, TRACEPARENT_HEADER_NOT_SAMPLED));
+        assertThat(carrier).containsExactly(entry(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED));
     }
 
     /**
@@ -123,7 +123,7 @@ class W3CPropagationTest {
             .build();
         propagationType.get().injector((ignored, key, value) -> carrier.put(key, value)).inject(traceContext, carrier);
         assertThat(carrier)
-            .containsExactly(entry(TRACE_PARENT, "00-0000000000000000123456789abcdef0-123456789abcdef1-01"));
+            .containsExactly(entry(TRACEPARENT, "00-0000000000000000123456789abcdef0-123456789abcdef1-01"));
     }
 
     @ParameterizedTest
@@ -138,46 +138,46 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_SampledContext(W3CPropagationType propagationType) {
         Map<String, String> carrier = new LinkedHashMap<>();
-        carrier.put(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED);
+        carrier.put(TRACEPARENT, TRACEPARENT_HEADER_SAMPLED);
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void extract_NullCarrier(W3CPropagationType propagationType) {
         Map<String, String> carrier = new LinkedHashMap<>();
-        carrier.put(TRACE_PARENT, TRACEPARENT_HEADER_SAMPLED);
+        carrier.put(TRACEPARENT, TRACEPARENT_HEADER_SAMPLED);
         assertThat(propagationType.get().extractor((request, key) -> carrier.get(key)).extract(null).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void extract_NotSampledContext(W3CPropagationType propagationType) {
         Map<String, String> carrier = new LinkedHashMap<>();
-        carrier.put(TRACE_PARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
+        carrier.put(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(notSampledTraceContext().shared(true).build());
+            .isEqualTo(notSampledTraceContext().build());
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void extract_NotSampledContext_NextVersion(W3CPropagationType propagationType) {
         Map<String, String> carrier = new LinkedHashMap<>();
-        carrier.put(TRACE_PARENT, "01-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-02");
+        carrier.put(TRACEPARENT, "01-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-02");
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void extract_NotSampledContext_EmptyTraceState(W3CPropagationType propagationType) {
         Map<String, String> carrier = new LinkedHashMap<>();
-        carrier.put(TRACE_PARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
+        carrier.put(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
         carrier.put(TRACE_STATE, "");
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(notSampledTraceContext().shared(true).build());
+            .isEqualTo(notSampledTraceContext().build());
     }
 
     private TraceContext.Builder notSampledTraceContext() {
@@ -188,16 +188,16 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_NotSampledContext_TraceStateWithSpaces(W3CPropagationType propagationType) {
         Map<String, String> carrier = new LinkedHashMap<>();
-        carrier.put(TRACE_PARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
+        carrier.put(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
         carrier.put(TRACE_STATE, TRACESTATE_NOT_DEFAULT_ENCODING_WITH_SPACES);
         assertThat(propagationType.get().extractor(getter).extract(carrier).context())
-            .isEqualTo(sharedTraceContext().sampled(false).build());
+            .isEqualTo(sampledTraceContext().sampled(false).build());
     }
 
     @Test
     void extract_tracestate_shouldNotBePartOfBaggage() {
         Map<String, String> carrier = new LinkedHashMap<>();
-        carrier.put(TRACE_PARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
+        carrier.put(TRACEPARENT, TRACEPARENT_HEADER_NOT_SAMPLED);
         carrier.put(TRACE_STATE, TRACESTATE_HEADER);
         carrier.put("baggage", "mybaggage=mybaggagevalue");
 
@@ -221,7 +221,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_EmptyHeader(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new LinkedHashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "");
+        invalidHeaders.put(TRACEPARENT, "");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -230,7 +230,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTraceId(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new LinkedHashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + "abcdefghijklmnopabcdefghijklmnop" + "-" + SPAN_ID_BASE16 + "-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + "abcdefghijklmnopabcdefghijklmnop" + "-" + SPAN_ID_BASE16 + "-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -239,7 +239,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTraceId_Size(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new LinkedHashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "00-" + SPAN_ID_BASE16 + "-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "00-" + SPAN_ID_BASE16 + "-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -248,7 +248,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidSpanId(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + "abcdefghijklmnop" + "-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + "abcdefghijklmnop" + "-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -257,7 +257,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidSpanId_Size(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "00-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "00-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -266,7 +266,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTraceFlags(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-gh");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-gh");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -275,7 +275,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTraceFlags_Size(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-0100");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-0100");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -284,41 +284,38 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTracestate_EntriesDelimiter(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
         invalidHeaders.put(TRACE_STATE, "foo=bar;test=test");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sharedTraceContext().build());
-    }
-
-    private TraceContext.Builder sharedTraceContext() {
-        return sampledTraceContext().shared(true);
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTracestate_KeyValueDelimiter(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
         invalidHeaders.put(TRACE_STATE, "foo=bar,test-test");
-        assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sharedTraceContext().build());
+        TraceContext actual = propagationType.get().extractor(getter).extract(invalidHeaders).context();
+        TraceContext expected = sampledTraceContext().build();
+        assertThat(actual).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTracestate_OneString(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
         invalidHeaders.put(TRACE_STATE, "test-test");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sampledTraceContext().shared(true).build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidVersion_ff(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "ff-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
+        invalidHeaders.put(TRACEPARENT, "ff-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -327,7 +324,7 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_InvalidTraceparent_extraTrailing(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-01");
+        invalidHeaders.put(TRACEPARENT, "00-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders))
             .isSameAs(TraceContextOrSamplingFlags.EMPTY);
     }
@@ -336,20 +333,20 @@ class W3CPropagationTest {
     @EnumSource(W3CPropagationType.class)
     void extract_ValidTraceparent_nextVersion_extraTrailing(W3CPropagationType propagationType) {
         Map<String, String> invalidHeaders = new HashMap<>();
-        invalidHeaders.put(TRACE_PARENT, "01-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-01");
+        invalidHeaders.put(TRACEPARENT, "01-" + TRACE_ID_BASE16 + "-" + SPAN_ID_BASE16 + "-00-01");
         assertThat(propagationType.get().extractor(getter).extract(invalidHeaders).context())
-            .isEqualTo(sharedTraceContext().build());
+            .isEqualTo(sampledTraceContext().build());
     }
 
     @ParameterizedTest
     @EnumSource(W3CPropagationType.class)
     void fieldsList(W3CPropagationType propagationType) {
-        assertThat(propagationType.get().keys()).containsExactly(TRACE_PARENT, TRACE_STATE);
+        assertThat(propagationType.get().keys()).containsExactly(TRACEPARENT, TRACE_STATE);
     }
 
     @Test
     void headerNames() {
-        assertThat(TRACE_PARENT).isEqualTo("traceparent");
+        assertThat(TRACEPARENT).isEqualTo("traceparent");
         assertThat(TRACE_STATE).isEqualTo("tracestate");
     }
 

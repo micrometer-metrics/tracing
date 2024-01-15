@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import brave.Span;
+import brave.Tracer;
 import brave.internal.baggage.BaggageFields;
 import brave.internal.propagation.StringPropagationAdapter;
 import brave.propagation.Propagation;
@@ -45,13 +47,13 @@ import static java.util.Collections.singletonList;
 @SuppressWarnings({ "unchecked", "deprecation" })
 public class W3CPropagation extends Propagation.Factory implements Propagation<String> {
 
-    static final String TRACE_PARENT = "traceparent";
+    static final String TRACEPARENT = "traceparent";
 
-    static final String TRACE_STATE = "tracestate";
+    static final String TRACESTATE = "tracestate";
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(W3CPropagation.class.getName());
 
-    private static final List<String> FIELDS = Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE));
+    private static final List<String> FIELDS = Collections.unmodifiableList(Arrays.asList(TRACEPARENT, TRACESTATE));
 
     private static final String VERSION = "00";
 
@@ -159,7 +161,6 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
                 String traceIdLow = traceId.substring(traceId.length() / 2);
                 byte isSampled = TraceFlags.byteFromHex(traceparent, TRACE_OPTION_OFFSET);
                 return TraceContext.newBuilder()
-                    .shared(true)
                     .traceIdHigh(EncodingUtils.longFromBase16String(traceIdHigh))
                     .traceId(EncodingUtils.longFromBase16String(traceIdLow))
                     .spanId(EncodingUtils.longFromBase16String(spanId))
@@ -209,7 +210,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
             }
             chars[TRACE_OPTION_OFFSET - 1] = TRACEPARENT_DELIMITER;
             copyTraceFlagsHexTo(chars, TRACE_OPTION_OFFSET, context);
-            setter.put(carrier, TRACE_PARENT, new String(chars, 0, TRACEPARENT_HEADER_SIZE));
+            setter.put(carrier, TRACEPARENT, new String(chars, 0, TRACEPARENT_HEADER_SIZE));
             addTraceState(setter, context, carrier);
             if (this.baggagePropagator != null) {
                 this.baggagePropagator.injector(setter).inject(context, carrier);
@@ -219,13 +220,13 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
 
     private <R> void addTraceState(Setter<R, String> setter, TraceContext context, R carrier) {
         if (carrier != null && this.braveBaggageManager != null) {
-            Baggage baggage = this.braveBaggageManager.getBaggage(BraveTraceContext.fromBrave(context), TRACE_STATE);
+            Baggage baggage = this.braveBaggageManager.getBaggage(BraveTraceContext.fromBrave(context), TRACESTATE);
             if (baggage == null) {
                 return;
             }
             String traceState = baggage.get(BraveTraceContext.fromBrave(context));
             if (StringUtils.isNotBlank(traceState)) {
-                setter.put(carrier, TRACE_STATE, traceState);
+                setter.put(carrier, TRACESTATE, traceState);
             }
         }
     }
@@ -249,11 +250,32 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
         dest[destOffset + 1] = Boolean.TRUE.equals(context.sampled()) ? '1' : '0';
     }
 
+    /**
+     * <h3>This does not set the shared flag when extracting headers</h3>
+     *
+     * <p>
+     * {@link brave.propagation.TraceContext#shared()} is not set here because it is not a
+     * remote propagation field. {@code shared} is a field in the Zipkin JSON v2 format
+     * only set <em>after</em> header extraction, for {@link Span.Kind#SERVER} spans
+     * implicitly via {@link brave.Tracer#joinSpan(TraceContext)}.
+     *
+     * <p>
+     * Blindly setting {@code shared} regardless of this is harmful when
+     * {@link Tracer#currentSpan()} or similar are used, as any data tagged with these
+     * could also set the shared flag when reporting. Particularly, this can cause
+     * problems for multi- {@linkplain Span.Kind#CONSUMER} spans. Regardless, setting
+     * invalid flags add overhead.
+     *
+     * <p>
+     * In summary, while {@code shared} is propagated in-process, it has never been
+     * propagated out of process, and so should never be set when extracting headers.
+     * Hence, this code will not set {@link brave.propagation.TraceContext#shared()}.
+     */
     @Override
     public <R> TraceContext.Extractor<R> extractor(Getter<R, String> getter) {
         Objects.requireNonNull(getter, "getter");
         return carrier -> {
-            String traceParent = getter.get(carrier, TRACE_PARENT);
+            String traceParent = getter.get(carrier, TRACEPARENT);
             if (traceParent == null) {
                 return withBaggage(TraceContextOrSamplingFlags.EMPTY, carrier, getter);
             }
@@ -261,7 +283,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
             if (contextFromParentHeader == null) {
                 return withBaggage(TraceContextOrSamplingFlags.EMPTY, carrier, getter);
             }
-            String traceStateHeader = getter.get(carrier, TRACE_STATE);
+            String traceStateHeader = getter.get(carrier, TRACESTATE);
             TraceContextOrSamplingFlags context = context(contextFromParentHeader, traceStateHeader);
             if (this.baggagePropagator == null || this.braveBaggageManager == null) {
                 return context;
@@ -289,7 +311,6 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
                     .traceIdHigh(contextFromParentHeader.traceIdHigh())
                     .spanId(contextFromParentHeader.spanId())
                     .sampled(contextFromParentHeader.sampled())
-                    .shared(true)
                     .build())
                 .build();
         }
