@@ -71,7 +71,7 @@ Micrometer Tracing contains a `@NewSpan`, `@ContinueSpan` and `@SpanTag` annotat
 
 WARNING: Micrometer's Spring Boot configuration does _not_ recognize these aspects on arbitrary methods.
 
-An incubating AspectJ aspect is included. You can use it in your application either through compile/load time AspectJ weaving or through framework facilities that interpret AspectJ aspects and proxy targeted methods in some other way, such as Spring AOP. Here is a sample Spring AOP configuration:
+An AspectJ aspect is included. You can use it in your application either through compile/load time AspectJ weaving or through framework facilities that interpret AspectJ aspects and proxy targeted methods in some other way, such as Spring AOP. Here is a sample Spring AOP configuration:
 
 [source,java,subs=+attributes]
 -----
