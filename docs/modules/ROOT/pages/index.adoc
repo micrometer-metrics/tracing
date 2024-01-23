@@ -5,6 +5,15 @@
 [[tracing-purpose]]
 == Purpose
 
+The problem of tracing is not new.
+Application developers have been creating ways to track the state of their applications for a long time.
+For much of that time, developers had to create the necessary tracing framework themselves.
+
+In 2016, the Spring Cloud team created a tracing library that could help a lot of developers.
+It was called https://github.com/spring-cloud/spring-cloud-sleuth[Spring Cloud Sleuth].
+The Spring team realized that tracing could be separated from Spring Cloud and created the Micrometer Tracing project, which is, essentially, a Spring-agnostic copy of Spring Cloud Sleuth.
+Micrometer Tracing had its 1.0.0 GA release in November 2022 and has been getting steadily better ever since.
+
 https://github.com/micrometer-metrics/tracing[Micrometer Tracing] provides a simple facade for the most popular tracer libraries, letting you instrument your JVM-based application code without vendor lock-in.
 It is designed to add little to no overhead to your tracing collection activity while maximizing the portability of your tracing effort.
 
