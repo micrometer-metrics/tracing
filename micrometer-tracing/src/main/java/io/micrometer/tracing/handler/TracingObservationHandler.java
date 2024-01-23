@@ -16,7 +16,6 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.common.KeyValue;
-import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.observation.Observation;
@@ -182,7 +181,6 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
      * @param context a {@link Observation.Context}
      * @return tracing context
      */
-    @NonNull
     default TracingContext getTracingContext(T context) {
         return context.computeIfAbsent(TracingContext.class, clazz -> new TracingContext());
     }

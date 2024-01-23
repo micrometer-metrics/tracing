@@ -15,7 +15,6 @@
  */
 package io.micrometer.tracing.contextpropagation;
 
-import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ThreadLocalAccessor;
@@ -156,7 +155,6 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         return scope;
     }
 
-    @NonNull
     private static BaggageAndScope baggageScopeClosingScope(Entry<String, String> entry, BaggageAndScope scope,
             BaggageInScope baggage) {
         if (scope == null) {
@@ -284,9 +282,8 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
             this.consumer.accept(o);
         }
 
-        @NonNull
         @Override
-        public BaggageAndScope andThen(@NonNull Consumer<? super Object> after) {
+        public BaggageAndScope andThen(Consumer<? super Object> after) {
             return new BaggageAndScope(Consumer.super.andThen(after), entry);
         }
 
