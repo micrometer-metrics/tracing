@@ -18,12 +18,12 @@ https://github.com/micrometer-metrics/tracing[Micrometer Tracing] provides a sim
 It is designed to add little to no overhead to your tracing collection activity while maximizing the portability of your tracing effort.
 
 It also provides a tracing extension to Micrometer's `ObservationHandler` (from Micrometer 1.10.0).
-Whenever an `Observation` is used, a corresponding span will be created, started, stopped and reported.
+Whenever an `Observation` is used, a corresponding span is created, started, stopped and reported.
 
 [[tracing-installing]]
 == Installing
 
-Micrometer Tracing comes with a Bill of Materials (BOM) which is a project that contains all the project versions for you.
+Micrometer Tracing comes with a Bill of Materials (BOM), which is a project that contains all the project versions for you.
 
 The following example shows the required dependency in Gradle:
 
@@ -57,5 +57,5 @@ The following example shows the required dependency in Maven:
 </dependencies>
 ----
 
-You should add a tracing bridge you want to use, such as `micrometer-tracing-bridge-brave` or `micrometer-tracing-bridge-otel` and span exporters / reporters.
-In case of adding a bridge the `micrometer-tracing` library is added transitively.
+You should add a tracing bridge, such as `micrometer-tracing-bridge-brave` or `micrometer-tracing-bridge-otel` and span exporters / reporters.
+When you add a bridge, the `micrometer-tracing` library is added transitively.

@@ -7,7 +7,7 @@ Micrometer Tracing supports the following Tracers.
 
 === Installing
 
-The following example shows the required dependency in Gradle (assuming that Micrometer Tracing BOM has been added):
+The following example shows the required dependency in Gradle (assuming that the Micrometer Tracing BOM has been added):
 
 .Brave Tracer
 [source,groovy,subs=+attributes]
@@ -21,7 +21,7 @@ implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 ----
 
-The following example shows the required dependency in Maven (assuming that Micrometer Tracing BOM has been added):
+The following example shows the required dependency in Maven (assuming that the Micrometer Tracing BOM has been added):
 
 .Brave Tracer
 [source,xml,subs=+attributes]
@@ -42,4 +42,4 @@ The following example shows the required dependency in Maven (assuming that Micr
 ----
 
 IMPORTANT: Remember to pick *only one* bridge.
-You *shouldn't have* two bridges on the classpath.
+You *should not have* two bridges on the classpath.

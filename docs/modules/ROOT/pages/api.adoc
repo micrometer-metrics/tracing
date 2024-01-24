@@ -1,24 +1,24 @@
 == Using Micrometer Tracing Directly
 
-In this section we will describe how to use the Micrometer Tracing API directly to create and report spans.
+In this section, we describe how to use the Micrometer Tracing API to directly create and report spans.
 
 === Micrometer Tracing Examples
 
-Below you can see basic operations on a span. Please read the comments in the snippet for details.
+The following example shows the basic operations on a span. Read the comments in the snippet for details:
 
 [source,java,subs=+attributes]
 -----
 include::{include-java}/tracing/TracingApiTests.java[tags=manual_span_creation,indent=0]
 -----
 
-Below you can see how to continue a span in a new thread, that was started in another thread.
+The following example shows how to continue a span in a new thread that was started in another thread:
 
 [source,java,subs=+attributes]
 -----
 include::{include-java}/tracing/TracingApiTests.java[tags=manual_span_continuation,indent=0]
 -----
 
-Below you can see how to create a child span when explicitly knowing who the parent span is.
+The following example shows how to create a child span when explicitly knowing who the parent span is:
 
 [source,java,subs=+attributes]
 -----
@@ -27,9 +27,9 @@ include::{include-java}/tracing/TracingApiTests.java[tags=manual_span_joining,in
 
 === Micrometer Tracing Brave Setup
 
-In this subsection we will set up Micrometer Tracing with Brave.
+In this subsection, we set up Micrometer Tracing with Brave.
 
-Below you can see how to create a Micrometer Tracing `Tracer` using Brave components that would send completed spans to Zipkin.
+The following example shows how to create a Micrometer Tracing `Tracer` by using Brave components that would send completed spans to Zipkin:
 
 [source,java,subs=+attributes]
 -----
@@ -38,9 +38,9 @@ include::{include-java}/tracing/TracingApiTests.java[tags=brave_setup,indent=0]
 
 === Micrometer Tracing OpenTelemetry Setup
 
-In this subsection we will set up Micrometer Tracing with OpenTelemetry (OTel).
+In this subsection, we set up Micrometer Tracing with OpenTelemetry (OTel).
 
-Below you can see how to create a Micrometer Tracing `Tracer` using OTel components that would send completed spans to Zipkin.
+The following example shows how to create a Micrometer Tracing `Tracer` by using OTel components that would send completed spans to Zipkin:
 
 [source,java,subs=+attributes]
 -----
@@ -49,16 +49,16 @@ include::{include-java}/tracing/TracingApiTests.java[tags=otel_setup,indent=0]
 
 === Micrometer Tracing Baggage API
 
-Traces connect from service to service using header propagation. Besides trace identifiers, other properties (called `Baggage`) can also be passed along with the request.
+Traces connect from application to application by using header propagation. Besides trace identifiers, other properties (called `Baggage`) can also be passed along with the request.
 
-Below you can find an example on how to use the Tracer API to create and extract baggage.
+The following example shows how to use the Tracer API to create and extract baggage:
 
 [source,java,subs=+attributes]
 -----
 include::{include-bridges-java}/micrometer-tracing-bridge-brave/src/test/java/io/micrometer/tracing/brave/bridge/BraveTracingApiTests.java[tags=baggage_api,indent=0]
 -----
 
-IMPORTANT: For Brave, remember to set up the `PropagationFactory` so that it contains the baggage fields that you will be using in your code. Check the example below for details.
+IMPORTANT: For Brave, remember to set up the `PropagationFactory` so that it contains the baggage fields that you will be using in your code. Check the following example for details:
 
 [source,java,subs=+attributes]
 -----
@@ -67,11 +67,11 @@ include::{include-java}/tracing/TracingApiTests.java[tags=baggage_brave_setup,in
 
 === Aspect Oriented Programming
 
-Micrometer Tracing contains a `@NewSpan`, `@ContinueSpan` and `@SpanTag` annotations that frameworks can use to create or customize spans for either specific types of methods such as those serving web request endpoints or, more generally, to all methods.
+Micrometer Tracing contains `@NewSpan`, `@ContinueSpan`, and `@SpanTag` annotations that frameworks can use to create or customize spans for either specific types of methods such as those serving web request endpoints or, more generally, to all methods.
 
 WARNING: Micrometer's Spring Boot configuration does _not_ recognize these aspects on arbitrary methods.
 
-An AspectJ aspect is included. You can use it in your application either through compile/load time AspectJ weaving or through framework facilities that interpret AspectJ aspects and proxy targeted methods in some other way, such as Spring AOP. Here is a sample Spring AOP configuration:
+An AspectJ aspect is included. You can use it in your application, either through compile/load time AspectJ weaving or through framework facilities that interpret AspectJ aspects and proxy targeted methods in some other way, such as Spring AOP. Here is a sample Spring AOP configuration:
 
 [source,java,subs=+attributes]
 -----

@@ -1,19 +1,19 @@
 == Testing
 
-Micrometer Tracing comes with `micrometer-tracing-test` and `micrometer-tracing-integration-test` modules.
+Micrometer Tracing includes the `micrometer-tracing-test` and `micrometer-tracing-integration-test` modules.
 
-For unit tests it provides a `SimpleTracer` that is a test implementation of a `Tracer`.
+For unit tests, it provides a `SimpleTracer` that is a test implementation of a `Tracer`.
 
-For the integration tests it provides a `SampleTestRunner` mechanism that you can hook into your samples.
-It will
+For integration tests, it provides a `SampleTestRunner` mechanism that you can hook into your samples.
+It:
 
-* Configure an OpenZipkin Brave Tracer
-** Set it up with Tanzu Observability by Wavefront Reporter
-** Set it up with OpenZipkin Zipkin Reporter
-* Configure an OpenTelemetry Tracer
-** Set it up with Tanzu Observability by Wavefront Exporter
-** Set it up with OpenZipkin Zipkin Exporter
-* Run all the combinations above against the user code and running infrastructure
+* Configures an OpenZipkin Brave Tracer
+** Sets it up with Tanzu Observability by Wavefront Reporter
+** Sets it up with OpenZipkin Zipkin Reporter
+* Configures an OpenTelemetry Tracer
+** Sets it up with Tanzu Observability by Wavefront Exporter
+** Sets it up with OpenZipkin Zipkin Exporter
+* Runs all the combinations above against the user code and running infrastructure
 
 === Installing
 
@@ -43,14 +43,14 @@ The following example shows the required dependency in Maven (assuming that Micr
 
 === Running Tracing Unit Tests
 
-To run unit tests of your custom handler you may want to use the `SimpleTracer` test `Tracer` implementation. Let's assume the following custom `TracingObservationHandler`.
+To run unit tests of your custom handler, you may want to use the `SimpleTracer` test `Tracer` implementation. Let's assume the following custom `TracingObservationHandler`:
 
 [source,java,subs=+attributes]
 -----
 include::{include-java}/tracing/TracingTestingTests.java[tags=observation_handler,indent=0]
 -----
 
-To verify whether the spans got properly created we can use the `SimpleTracer` as follows:
+To verify whether the spans got properly created we can use the `SimpleTracer`, as follows:
 
 [source,java,subs=+attributes]
 -----
@@ -59,11 +59,11 @@ include::{include-java}/tracing/TracingTestingTests.java[tags=handler_test,inden
 
 === Running integration tests
 
-The following example shows how you can run your code to test your integrations
+The following example shows how you can run your code to test your integrations:
 
-* by asserting spans that were stored without emitting them to a reporting system
-* against running Tanzu Observability by Wavefront instance (this option turns on when you have passed the Wavefront related configuration in the constructor - otherwise the test will be disabled)
-* against running Zipkin instance (this option turns on when Zipkin is running - otherwise the test will be disabled)
+* By asserting spans that were stored without emitting them to a reporting system
+* Against running Tanzu Observability by Wavefront instance (this option turns on when you have passed the Wavefront related configuration in the constructor - otherwise the test will be disabled)
+* Against running Zipkin instance (this option turns on when Zipkin is running - otherwise the test will be disabled)
 
 [source,java,subs=+attributes]
 -----
