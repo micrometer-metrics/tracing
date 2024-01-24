@@ -18,16 +18,16 @@ For example, if you run a distributed big-data store, a trace might be formed by
 *Annotation/Event*: Used to record the existence of an event in time.
 
 *Tracer*: A library that handles the lifecycle of a span.
-It can create, start, stop and report spans to an external system via reporters / exporters.
+It can create, start, stop, and report spans to an external system via reporters / exporters.
 
-*Tracing context*: For distributed tracing to work the tracing context (trace identifier, span identifier, etc.) must be propagated through the process (e.g. over threads) and over the network.
+*Tracing context*: For distributed tracing to work, the tracing context (trace identifier, span identifier, and so on) must be propagated through the process (for example, over threads) and over the network.
 
-*Log correlation*: Parts of the tracing context (e.g. trace identifier, span identifier) can be populated to the logs of a given application.
-One can then collect all logs in a single storage and group them via trace id.
-That way one can get all logs, for a single business operation (trace) from all services put in a chronological order.
+*Log correlation*: Parts of the tracing context (such as the trace identifier and the span identifier) can be populated to the logs of a given application.
+One can then collect all logs in a single storage and group them with a trace ID.
+That way, you can get all logs, for a single business operation (trace) from all services put in a chronological order.
 
 *Latency analysis tools*: A tool that collects exported spans and visualizes the whole trace.
-Allows easy latency analysis.
+Such a tool allows easy latency analysis.
 
 The following image shows how *Span* and *Trace* look in a system.
 
@@ -59,8 +59,8 @@ Span Id = C
 (custom span)
 ----
 
-You can continue with a created span (example with `no custom span` indication) or you can create child spans manually (example with `custom span` indication).
+You can continue with a created span (example with `no custom span` indication), or you can create child spans manually (example with `custom span` indication).
 
-The following image shows how parent-child relationships of spans look:
+The following image shows how the parent-child relationships of spans look:
 
 image::tracing/parents.jpg[Parent child relationship]
