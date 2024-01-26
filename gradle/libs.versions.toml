@@ -20,7 +20,7 @@ assertj = "3.25.2"
 awaitility = "4.2.0"
 mockito = "5.10.0"
 wiremock = "3.0.1"
-testcontainers = "1.19.3"
+testcontainers = "1.19.4"
 braveBom = "6.0.0"
 bravePropagationW3c = "0.2.0"
 # TODO: Update to 3.1.1 after https://github.com/open-telemetry/opentelemetry-java/pull/6129
