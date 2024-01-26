@@ -36,7 +36,7 @@ production use.
 
 ## Documentation
 
-The documentation is available at https://micrometer.io/docs/tracing.
+The documentation is available at https://docs.micrometer.io/tracing/reference/.
 
 ## Contributing
 

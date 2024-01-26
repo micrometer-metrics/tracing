@@ -16,7 +16,7 @@ contributions in all forms.
 
 For example, those with Micrometer Tracing knowledge and experience can contribute by:
 
-* [Contributing documentation](https://github.com/micrometer-metrics/micrometer-docs/tree/main/src/docs/tracing)
+* [Contributing documentation](https://github.com/micrometer-metrics/tracing/tree/main/docs)
 * Answering [Stackoverflow questions](https://stackoverflow.com/tags/micrometer-tracing)
 * Answering questions on the [Micrometer slack](https://slack.micrometer.io)
 * Share Micrometer Tracing knowledge in other ways (e.g. presentations, blogs)

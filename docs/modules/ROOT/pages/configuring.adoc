@@ -44,7 +44,7 @@ The former can group handlers and the latter can be chosen to (for example) run 
 
 === Context Propagation with Micrometer Tracing
 
-To make https://micrometer.io/docs/contextPropagation[Context Propagation] work with Micrometer Tracing, you need to manually register the proper `ThreadLocalAccessor`, as follows:
+To make https://docs.micrometer.io/context-propagation/reference/[Context Propagation] work with Micrometer Tracing, you need to manually register the proper `ThreadLocalAccessor`, as follows:
 
 [source,java,subs=+attributes]
 -----
