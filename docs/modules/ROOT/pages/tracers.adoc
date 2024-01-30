@@ -1,11 +1,11 @@
-== Supported Tracers
+= Supported Tracers
 
 Micrometer Tracing supports the following Tracers.
 
 * https://github.com/openzipkin/brave[*OpenZipkin Brave*]
 * https://opentelemetry.io/[*OpenTelemetry*]
 
-=== Installing
+== Installing
 
 The following example shows the required dependency in Gradle (assuming that the Micrometer Tracing BOM has been added):
 

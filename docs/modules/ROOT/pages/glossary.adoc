@@ -1,4 +1,4 @@
-== Glossary
+= Glossary
 
 Micrometer Tracing contains a core module with an instrumentation https://en.wikipedia.org/wiki/Service_provider_interface[SPI], a set of modules containing bridges to various tracers, a set of modules containing dedicated span reporting mechanisms, and a test kit.
 You need to understand the following definitions for distributed tracing:

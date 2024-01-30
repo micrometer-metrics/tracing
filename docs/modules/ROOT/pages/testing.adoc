@@ -1,4 +1,4 @@
-== Testing
+= Testing
 
 Micrometer Tracing includes the `micrometer-tracing-test` and `micrometer-tracing-integration-test` modules.
 
@@ -15,7 +15,7 @@ It:
 ** Sets it up with OpenZipkin Zipkin Exporter
 * Runs all the combinations above against the user code and running infrastructure
 
-=== Installing
+== Installing
 
 The following example shows the required dependency in Gradle (assuming that Micrometer Tracing BOM has been added):
 
@@ -41,7 +41,7 @@ The following example shows the required dependency in Maven (assuming that Micr
 </dependency>
 -----
 
-=== Running Tracing Unit Tests
+== Running Tracing Unit Tests
 
 To run unit tests of your custom handler, you may want to use the `SimpleTracer` test `Tracer` implementation. Let's assume the following custom `TracingObservationHandler`:
 
@@ -57,7 +57,7 @@ To verify whether the spans got properly created we can use the `SimpleTracer`, 
 include::{include-java}/tracing/TracingTestingTests.java[tags=handler_test,indent=0]
 -----
 
-=== Running integration tests
+== Running integration tests
 
 The following example shows how you can run your code to test your integrations:
 
