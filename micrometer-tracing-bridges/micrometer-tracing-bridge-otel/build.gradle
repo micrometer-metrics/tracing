@@ -13,7 +13,6 @@ dependencies {
 	api 'io.opentelemetry:opentelemetry-sdk-trace'
 	api 'io.opentelemetry:opentelemetry-sdk'
 	api 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv'
-	optionalApi 'io.opentelemetry:opentelemetry-exporter-logging'
 	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
 	optionalApi 'io.opentelemetry:opentelemetry-opentracing-shim'
 
