@@ -18,6 +18,7 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.tracing.exporter.SpanExportingPredicate;
 import io.micrometer.tracing.exporter.SpanFilter;
 import io.micrometer.tracing.exporter.SpanReporter;
+import io.micrometer.tracing.exporter.TestSpanReporter;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
@@ -110,6 +111,20 @@ class CompositeSpanExporterTests {
 
         then(exporter).shouldHaveNoInteractions();
         BDDAssertions.then(resultCode.isSuccess()).isTrue();
+    }
+
+    @Test
+    void should_store_spans_through_test_span_reporter() {
+        TestSpanReporter testSpanReporter = new TestSpanReporter();
+        SpanData barSpan = new CustomSpanData("bar");
+
+        CompletableResultCode resultCode = new CompositeSpanExporter(null, null,
+                Collections.singletonList(testSpanReporter), null)
+            .export(Collections.singletonList(barSpan));
+
+        BDDAssertions.then(resultCode.isSuccess()).isTrue();
+        BDDAssertions.then(testSpanReporter.spans()).hasSize(1);
+        BDDAssertions.then(testSpanReporter.poll().getName()).isEqualTo("bar");
     }
 
     static class CustomSpanData implements SpanData {

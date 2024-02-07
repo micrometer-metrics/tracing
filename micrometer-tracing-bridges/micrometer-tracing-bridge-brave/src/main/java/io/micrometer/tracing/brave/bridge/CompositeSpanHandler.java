@@ -15,16 +15,17 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import java.util.Collections;
-import java.util.List;
-
 import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.exporter.SpanExportingPredicate;
 import io.micrometer.tracing.exporter.SpanFilter;
 import io.micrometer.tracing.exporter.SpanReporter;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Wraps the {@link SpanHandler} with additional predicate, reporting and filtering logic.
@@ -46,8 +47,8 @@ public class CompositeSpanHandler extends SpanHandler {
      * @param reporters reporters that export spans
      * @param spanFilters filters that mutate spans before reporting them
      */
-    public CompositeSpanHandler(List<SpanExportingPredicate> predicates, List<SpanReporter> reporters,
-            List<SpanFilter> spanFilters) {
+    public CompositeSpanHandler(@Nullable List<SpanExportingPredicate> predicates,
+            @Nullable List<SpanReporter> reporters, @Nullable List<SpanFilter> spanFilters) {
         this.filters = predicates == null ? Collections.emptyList() : predicates;
         this.reporters = reporters == null ? Collections.emptyList() : reporters;
         this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
