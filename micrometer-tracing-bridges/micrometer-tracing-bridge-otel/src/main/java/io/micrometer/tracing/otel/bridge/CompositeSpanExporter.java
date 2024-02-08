@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.exporter.SpanExportingPredicate;
 import io.micrometer.tracing.exporter.SpanFilter;
@@ -53,9 +54,10 @@ public class CompositeSpanExporter implements io.opentelemetry.sdk.trace.export.
      * @param reporters reporters that export spans
      * @param spanFilters filters that mutate spans before reporting them
      */
-    public CompositeSpanExporter(Collection<io.opentelemetry.sdk.trace.export.SpanExporter> exporters,
-            List<SpanExportingPredicate> predicates, List<SpanReporter> reporters, List<SpanFilter> spanFilters) {
-        this.exporters = exporters;
+    public CompositeSpanExporter(@Nullable Collection<io.opentelemetry.sdk.trace.export.SpanExporter> exporters,
+            @Nullable List<SpanExportingPredicate> predicates, @Nullable List<SpanReporter> reporters,
+            @Nullable List<SpanFilter> spanFilters) {
+        this.exporters = exporters == null ? Collections.emptyList() : exporters;
         this.predicates = predicates == null ? Collections.emptyList() : predicates;
         this.reporters = reporters == null ? Collections.emptyList() : reporters;
         this.spanFilters = spanFilters == null ? Collections.emptyList() : spanFilters;
