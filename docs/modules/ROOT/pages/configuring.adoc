@@ -1,6 +1,6 @@
-== Configuring with Micrometer Observation
+= Configuring with Micrometer Observation
 
-=== Handler Configuration
+== Handler Configuration
 
 // TODO: We need to separately document that Micrometer provides a TimerObservationHandler
 
@@ -36,13 +36,13 @@ It also results in the following trace view in (for example) Zipkin:
 
 image::tracing/zipkin.jpg[Trace Info propagation]
 
-==== Ordered Handler Configuration
+=== Ordered Handler Configuration
 
 Micrometer Tracing comes with multiple `ObservationHandler` implementations.
 To introduce ordering, you can use the `ObservationHandler.AllMatchingCompositeObservationHandler` to run logic for all `ObservationHandler` instances that match the given predicate and `ObservationHandler`. Use `FirstMatchingCompositeObservationHandler` to run logic only for the first `ObservationHandler` that matches the predicate.
 The former can group handlers and the latter can be chosen to (for example) run only one matching `TracingObservationHandler`.
 
-=== Context Propagation with Micrometer Tracing
+== Context Propagation with Micrometer Tracing
 
 To make https://docs.micrometer.io/context-propagation/reference/[Context Propagation] work with Micrometer Tracing, you need to manually register the proper `ThreadLocalAccessor`, as follows:
 
@@ -66,7 +66,7 @@ include::{include-integration-tests}/src/test/java/io/micrometer/tracing/test/co
 include::{include-integration-tests}/src/test/java/io/micrometer/tracing/test/contextpropagation/AbstractObservationAwareSpanThreadLocalAccessorTests.java[tags=docs,indent=0]
 -----
 
-=== Exemplars
+== Exemplars
 
 To add support for https://grafana.com/docs/grafana/latest/fundamentals/exemplars/[exemplars] instead of using the `DefaultMeterObservationHandler` you should use the `TracingAwareMeterObservationHandler`, as follows:
 
