@@ -1,11 +1,11 @@
-== Supported Reporters
+= Supported Reporters
 
 Micrometer Tracing supports directly the following Reporters.
 
 * https://tanzu.vmware.com/observability[*Tanzu Observability by Wavefront*]
 * https://zipkin.io[*OpenZipkin Zipkin*]
 
-=== Installing
+== Installing
 
 The following example shows the required dependency in Gradle (assuming that Micrometer Tracing BOM has been added):
 

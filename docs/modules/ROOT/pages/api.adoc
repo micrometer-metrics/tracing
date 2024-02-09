@@ -1,8 +1,8 @@
-== Using Micrometer Tracing Directly
+= Using Micrometer Tracing Directly
 
 In this section, we describe how to use the Micrometer Tracing API to directly create and report spans.
 
-=== Micrometer Tracing Examples
+== Micrometer Tracing Examples
 
 The following example shows the basic operations on a span. Read the comments in the snippet for details:
 
@@ -25,7 +25,7 @@ The following example shows how to create a child span when explicitly knowing w
 include::{include-java}/tracing/TracingApiTests.java[tags=manual_span_joining,indent=0]
 -----
 
-=== Micrometer Tracing Brave Setup
+== Micrometer Tracing Brave Setup
 
 In this subsection, we set up Micrometer Tracing with Brave.
 
@@ -36,7 +36,7 @@ The following example shows how to create a Micrometer Tracing `Tracer` by using
 include::{include-java}/tracing/TracingApiTests.java[tags=brave_setup,indent=0]
 -----
 
-=== Micrometer Tracing OpenTelemetry Setup
+== Micrometer Tracing OpenTelemetry Setup
 
 In this subsection, we set up Micrometer Tracing with OpenTelemetry (OTel).
 
@@ -47,7 +47,7 @@ The following example shows how to create a Micrometer Tracing `Tracer` by using
 include::{include-java}/tracing/TracingApiTests.java[tags=otel_setup,indent=0]
 -----
 
-=== Micrometer Tracing Baggage API
+== Micrometer Tracing Baggage API
 
 Traces connect from application to application by using header propagation. Besides trace identifiers, other properties (called `Baggage`) can also be passed along with the request.
 
@@ -65,7 +65,7 @@ IMPORTANT: For Brave, remember to set up the `PropagationFactory` so that it con
 include::{include-java}/tracing/TracingApiTests.java[tags=baggage_brave_setup,indent=0]
 -----
 
-=== Aspect Oriented Programming
+== Aspect Oriented Programming
 
 Micrometer Tracing contains `@NewSpan`, `@ContinueSpan`, and `@SpanTag` annotations that frameworks can use to create or customize spans for either specific types of methods such as those serving web request endpoints or, more generally, to all methods.
 
