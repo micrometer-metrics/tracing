@@ -2,23 +2,10 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "1.0.x" # oldest supported branch
+    target-branch: "1.1.x" # oldest OSS supported branch
     schedule:
       interval: "weekly"
 # Non-build dependencies; target every supported branch
-  - package-ecosystem: gradle
-    directory: "/"
-    schedule:
-      interval: daily
-    target-branch: "1.0.x"
-    milestone: 13
-    ignore:
-      # only upgrade patch versions
-      - dependency-name: "*"
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-    open-pull-requests-limit: 10
   - package-ecosystem: gradle
     directory: "/"
     schedule:
