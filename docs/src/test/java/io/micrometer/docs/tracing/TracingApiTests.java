@@ -42,7 +42,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
-import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 import java.util.Collections;
@@ -110,7 +109,7 @@ class TracingApiTests {
         @AfterEach
         void close() {
             this.tracing.close();
-            ((ZipkinSpanHandler) this.spanHandler).close();
+            this.spanHandler.close();
         }
 
         @Test
