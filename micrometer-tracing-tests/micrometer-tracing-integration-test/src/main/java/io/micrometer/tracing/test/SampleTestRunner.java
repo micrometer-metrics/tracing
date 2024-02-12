@@ -41,11 +41,11 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import zipkin2.CheckResult;
-import zipkin2.reporter.Sender;
+import zipkin2.reporter.BytesMessageSender;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
@@ -453,10 +453,13 @@ public abstract class SampleTestRunner {
                     + " not found in the list of tracing setups to run " + Arrays.toString(chosenSetups));
         }
 
-        private static void checkZipkinAssumptions(Sender sender) {
-            CheckResult checkResult = sender.check();
-            Assumptions.assumeTrue(checkResult.ok(),
-                    "There was a problem with connecting to Zipkin. Will NOT run any tests");
+        private static void checkZipkinAssumptions(BytesMessageSender sender) {
+            try {
+                sender.send(Collections.emptyList());
+            }
+            catch (Exception e) {
+                Assumptions.abort("There was a problem with connecting to Zipkin. Will NOT run any tests");
+            }
         }
 
         private static void checkWavefrontAssumptions(SampleRunnerConfig sampleRunnerConfig) {

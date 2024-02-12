@@ -38,7 +38,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.semconv.ResourceAttributes;
-import zipkin2.reporter.Sender;
+import zipkin2.reporter.BytesMessageSender;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 import java.util.Collections;
@@ -97,9 +97,9 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private String zipkinUrl = "http://localhost:9411";
 
-        private Supplier<Sender> sender;
+        private Supplier<BytesMessageSender> sender;
 
-        private Function<Sender, ZipkinSpanExporter> zipkinSpanExporter;
+        private Function<BytesMessageSender, ZipkinSpanExporter> zipkinSpanExporter;
 
         private Function<ZipkinSpanExporter, SdkTracerProvider> sdkTracerProvider;
 
@@ -126,7 +126,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          */
         public static class OtelBuildingBlocks implements BuildingBlocks {
 
-            private final Sender sender;
+            private final BytesMessageSender sender;
 
             private final ZipkinSpanExporter zipkinSpanExporter;
 
@@ -164,7 +164,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
              * @param customizers observation customizers
              * @param arrayListSpanProcessor array list span processor
              */
-            public OtelBuildingBlocks(Sender sender, ZipkinSpanExporter zipkinSpanExporter,
+            public OtelBuildingBlocks(BytesMessageSender sender, ZipkinSpanExporter zipkinSpanExporter,
                     SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer,
                     OtelTracer otelTracer, OtelPropagator propagator, HttpServerHandler httpServerHandler,
                     HttpClientHandler httpClientHandler,
@@ -185,9 +185,9 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             /**
              * Returns a sender.
-             * @return a {@link Sender}
+             * @return a {@link BytesMessageSender}
              */
-            public Sender getSender() {
+            public BytesMessageSender getSender() {
                 return sender;
             }
 
@@ -263,7 +263,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          * @param sender sender provider
          * @return this for chaining
          */
-        public Builder sender(Supplier<Sender> sender) {
+        public Builder sender(Supplier<BytesMessageSender> sender) {
             this.sender = sender;
             return this;
         }
@@ -273,7 +273,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          * @param zipkinSpanExporter exporter provider
          * @return this for chaining
          */
-        public Builder zipkinSpanExporter(Function<Sender, ZipkinSpanExporter> zipkinSpanExporter) {
+        public Builder zipkinSpanExporter(Function<BytesMessageSender, ZipkinSpanExporter> zipkinSpanExporter) {
             this.zipkinSpanExporter = zipkinSpanExporter;
             return this;
         }
@@ -381,7 +381,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
          * @return setup with all OTel building blocks
          */
         public ZipkinOtelSetup register(ObservationRegistry registry) {
-            Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
+            BytesMessageSender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
             ZipkinSpanExporter zipkinSpanExporter = this.zipkinSpanExporter != null
                     ? this.zipkinSpanExporter.apply(sender) : zipkinSpanExporter(sender);
             ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
@@ -413,7 +413,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             return new ZipkinOtelSetup(closingFunction, otelBuildingBlocks);
         }
 
-        private static Sender sender(String zipkinUrl) {
+        private static BytesMessageSender sender(String zipkinUrl) {
             return URLConnectionSender.newBuilder()
                 .connectTimeout(1000)
                 .readTimeout(1000)
@@ -422,7 +422,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
                 .build();
         }
 
-        private static ZipkinSpanExporter zipkinSpanExporter(Sender sender) {
+        private static ZipkinSpanExporter zipkinSpanExporter(BytesMessageSender sender) {
             return ZipkinSpanExporter.builder().setSender(sender).build();
         }
 

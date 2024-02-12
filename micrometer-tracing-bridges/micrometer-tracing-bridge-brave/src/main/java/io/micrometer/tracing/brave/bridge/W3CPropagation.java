@@ -113,7 +113,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
     }
 
     /**
-     * <h3>This does not set the shared flag when extracting headers</h3>
+     * <strong>This does not set the shared flag when extracting headers</strong>
      *
      * <p>
      * {@link brave.propagation.TraceContext#shared()} is not set here because it is not a

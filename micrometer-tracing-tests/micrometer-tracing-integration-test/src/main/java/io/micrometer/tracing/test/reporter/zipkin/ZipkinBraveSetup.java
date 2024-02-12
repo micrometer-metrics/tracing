@@ -33,7 +33,7 @@ import io.micrometer.tracing.http.HttpClientHandler;
 import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
-import zipkin2.reporter.Sender;
+import zipkin2.reporter.BytesMessageSender;
 import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
@@ -92,9 +92,9 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private String zipkinUrl = "http://localhost:9411";
 
-        private Supplier<Sender> sender;
+        private Supplier<BytesMessageSender> sender;
 
-        private Function<Sender, AsyncZipkinSpanHandler> spanHandler;
+        private Function<BytesMessageSender, AsyncZipkinSpanHandler> spanHandler;
 
         private Function<AsyncZipkinSpanHandler, Tracing> tracing;
 
@@ -119,7 +119,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          */
         public static class BraveBuildingBlocks implements BuildingBlocks {
 
-            private final Sender sender;
+            private final BytesMessageSender sender;
 
             private final AsyncZipkinSpanHandler spanHandler;
 
@@ -154,7 +154,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
              * @param customizers observation handler customizers
              * @param testSpanHandler test span handler
              */
-            public BraveBuildingBlocks(Sender sender, AsyncZipkinSpanHandler spanHandler, Tracing tracing,
+            public BraveBuildingBlocks(BytesMessageSender sender, AsyncZipkinSpanHandler spanHandler, Tracing tracing,
                     Tracer tracer, BravePropagator propagator, HttpTracing httpTracing,
                     HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler,
                     BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers,
@@ -175,7 +175,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
              * Returns the sender.
              * @return sender
              */
-            public Sender getSender() {
+            public BytesMessageSender getSender() {
                 return sender;
             }
 
@@ -251,7 +251,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          * @param sender sender provider
          * @return this for chaining
          */
-        public Builder sender(Supplier<Sender> sender) {
+        public Builder sender(Supplier<BytesMessageSender> sender) {
             this.sender = sender;
             return this;
         }
@@ -261,7 +261,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          * @param spanHandler spanHandler provider
          * @return this for chaining
          */
-        public Builder spanHandler(Function<Sender, AsyncZipkinSpanHandler> spanHandler) {
+        public Builder spanHandler(Function<BytesMessageSender, AsyncZipkinSpanHandler> spanHandler) {
             this.spanHandler = spanHandler;
             return this;
         }
@@ -359,7 +359,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
          * @return setup with all Brave building blocks
          */
         public ZipkinBraveSetup register(ObservationRegistry registry) {
-            Sender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
+            BytesMessageSender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
             AsyncZipkinSpanHandler spanHandler = this.spanHandler != null ? this.spanHandler.apply(sender)
                     : spanHandler(sender);
             TestSpanHandler testSpanHandler = new TestSpanHandler();
@@ -388,7 +388,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             return new ZipkinBraveSetup(closingFunction, braveBuildingBlocks);
         }
 
-        private static Sender sender(String zipkinUrl) {
+        private static BytesMessageSender sender(String zipkinUrl) {
             return URLConnectionSender.newBuilder()
                 .connectTimeout(1000)
                 .readTimeout(1000)
@@ -397,7 +397,7 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                 .build();
         }
 
-        private static AsyncZipkinSpanHandler spanHandler(Sender sender) {
+        private static AsyncZipkinSpanHandler spanHandler(BytesMessageSender sender) {
             return AsyncZipkinSpanHandler.create(sender);
         }
 
