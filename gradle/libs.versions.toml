@@ -25,7 +25,7 @@ reactorBom = "2022.0.16"
 asmForPlugins = "7.3.1"
 javaFormatForPlugins = "0.0.41"
 jsr305 = "3.0.2"
-aspectjweaver = "1.9.21.1"
+aspectjweaver = "1.9.21.2"
 spring = "5.3.32"
 
 [libraries]
