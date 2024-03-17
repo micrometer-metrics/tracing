@@ -378,20 +378,21 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
     }
 
     @Test
-    void observationAwareBaggageThreadLocalAccessorSetsAndClosesBaggageToPropagate() throws ReflectiveOperationException {
+    void observationAwareBaggageThreadLocalAccessorSetsAndClosesBaggageToPropagate()
+            throws ReflectiveOperationException {
         then(getTracer().currentTraceContext().context()).isNull();
 
-        Observation.createNotStarted("First span", observationRegistry).observeChecked(
-            () -> {
-                then(getTracer().currentTraceContext().context()).isNotNull();
+        Observation.createNotStarted("First span", observationRegistry).observeChecked(() -> {
+            then(getTracer().currentTraceContext().context()).isNotNull();
 
-                BaggageToPropagate baggageToPropagate = new BaggageToPropagate("tenant", "tenantValue", "tenant2", "tenant2Value");
-                observationAwareBaggageThreadLocalAccessor.setValue(baggageToPropagate);
-                Method closeCurrentScope = ObservationAwareBaggageThreadLocalAccessor.class.getDeclaredMethod("closeCurrentScope");
-                closeCurrentScope.setAccessible(true);
-                return closeCurrentScope.invoke(observationAwareBaggageThreadLocalAccessor);
-            }
-        );
+            BaggageToPropagate baggageToPropagate = new BaggageToPropagate("tenant", "tenantValue", "tenant2",
+                    "tenant2Value");
+            observationAwareBaggageThreadLocalAccessor.setValue(baggageToPropagate);
+            Method closeCurrentScope = ObservationAwareBaggageThreadLocalAccessor.class
+                .getDeclaredMethod("closeCurrentScope");
+            closeCurrentScope.setAccessible(true);
+            return closeCurrentScope.invoke(observationAwareBaggageThreadLocalAccessor);
+        });
 
         then(getTracer().currentTraceContext().context()).isNull();
     }
