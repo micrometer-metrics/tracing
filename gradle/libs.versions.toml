@@ -21,12 +21,12 @@ mockito = "5.7.0"
 wiremock = "3.0.1"
 testcontainers = "1.19.7"
 braveBom = "5.16.0"
-reactorBom = "2022.0.17"
+reactorBom = "2022.0.18"
 asmForPlugins = "7.3.1"
 javaFormatForPlugins = "0.0.41"
 jsr305 = "3.0.2"
 aspectjweaver = "1.9.22"
-spring = "5.3.33"
+spring = "5.3.34"
 
 [libraries]
 aopAlliance = { module = "aopalliance:aopalliance", version.ref = "aopalliance" }
