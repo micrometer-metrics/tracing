@@ -884,6 +884,58 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
     }
 
     /**
+     * Verifies that this span has parent span id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithParentId456).hasParentIdEqualTo("456");
+     *
+     * // assertions fail
+     * assertThat(spanWithParentId123).hasSpanIdEqualTo("234");</code></pre>
+     * @param parentSpanId parent span id
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a parent span id not equal to the given one
+     * @since 1.0.4
+     */
+    public SELF hasParentIdEqualTo(String parentSpanId) {
+        isNotNull();
+
+        if (parentSpanId == null && this.actual.getParentId() == null) {
+            return (SELF) this;
+        }
+
+        if (!parentSpanId.equals(this.actual.getParentId())) {
+            failWithMessage("Span should have parent span id equal to <%s> but has <%s>", parentSpanId, this.actual.getParentId());
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span doesn't have parent span id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithParentId123).hasSpanIdEqualTo("234");
+     *
+     * // assertions fail
+     * assertThat(spanWithId123).hasSpanIdEqualTo("123");</code></pre>
+     * @param parentSpanId parent span ID
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a parent span id equal to the given one
+     * @since 1.0.4
+     */
+    public SELF doesNotHaveParentIdEqualTo(String parentSpanId) {
+        isNotNull();
+        if (this.actual.getParentId() == null && parentSpanId != null) {
+            return (SELF) this;
+        }
+        if (this.actual.getParentId().equals(parentSpanId)) {
+            failWithMessage("Span should not have parent span id equal to <%s>", parentSpanId);
+        }
+        return (SELF) this;
+    }
+
+    /**
      * Verifies that this span has trace id equal to the given value.
      * <p>
      * Examples: <pre><code class='java'> // assertions succeed

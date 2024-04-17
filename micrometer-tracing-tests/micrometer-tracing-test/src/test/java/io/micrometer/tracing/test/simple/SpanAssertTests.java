@@ -489,6 +489,40 @@ class SpanAssertTests {
     }
 
     @Test
+    void should_fail_when_parentId_is_not_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setParentId("1");
+
+        thenThrownBy(() -> assertThat(span).hasParentIdEqualTo("2")).isInstanceOf(AssertionError.class);
+    }
+
+
+    @Test
+    void should_not_fail_when_parentId_is_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setParentId("1");
+
+        thenNoException().isThrownBy(() -> assertThat(span).hasParentIdEqualTo("1"));
+    }
+
+    @Test
+    void should_not_fail_when_parentId_is_not_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setSpanId("1");
+
+        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveSpanIdEqualTo("2"));
+    }
+
+    @Test
+    void should_fail_when_parentId_is_equal() {
+        SimpleSpan span = new SimpleSpan();
+        span.context().setParentId("1");
+
+        thenThrownBy(() -> assertThat(span).doesNotHaveParentIdEqualTo(span.getParentId()))
+            .isInstanceOf(AssertionError.class);
+    }
+
+    @Test
     void should_not_fail_when_spanId_is_not_equal() {
         SimpleSpan span = new SimpleSpan();
         span.context().setSpanId("1");
