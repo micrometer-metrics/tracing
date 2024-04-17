@@ -57,6 +57,8 @@ public class SimpleSpanBuilder implements Span.Builder {
 
     private TimeUnit startTimestampUnit;
 
+    private TraceContext parentContext;
+
     /**
      * Creates a new instance of {@link SimpleSpanBuilder}.
      * @param simpleTracer simple tracer
@@ -67,11 +69,13 @@ public class SimpleSpanBuilder implements Span.Builder {
 
     @Override
     public Span.Builder setParent(TraceContext context) {
+        this.parentContext = context;
         return this;
     }
 
     @Override
     public Span.Builder setNoParent() {
+        this.parentContext = null;
         return this;
     }
 
@@ -142,6 +146,15 @@ public class SimpleSpanBuilder implements Span.Builder {
         span.name(this.getName());
         span.remoteIpAndPort(this.getIp(), this.getPort());
         span.addLinks(this.links);
+
+        if (parentContext != null) {
+            SimpleTraceContext ctx = span.context();
+            ctx.setSpanId(ctx.generateId());
+            ctx.setParentId(parentContext.spanId());
+            ctx.setTraceId(parentContext.traceId());
+            ctx.setSampled(parentContext.sampled());
+        }
+
         span.start();
         if (this.startTimestampUnit != null) {
             span.setStartMillis(this.startTimestampUnit.toMillis(this.startTimestamp));
