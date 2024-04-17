@@ -67,10 +67,7 @@ class SimpleSpanBuilderTests {
         SimpleTraceContextBuilder ctxBuilder = new SimpleTraceContextBuilder();
         TraceContext parentCtx = ctxBuilder.spanId("spam").traceId("bar").sampled(true).build();
 
-        builder.name("foo")
-            .setParent(parentCtx)
-            .start()
-            .end();
+        builder.name("foo").setParent(parentCtx).start().end();
 
         TracerAssert.assertThat(simpleTracer)
             .onlySpan()

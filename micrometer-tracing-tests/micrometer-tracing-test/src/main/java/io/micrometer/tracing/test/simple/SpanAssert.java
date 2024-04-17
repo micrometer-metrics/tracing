@@ -905,7 +905,8 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         }
 
         if (!parentSpanId.equals(this.actual.getParentId())) {
-            failWithMessage("Span should have parent span id equal to <%s> but has <%s>", parentSpanId, this.actual.getParentId());
+            failWithMessage("Span should have parent span id equal to <%s> but has <%s>", parentSpanId,
+                    this.actual.getParentId());
         }
         return (SELF) this;
     }

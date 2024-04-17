@@ -496,7 +496,6 @@ class SpanAssertTests {
         thenThrownBy(() -> assertThat(span).hasParentIdEqualTo("2")).isInstanceOf(AssertionError.class);
     }
 
-
     @Test
     void should_not_fail_when_parentId_is_equal() {
         SimpleSpan span = new SimpleSpan();
