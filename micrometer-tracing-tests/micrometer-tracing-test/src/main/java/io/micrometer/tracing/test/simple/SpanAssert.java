@@ -16,6 +16,7 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.common.docs.KeyName;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
@@ -895,13 +896,19 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * @return {@code this} assertion object.
      * @throws AssertionError if the actual value is {@code null}.
      * @throws AssertionError if span has a parent span id not equal to the given one
-     * @since 1.0.4
+     * @since 1.3.0
      */
-    public SELF hasParentIdEqualTo(String parentSpanId) {
+    public SELF hasParentIdEqualTo(@Nullable String parentSpanId) {
         isNotNull();
 
-        if (parentSpanId == null && this.actual.getParentId() == null) {
-            return (SELF) this;
+        if (parentSpanId == null) {
+            if (this.actual.getParentId() == null) {
+                return (SELF) this;
+            }
+            else {
+                failWithMessage("Span should have parent span id equal to <null> but has <%s>",
+                        this.actual.getParentId());
+            }
         }
 
         if (!parentSpanId.equals(this.actual.getParentId())) {
@@ -923,14 +930,21 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      * @return {@code this} assertion object.
      * @throws AssertionError if the actual value is {@code null}.
      * @throws AssertionError if span has a parent span id equal to the given one
-     * @since 1.0.4
+     * @since 1.3.0
      */
-    public SELF doesNotHaveParentIdEqualTo(String parentSpanId) {
+    public SELF doesNotHaveParentIdEqualTo(@Nullable String parentSpanId) {
         isNotNull();
-        if (this.actual.getParentId() == null && parentSpanId != null) {
-            return (SELF) this;
+
+        if (parentSpanId == null) {
+            if (this.actual.getParentId() != null) {
+                return (SELF) this;
+            }
+            else {
+                failWithMessage("Span should not have parent span id equal to <null>");
+            }
         }
-        if (this.actual.getParentId().equals(parentSpanId)) {
+
+        if (parentSpanId.equals(this.actual.getParentId())) {
             failWithMessage("Span should not have parent span id equal to <%s>", parentSpanId);
         }
         return (SELF) this;

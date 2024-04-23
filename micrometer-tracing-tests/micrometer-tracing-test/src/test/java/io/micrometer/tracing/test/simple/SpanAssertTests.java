@@ -493,14 +493,21 @@ class SpanAssertTests {
         SimpleSpan span = new SimpleSpan();
         span.context().setParentId("1");
 
-        thenThrownBy(() -> assertThat(span).hasParentIdEqualTo("2")).isInstanceOf(AssertionError.class);
+        thenThrownBy(() -> assertThat(span).hasParentIdEqualTo("2")).isInstanceOf(AssertionError.class)
+            .hasNoCause()
+            .hasMessage("Span should have parent span id equal to <2> but has <1>");
+
+        thenThrownBy(() -> assertThat(span).hasParentIdEqualTo(null)).isInstanceOf(AssertionError.class)
+            .hasNoCause()
+            .hasMessage("Span should have parent span id equal to <null> but has <1>");
     }
 
     @Test
     void should_not_fail_when_parentId_is_equal() {
         SimpleSpan span = new SimpleSpan();
+        span.context().setParentId(null);
+        thenNoException().isThrownBy(() -> assertThat(span).hasParentIdEqualTo(null));
         span.context().setParentId("1");
-
         thenNoException().isThrownBy(() -> assertThat(span).hasParentIdEqualTo("1"));
     }
 
@@ -509,7 +516,10 @@ class SpanAssertTests {
         SimpleSpan span = new SimpleSpan();
         span.context().setSpanId("1");
 
-        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveSpanIdEqualTo("2"));
+        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveParentIdEqualTo("2"));
+        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveParentIdEqualTo(null));
+        span.context().setParentId(null);
+        thenNoException().isThrownBy(() -> assertThat(span).doesNotHaveParentIdEqualTo("1"));
     }
 
     @Test
@@ -518,7 +528,15 @@ class SpanAssertTests {
         span.context().setParentId("1");
 
         thenThrownBy(() -> assertThat(span).doesNotHaveParentIdEqualTo(span.getParentId()))
-            .isInstanceOf(AssertionError.class);
+            .isInstanceOf(AssertionError.class)
+            .hasNoCause()
+            .hasMessage("Span should not have parent span id equal to <1>");
+
+        span.context().setParentId(null);
+        thenThrownBy(() -> assertThat(span).doesNotHaveParentIdEqualTo(span.getParentId()))
+            .isInstanceOf(AssertionError.class)
+            .hasNoCause()
+            .hasMessage("Span should not have parent span id equal to <null>");
     }
 
     @Test
