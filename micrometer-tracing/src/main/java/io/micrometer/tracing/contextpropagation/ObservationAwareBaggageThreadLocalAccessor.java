@@ -160,7 +160,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         if (scope == null) {
             return scopeClosingBaggageAndScope(entry, baggage);
         }
-        return scope.andThen(scopeClosingBaggageAndScope(entry, baggage));
+        return scopeClosingBaggageAndScope(entry, baggage).andThen(scope);
     }
 
     private static BaggageAndScope scopeClosingBaggageAndScope(Entry<String, String> entry, BaggageInScope baggage) {
