@@ -376,6 +376,23 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
         assertThat(tenant).isEqualTo("tenantValue");
     }
 
+    @Test
+    void observationAwareBaggageThreadLocalAccessorSetsAndClosesBaggageToPropagate() {
+        then(getTracer().currentTraceContext().context()).isNull();
+
+        Observation.createNotStarted("First span", observationRegistry).observeChecked(() -> {
+            then(getTracer().currentTraceContext().context()).isNotNull();
+
+            BaggageToPropagate baggageToPropagate = new BaggageToPropagate("tenant", "tenantValue", "tenant2",
+                    "tenant2Value");
+            observationAwareBaggageThreadLocalAccessor.setValue(baggageToPropagate);
+            TestObservationAwareBaggageThreadLocalAccessor
+                .closeCurrentScope(observationAwareBaggageThreadLocalAccessor);
+        });
+
+        then(getTracer().currentTraceContext().context()).isNull();
+    }
+
     private String asyncCall() {
         logWithSpan("TASK EXECUTOR");
         if (getTracer().currentSpan() == null) {

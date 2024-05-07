@@ -162,7 +162,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         if (scope == null) {
             return scopeClosingBaggageAndScope(entry, baggage);
         }
-        return scope.andThen(scopeClosingBaggageAndScope(entry, baggage));
+        return scopeClosingBaggageAndScope(entry, baggage).andThen(scope);
     }
 
     private static BaggageAndScope scopeClosingBaggageAndScope(Entry<String, String> entry, BaggageInScope baggage) {
@@ -212,7 +212,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         });
     }
 
-    private void closeCurrentScope() {
+    void closeCurrentScope() {
         BaggageAndScope scope = baggageInScope.get(Thread.currentThread());
         if (log.isTraceEnabled()) {
             log.trace("Before close scope [" + scope + "]");
