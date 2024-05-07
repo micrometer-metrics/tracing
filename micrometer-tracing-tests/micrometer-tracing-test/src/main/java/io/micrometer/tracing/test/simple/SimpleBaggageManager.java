@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,10 +19,7 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.TraceContext;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -39,12 +36,25 @@ public class SimpleBaggageManager implements BaggageManager {
 
     private final SimpleTracer simpleTracer;
 
+    private final List<String> remoteFields;
+
     /**
      * Creates a new instance of {@link SimpleBaggageManager}.
      * @param simpleTracer simple tracer
      */
     public SimpleBaggageManager(SimpleTracer simpleTracer) {
         this.simpleTracer = simpleTracer;
+        this.remoteFields = Collections.emptyList();
+    }
+
+    /**
+     * Creates a new instance of {@link SimpleBaggageManager}.
+     * @param simpleTracer simple tracer
+     * @param remoteFields fields of baggage keys that should be propagated over the wire
+     */
+    public SimpleBaggageManager(SimpleTracer simpleTracer, List<String> remoteFields) {
+        this.simpleTracer = simpleTracer;
+        this.remoteFields = remoteFields;
     }
 
     @Override
@@ -134,6 +144,16 @@ public class SimpleBaggageManager implements BaggageManager {
     @Override
     public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
         return createSimpleBaggage(name).makeCurrent(traceContext, value);
+    }
+
+    @Override
+    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+        return getAllBaggageForCtx(traceContext);
+    }
+
+    @Override
+    public List<String> getRemoteFields() {
+        return this.remoteFields;
     }
 
 }

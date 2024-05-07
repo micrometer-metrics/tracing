@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import io.micrometer.tracing.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -194,6 +195,11 @@ public class OtelTracer implements Tracer {
     @Override
     public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
         return this.otelBaggageManager.createBaggageInScope(traceContext, name, value);
+    }
+
+    @Override
+    public List<String> getRemoteFields() {
+        return this.otelBaggageManager.getRemoteFields();
     }
 
     /**

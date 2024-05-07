@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package io.micrometer.tracing;
 import io.micrometer.common.lang.Nullable;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -143,6 +144,15 @@ public interface BaggageManager {
      */
     default BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
         return createBaggage(name).makeCurrent(traceContext, value);
+    }
+
+    /**
+     * Returns field names that should be propagated over the wire.
+     * @return remote fields
+     * @since 1.3.0
+     */
+    default List<String> getRemoteFields() {
+        return Collections.emptyList();
     }
 
 }

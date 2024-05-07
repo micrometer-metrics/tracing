@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,17 @@
  */
 package io.micrometer.tracing.handler;
 
+import io.micrometer.common.KeyValue;
+import io.micrometer.common.lang.Nullable;
+import io.micrometer.observation.Observation.ContextView;
+import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.CurrentTraceContext.Scope;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler.TracingContext;
 
-import java.util.Objects;
+import java.util.*;
 
 class RevertingScope implements CurrentTraceContext.Scope {
 
@@ -29,7 +35,7 @@ class RevertingScope implements CurrentTraceContext.Scope {
 
     private final CurrentTraceContext.Scope previousScope;
 
-    RevertingScope(TracingContext tracingContext, Scope currentScope, Scope previousScope) {
+    RevertingScope(TracingContext tracingContext, Scope currentScope, @Nullable Scope previousScope) {
         this.tracingContext = tracingContext;
         this.currentScope = currentScope;
         this.previousScope = previousScope;
@@ -62,6 +68,55 @@ class RevertingScope implements CurrentTraceContext.Scope {
     @Override
     public int hashCode() {
         return Objects.hash(tracingContext, currentScope, previousScope);
+    }
+
+    static RevertingScope maybeWithBaggage(Tracer tracer, TracingContext tracingContext,
+            @Nullable TraceContext newContext, RevertingScope revertingScopeForSpan,
+            Scope previousScopeOnThisObservation) {
+        RevertingScope revertingScope = revertingScopeForSpan;
+        ContextView context = tracingContext.getContext();
+        if (context == null) {
+            return revertingScope;
+        }
+        List<KeyValue> baggageKeyValues = matchingBaggageKeyValues(tracer, context);
+        if (baggageKeyValues.isEmpty()) {
+            return revertingScope;
+        }
+        ArrayDeque<BaggageInScope> scopes = startBaggageScopes(tracer, newContext, baggageKeyValues);
+        return new RevertingScope(tracingContext, () -> {
+            for (BaggageInScope scope : scopes) {
+                scope.close();
+            }
+            revertingScope.close();
+        }, previousScopeOnThisObservation);
+    }
+
+    private static ArrayDeque<BaggageInScope> startBaggageScopes(Tracer tracer, TraceContext newContext,
+            List<KeyValue> baggageKeyValues) {
+        ArrayDeque<BaggageInScope> scopes = new ArrayDeque<>();
+        for (KeyValue keyValue : baggageKeyValues) {
+            if (newContext != null) {
+                scopes.addFirst(tracer.createBaggageInScope(newContext, keyValue.getKey(), keyValue.getValue()));
+            }
+            else {
+                scopes.addFirst(tracer.createBaggageInScope(keyValue.getKey(), keyValue.getValue()));
+            }
+        }
+        return scopes;
+    }
+
+    private static List<KeyValue> matchingBaggageKeyValues(Tracer tracer, ContextView context) {
+        List<String> lowerCaseRemoteFields = new ArrayList<>();
+        for (String remoteField : tracer.getRemoteFields()) {
+            lowerCaseRemoteFields.add(remoteField.toLowerCase());
+        }
+        List<KeyValue> baggageKeyValues = new ArrayList<>();
+        for (KeyValue keyValue : context.getAllKeyValues()) {
+            if (lowerCaseRemoteFields.contains(keyValue.getKey().toLowerCase())) {
+                baggageKeyValues.add(keyValue);
+            }
+        }
+        return baggageKeyValues;
     }
 
 }

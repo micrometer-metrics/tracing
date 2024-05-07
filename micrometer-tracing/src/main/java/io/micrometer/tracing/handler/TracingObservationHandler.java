@@ -96,8 +96,10 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         TraceContext newContext = newSpan != null ? newSpan.context() : null;
         CurrentTraceContext.Scope scope = getTracer().currentTraceContext().maybeScope(newContext);
         CurrentTraceContext.Scope previousScopeOnThisObservation = tracingContext.getScope();
-        tracingContext.setSpanAndScope(spanFromThisObservation,
-                new RevertingScope(tracingContext, scope, previousScopeOnThisObservation));
+        RevertingScope revertingScope = new RevertingScope(tracingContext, scope, previousScopeOnThisObservation);
+        revertingScope = RevertingScope.maybeWithBaggage(getTracer(), tracingContext, newContext, revertingScope,
+                previousScopeOnThisObservation);
+        tracingContext.setSpanAndScope(spanFromThisObservation, revertingScope);
     }
 
     @Override
@@ -182,7 +184,9 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
      * @return tracing context
      */
     default TracingContext getTracingContext(T context) {
-        return context.computeIfAbsent(TracingContext.class, clazz -> new TracingContext());
+        TracingContext tracingContext = context.computeIfAbsent(TracingContext.class, clazz -> new TracingContext());
+        tracingContext.setContext(context);
+        return tracingContext;
     }
 
     @Override
@@ -231,6 +235,8 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         private Span span;
 
         private Map<Thread, CurrentTraceContext.Scope> scopes = new ConcurrentHashMap<>();
+
+        private Observation.ContextView context;
 
         /**
          * Returns the span.
@@ -313,6 +319,15 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
                 return span.context().toString();
             }
             return "null";
+        }
+
+        void setContext(Observation.ContextView context) {
+            this.context = context;
+        }
+
+        @Nullable
+        Observation.ContextView getContext() {
+            return this.context;
         }
 
     }
