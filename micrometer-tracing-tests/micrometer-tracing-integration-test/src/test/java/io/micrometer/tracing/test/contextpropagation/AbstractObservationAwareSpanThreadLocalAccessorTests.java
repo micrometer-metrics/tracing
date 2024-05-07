@@ -47,7 +47,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
@@ -378,8 +377,7 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
     }
 
     @Test
-    void observationAwareBaggageThreadLocalAccessorSetsAndClosesBaggageToPropagate()
-            throws ReflectiveOperationException {
+    void observationAwareBaggageThreadLocalAccessorSetsAndClosesBaggageToPropagate() {
         then(getTracer().currentTraceContext().context()).isNull();
 
         Observation.createNotStarted("First span", observationRegistry).observeChecked(() -> {
@@ -388,10 +386,8 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
             BaggageToPropagate baggageToPropagate = new BaggageToPropagate("tenant", "tenantValue", "tenant2",
                     "tenant2Value");
             observationAwareBaggageThreadLocalAccessor.setValue(baggageToPropagate);
-            Method closeCurrentScope = ObservationAwareBaggageThreadLocalAccessor.class
-                .getDeclaredMethod("closeCurrentScope");
-            closeCurrentScope.setAccessible(true);
-            return closeCurrentScope.invoke(observationAwareBaggageThreadLocalAccessor);
+            TestObservationAwareBaggageThreadLocalAccessor
+                .closeCurrentScope(observationAwareBaggageThreadLocalAccessor);
         });
 
         then(getTracer().currentTraceContext().context()).isNull();

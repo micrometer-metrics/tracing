@@ -210,7 +210,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         });
     }
 
-    private void closeCurrentScope() {
+    void closeCurrentScope() {
         BaggageAndScope scope = baggageInScope.get(Thread.currentThread());
         if (log.isTraceEnabled()) {
             log.trace("Before close scope [" + scope + "]");
