@@ -278,10 +278,14 @@ class BaggageTests {
         Observation observation = Observation.start("foo", observationRegistry)
             .lowCardinalityKeyValue(KEY_1, TAG_VALUE)
             .highCardinalityKeyValue(OBSERVATION_BAGGAGE_KEY, OBSERVATION_BAGGAGE_VALUE);
+        then(tracer.getBaggage(KEY_1).get()).isNull();
+        then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isNull();
+
         try (Scope scope = observation.openScope()) {
             then(tracer.getBaggage(KEY_1).get()).isEqualTo(TAG_VALUE);
             then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isEqualTo(OBSERVATION_BAGGAGE_VALUE);
         }
+
         then(tracer.currentSpan()).isNull();
         then(tracer.getBaggage(KEY_1).get()).isNull();
         then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isNull();

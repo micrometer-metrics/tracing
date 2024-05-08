@@ -62,8 +62,14 @@ public class OtelBaggageManager implements BaggageManager {
     public OtelBaggageManager(CurrentTraceContext currentTraceContext, List<String> remoteFields,
             List<String> tagFields) {
         this.currentTraceContext = currentTraceContext;
-        this.remoteFields = remoteFields;
+        this.remoteFields = remoteFields(tagFields, remoteFields);
         this.tagFields = tagFields;
+    }
+
+    private static List<String> remoteFields(List<String> tagFields, List<String> remoteFields) {
+        List<String> combined = new ArrayList<>(tagFields);
+        combined.addAll(remoteFields);
+        return combined;
     }
 
     @Override
