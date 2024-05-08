@@ -5,20 +5,21 @@ pluginManagement {
 }
 
 plugins {
-	id 'com.gradle.enterprise' version '3.17.2'
+	id 'com.gradle.develocity' version '3.17.2'
 	id 'io.spring.ge.conventions' version '0.0.17'
 	id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
 rootProject.name = 'tracing'
 
-buildCache {
-	remote(HttpBuildCache) {
-		url = 'https://ge.micrometer.io/cache/'
-	}
-}
-gradleEnterprise {
+develocity {
 	server = 'https://ge.micrometer.io'
+}
+
+buildCache {
+	remote(develocity.buildCache) {
+		server = 'https://ge.micrometer.io'
+	}
 }
 
 include 'micrometer-tracing', 'micrometer-tracing-bom', 'benchmarks'
