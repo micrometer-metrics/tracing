@@ -22,10 +22,7 @@ import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.*;
 
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Brave implementation of a {@link BaggageManager}.
@@ -53,9 +50,9 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     private static List<String> remoteFields(List<String> tagFields, List<String> remoteFields) {
-        List<String> combined = new ArrayList<>(tagFields);
+        Set<String> combined = new HashSet<>(tagFields);
         combined.addAll(remoteFields);
-        return combined;
+        return new ArrayList<>(combined);
     }
 
     /**

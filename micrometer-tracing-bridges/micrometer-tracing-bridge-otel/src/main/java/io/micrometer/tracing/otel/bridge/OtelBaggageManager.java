@@ -67,9 +67,9 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     private static List<String> remoteFields(List<String> tagFields, List<String> remoteFields) {
-        List<String> combined = new ArrayList<>(tagFields);
+        Set<String> combined = new HashSet<>(tagFields);
         combined.addAll(remoteFields);
-        return combined;
+        return new ArrayList<>(combined);
     }
 
     @Override
