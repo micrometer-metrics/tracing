@@ -198,8 +198,8 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    public List<String> getRemoteFields() {
-        return this.otelBaggageManager.getRemoteFields();
+    public List<String> getBaggageFields() {
+        return this.otelBaggageManager.getBaggageFields();
     }
 
     /**

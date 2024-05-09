@@ -185,8 +185,8 @@ public class SimpleTracer implements Tracer {
     }
 
     @Override
-    public List<String> getRemoteFields() {
-        return this.simpleBaggageManager.getRemoteFields();
+    public List<String> getBaggageFields() {
+        return this.simpleBaggageManager.getBaggageFields();
     }
 
     /**

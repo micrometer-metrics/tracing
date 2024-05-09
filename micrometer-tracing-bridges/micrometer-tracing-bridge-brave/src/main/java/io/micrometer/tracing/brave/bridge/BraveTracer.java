@@ -158,8 +158,8 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    public List<String> getRemoteFields() {
-        return this.braveBaggageManager.getRemoteFields();
+    public List<String> getBaggageFields() {
+        return this.braveBaggageManager.getBaggageFields();
     }
 
 }

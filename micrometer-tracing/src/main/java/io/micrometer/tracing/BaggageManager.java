@@ -147,11 +147,11 @@ public interface BaggageManager {
     }
 
     /**
-     * Returns field names that should be propagated over the wire.
-     * @return remote fields
+     * Returns all names of baggage fields.
+     * @return baggage fields
      * @since 1.3.0
      */
-    default List<String> getRemoteFields() {
+    default List<String> getBaggageFields() {
         return Collections.emptyList();
     }
 

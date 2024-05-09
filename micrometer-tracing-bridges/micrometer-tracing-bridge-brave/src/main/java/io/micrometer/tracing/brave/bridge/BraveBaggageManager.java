@@ -36,6 +36,8 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
 
     private final List<String> remoteFields;
 
+    private final List<String> baggageFields;
+
     @Nullable
     private Tracer tracer;
 
@@ -46,10 +48,11 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
      */
     public BraveBaggageManager(List<String> tagFields, List<String> remoteFields) {
         this.tagFields = tagFields;
-        this.remoteFields = remoteFields(tagFields, remoteFields);
+        this.remoteFields = remoteFields;
+        this.baggageFields = baggageFields(tagFields, remoteFields);
     }
 
-    private static List<String> remoteFields(List<String> tagFields, List<String> remoteFields) {
+    private static List<String> baggageFields(List<String> tagFields, List<String> remoteFields) {
         Set<String> combined = new HashSet<>(tagFields);
         combined.addAll(remoteFields);
         return new ArrayList<>(combined);
@@ -62,6 +65,7 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     public BraveBaggageManager() {
         this.tagFields = Collections.emptyList();
         this.remoteFields = Collections.emptyList();
+        this.baggageFields = Collections.emptyList();
     }
 
     /**
@@ -70,7 +74,8 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
      */
     public BraveBaggageManager(List<String> tagFields) {
         this.tagFields = tagFields;
-        this.remoteFields = new ArrayList<>(tagFields);
+        this.remoteFields = Collections.emptyList();
+        this.baggageFields = new ArrayList<>(tagFields);
     }
 
     @Override
@@ -155,8 +160,8 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     @Override
-    public List<String> getRemoteFields() {
-        return this.remoteFields;
+    public List<String> getBaggageFields() {
+        return this.baggageFields;
     }
 
 }

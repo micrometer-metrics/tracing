@@ -51,6 +51,8 @@ public class OtelBaggageManager implements BaggageManager {
 
     private final List<String> remoteFields;
 
+    private final List<String> baggageFields;
+
     private final List<String> tagFields;
 
     /**
@@ -62,11 +64,12 @@ public class OtelBaggageManager implements BaggageManager {
     public OtelBaggageManager(CurrentTraceContext currentTraceContext, List<String> remoteFields,
             List<String> tagFields) {
         this.currentTraceContext = currentTraceContext;
-        this.remoteFields = remoteFields(tagFields, remoteFields);
+        this.remoteFields = remoteFields;
         this.tagFields = tagFields;
+        this.baggageFields = baggageFields(tagFields, remoteFields);
     }
 
-    private static List<String> remoteFields(List<String> tagFields, List<String> remoteFields) {
+    private static List<String> baggageFields(List<String> tagFields, List<String> remoteFields) {
         Set<String> combined = new HashSet<>(tagFields);
         combined.addAll(remoteFields);
         return new ArrayList<>(combined);
@@ -211,7 +214,7 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     @Override
-    public List<String> getRemoteFields() {
+    public List<String> getBaggageFields() {
         return this.remoteFields;
     }
 

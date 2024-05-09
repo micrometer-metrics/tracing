@@ -152,7 +152,7 @@ public class SimpleBaggageManager implements BaggageManager {
     }
 
     @Override
-    public List<String> getRemoteFields() {
+    public List<String> getBaggageFields() {
         return this.remoteFields;
     }
 
