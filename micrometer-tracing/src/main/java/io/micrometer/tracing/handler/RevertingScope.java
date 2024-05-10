@@ -78,7 +78,7 @@ class RevertingScope implements CurrentTraceContext.Scope {
         if (context == null) {
             return revertingScope;
         }
-        Set<KeyValue> baggageKeyValues = matchingBaggageKeyValues(tracer, context);
+        Collection<KeyValue> baggageKeyValues = matchingBaggageKeyValues(tracer, context);
         if (baggageKeyValues.isEmpty()) {
             return revertingScope;
         }
@@ -92,7 +92,7 @@ class RevertingScope implements CurrentTraceContext.Scope {
     }
 
     private static ArrayDeque<BaggageInScope> startBaggageScopes(Tracer tracer, TraceContext newContext,
-            Set<KeyValue> baggageKeyValues) {
+            Collection<KeyValue> baggageKeyValues) {
         ArrayDeque<BaggageInScope> scopes = new ArrayDeque<>();
         for (KeyValue keyValue : baggageKeyValues) {
             if (newContext != null) {
@@ -105,12 +105,12 @@ class RevertingScope implements CurrentTraceContext.Scope {
         return scopes;
     }
 
-    private static Set<KeyValue> matchingBaggageKeyValues(Tracer tracer, ContextView context) {
+    private static Collection<KeyValue> matchingBaggageKeyValues(Tracer tracer, ContextView context) {
         Set<String> lowerCaseRemoteFields = new HashSet<>();
         for (String remoteField : tracer.getBaggageFields()) {
             lowerCaseRemoteFields.add(remoteField.toLowerCase());
         }
-        Set<KeyValue> baggageKeyValues = new HashSet<>();
+        Collection<KeyValue> baggageKeyValues = new ArrayList<>();
         for (KeyValue keyValue : context.getAllKeyValues()) {
             if (lowerCaseRemoteFields.contains(keyValue.getKey().toLowerCase())) {
                 baggageKeyValues.add(keyValue);
