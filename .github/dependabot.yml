@@ -10,8 +10,8 @@ updates:
     directory: "/"
     schedule:
       interval: daily
-    target-branch: "1.1.x"
-    milestone: 14
+    target-branch: "1.2.x"
+    milestone: 47
     ignore:
       # only upgrade patch versions
       - dependency-name: "*"
@@ -23,8 +23,8 @@ updates:
     directory: "/"
     schedule:
       interval: daily
-    target-branch: "1.2.x"
-    milestone: 47
+    target-branch: "1.3.x"
+    milestone: 62
     ignore:
       # only upgrade patch versions
       - dependency-name: "*"
