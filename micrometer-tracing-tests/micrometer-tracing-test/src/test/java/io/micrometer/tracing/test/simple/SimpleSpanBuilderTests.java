@@ -20,6 +20,7 @@ import java.util.Map;
 
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import org.junit.jupiter.api.Test;
 
 class SimpleSpanBuilderTests {
@@ -57,6 +58,22 @@ class SimpleSpanBuilderTests {
             .hasLink(new Link(context2, tags()))
             .assertThatThrowable()
             .isInstanceOf(Throwable.class);
+    }
+
+    @Test
+    void should_build_a_span_using_builder_with_parent() {
+        SimpleTracer simpleTracer = new SimpleTracer();
+        SimpleSpanBuilder builder = new SimpleSpanBuilder(simpleTracer);
+        SimpleTraceContextBuilder ctxBuilder = new SimpleTraceContextBuilder();
+        TraceContext parentCtx = ctxBuilder.spanId("spam").traceId("bar").sampled(true).build();
+
+        builder.name("foo").setParent(parentCtx).start().end();
+
+        TracerAssert.assertThat(simpleTracer)
+            .onlySpan()
+            .hasNameEqualTo("foo")
+            .hasTraceIdEqualTo("bar")
+            .hasParentIdEqualTo("spam");
     }
 
     private Map<String, Object> tags() {

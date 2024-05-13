@@ -16,6 +16,7 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.common.docs.KeyName;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
@@ -879,6 +880,72 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         isNotNull();
         if (this.actual.getSpanId().equals(spanId)) {
             failWithMessage("Span should not have span id equal to <%s>", spanId);
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span has parent span id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithParentId456).hasParentIdEqualTo("456");
+     *
+     * // assertions fail
+     * assertThat(spanWithParentId123).hasSpanIdEqualTo("234");</code></pre>
+     * @param parentSpanId parent span id
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a parent span id not equal to the given one
+     * @since 1.3.0
+     */
+    public SELF hasParentIdEqualTo(@Nullable String parentSpanId) {
+        isNotNull();
+
+        if (parentSpanId == null) {
+            if (this.actual.getParentId() == null) {
+                return (SELF) this;
+            }
+            else {
+                failWithMessage("Span should have parent span id equal to <null> but has <%s>",
+                        this.actual.getParentId());
+            }
+        }
+
+        if (!parentSpanId.equals(this.actual.getParentId())) {
+            failWithMessage("Span should have parent span id equal to <%s> but has <%s>", parentSpanId,
+                    this.actual.getParentId());
+        }
+        return (SELF) this;
+    }
+
+    /**
+     * Verifies that this span doesn't have parent span id equal to the given value.
+     * <p>
+     * Examples: <pre><code class='java'> // assertions succeed
+     * assertThat(spanWithParentId123).hasSpanIdEqualTo("234");
+     *
+     * // assertions fail
+     * assertThat(spanWithId123).hasSpanIdEqualTo("123");</code></pre>
+     * @param parentSpanId parent span ID
+     * @return {@code this} assertion object.
+     * @throws AssertionError if the actual value is {@code null}.
+     * @throws AssertionError if span has a parent span id equal to the given one
+     * @since 1.3.0
+     */
+    public SELF doesNotHaveParentIdEqualTo(@Nullable String parentSpanId) {
+        isNotNull();
+
+        if (parentSpanId == null) {
+            if (this.actual.getParentId() != null) {
+                return (SELF) this;
+            }
+            else {
+                failWithMessage("Span should not have parent span id equal to <null>");
+            }
+        }
+
+        if (parentSpanId.equals(this.actual.getParentId())) {
+            failWithMessage("Span should not have parent span id equal to <%s>", parentSpanId);
         }
         return (SELF) this;
     }
