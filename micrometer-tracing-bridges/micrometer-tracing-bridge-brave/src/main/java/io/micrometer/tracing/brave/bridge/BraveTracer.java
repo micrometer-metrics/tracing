@@ -18,6 +18,7 @@ package io.micrometer.tracing.brave.bridge;
 import brave.propagation.TraceContextOrSamplingFlags;
 import io.micrometer.tracing.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -154,6 +155,11 @@ public class BraveTracer implements Tracer {
     @Override
     public CurrentTraceContext currentTraceContext() {
         return this.currentTraceContext;
+    }
+
+    @Override
+    public List<String> getBaggageFields() {
+        return this.braveBaggageManager.getBaggageFields();
     }
 
 }

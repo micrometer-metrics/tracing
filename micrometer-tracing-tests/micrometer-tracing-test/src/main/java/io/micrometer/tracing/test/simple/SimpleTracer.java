@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import io.micrometer.tracing.*;
 
 import java.util.Collections;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -181,6 +182,11 @@ public class SimpleTracer implements Tracer {
     @Override
     public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
         return this.simpleBaggageManager.createBaggageInScope(traceContext, name, value);
+    }
+
+    @Override
+    public List<String> getBaggageFields() {
+        return this.simpleBaggageManager.getBaggageFields();
     }
 
     /**

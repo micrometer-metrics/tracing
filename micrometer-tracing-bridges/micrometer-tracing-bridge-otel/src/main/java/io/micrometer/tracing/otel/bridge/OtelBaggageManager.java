@@ -15,18 +15,6 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
@@ -37,6 +25,9 @@ import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.baggage.BaggageEntry;
 import io.opentelemetry.api.baggage.BaggageEntryMetadata;
 import io.opentelemetry.context.Context;
+
+import java.util.*;
+import java.util.function.BiConsumer;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
@@ -60,6 +51,8 @@ public class OtelBaggageManager implements BaggageManager {
 
     private final List<String> remoteFields;
 
+    private final List<String> baggageFields;
+
     private final List<String> tagFields;
 
     /**
@@ -73,6 +66,13 @@ public class OtelBaggageManager implements BaggageManager {
         this.currentTraceContext = currentTraceContext;
         this.remoteFields = remoteFields;
         this.tagFields = tagFields;
+        this.baggageFields = baggageFields(tagFields, remoteFields);
+    }
+
+    private static List<String> baggageFields(List<String> tagFields, List<String> remoteFields) {
+        Set<String> combined = new HashSet<>(tagFields);
+        combined.addAll(remoteFields);
+        return new ArrayList<>(combined);
     }
 
     @Override
@@ -211,6 +211,11 @@ public class OtelBaggageManager implements BaggageManager {
             propagation = PROPAGATION_UNLIMITED;
         }
         return propagation;
+    }
+
+    @Override
+    public List<String> getBaggageFields() {
+        return this.remoteFields;
     }
 
 }

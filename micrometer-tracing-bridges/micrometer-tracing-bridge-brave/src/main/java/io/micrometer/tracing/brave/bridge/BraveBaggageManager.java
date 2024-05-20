@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,7 @@ import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.*;
 
 import java.io.Closeable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Brave implementation of a {@link BaggageManager}.
@@ -36,15 +34,28 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
 
     private final List<String> tagFields;
 
+    private final List<String> remoteFields;
+
+    private final List<String> baggageFields;
+
     @Nullable
     private Tracer tracer;
 
     /**
      * Create an instance of {@link BraveBaggageManager}.
      * @param tagFields fields of baggage keys that should become tags on a span
+     * @param remoteFields fields of baggage keys that should be propagated over the wire
      */
-    public BraveBaggageManager(List<String> tagFields) {
+    public BraveBaggageManager(List<String> tagFields, List<String> remoteFields) {
         this.tagFields = tagFields;
+        this.remoteFields = remoteFields;
+        this.baggageFields = baggageFields(tagFields, remoteFields);
+    }
+
+    private static List<String> baggageFields(List<String> tagFields, List<String> remoteFields) {
+        Set<String> combined = new HashSet<>(tagFields);
+        combined.addAll(remoteFields);
+        return new ArrayList<>(combined);
     }
 
     /**
@@ -53,6 +64,18 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
      */
     public BraveBaggageManager() {
         this.tagFields = Collections.emptyList();
+        this.remoteFields = Collections.emptyList();
+        this.baggageFields = Collections.emptyList();
+    }
+
+    /**
+     * Create an instance of {@link BraveBaggageManager}.
+     * @param tagFields fields of baggage keys that should become tags on a span
+     */
+    public BraveBaggageManager(List<String> tagFields) {
+        this.tagFields = tagFields;
+        this.remoteFields = Collections.emptyList();
+        this.baggageFields = new ArrayList<>(tagFields);
     }
 
     @Override
@@ -134,6 +157,11 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
 
     void setTracer(Tracer tracer) {
         this.tracer = tracer;
+    }
+
+    @Override
+    public List<String> getBaggageFields() {
+        return this.baggageFields;
     }
 
 }

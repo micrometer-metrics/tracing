@@ -1,12 +1,12 @@
 /**
- * Copyright 2022 the original author or authors.
- * <p>
+ * Copyright 2024 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ *
  * https://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,8 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Scope;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.BaggageInScope;
@@ -25,6 +27,7 @@ import io.micrometer.tracing.ScopedSpan;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.common.AttributeKey;
@@ -38,6 +41,7 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Hooks;
@@ -46,6 +50,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,6 +74,10 @@ class BaggageTests {
 
     public static final String TAG_VALUE = "tagValue";
 
+    public static final String OBSERVATION_BAGGAGE_KEY = "observationKey";
+
+    public static final String OBSERVATION_BAGGAGE_VALUE = "observationValue";
+
     ArrayListSpanProcessor spanExporter = new ArrayListSpanProcessor();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
@@ -85,12 +94,16 @@ class BaggageTests {
 
     OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
 
+    // tag::baggageManager[]
+    // There will be 3 baggage keys in total, 2 for remote fields and 1 as tag field
     OtelBaggageManager otelBaggageManager = new OtelBaggageManager(otelCurrentTraceContext,
-            Collections.singletonList(KEY_1), Collections.singletonList(TAG_KEY));
+            Arrays.asList(KEY_1, OBSERVATION_BAGGAGE_KEY), Collections.singletonList(TAG_KEY));
+
+    // end::baggageManager[]
 
     ContextPropagators contextPropagators = ContextPropagators
         .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                new BaggageTextMapPropagator(Collections.singletonList(KEY_1), otelBaggageManager)));
+                new BaggageTextMapPropagator(Arrays.asList(KEY_1, OBSERVATION_BAGGAGE_KEY), otelBaggageManager)));
 
     OtelPropagator propagator = new OtelPropagator(contextPropagators, otelTracer);
 
@@ -98,6 +111,14 @@ class BaggageTests {
     }, otelBaggageManager);
 
     ObservationRegistry observationRegistry = ObservationThreadLocalAccessor.getInstance().getObservationRegistry();
+
+    @BeforeEach
+    void setupHandler() {
+        // tag::observationRegistrySetup[]
+        // For automated baggage scope creation the tracing handler is required
+        observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
+        // end::observationRegistrySetup[]
+    }
 
     @Test
     void canSetAndGetBaggage() {
@@ -236,6 +257,39 @@ class BaggageTests {
         then(spanExporter.spans()).hasSize(1);
         SpanData spanData = spanExporter.spans().poll();
         then(spanData.getAttributes().get(AttributeKey.stringKey(TAG_KEY))).isEqualTo(TAG_VALUE);
+    }
+
+    @Test
+    void baggageWithObservationApiWithRemoteFields() {
+        // tag::observation[]
+        // An observation with low and high cardinality keys
+        // with key names equal to baggage key entries set on the baggage manager
+        Observation observation = Observation.start("foo", observationRegistry)
+            .lowCardinalityKeyValue(KEY_1, TAG_VALUE)
+            .highCardinalityKeyValue(OBSERVATION_BAGGAGE_KEY, OBSERVATION_BAGGAGE_VALUE);
+        // end::observation[]
+        then(tracer.getBaggage(KEY_1).get()).isNull();
+        then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isNull();
+
+        // tag::observationScope[]
+        // There is no baggage here
+        try (Scope scope = observation.openScope()) {
+            // Baggage here will be automatically put in scope
+            then(tracer.getBaggage(KEY_1).get()).isEqualTo(TAG_VALUE);
+            then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isEqualTo(OBSERVATION_BAGGAGE_VALUE);
+        }
+        // There is no baggage here
+        // end::observationScope[]
+        then(tracer.currentSpan()).isNull();
+        then(tracer.getBaggage(KEY_1).get()).isNull();
+        then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isNull();
+        observation.stop();
+
+        then(spanExporter.spans()).hasSize(1);
+        SpanData spanData = spanExporter.spans().poll();
+        then(spanData.getAttributes().get(AttributeKey.stringKey(KEY_1))).isEqualTo(TAG_VALUE);
+        then(spanData.getAttributes().get(AttributeKey.stringKey(OBSERVATION_BAGGAGE_KEY)))
+            .isEqualTo(OBSERVATION_BAGGAGE_VALUE);
     }
 
     @Test

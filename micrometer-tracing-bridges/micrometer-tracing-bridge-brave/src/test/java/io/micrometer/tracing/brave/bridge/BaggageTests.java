@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,17 @@ import brave.test.TestSpanHandler;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.context.ContextRegistry;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Scope;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.*;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Hooks;
@@ -42,6 +46,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +66,10 @@ class BaggageTests {
 
     public static final String TAG_VALUE = "tagValue";
 
+    public static final String OBSERVATION_BAGGAGE_KEY = "observationKey";
+
+    public static final String OBSERVATION_BAGGAGE_VALUE = "observationValue";
+
     TestSpanHandler spanHandler = new TestSpanHandler();
 
     StrictCurrentTraceContext braveCurrentTraceContext = StrictCurrentTraceContext.create();
@@ -73,6 +82,7 @@ class BaggageTests {
         .traceId128Bit(true)
         .propagationFactory(BaggagePropagation.newFactoryBuilder(B3Propagation.FACTORY)
             .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create(KEY_1)))
+            .add(BaggagePropagationConfig.SingleBaggageField.remote(BaggageField.create(OBSERVATION_BAGGAGE_KEY)))
             .add(BaggagePropagationConfig.SingleBaggageField.local(BaggageField.create(TAG_KEY)))
             .build())
         .sampler(Sampler.ALWAYS_SAMPLE)
@@ -84,9 +94,14 @@ class BaggageTests {
     BravePropagator propagator = new BravePropagator(tracing);
 
     Tracer tracer = new BraveTracer(this.braveTracer, this.bridgeContext,
-            new BraveBaggageManager(Collections.singletonList(TAG_KEY)));
+            new BraveBaggageManager(Collections.singletonList(TAG_KEY), Arrays.asList(KEY_1, OBSERVATION_BAGGAGE_KEY)));
 
     ObservationRegistry observationRegistry = ObservationThreadLocalAccessor.getInstance().getObservationRegistry();
+
+    @BeforeEach
+    void setupHandler() {
+        observationRegistry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
+    }
 
     @AfterEach
     void cleanup() {
@@ -256,6 +271,30 @@ class BaggageTests {
         then(spanHandler.spans()).hasSize(1);
         MutableSpan mutableSpan = spanHandler.spans().get(0);
         then(mutableSpan.tags().get(TAG_KEY)).isEqualTo(TAG_VALUE);
+    }
+
+    @Test
+    void baggageWithObservationApiWithRemoteFields() {
+        Observation observation = Observation.start("foo", observationRegistry)
+            .lowCardinalityKeyValue(KEY_1, TAG_VALUE)
+            .highCardinalityKeyValue(OBSERVATION_BAGGAGE_KEY, OBSERVATION_BAGGAGE_VALUE);
+        then(tracer.getBaggage(KEY_1).get()).isNull();
+        then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isNull();
+
+        try (Scope scope = observation.openScope()) {
+            then(tracer.getBaggage(KEY_1).get()).isEqualTo(TAG_VALUE);
+            then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isEqualTo(OBSERVATION_BAGGAGE_VALUE);
+        }
+
+        then(tracer.currentSpan()).isNull();
+        then(tracer.getBaggage(KEY_1).get()).isNull();
+        then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isNull();
+        observation.stop();
+
+        then(spanHandler.spans()).hasSize(1);
+        MutableSpan mutableSpan = spanHandler.spans().get(0);
+        then(mutableSpan.tags().get(KEY_1)).isEqualTo(TAG_VALUE);
+        then(mutableSpan.tags().get(OBSERVATION_BAGGAGE_KEY)).isEqualTo(OBSERVATION_BAGGAGE_VALUE);
     }
 
     @Test
