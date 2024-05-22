@@ -17,6 +17,7 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
@@ -46,6 +47,11 @@ class OtelSpanBuilderTests {
         .build();
 
     io.opentelemetry.api.trace.Tracer otelTracer = openTelemetrySdk.getTracer("io.micrometer.micrometer-tracing");
+
+    OtelCurrentTraceContext otelCurrentTraceContext = new OtelCurrentTraceContext();
+
+    OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
+    });
 
     @Test
     void should_set_child_span_when_using_builders() {
@@ -96,6 +102,21 @@ class OtelSpanBuilderTests {
         then(poll.getAttributes().get(AttributeKey.doubleKey("double"))).isEqualTo(2.5);
         then(poll.getAttributes().get(AttributeKey.longKey("long"))).isEqualTo(2L);
         then(poll.getAttributes().get(AttributeKey.booleanKey("boolean"))).isTrue();
+    }
+
+    @Test
+    void should_honor_parent_context_using_tracecontextbuilder() {
+        Span foo = tracer.spanBuilder().name("foo").start();
+
+        TraceContext parentCtx = tracer.traceContextBuilder()
+            .traceId(foo.context().traceId())
+            .spanId(foo.context().spanId())
+            .sampled(foo.context().sampled())
+            .build();
+
+        Span span = tracer.spanBuilder().setParent(parentCtx).name("test-span").start();
+
+        then(span.context().traceId()).isEqualTo(foo.context().traceId());
     }
 
     private Map<String, Object> tags() {
