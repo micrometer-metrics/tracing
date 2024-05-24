@@ -46,6 +46,29 @@ class OtelTraceContextTests {
     }
 
     @Test
+    void should_return_null_when_spans_not_sampled() { // works differently than Brave
+        SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOff())
+            .build();
+
+        OpenTelemetrySdkBuilder openTelemetrySdkBuilder = OpenTelemetrySdk.builder()
+            .setTracerProvider(sdkTracerProvider);
+
+        try (OpenTelemetrySdk openTelemetrySdk = openTelemetrySdkBuilder.build()) {
+            Tracer otelTracer = tracer(openTelemetrySdk);
+            Span parentSpan = otelTracer.spanBuilder("parent").startSpan();
+            Span span = otelTracer.spanBuilder("foo")
+                .setParent(parentSpan.storeInContext(Context.current()))
+                .startSpan();
+
+            OtelTraceContext otelTraceContext = new OtelTraceContext(span);
+
+            then(otelTraceContext.parentId()).isNull();
+        }
+
+    }
+
+    @Test
     void should_return_parentid_when_parent_valid() {
         try (OpenTelemetrySdk openTelemetrySdk = openTelemetrySdkBuilder.build()) {
             Tracer otelTracer = tracer(openTelemetrySdk);
