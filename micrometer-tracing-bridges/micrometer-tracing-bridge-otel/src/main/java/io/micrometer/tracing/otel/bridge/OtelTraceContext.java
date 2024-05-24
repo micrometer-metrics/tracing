@@ -119,7 +119,11 @@ public class OtelTraceContext implements TraceContext {
                 : this.span;
         if (spanContextSpanOrSpan instanceof ReadableSpan) {
             ReadableSpan readableSpan = (ReadableSpan) spanContextSpanOrSpan;
-            return readableSpan.toSpanData().getParentSpanId();
+            String parentSpanId = readableSpan.toSpanData().getParentSpanId();
+            if (Objects.equals(Span.getInvalid().getSpanContext().getSpanId(), parentSpanId)) {
+                return null;
+            }
+            return parentSpanId;
         }
         return null;
     }
