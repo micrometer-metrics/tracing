@@ -29,8 +29,6 @@ import io.micrometer.tracing.exporter.FinishedSpan;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
-import io.micrometer.tracing.http.HttpClientHandler;
-import io.micrometer.tracing.http.HttpServerHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import zipkin2.reporter.BytesMessageSender;
@@ -102,12 +100,6 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private Function<Tracing, HttpTracing> httpTracing;
 
-        @Deprecated
-        private Function<HttpTracing, HttpServerHandler> httpServerHandler;
-
-        @Deprecated
-        private Function<HttpTracing, HttpClientHandler> httpClientHandler;
-
         private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
         private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
@@ -131,12 +123,6 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
             private final HttpTracing httpTracing;
 
-            @Deprecated
-            private final HttpServerHandler httpServerHandler;
-
-            @Deprecated
-            private final HttpClientHandler httpClientHandler;
-
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
             private final TestSpanHandler testSpanHandler;
@@ -149,14 +135,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
              * @param tracer tracer
              * @param propagator propagator
              * @param httpTracing http tracing
-             * @param httpServerHandler http server handler
-             * @param httpClientHandler http client handler
              * @param customizers observation handler customizers
              * @param testSpanHandler test span handler
              */
             public BraveBuildingBlocks(BytesMessageSender sender, AsyncZipkinSpanHandler spanHandler, Tracing tracing,
                     Tracer tracer, BravePropagator propagator, HttpTracing httpTracing,
-                    HttpServerHandler httpServerHandler, HttpClientHandler httpClientHandler,
                     BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers,
                     TestSpanHandler testSpanHandler) {
                 this.sender = sender;
@@ -165,8 +148,6 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                 this.tracer = tracer;
                 this.propagator = propagator;
                 this.httpTracing = httpTracing;
-                this.httpServerHandler = httpServerHandler;
-                this.httpClientHandler = httpClientHandler;
                 this.customizers = customizers;
                 this.testSpanHandler = testSpanHandler;
             }
@@ -187,28 +168,6 @@ public final class ZipkinBraveSetup implements AutoCloseable {
             @Override
             public Propagator getPropagator() {
                 return this.propagator;
-            }
-
-            /**
-             * @deprecated scheduled for removal in 1.4.0, returns {@code null} starting
-             * from 1.3.0 unless explicitly set by the builder
-             * @return http server handler
-             */
-            @Deprecated
-            @Override
-            public HttpServerHandler getHttpServerHandler() {
-                return this.httpServerHandler;
-            }
-
-            /**
-             * @deprecated scheduled for removal in 1.4.0, returns {@code null} starting
-             * from 1.3.0 unless explicitly set by the builder
-             * @return http client handler
-             */
-            @Deprecated
-            @Override
-            public HttpClientHandler getHttpClientHandler() {
-                return this.httpClientHandler;
             }
 
             @Override
@@ -308,30 +267,6 @@ public final class ZipkinBraveSetup implements AutoCloseable {
         }
 
         /**
-         * Overrides Http Server Handler.
-         * @param httpServerHandler http server handler provider
-         * @return this for chaining
-         * @deprecated scheduled for removal in 1.4.0
-         */
-        @Deprecated
-        public Builder httpServerHandler(Function<HttpTracing, HttpServerHandler> httpServerHandler) {
-            this.httpServerHandler = httpServerHandler;
-            return this;
-        }
-
-        /**
-         * Overrides Http Client Handler.
-         * @param httpClientHandler http client handler provider
-         * @return this for chaining
-         * @deprecated scheduled for removal in 1.4.0
-         */
-        @Deprecated
-        public Builder httpClientHandler(Function<HttpTracing, HttpClientHandler> httpClientHandler) {
-            this.httpClientHandler = httpClientHandler;
-            return this;
-        }
-
-        /**
          * Overrides Observation Handlers
          * @param handlers handlers provider
          * @return this for chaining
@@ -367,18 +302,11 @@ public final class ZipkinBraveSetup implements AutoCloseable {
                     : tracing(spanHandler, testSpanHandler, this.applicationName);
             Tracer tracer = this.tracer != null ? this.tracer.apply(tracing) : tracer(tracing);
             HttpTracing httpTracing = this.httpTracing != null ? this.httpTracing.apply(tracing) : httpTracing(tracing);
-            @Deprecated
-            HttpServerHandler httpServerHandler = this.httpServerHandler != null
-                    ? this.httpServerHandler.apply(httpTracing) : null;
-            @Deprecated
-            HttpClientHandler httpClientHandler = this.httpClientHandler != null
-                    ? this.httpClientHandler.apply(httpTracing) : null;
             BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers = this.customizers != null
                     ? this.customizers : (t, h) -> {
                     };
             BraveBuildingBlocks braveBuildingBlocks = new BraveBuildingBlocks(sender, spanHandler, tracing, tracer,
-                    new BravePropagator(tracing), httpTracing, httpServerHandler, httpClientHandler, customizers,
-                    testSpanHandler);
+                    new BravePropagator(tracing), httpTracing, customizers, testSpanHandler);
             ObservationHandler<? extends Observation.Context> tracingHandlers = this.handlers != null
                     ? this.handlers.apply(braveBuildingBlocks) : tracingHandlers(braveBuildingBlocks);
             registry.observationConfig().observationHandler(tracingHandlers);
