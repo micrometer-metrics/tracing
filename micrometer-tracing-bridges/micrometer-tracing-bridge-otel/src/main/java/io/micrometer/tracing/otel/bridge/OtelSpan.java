@@ -96,7 +96,7 @@ class OtelSpan implements Span {
     @Override
     public Span event(String value, long time, TimeUnit timeUnit) {
         this.delegate.addEvent(value, time, timeUnit);
-        return null;
+        return this;
     }
 
     @Override
