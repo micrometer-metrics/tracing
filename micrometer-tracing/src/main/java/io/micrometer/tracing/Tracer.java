@@ -158,6 +158,7 @@ public interface Tracer extends BaggageManager {
      * @param parent parent span
      * @return a child span for the given parent, {@code null} if context was empty.
      */
+    @Nullable
     Span nextSpan(@Nullable Span parent);
 
     /**

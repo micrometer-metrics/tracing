@@ -87,7 +87,7 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     @Override
-    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+    public Map<String, String> getAllBaggage(@Nullable TraceContext traceContext) {
         if (traceContext == null) {
             return getAllBaggage();
         }
@@ -98,7 +98,7 @@ public class OtelBaggageManager implements BaggageManager {
         return baggage((OtelTraceContext) currentTraceContext.context());
     }
 
-    private CompositeBaggage baggage(OtelTraceContext traceContext) {
+    private CompositeBaggage baggage(@Nullable OtelTraceContext traceContext) {
         Context context = Context.current();
         Deque<Context> stack = new ArrayDeque<>();
         stack.addFirst(context);
@@ -114,13 +114,14 @@ public class OtelBaggageManager implements BaggageManager {
         return createNewEntryIfMissing(name, entry);
     }
 
-    io.micrometer.tracing.Baggage createNewEntryIfMissing(String name, Entry entry) {
+    io.micrometer.tracing.Baggage createNewEntryIfMissing(String name, @Nullable Entry entry) {
         if (entry == null) {
             return createBaggage(name);
         }
         return otelBaggage(entry);
     }
 
+    @Nullable
     private Entry getBaggage(String name, io.opentelemetry.api.baggage.Baggage baggage) {
         return entryForName(name, baggage);
     }
@@ -147,16 +148,19 @@ public class OtelBaggageManager implements BaggageManager {
         return null;
     }
 
+    @Nullable
     Entry getEntry(OtelTraceContext traceContext, String name) {
         OtelTraceContext context = traceContext;
         Context ctx = context.context();
         return getBaggage(name, Baggage.fromContext(ctx));
     }
 
+    @Nullable
     Context removeFirst(Deque<Context> stack) {
         return stack.isEmpty() ? null : stack.removeFirst();
     }
 
+    @Nullable
     private Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
         return Entry.fromBaggage(baggage)
             .stream()
@@ -265,6 +269,7 @@ class CompositeBaggage implements io.opentelemetry.api.baggage.Baggage {
     }
 
     @Override
+    @Nullable
     public String getEntryValue(String entryKey) {
         return this.entries.stream()
             .filter(entry -> entryKey.equals(entry.getKey()))
@@ -284,11 +289,12 @@ class Entry implements BaggageEntry {
 
     final String key;
 
+    @Nullable
     final String value;
 
     final BaggageEntryMetadata entryMetadata;
 
-    Entry(String key, String value, BaggageEntryMetadata entryMetadata) {
+    Entry(String key, @Nullable String value, BaggageEntryMetadata entryMetadata) {
         this.key = key;
         this.value = value;
         this.entryMetadata = entryMetadata;

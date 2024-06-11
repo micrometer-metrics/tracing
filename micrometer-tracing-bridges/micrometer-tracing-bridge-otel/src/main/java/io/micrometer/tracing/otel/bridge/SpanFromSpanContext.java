@@ -34,7 +34,7 @@ class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
 
     final OtelTraceContext parentTraceContext;
 
-    SpanFromSpanContext(io.opentelemetry.api.trace.Span span, SpanContext newSpanContext,
+    SpanFromSpanContext(@Nullable io.opentelemetry.api.trace.Span span, SpanContext newSpanContext,
             OtelTraceContext parentTraceContext) {
         this.span = span != null ? span : io.opentelemetry.api.trace.Span.wrap(newSpanContext);
         this.newSpanContext = newSpanContext;

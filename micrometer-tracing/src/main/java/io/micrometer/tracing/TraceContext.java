@@ -73,6 +73,7 @@ public interface TraceContext {
      * @return {@code true} when sampled, {@code false} when not sampled and {@code null}
      * when sampling decision should be deferred
      */
+    @Nullable
     Boolean sampled();
 
     /**

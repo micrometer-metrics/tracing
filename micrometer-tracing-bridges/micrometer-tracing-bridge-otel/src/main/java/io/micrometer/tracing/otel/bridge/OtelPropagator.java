@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.propagation.Propagator;
@@ -55,7 +56,7 @@ public class OtelPropagator implements Propagator {
     }
 
     @Override
-    public <C> void inject(TraceContext traceContext, C carrier, Setter<C> setter) {
+    public <C> void inject(TraceContext traceContext, @Nullable C carrier, Setter<C> setter) {
         Context context = OtelTraceContext.toOtelContext(traceContext);
         this.propagator.inject(context, carrier, setter::set);
     }
@@ -69,7 +70,7 @@ public class OtelPropagator implements Propagator {
             }
 
             @Override
-            public String get(C carrier, String key) {
+            public String get(@Nullable C carrier, String key) {
                 return getter.get(carrier, key);
             }
         });
@@ -78,7 +79,8 @@ public class OtelPropagator implements Propagator {
         return OtelSpanBuilder.fromOtel(this.tracer).setParent(otelTraceContext);
     }
 
-    private static OtelTraceContext getOtelTraceContext(Context extracted, io.opentelemetry.api.trace.Span span) {
+    private static OtelTraceContext getOtelTraceContext(Context extracted,
+            @Nullable io.opentelemetry.api.trace.Span span) {
         if (span == null || span.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
             io.opentelemetry.api.trace.Span invalid = io.opentelemetry.api.trace.Span.getInvalid();
             return new OtelTraceContext(extracted, invalid.getSpanContext(), invalid);

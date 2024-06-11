@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.baggage.Baggage;
@@ -42,6 +43,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     private static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
 
     @Override
+    @Nullable
     public TraceContext context() {
         OtelTraceContext otelTraceContext = Context.current().get(OTEL_CONTEXT_KEY);
         if (otelTraceContext != null) {
@@ -65,7 +67,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
      * @return scope that always must be closed
      */
     @Override
-    public Scope newScope(TraceContext context) {
+    public Scope newScope(@Nullable TraceContext context) {
         OtelTraceContext otelTraceContext = (OtelTraceContext) context;
         if (otelTraceContext == null) {
             return new WrappedScope(io.opentelemetry.context.Scope.noop());
@@ -106,7 +108,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
-    public Scope maybeScope(TraceContext context) {
+    public Scope maybeScope(@Nullable TraceContext context) {
         if (context == null) {
             io.opentelemetry.context.Scope scope = Context.root().makeCurrent();
             return new WrappedScope(scope);
@@ -138,16 +140,18 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
         final io.opentelemetry.context.Scope scope;
 
+        @Nullable
         final OtelTraceContext currentOtelTraceContext;
 
+        @Nullable
         final Context oldContext;
 
         WrappedScope(io.opentelemetry.context.Scope scope) {
             this(scope, null, null);
         }
 
-        WrappedScope(io.opentelemetry.context.Scope scope, OtelTraceContext currentOtelTraceContext,
-                Context oldContext) {
+        WrappedScope(io.opentelemetry.context.Scope scope, @Nullable OtelTraceContext currentOtelTraceContext,
+                @Nullable Context oldContext) {
             this.scope = scope;
             this.currentOtelTraceContext = currentOtelTraceContext;
             this.oldContext = oldContext;

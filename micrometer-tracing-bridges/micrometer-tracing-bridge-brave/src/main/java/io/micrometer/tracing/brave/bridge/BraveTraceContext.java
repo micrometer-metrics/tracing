@@ -43,7 +43,8 @@ public class BraveTraceContext implements TraceContext {
      * @param traceContext Tracing version
      * @return Brave version
      */
-    public static brave.propagation.TraceContext toBrave(TraceContext traceContext) {
+    @Nullable
+    public static brave.propagation.TraceContext toBrave(@Nullable TraceContext traceContext) {
         if (traceContext == null) {
             return null;
         }
@@ -76,6 +77,7 @@ public class BraveTraceContext implements TraceContext {
     }
 
     @Override
+    @Nullable
     public Boolean sampled() {
         return this.traceContext.sampled();
     }

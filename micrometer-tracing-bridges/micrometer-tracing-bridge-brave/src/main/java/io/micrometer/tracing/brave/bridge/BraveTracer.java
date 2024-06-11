@@ -16,6 +16,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.propagation.TraceContextOrSamplingFlags;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.*;
 
 import java.util.List;
@@ -60,7 +61,8 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    public Span nextSpan(Span parent) {
+    @Nullable
+    public Span nextSpan(@Nullable Span parent) {
         if (parent == null) {
             return nextSpan();
         }
@@ -72,7 +74,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    public SpanInScope withSpan(Span span) {
+    public SpanInScope withSpan(@Nullable Span span) {
         return new BraveSpanInScope(tracer.withSpanInScope(span == null ? null : ((BraveSpan) span).delegate));
     }
 
@@ -82,6 +84,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
+    @Nullable
     public Span currentSpan() {
         brave.Span currentSpan = this.tracer.currentSpan();
         if (currentSpan == null) {
@@ -111,7 +114,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+    public Map<String, String> getAllBaggage(@Nullable TraceContext traceContext) {
         return this.braveBaggageManager.getAllBaggage(traceContext);
     }
 
@@ -121,11 +124,13 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
+    @Nullable
     public Baggage getBaggage(String name) {
         return this.braveBaggageManager.getBaggage(name);
     }
 
     @Override
+    @Nullable
     public Baggage getBaggage(TraceContext traceContext, String name) {
         return this.braveBaggageManager.getBaggage(traceContext, name);
     }
