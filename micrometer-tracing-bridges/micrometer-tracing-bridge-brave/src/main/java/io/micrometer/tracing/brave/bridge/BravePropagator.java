@@ -19,6 +19,7 @@ import brave.Tracing;
 import brave.baggage.BaggageField;
 import brave.internal.baggage.BaggageFields;
 import brave.propagation.TraceContextOrSamplingFlags;
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.propagation.Propagator;
@@ -49,7 +50,7 @@ public class BravePropagator implements Propagator {
     }
 
     @Override
-    public <C> void inject(TraceContext traceContext, C carrier, Setter<C> setter) {
+    public <C> void inject(TraceContext traceContext, @Nullable C carrier, Setter<C> setter) {
         this.tracing.propagation().injector(setter::set).inject(BraveTraceContext.toBrave(traceContext), carrier);
     }
 

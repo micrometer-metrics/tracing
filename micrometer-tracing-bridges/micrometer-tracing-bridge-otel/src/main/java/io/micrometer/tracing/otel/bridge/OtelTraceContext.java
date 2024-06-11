@@ -37,9 +37,10 @@ public class OtelTraceContext implements TraceContext {
 
     final SpanContext delegate;
 
+    @Nullable
     final Span span;
 
-    OtelTraceContext(Context context, SpanContext delegate, @Nullable Span span) {
+    OtelTraceContext(@Nullable Context context, SpanContext delegate, @Nullable Span span) {
         this(new AtomicReference<>(context == null ? Context.current() : context), delegate, span);
     }
 
@@ -59,7 +60,7 @@ public class OtelTraceContext implements TraceContext {
         this(context(span), span.getSpanContext(), span);
     }
 
-    private static AtomicReference<Context> context(Span span) {
+    private static AtomicReference<Context> context(@Nullable Span span) {
         if (span instanceof SpanFromSpanContext) {
             Context contextFromParent = ((SpanFromSpanContext) span).parentTraceContext.context();
             return new AtomicReference<>(contextFromParent);
@@ -100,6 +101,7 @@ public class OtelTraceContext implements TraceContext {
      * @return OTel version
      * @since 1.1.0
      */
+    @Nullable
     public static SpanContext toOtelSpanContext(TraceContext context) {
         if (context instanceof OtelTraceContext) {
             return ((OtelTraceContext) context).delegate;
@@ -152,7 +154,7 @@ public class OtelTraceContext implements TraceContext {
         return this.delegate;
     }
 
-    void updateContext(Context context) {
+    void updateContext(@Nullable Context context) {
         this.otelContext.set(context);
     }
 

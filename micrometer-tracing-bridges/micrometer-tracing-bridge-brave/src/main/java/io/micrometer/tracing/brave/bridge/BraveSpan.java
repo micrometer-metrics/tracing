@@ -18,6 +18,7 @@ package io.micrometer.tracing.brave.bridge;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 
@@ -44,7 +45,8 @@ public class BraveSpan implements Span {
      * @param span Tracing version
      * @return Brave's version
      */
-    public static brave.Span toBrave(Span span) {
+    @Nullable
+    public static brave.Span toBrave(@Nullable Span span) {
         BraveSpan braveSpan = (BraveSpan) span;
         if (braveSpan == null) {
             return null;

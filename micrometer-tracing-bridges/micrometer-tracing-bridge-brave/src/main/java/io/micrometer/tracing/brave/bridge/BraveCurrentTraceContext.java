@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 
@@ -59,6 +60,7 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
+    @Nullable
     public TraceContext context() {
         brave.propagation.TraceContext context = this.delegate.get();
         if (context == null) {
@@ -68,13 +70,13 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
-    public Scope newScope(TraceContext context) {
+    public Scope newScope(@Nullable TraceContext context) {
         return new BraveScope(
                 this.delegate.newScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
     }
 
     @Override
-    public Scope maybeScope(TraceContext context) {
+    public Scope maybeScope(@Nullable TraceContext context) {
         return new BraveScope(
                 this.delegate.maybeScope(io.micrometer.tracing.brave.bridge.BraveTraceContext.toBrave(context)));
     }

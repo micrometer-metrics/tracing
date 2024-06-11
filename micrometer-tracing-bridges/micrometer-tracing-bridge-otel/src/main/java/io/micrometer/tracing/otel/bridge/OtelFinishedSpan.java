@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
@@ -45,6 +46,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     private final MutableSpanData spanData;
 
+    @Nullable
     private volatile String linkLocalIp;
 
     OtelFinishedSpan(SpanData spanData) {
@@ -160,11 +162,13 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    @Nullable
     public String getParentId() {
         return this.spanData.getParentSpanId();
     }
 
     @Override
+    @Nullable
     public String getRemoteIp() {
         return getTags().get(SemanticAttributes.NET_SOCK_PEER_ADDR.getKey());
     }
@@ -191,6 +195,7 @@ public class OtelFinishedSpan implements FinishedSpan {
         return this;
     }
 
+    @Nullable
     private String produceLinkLocalIp() {
         try {
             Enumeration<NetworkInterface> nics = NetworkInterface.getNetworkInterfaces();
@@ -231,6 +236,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    @Nullable
     public Throwable getError() {
         Attributes attributes = this.spanData.getEvents()
             .stream()
@@ -261,6 +267,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    @Nullable
     public String getRemoteServiceName() {
         return this.spanData.getAttributes().get(AttributeKey.stringKey("peer.service"));
     }

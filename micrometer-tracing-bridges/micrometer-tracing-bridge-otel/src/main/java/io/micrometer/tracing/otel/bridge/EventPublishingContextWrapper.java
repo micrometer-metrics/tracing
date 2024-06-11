@@ -76,6 +76,7 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
         /**
          * Context corresponding to the attached scope. Might be {@code null}.
          */
+        @Nullable
         final Context context;
 
         /**
@@ -86,10 +87,12 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
             this.context = context;
         }
 
+        @Nullable
         public Span getSpan() {
             return Span.fromContextOrNull(context);
         }
 
+        @Nullable
         public Baggage getBaggage() {
             return Baggage.fromContextOrNull(context);
         }
@@ -117,6 +120,7 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
          * {@link Context} corresponding to the scope being restored. Might be
          * {@code null}.
          */
+        @Nullable
         final Context context;
 
         /**
@@ -127,10 +131,12 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
             this.context = context;
         }
 
+        @Nullable
         public Span getSpan() {
             return Span.fromContextOrNull(context);
         }
 
+        @Nullable
         public Baggage getBaggage() {
             return Baggage.fromContextOrNull(context);
         }

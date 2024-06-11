@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -65,7 +66,7 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    public Span nextSpan(Span parent) {
+    public Span nextSpan(@Nullable Span parent) {
         if (parent == null) {
             return nextSpan();
         }
@@ -89,13 +90,13 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    public Tracer.SpanInScope withSpan(Span span) {
+    public Tracer.SpanInScope withSpan(@Nullable Span span) {
         TraceContext traceContext = traceContext(span);
         CurrentTraceContext.Scope scope = this.otelCurrentTraceContext.maybeScope(traceContext);
         return new WrappedSpanInScope(scope);
     }
 
-    private TraceContext traceContext(Span span) {
+    private TraceContext traceContext(@Nullable Span span) {
         if (span == null) {
             // remove any existing span/baggage data from the current state of anything
             // that might be holding on to it.
@@ -114,6 +115,7 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
+    @Nullable
     public Span currentSpan() {
         OtelTraceContext context = (OtelTraceContext) this.otelCurrentTraceContext.context();
         if (context != null && context.span != null) {
@@ -161,16 +163,18 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+    public Map<String, String> getAllBaggage(@Nullable TraceContext traceContext) {
         return this.otelBaggageManager.getAllBaggage(traceContext);
     }
 
     @Override
+    @Nullable
     public Baggage getBaggage(String name) {
         return this.otelBaggageManager.getBaggage(name);
     }
 
     @Override
+    @Nullable
     public Baggage getBaggage(TraceContext traceContext, String name) {
         return this.otelBaggageManager.getBaggage(traceContext, name);
     }
