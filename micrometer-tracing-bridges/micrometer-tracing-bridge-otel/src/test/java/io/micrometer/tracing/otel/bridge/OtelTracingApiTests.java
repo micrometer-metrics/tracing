@@ -267,7 +267,8 @@ class OtelTracingApiTests {
     void testSlf4JEventListener() {
         String customTraceIdKey = "customTraceId";
         String customSpanIdKey = "customSpanId";
-        Slf4JEventListener customSlf4JEventListener = new Slf4JEventListener(customTraceIdKey, customSpanIdKey);
+        String customSampledKey = "customTraceSampled";
+        Slf4JEventListener customSlf4JEventListener = new Slf4JEventListener(customTraceIdKey, customSpanIdKey, customSampledKey);
 
         Span newSpan = this.tracer.nextSpan().name("testMDC");
         try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
@@ -292,6 +293,13 @@ class OtelTracingApiTests {
             then(customSpanId).isNotBlank();
             then(spanId).isEqualTo(customSpanId);
 
+            String sampled = MDC.get("traceSampled");
+            String customSampled = MDC.get(customSampledKey);
+
+            then(sampled).isNotBlank();
+            then(customSampled).isNotBlank();
+            then(sampled).isEqualTo(customSampled);
+
             EventPublishingContextWrapper.ScopeRestoredEvent scopeRestoredEvent = new EventPublishingContextWrapper.ScopeRestoredEvent(
                     current);
             slf4JEventListener.onEvent(scopeRestoredEvent);
@@ -310,6 +318,13 @@ class OtelTracingApiTests {
             then(spanId).isNotBlank();
             then(customSpanId).isNotBlank();
             then(spanId).isEqualTo(customSpanId);
+
+            sampled = MDC.get("traceSampled");
+            customSampled = MDC.get(customSampledKey);
+
+            then(sampled).isNotBlank();
+            then(customSampled).isNotBlank();
+            then(sampled).isEqualTo(customSampled);
         }
         finally {
             newSpan.end();
@@ -323,6 +338,8 @@ class OtelTracingApiTests {
         then(MDC.get(customTraceIdKey)).isNull();
         then(MDC.get("spanId")).isNull();
         then(MDC.get(customSpanIdKey)).isNull();
+        then(MDC.get("traceSampled")).isNull();
+        then(MDC.get(customSampledKey)).isNull();
 
     }
 

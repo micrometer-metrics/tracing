@@ -33,12 +33,16 @@ public class Slf4JEventListener implements EventListener {
 
     private static final String DEFAULT_SPAN_ID_KEY = "spanId";
 
+    private static final String DEFAULT_SAMPLED_KEY = "traceSampled";
+
     private final String traceIdKey;
 
     private final String spanIdKey;
 
+    private final String sampledKey;
+
     public Slf4JEventListener() {
-        this(DEFAULT_TRACE_ID_KEY, DEFAULT_SPAN_ID_KEY);
+        this(DEFAULT_TRACE_ID_KEY, DEFAULT_SPAN_ID_KEY, DEFAULT_SAMPLED_KEY);
     }
 
     /**
@@ -47,8 +51,19 @@ public class Slf4JEventListener implements EventListener {
      * @since 1.1.0
      */
     public Slf4JEventListener(String traceIdKey, String spanIdKey) {
+        this(traceIdKey, spanIdKey, DEFAULT_SAMPLED_KEY);
+    }
+
+    /**
+     * @param traceIdKey custom traceId Key
+     * @param spanIdKey custom spanId Key
+     * @param sampledKey custom sampled Key
+     * @since 1.1.0
+     */
+    public Slf4JEventListener(String traceIdKey, String spanIdKey, String sampledKey) {
         this.traceIdKey = traceIdKey;
         this.spanIdKey = spanIdKey;
+        this.sampledKey = sampledKey;
     }
 
     private void onScopeAttached(EventPublishingContextWrapper.ScopeAttachedEvent event) {
@@ -57,6 +72,7 @@ public class Slf4JEventListener implements EventListener {
         if (span != null) {
             MDC.put(traceIdKey, span.getSpanContext().getTraceId());
             MDC.put(spanIdKey, span.getSpanContext().getSpanId());
+            MDC.put(sampledKey, Boolean.toString(span.getSpanContext().isSampled()));
         }
     }
 
@@ -66,6 +82,7 @@ public class Slf4JEventListener implements EventListener {
         if (span != null) {
             MDC.put(traceIdKey, span.getSpanContext().getTraceId());
             MDC.put(spanIdKey, span.getSpanContext().getSpanId());
+            MDC.put(sampledKey, Boolean.toString(span.getSpanContext().isSampled()));
         }
     }
 
@@ -73,6 +90,7 @@ public class Slf4JEventListener implements EventListener {
         log.trace("Got scope closed event [{}]", event);
         MDC.remove(traceIdKey);
         MDC.remove(spanIdKey);
+        MDC.remove(sampledKey);
     }
 
     @Override
