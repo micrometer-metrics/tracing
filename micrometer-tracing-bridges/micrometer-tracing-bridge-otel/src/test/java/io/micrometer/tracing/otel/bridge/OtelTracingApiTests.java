@@ -268,7 +268,8 @@ class OtelTracingApiTests {
         String customTraceIdKey = "customTraceId";
         String customSpanIdKey = "customSpanId";
         String customSampledKey = "customTraceSampled";
-        Slf4JEventListener customSlf4JEventListener = new Slf4JEventListener(customTraceIdKey, customSpanIdKey, customSampledKey);
+        Slf4JEventListener customSlf4JEventListener = new Slf4JEventListener(customTraceIdKey, customSpanIdKey,
+                customSampledKey);
 
         Span newSpan = this.tracer.nextSpan().name("testMDC");
         try (Tracer.SpanInScope ws = this.tracer.withSpan(newSpan.start())) {
