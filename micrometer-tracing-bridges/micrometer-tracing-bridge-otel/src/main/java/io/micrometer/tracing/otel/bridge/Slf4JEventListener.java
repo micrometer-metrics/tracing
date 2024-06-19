@@ -58,7 +58,7 @@ public class Slf4JEventListener implements EventListener {
      * @param traceIdKey custom traceId Key
      * @param spanIdKey custom spanId Key
      * @param sampledKey custom sampled Key
-     * @since 1.1.0
+     * @since 1.4.0
      */
     public Slf4JEventListener(String traceIdKey, String spanIdKey, String sampledKey) {
         this.traceIdKey = traceIdKey;
