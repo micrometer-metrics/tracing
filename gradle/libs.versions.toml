@@ -1,7 +1,7 @@
 [versions]
 micrometer = "1.13.1"
 micrometerContextPropagation="1.1.1"
-junit = "5.10.2"
+junit = "5.10.3"
 javaxServlet="4.0.1"
 jmh="1.37"
 jakartaWeb="9.1.0"
