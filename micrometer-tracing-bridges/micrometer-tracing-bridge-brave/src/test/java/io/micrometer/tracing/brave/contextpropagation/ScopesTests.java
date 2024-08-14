@@ -27,6 +27,7 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
+import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -45,12 +46,10 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -83,7 +82,7 @@ class ScopesTests {
     Tracer tracer = new BraveTracer(this.braveTracer, new BraveCurrentTraceContext(this.currentTraceContext),
             new BraveBaggageManager());
 
-    ObservationRegistry observationRegistry = ObservationRegistry.create();
+    ObservationRegistry observationRegistry = TestObservationRegistry.create();
 
     @BeforeEach
     void setup() {
@@ -197,7 +196,9 @@ class ScopesTests {
                 }
                 else {
                     try {
-                        latch.await();
+                        if (!latch.await(1, TimeUnit.SECONDS)) {
+                            throw new RuntimeException("Waiting for the latch timed out!");
+                        }
                     }
                     catch (InterruptedException e) {
                         // ignore
@@ -217,7 +218,7 @@ class ScopesTests {
             Span spanWOnNext = tracer.currentSpan();
             logger.info("[outer-doOnNext] SPAN IN ON NEXT [" + spanWOnNext + "]");
             assertInReactor(errorsInOuterOnNext, spanWOnNext, span2);
-        }).blockLast();
+        }).blockLast(Duration.ofSeconds(1));
 
         logger.info("Checking if there were no errors in reactor");
         then(errorsInFlatMap).isEmpty();
@@ -254,7 +255,9 @@ class ScopesTests {
             Observation obs4 = Observation.start("4", observationRegistry);
             try (Observation.Scope scope4 = obs4.openScope()) {
                 logger.info("FRESH SPAN AFTER [{}]", tracer.currentSpan());
-                cleanupLatch.await();
+                if (!cleanupLatch.await(1, TimeUnit.SECONDS)) {
+                    throw new RuntimeException("Waiting for the latch timed out!");
+                }
             }
             catch (InterruptedException e) {
                 // ignore

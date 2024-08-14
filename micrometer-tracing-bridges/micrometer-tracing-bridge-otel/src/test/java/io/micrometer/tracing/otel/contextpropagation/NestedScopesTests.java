@@ -18,6 +18,7 @@ package io.micrometer.tracing.otel.contextpropagation;
 import io.micrometer.context.ContextSnapshot;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.CurrentTraceContext.Scope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -59,7 +60,7 @@ class NestedScopesTests {
 
     DefaultTracingObservationHandler handler = new DefaultTracingObservationHandler(tracer);
 
-    ObservationRegistry observationRegistry = ObservationRegistry.create();
+    ObservationRegistry observationRegistry = TestObservationRegistry.create();
 
     @BeforeEach
     void setup() {
