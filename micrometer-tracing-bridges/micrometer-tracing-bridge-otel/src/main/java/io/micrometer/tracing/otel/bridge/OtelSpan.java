@@ -16,10 +16,12 @@
 package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.tracing.Span;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.semconv.SemanticAttributes;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -120,6 +122,30 @@ class OtelSpan implements Span {
     @Override
     public Span tag(String key, boolean value) {
         this.delegate.setAttribute(key, value);
+        return new OtelSpan(this.delegate);
+    }
+
+    @Override
+    public Span tagOfStrings(String key, List<String> values) {
+        this.delegate.setAttribute(AttributeKey.stringArrayKey(key), values);
+        return new OtelSpan(this.delegate);
+    }
+
+    @Override
+    public Span tagOfLongs(String key, List<Long> values) {
+        this.delegate.setAttribute(AttributeKey.longArrayKey(key), values);
+        return new OtelSpan(this.delegate);
+    }
+
+    @Override
+    public Span tagOfDoubles(String key, List<Double> values) {
+        this.delegate.setAttribute(AttributeKey.doubleArrayKey(key), values);
+        return new OtelSpan(this.delegate);
+    }
+
+    @Override
+    public Span tagOfBooleans(String key, List<Boolean> values) {
+        this.delegate.setAttribute(AttributeKey.booleanArrayKey(key), values);
         return new OtelSpan(this.delegate);
     }
 

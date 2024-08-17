@@ -19,6 +19,7 @@ import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -26,6 +27,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -102,6 +104,24 @@ class OtelSpanBuilderTests {
         then(poll.getAttributes().get(AttributeKey.doubleKey("double"))).isEqualTo(2.5);
         then(poll.getAttributes().get(AttributeKey.longKey("long"))).isEqualTo(2L);
         then(poll.getAttributes().get(AttributeKey.booleanKey("boolean"))).isTrue();
+    }
+
+    @Test
+    void should_set_multi_value_tags() {
+        new OtelSpanBuilder(otelTracer).name("foo")
+            .tagOfStrings("strings", Arrays.asList("s1", "s2", "s3"))
+            .tagOfDoubles("doubles", Arrays.asList(1.0, 2.5, 3.7))
+            .tagOfLongs("longs", Arrays.asList(2L, 3L, 4L))
+            .tagOfBooleans("booleans", Arrays.asList(true, false, false))
+            .start()
+            .end();
+
+        SpanData poll = processor.spans().poll();
+        Attributes attributes = poll.getAttributes();
+        then(attributes.get(AttributeKey.stringArrayKey("strings"))).isEqualTo(Arrays.asList("s1", "s2", "s3"));
+        then(attributes.get(AttributeKey.doubleArrayKey("doubles"))).isEqualTo(Arrays.asList(1.0, 2.5, 3.7));
+        then(attributes.get(AttributeKey.longArrayKey("longs"))).isEqualTo(Arrays.asList(2L, 3L, 4L));
+        then(attributes.get(AttributeKey.booleanArrayKey("booleans"))).isEqualTo(Arrays.asList(true, false, false));
     }
 
     @Test
