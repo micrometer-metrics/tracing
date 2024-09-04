@@ -16,7 +16,7 @@ dependencies {
 	optionalImplementation 'io.opentelemetry:opentelemetry-sdk'
 	optionalImplementation 'io.opentelemetry:opentelemetry-sdk-trace'
 	optionalImplementation 'io.opentelemetry:opentelemetry-extension-trace-propagators'
-	optionalImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv'
+	optionalImplementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator'
 
 	// Wavefront
 	implementation libs.wavefrontReporter
