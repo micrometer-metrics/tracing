@@ -13,8 +13,6 @@ def VERSIONS = [
 	libs.logback,
 	libs.log4j,
 	libs.slf4j,
-	// otel
-	libs.otelInstrumentation,
 	// zipkin
 	libs.zipkinAws,
 	// wavefront
@@ -31,15 +29,13 @@ def VERSIONS = [
 ]
 
 def MICROMETER_PLATFORM_VERSIONS = [
-		libs.micrometerBom
+	libs.micrometerBom
 ]
 
 def PLATFORM_VERSIONS = [
 	libs.zipkinReporterBom,
 	libs.braveBom,
-	// opentelemetry-instrumentation-api dependency above with this
-	libs.otelBom,
-	libs.otelBomAlpha,
+	libs.otelInstrumentationBomAlpha,
 	libs.reactorBom,
 	libs.junitBom
 ]

@@ -5,13 +5,11 @@ junit = "5.11.0"
 javaxServlet="4.0.1"
 jmh="1.37"
 jakartaWeb="9.1.0"
-otelInstrumentation="1.33.5-alpha"
 aopalliance="1.0"
 zipkinAws="1.2.5"
-otelBom="1.41.0"
 logback = "1.5.7"
 wavefrontSdk="3.4.3"
-otelBomAlpha="1.41.0-alpha"
+otelInstrumentationBomAlpha="1.33.6-alpha" # Brings in io.opentelemetry:opentelemetry-bom:1.41.0
 log4j = "2.23.1"
 wavefrontReporter="1.7.16"
 slf4j = "1.7.36"
@@ -51,9 +49,7 @@ micrometerContextPropagation = { module = "io.micrometer:context-propagation", v
 micrometerBom = { module = "io.micrometer:micrometer-bom", version.ref = "micrometer" }
 mockitoCore = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockitoJunit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
-otelBom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "otelBom" }
-otelBomAlpha = { module = "io.opentelemetry:opentelemetry-bom-alpha", version.ref = "otelBomAlpha" }
-otelInstrumentation = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv", version.ref = "otelInstrumentation" }
+otelInstrumentationBomAlpha = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha", version.ref = "otelInstrumentationBomAlpha" }
 reactorBom = { module = "io.projectreactor:reactor-bom", version.ref = "reactorBom" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 springCore = { module = "org.springframework:spring-core", version.ref = "spring" }
