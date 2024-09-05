@@ -24,6 +24,7 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
+import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -71,7 +72,7 @@ class ScopesTests {
 
     DefaultTracingObservationHandler handler = new DefaultTracingObservationHandler(tracer);
 
-    ObservationRegistry observationRegistry = ObservationRegistry.create();
+    ObservationRegistry observationRegistry = TestObservationRegistry.create();
 
     @BeforeEach
     void setup() {
