@@ -70,9 +70,16 @@ class OtelFinishedSpanTests {
 
         Map<String, Object> map = new HashMap<>();
         map.put("foo", 2L);
+        map.put("bar", Arrays.asList("a", "b", "c"));
+        map.put("baz", Arrays.asList(1, 2, 3));
+        map.put("qux", Collections.emptyList());
         span.setTypedTags(map);
 
-        then(span.getTypedTags().get("foo")).isEqualTo(2L);
+        then(span.getTypedTags()).hasSize(4)
+            .containsEntry("foo", 2L)
+            .containsEntry("bar", Arrays.asList("a", "b", "c"))
+            .containsEntry("baz", Arrays.asList(1, 2, 3))
+            .containsEntry("qux", Collections.emptyList());
     }
 
     @Test

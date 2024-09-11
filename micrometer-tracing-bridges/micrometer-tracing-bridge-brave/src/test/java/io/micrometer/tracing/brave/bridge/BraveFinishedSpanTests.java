@@ -16,6 +16,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,9 +81,14 @@ class BraveFinishedSpanTests {
 
         Map<String, Object> map = new HashMap<>();
         map.put("foo", 2L);
+        map.put("bar", Arrays.asList("a", "b", "c"));
+        map.put("baz", Arrays.asList(1, 2, 3));
         span.setTypedTags(map);
 
-        then(span.getTypedTags().get("foo")).isEqualTo("2");
+        then(span.getTypedTags()).hasSize(3)
+            .containsEntry("foo", "2")
+            .containsEntry("bar", "a,b,c")
+            .containsEntry("baz", "1,2,3");
     }
 
     @Test

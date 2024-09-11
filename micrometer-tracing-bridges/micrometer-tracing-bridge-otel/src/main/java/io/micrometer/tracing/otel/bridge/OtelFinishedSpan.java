@@ -129,6 +129,23 @@ public class OtelFinishedSpan implements FinishedSpan {
         else if (value instanceof Boolean) {
             return AttributeKey.booleanKey(key);
         }
+        else if (value instanceof List) {
+            List<?> valueAsList = (List<?>) value;
+            if (valueAsList.isEmpty()) {
+                return AttributeKey.stringArrayKey(key);
+            }
+            Object firstValue = valueAsList.get(0);
+            if (firstValue instanceof Double) {
+                return AttributeKey.doubleArrayKey(key);
+            }
+            else if (firstValue instanceof Long) {
+                return AttributeKey.longArrayKey(key);
+            }
+            else if (firstValue instanceof Boolean) {
+                return AttributeKey.doubleArrayKey(key);
+            }
+            return AttributeKey.stringArrayKey(key);
+        }
         return AttributeKey.stringKey(key);
     }
 

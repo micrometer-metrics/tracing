@@ -16,8 +16,9 @@
 package io.micrometer.tracing;
 
 import io.micrometer.tracing.propagation.Propagator;
-
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This API was heavily influenced by Brave. Parts of its documentation were taken
@@ -179,6 +180,46 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
      */
     default Span tag(String key, boolean value) {
         return tag(key, String.valueOf(value));
+    }
+
+    /**
+     * Sets a tag on this span.
+     * @param key tag key
+     * @param values tag values
+     * @return this span
+     */
+    default Span tagOfStrings(String key, List<String> values) {
+        return tag(key, String.join(",", values));
+    }
+
+    /**
+     * Sets a tag on this span.
+     * @param key tag key
+     * @param values tag values
+     * @return this span
+     */
+    default Span tagOfLongs(String key, List<Long> values) {
+        return tag(key, values.stream().map(String::valueOf).collect(Collectors.joining(",")));
+    }
+
+    /**
+     * Sets a tag on this span.
+     * @param key tag key
+     * @param values tag values
+     * @return this span
+     */
+    default Span tagOfDoubles(String key, List<Double> values) {
+        return tag(key, values.stream().map(String::valueOf).collect(Collectors.joining(",")));
+    }
+
+    /**
+     * Sets a tag on this span.
+     * @param key tag key
+     * @param values tag values
+     * @return this span
+     */
+    default Span tagOfBooleans(String key, List<Boolean> values) {
+        return tag(key, values.stream().map(String::valueOf).collect(Collectors.joining(",")));
     }
 
     /**
@@ -391,6 +432,46 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
          */
         default Builder tag(String key, boolean value) {
             return tag(key, String.valueOf(value));
+        }
+
+        /**
+         * Sets a tag on this span.
+         * @param key tag key
+         * @param values tag values
+         * @return this
+         */
+        default Builder tagOfStrings(String key, List<String> values) {
+            return tag(key, String.join(",", values));
+        }
+
+        /**
+         * Sets a tag on this span.
+         * @param key tag key
+         * @param values tag values
+         * @return this
+         */
+        default Builder tagOfLongs(String key, List<Long> values) {
+            return tag(key, values.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        }
+
+        /**
+         * Sets a tag on this span.
+         * @param key tag key
+         * @param values tag values
+         * @return this
+         */
+        default Builder tagOfDoubles(String key, List<Double> values) {
+            return tag(key, values.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        }
+
+        /**
+         * Sets a tag on this span.
+         * @param key tag key
+         * @param values tag values
+         * @return this
+         */
+        default Builder tagOfBooleans(String key, List<Boolean> values) {
+            return tag(key, values.stream().map(String::valueOf).collect(Collectors.joining(",")));
         }
 
         /**

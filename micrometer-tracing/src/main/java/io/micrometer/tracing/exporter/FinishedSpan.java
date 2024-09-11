@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Link;
@@ -90,7 +91,14 @@ public interface FinishedSpan {
      */
     default FinishedSpan setTypedTags(Map<String, Object> tags) {
         Map<String, String> map = new HashMap<>();
-        tags.forEach((s, o) -> map.put(s, String.valueOf(o)));
+        tags.forEach((s, o) -> {
+            if (o instanceof List) {
+                map.put(s, ((List<?>) o).stream().map(Object::toString).collect(Collectors.joining(",")));
+            }
+            else {
+                map.put(s, String.valueOf(o));
+            }
+        });
         return setTags(map);
     }
 

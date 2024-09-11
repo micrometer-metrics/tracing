@@ -124,6 +124,30 @@ class OtelSpanBuilder implements Span.Builder {
     }
 
     @Override
+    public Span.Builder tagOfStrings(String key, List<String> values) {
+        this.attributes.put(AttributeKey.stringArrayKey(key), values);
+        return this;
+    }
+
+    @Override
+    public Span.Builder tagOfLongs(String key, List<Long> values) {
+        this.attributes.put(AttributeKey.longArrayKey(key), values);
+        return this;
+    }
+
+    @Override
+    public Span.Builder tagOfDoubles(String key, List<Double> values) {
+        this.attributes.put(AttributeKey.doubleArrayKey(key), values);
+        return this;
+    }
+
+    @Override
+    public Span.Builder tagOfBooleans(String key, List<Boolean> values) {
+        this.attributes.put(AttributeKey.booleanArrayKey(key), values);
+        return this;
+    }
+
+    @Override
     public Span.Builder error(Throwable throwable) {
         this.error = throwable;
         return this;
