@@ -31,36 +31,36 @@ import java.util.concurrent.TimeUnit;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-class OtelSpan implements Span {
+public class OtelSpan implements Span {
 
     final io.opentelemetry.api.trace.Span delegate;
 
     final OtelTraceContext otelTraceContext;
 
-    OtelSpan(io.opentelemetry.api.trace.Span delegate) {
+    public OtelSpan(io.opentelemetry.api.trace.Span delegate) {
         this.delegate = delegate;
         this.otelTraceContext = new OtelTraceContext(delegate.getSpanContext(), delegate);
     }
 
-    OtelSpan(io.opentelemetry.api.trace.Span delegate, Context context) {
+    public OtelSpan(io.opentelemetry.api.trace.Span delegate, Context context) {
         this.delegate = delegate;
         this.otelTraceContext = new OtelTraceContext(context, delegate.getSpanContext(), delegate);
     }
 
-    OtelSpan(OtelTraceContext traceContext) {
+    public OtelSpan(OtelTraceContext traceContext) {
         this.delegate = traceContext.span != null ? traceContext.span : io.opentelemetry.api.trace.Span.current();
         this.otelTraceContext = traceContext;
     }
 
-    static io.opentelemetry.api.trace.Span toOtel(Span span) {
+    public static io.opentelemetry.api.trace.Span toOtel(Span span) {
         return ((OtelSpan) span).delegate;
     }
 
-    static Span fromOtel(io.opentelemetry.api.trace.Span span) {
+    public static Span fromOtel(io.opentelemetry.api.trace.Span span) {
         return new OtelSpan(span);
     }
 
-    static Span fromOtel(io.opentelemetry.api.trace.Span span, Context context) {
+    public static Span fromOtel(io.opentelemetry.api.trace.Span span, Context context) {
         return new OtelSpan(span, context);
     }
 
