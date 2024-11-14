@@ -24,6 +24,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.data.DelegatingSpanData;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
@@ -296,6 +297,17 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public String getLocalServiceName() {
+        return this.spanData.getResource().getAttribute(AttributeKey.stringKey("service.name"));
+    }
+
+    @Override
+    public FinishedSpan setLocalServiceName(String localServiceName) {
+        this.spanData.resources.put(AttributeKey.stringKey("service.name"), localServiceName);
+        return this;
+    }
+
+    @Override
     public List<Link> getLinks() {
         return this.spanData.getLinks()
             .stream()
@@ -359,6 +371,8 @@ public class OtelFinishedSpan implements FinishedSpan {
 
         final Map<AttributeKey, Object> tags = new HashMap<>();
 
+        final Map<AttributeKey, Object> resources = new HashMap<>();
+
         final List<EventData> events = new ArrayList<>();
 
         final List<LinkData> links = new ArrayList<>();
@@ -371,6 +385,7 @@ public class OtelFinishedSpan implements FinishedSpan {
             delegate.getAttributes().forEach(this.tags::put);
             this.events.addAll(delegate.getEvents());
             this.links.addAll(delegate.getLinks());
+            this.resources.putAll(delegate.getResource().getAttributes().asMap());
         }
 
         @Override
@@ -415,6 +430,15 @@ public class OtelFinishedSpan implements FinishedSpan {
         @Override
         public List<LinkData> getLinks() {
             return this.links;
+        }
+
+        @Override
+        public Resource getResource() {
+            AttributesBuilder builder = Attributes.builder();
+            for (Map.Entry<AttributeKey, Object> entry : this.resources.entrySet()) {
+                builder = builder.put(entry.getKey(), entry.getValue());
+            }
+            return Resource.create(builder.build());
         }
 
     }

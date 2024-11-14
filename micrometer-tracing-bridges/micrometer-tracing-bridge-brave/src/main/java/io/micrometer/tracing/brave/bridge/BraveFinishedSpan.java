@@ -187,6 +187,17 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    public String getLocalServiceName() {
+        return this.mutableSpan.localServiceName();
+    }
+
+    @Override
+    public FinishedSpan setLocalServiceName(String localServiceName) {
+        this.mutableSpan.localServiceName(localServiceName);
+        return this;
+    }
+
+    @Override
     public List<Link> getLinks() {
         List<Link> links = new ArrayList<>();
         this.mutableSpan.tags()

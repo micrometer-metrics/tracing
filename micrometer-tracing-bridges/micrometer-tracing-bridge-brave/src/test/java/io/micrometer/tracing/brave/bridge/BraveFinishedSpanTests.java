@@ -63,6 +63,18 @@ class BraveFinishedSpanTests {
     }
 
     @Test
+    void should_set_local_service_name() {
+        FinishedSpan span = BraveFinishedSpan.fromBrave(new MutableSpan(tracer.nextSpan().context(), null));
+        then(span.getTags()).isEmpty();
+
+        Map<String, String> map = new HashMap<>();
+        map.put("foo", "bar");
+        span.setTags(map);
+
+        then(span.getTags().get("foo")).isEqualTo("bar");
+    }
+
+    @Test
     void should_set_tags() {
         FinishedSpan span = BraveFinishedSpan.fromBrave(new MutableSpan(tracer.nextSpan().context(), null));
         then(span.getTags()).isEmpty();
