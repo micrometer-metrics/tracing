@@ -17,26 +17,28 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.tracing.*;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.trace.data.StatusData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelTracingApiTests {
@@ -404,6 +406,75 @@ class OtelTracingApiTests {
 
         then(io.opentelemetry.api.trace.Span.current()).isSameAs(io.opentelemetry.api.trace.Span.getInvalid());
         then(tracer.currentSpan()).isNull();
+    }
+
+    @Test
+    void should_set_ok_status_for_span() {
+        this.tracer.nextSpan().end();
+
+        SpanData spanData = spanExporter.spans().poll();
+        assertThat(spanData).isNotNull();
+        then(spanData.getStatus()).isEqualTo(StatusData.ok());
+    }
+
+    @Test
+    void should_set_error_and_error_status_for_span() {
+        this.tracer.nextSpan().error(new RuntimeException("something went wrong")).end();
+
+        SpanData spanData = spanExporter.spans().poll();
+        assertThat(spanData).isNotNull();
+        List<EventData> events = spanData.getEvents();
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).getName()).isEqualTo("exception");
+        assertThat(events.get(0).getAttributes().asMap()).containsEntry(AttributeKey.stringKey("exception.message"),
+                "something went wrong");
+        assertThat(spanData.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "something went wrong"));
+    }
+
+    @Test
+    void should_set_ok_status_for_timed_span() {
+        this.tracer.nextSpan().end(1, TimeUnit.SECONDS);
+
+        SpanData spanData = spanExporter.spans().poll();
+        assertThat(spanData).isNotNull();
+        then(spanData.getStatus()).isEqualTo(StatusData.ok());
+    }
+
+    @Test
+    void should_set_error_and_error_status_for_timed_span() {
+        this.tracer.nextSpan().error(new RuntimeException("something went wrong")).end(1, TimeUnit.SECONDS);
+
+        SpanData spanData = spanExporter.spans().poll();
+        assertThat(spanData).isNotNull();
+        List<EventData> events = spanData.getEvents();
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).getName()).isEqualTo("exception");
+        assertThat(events.get(0).getAttributes().asMap()).containsEntry(AttributeKey.stringKey("exception.message"),
+                "something went wrong");
+        assertThat(spanData.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "something went wrong"));
+    }
+
+    @Test
+    void should_set_ok_status_for_scoped_span() {
+        this.tracer.startScopedSpan("scoped").end();
+
+        SpanData spanData = spanExporter.spans().poll();
+        assertThat(spanData).isNotNull();
+        then(spanData.getStatus()).isEqualTo(StatusData.ok());
+    }
+
+    @Test
+    void should_set_error_and_error_status_for_scoped_span() {
+        this.tracer.startScopedSpan("scoped").error(new RuntimeException("something went wrong")).end();
+
+        SpanData spanData = spanExporter.spans().poll();
+        assertThat(spanData).isNotNull();
+        List<EventData> events = spanData.getEvents();
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).getName()).isEqualTo("exception");
+        assertThat(events.get(0).getAttributes().asMap()).containsEntry(AttributeKey.stringKey("exception.message"),
+                "something went wrong");
+        assertThat(spanData.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "something went wrong"));
     }
 
     private static OtelCurrentTraceContext.WrappedScope getScopeFromTracerScope(OtelTracer.WrappedSpanInScope ws) {

@@ -22,10 +22,7 @@ import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.*;
 import io.opentelemetry.semconv.SemanticAttributes;
 
 import java.util.AbstractMap.SimpleEntry;
@@ -243,6 +240,7 @@ class OtelSpanBuilder implements Span.Builder {
         io.opentelemetry.api.trace.Span span = spanBuilder.startSpan();
         if (this.error != null) {
             span.recordException(this.error);
+            span.setStatus(StatusCode.ERROR, this.error.getMessage());
         }
         this.annotations.forEach(span::addEvent);
         if (this.parentTraceContext != null) {

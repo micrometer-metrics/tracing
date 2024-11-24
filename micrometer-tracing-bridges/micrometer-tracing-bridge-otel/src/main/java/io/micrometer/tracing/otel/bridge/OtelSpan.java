@@ -19,6 +19,7 @@ import io.micrometer.tracing.Span;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.semconv.SemanticAttributes;
 
 import java.util.List;
@@ -151,6 +152,9 @@ public class OtelSpan implements Span {
 
     @Override
     public void end(long time, TimeUnit timeUnit) {
+        if (this.isStatusUnset()) {
+            this.delegate.setStatus(StatusCode.OK);
+        }
         this.delegate.end(time, timeUnit);
     }
 
@@ -170,6 +174,9 @@ public class OtelSpan implements Span {
 
     @Override
     public void end() {
+        if (this.isStatusUnset()) {
+            this.delegate.setStatus(StatusCode.OK);
+        }
         this.delegate.end();
     }
 
@@ -208,6 +215,13 @@ public class OtelSpan implements Span {
     @Override
     public int hashCode() {
         return Objects.hash(this.delegate);
+    }
+
+    private boolean isStatusUnset() {
+        if (this.delegate instanceof ReadableSpan) {
+            return ((ReadableSpan) this.delegate).toSpanData().getStatus().getStatusCode() == StatusCode.UNSET;
+        }
+        return false;
     }
 
 }

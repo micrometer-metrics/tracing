@@ -20,18 +20,23 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.trace.data.StatusData;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelSpanBuilderTests {
@@ -137,6 +142,20 @@ class OtelSpanBuilderTests {
         Span span = tracer.spanBuilder().setParent(parentCtx).name("test-span").start();
 
         then(span.context().traceId()).isEqualTo(foo.context().traceId());
+    }
+
+    @Test
+    void should_add_event_with_exception_and_set_error_status() {
+        new OtelSpanBuilder(otelTracer).name("foo").error(new RuntimeException("something went wrong")).start().end();
+
+        SpanData spanData = processor.spans().poll();
+        assertThat(spanData).isNotNull();
+        List<EventData> events = spanData.getEvents();
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).getName()).isEqualTo("exception");
+        assertThat(events.get(0).getAttributes().asMap()).containsEntry(AttributeKey.stringKey("exception.message"),
+                "something went wrong");
+        assertThat(spanData.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "something went wrong"));
     }
 
     private Map<String, Object> tags() {
