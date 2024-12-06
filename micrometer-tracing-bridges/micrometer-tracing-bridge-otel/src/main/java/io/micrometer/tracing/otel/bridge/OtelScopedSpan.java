@@ -18,7 +18,9 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.tracing.ScopedSpan;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.sdk.trace.ReadableSpan;
 
 /**
  * OpenTelemetry implementation of a {@link ScopedSpan}.
@@ -68,11 +70,19 @@ class OtelScopedSpan implements ScopedSpan {
     @Override
     public ScopedSpan error(Throwable throwable) {
         this.span.recordException(throwable);
+        this.span.setStatus(StatusCode.ERROR, throwable.getMessage());
         return this;
     }
 
     @Override
     public void end() {
+        if (this.span instanceof ReadableSpan) {
+            StatusCode status = ((ReadableSpan) this.span).toSpanData().getStatus().getStatusCode();
+            if (status == StatusCode.UNSET) {
+                this.span.setStatus(StatusCode.OK);
+            }
+        }
+
         this.scope.close();
         this.span.end();
     }
