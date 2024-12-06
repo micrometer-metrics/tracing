@@ -97,6 +97,8 @@ workflows:
       - build-jdk17
       - docker-tests
       - deploy:
+          context:
+            - deploy
           requires:
             - build
             - build-jdk11
@@ -134,6 +136,8 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+(-(RC|M)\d+)?$/
       - deploy:
+          context:
+            - deploy
           requires:
             - build
             - build-jdk11
