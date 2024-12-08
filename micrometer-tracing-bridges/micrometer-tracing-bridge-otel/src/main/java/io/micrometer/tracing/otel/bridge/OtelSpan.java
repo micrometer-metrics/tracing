@@ -111,43 +111,43 @@ public class OtelSpan implements Span {
     @Override
     public Span tag(String key, long value) {
         this.delegate.setAttribute(key, value);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
     public Span tag(String key, double value) {
         this.delegate.setAttribute(key, value);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
     public Span tag(String key, boolean value) {
         this.delegate.setAttribute(key, value);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
     public Span tagOfStrings(String key, List<String> values) {
         this.delegate.setAttribute(AttributeKey.stringArrayKey(key), values);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
     public Span tagOfLongs(String key, List<Long> values) {
         this.delegate.setAttribute(AttributeKey.longArrayKey(key), values);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
     public Span tagOfDoubles(String key, List<Double> values) {
         this.delegate.setAttribute(AttributeKey.doubleArrayKey(key), values);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
     public Span tagOfBooleans(String key, List<Boolean> values) {
         this.delegate.setAttribute(AttributeKey.booleanArrayKey(key), values);
-        return new OtelSpan(this.delegate);
+        return this;
     }
 
     @Override
