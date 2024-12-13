@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.SpanContext;
@@ -31,10 +32,12 @@ public class OtelTraceContextBuilder implements TraceContext.Builder {
 
     private String traceId;
 
+    @Nullable
     private String parentId;
 
     private String spanId;
 
+    @Nullable
     private Boolean sampled;
 
     @Override
@@ -64,15 +67,13 @@ public class OtelTraceContextBuilder implements TraceContext.Builder {
     @Override
     public TraceContext build() {
         if (StringUtils.isNotEmpty(this.parentId)) {
-            return new OtelTraceContext(
-                    SpanContext.createFromRemoteParent(this.traceId, this.spanId,
-                            this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
-                    null);
+            return new OtelTraceContext(SpanContext.createFromRemoteParent(this.traceId, this.spanId,
+                    this.sampled != null && this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(),
+                    TraceState.getDefault()), null);
         }
-        return new OtelTraceContext(
-                SpanContext.create(this.traceId, this.spanId,
-                        this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
-                null);
+        return new OtelTraceContext(SpanContext.create(this.traceId, this.spanId,
+                this.sampled != null && this.sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(),
+                TraceState.getDefault()), null);
     }
 
 }
