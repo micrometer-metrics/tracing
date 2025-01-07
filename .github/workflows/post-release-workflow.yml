@@ -1,0 +1,108 @@
+name: Release Workflow
+
+on:
+  workflow_dispatch: # Enables manual trigger
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  generate-release-notes:
+    name: Generate Release Notes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Download Changelog Generator
+        run: |
+          curl -L -o github-changelog-generator.jar https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.11/github-changelog-generator.jar
+
+      - name: Generate release notes
+        id: generate_notes
+        run: |
+          java -jar github-changelog-generator.jar \
+            --milestone ${GITHUB_REF_NAME#v} \
+            --changelog-file changelog.md \
+            --repository ${{ github.repository }} \
+            --token ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Remove duplicate artifact upgrades
+        id: process_notes
+        run: |
+          awk '/Bump/ { \
+            match($0, /Bump ([^:]+:[^ ]+) to ([^ ]+)/, arr); \
+            if (arr[1] && (!seen[arr[1]] || arr[2] > seen[arr[1]])) { \
+              seen[arr[1]] = arr[2]; \
+              lines[arr[1]] = $0; \
+            } \
+          } END { for (key in lines) print lines[key]; }' changelog.md > changelog-processed.md
+
+      - name: Set release notes output
+        id: set_notes_output
+        run: |
+          notes=$(cat changelog-processed.md)
+          echo "release-notes=$notes" >> $GITHUB_OUTPUT
+        shell: bash
+
+  close-milestone:
+    name: Close Milestone
+    runs-on: ubuntu-latest
+    needs: generate-release-notes
+
+    steps:
+      - name: Close milestone
+        run: |
+          milestone_name=${{ github.ref_name }}
+          milestone_name=${milestone_name#"v"} # Remove the prefix `v`
+          curl -X PATCH \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/milestones \
+            -d "{\"state\": \"closed\", \"title\": \"$milestone_name\"}"
+
+  update-release:
+    name: Update Release Notes
+    runs-on: ubuntu-latest
+    needs: close-milestone
+
+    steps:
+      - name: Update release text
+        run: |
+          release_id=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/tags/${{ github.ref_name }} | jq -r ".id")
+          curl -X PATCH \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/$release_id \
+            -d "{\"body\": \"$(cat changelog-processed.md)\"}"
+
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: update-release
+
+    steps:
+      - name: Notify Google Chat
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"New release ${{ github.ref_name }} is now live!\"}" \
+            ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+
+      - name: Post on Twitter
+        uses: ethomson/send-tweet@v1
+        with:
+          status: "New release ${{ github.ref_name }} is now live! Check out the changelog here: https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/${{ github.ref_name }}"
+          twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
+          twitter_api_key_secret: ${{ secrets.TWITTER_API_SECRET }}
+          twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_SECRET }}
+
+      - name: Post on Bluesky
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"New release ${{ github.ref_name }} is now live! Check out the changelog here: https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/${{ github.ref_name }}\"}" \
+            ${{ secrets.BLUESKY_API_URL }}
