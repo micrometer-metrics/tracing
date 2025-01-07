@@ -60,6 +60,18 @@ class OtelSpanTests {
     }
 
     @Test
+    void should_set_status_to_error_when_recording_error() {
+        OtelSpan otelSpan = new OtelSpan(otelTracer.spanBuilder("foo").startSpan());
+
+        otelSpan.error("boom!").end();
+
+        SpanData poll = arrayListSpanProcessor.spans().poll();
+        then(poll.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "boom!"));
+        then(poll.getEvents()).hasSize(1);
+        then(poll.getEvents().get(0).getAttributes().asMap().values()).containsAnyOf("boom!");
+    }
+
+    @Test
     void should_be_equal_when_two_span_delegates_are_equal() {
         Span span = otelTracer.spanBuilder("foo").startSpan();
         OtelSpan otelSpan = new OtelSpan(span);
