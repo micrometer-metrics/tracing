@@ -139,7 +139,7 @@ public interface TraceContext {
          * @param sampled if span is sampled
          * @return this
          */
-        TraceContext.Builder sampled(Boolean sampled);
+        TraceContext.Builder sampled(@Nullable Boolean sampled);
 
         /**
          * Builds the trace context.
