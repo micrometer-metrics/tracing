@@ -48,6 +48,8 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     private volatile String remoteServiceName;
 
+    private volatile String localServiceName;
+
     private volatile Span.Kind spanKind;
 
     private final Queue<Event> events = new ConcurrentLinkedQueue<>();
@@ -181,6 +183,18 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     @Override
     public SimpleSpan setRemoteServiceName(String remoteServiceName) {
+        this.remoteServiceName = remoteServiceName;
+        return this;
+    }
+
+    @Override
+    public String getLocalServiceName() {
+        return this.localServiceName;
+    }
+
+    @Override
+    public SimpleSpan setLocalServiceName(String localServiceName) {
+        this.localServiceName = localServiceName;
         return this;
     }
 

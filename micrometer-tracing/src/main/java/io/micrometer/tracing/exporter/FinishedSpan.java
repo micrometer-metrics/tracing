@@ -205,6 +205,25 @@ public interface FinishedSpan {
     FinishedSpan setRemoteServiceName(String remoteServiceName);
 
     /**
+     * @return local service name or {@code null} if not set
+     * @since 1.5
+     */
+    @Nullable
+    default String getLocalServiceName() {
+        return null;
+    }
+
+    /**
+     * Sets the local service name.
+     * @param localServiceName local service name
+     * @return this
+     * @since 1.5
+     */
+    default FinishedSpan setLocalServiceName(String localServiceName) {
+        return this;
+    }
+
+    /**
      * @return links
      * @since 1.1.0
      */
