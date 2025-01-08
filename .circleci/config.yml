@@ -84,17 +84,19 @@ jobs:
       - checkout
       - restore_cache:
           key: gradle-dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-      - deploy:
-          name: Deployment
-          command: sh ./gradle/deploy.sh
-      - run:
-          name: Trigger GitHub Actions
-          command: |
-            curl -X POST \
-              -H "Accept: application/vnd.github.everest-preview+json" \
-              -H "Authorization: token ${GITHUB_TOKEN}" \
-              https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/dispatches \
-              -d '{"event_type": "trigger-circleci"}'
+# TODO: Commented out for tests
+#      - deploy:
+#          name: Deployment
+#          command: sh ./gradle/deploy.sh
+# TODO: Once we have the GH Token
+#      - run:
+#          name: Trigger GitHub Actions
+#          command: |
+#            curl -X POST \
+#              -H "Accept: application/vnd.github.everest-preview+json" \
+#              -H "Authorization: token ${GITHUB_TOKEN}" \
+#              https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/dispatches \
+#              -d '{"event_type": "trigger-circleci"}'
 
 workflows:
   version: 2

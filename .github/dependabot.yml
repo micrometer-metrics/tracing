@@ -4,7 +4,7 @@ updates:
     directory: "/"
     target-branch: "main"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 # Non-build dependencies; target every supported branch
   - package-ecosystem: gradle
     directory: "/"

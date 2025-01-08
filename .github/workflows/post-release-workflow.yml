@@ -2,9 +2,6 @@ name: Release Workflow
 
 on:
   workflow_dispatch: # Enables manual trigger
-  push:
-    tags:
-      - "v*"
 
 jobs:
   generate-release-notes:
@@ -31,13 +28,58 @@ jobs:
       - name: Remove duplicate artifact upgrades
         id: process_notes
         run: |
-          awk '/Bump/ { \
-            match($0, /Bump ([^:]+:[^ ]+) to ([^ ]+)/, arr); \
-            if (arr[1] && (!seen[arr[1]] || arr[2] > seen[arr[1]])) { \
-              seen[arr[1]] = arr[2]; \
-              lines[arr[1]] = $0; \
-            } \
-          } END { for (key in lines) print lines[key]; }' changelog.md > changelog-processed.md
+          # Create a temporary file
+          touch changelog.tmp
+          
+          # Copy everything before dependency section
+          sed -n '1,/^## :hammer: Dependency Upgrades/p' changelog.md > changelog.tmp
+          
+          # Process dependency upgrades section to keep only latest versions
+          awk '
+            function compare_versions(v1, v2) {
+              split(v1, a, /[.-]/)
+              split(v2, b, /[.-]/)
+          
+              for (i = 1; i <= length(a) && i <= length(b); i++) {
+                if (a[i] != b[i]) {
+                  return (a[i] > b[i]) ? 1 : -1
+                }
+              }
+              return (length(a) > length(b)) ? 1 : (length(a) < length(b)) ? -1 : 0
+            }
+          
+            BEGIN { print "" }  # ensure newline after header
+          
+            # Process dependency section
+            /^- Upgrade to/ {
+              line = $0
+              match(line, /Upgrade to ([^ ]+) ([^ [\]]+)/, arr)
+              if (arr[1] != "") {
+                base_pkg = arr[1]
+                version = arr[2]
+          
+                if (!(base_pkg in versions) || compare_versions(version, versions[base_pkg]) > 0) {
+                  versions[base_pkg] = version
+                  packages[base_pkg] = line
+                }
+              }
+            }
+          
+            END {
+              # Print all latest package versions
+              for (pkg in packages) {
+                print packages[pkg]
+              }
+              print ""  # ensure newline at end
+            }
+          ' < <(sed -n '/^## :hammer: Dependency Upgrades/,/^## /p' changelog.md) >> changelog.tmp
+          
+          # Copy everything after dependency section, starting with the next section header
+          sed -n '/^## :hammer: Dependency Upgrades/,$ p' changelog.md | \
+          sed '1,/^## / { /^## :hammer: Dependency Upgrades/d; /^- Upgrade/d; }' >> changelog.tmp
+          
+          # Replace original file
+          mv changelog.tmp changelog.md
 
       - name: Set release notes output
         id: set_notes_output
@@ -84,25 +126,50 @@ jobs:
     needs: update-release
 
     steps:
-      - name: Notify Google Chat
-        run: |
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"text\": \"New release ${{ github.ref_name }} is now live!\"}" \
-            ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+#      - name: Notify Google Chat
+#        run: |
+#          curl -X POST \
+#            -H "Content-Type: application/json" \
+#            -d "{\"text\": \"${{ github.event.repository.name }}-announcing ${{ github.ref_name }}\"}" \
+#            ${{ secrets.SPRING_RELEASE_GCHAT_WEBHOOK_URL }}
 
-      - name: Post on Twitter
-        uses: ethomson/send-tweet@v1
-        with:
-          status: "New release ${{ github.ref_name }} is now live! Check out the changelog here: https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/${{ github.ref_name }}"
-          twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
-          twitter_api_key_secret: ${{ secrets.TWITTER_API_SECRET }}
-          twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_SECRET }}
+# TODO: Waiting for credentials
+#      - name: Post on Twitter
+#        uses: ethomson/send-tweet@v1
+#        with:
+#          status: "New release of ${{ github.ref_name }} is now live! Check out the changelog here: https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/${{ github.ref_name }}"
+#          twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
+#          twitter_api_key_secret: ${{ secrets.TWITTER_API_SECRET }}
+#          twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+#          twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_SECRET }}
 
       - name: Post on Bluesky
+        env:
+          BSKY_IDENTIFIER: ${{ secrets.TEMP_BLUESKY_HANDLE }}
+          BSKY_PASSWORD: ${{ secrets.TEMP_BLUESKY_PASSWORD }}
         run: |
-          curl -X POST \
+          # First get the session token
+          SESSION_TOKEN=$(curl -s -X POST https://bsky.social/xrpc/com.atproto.server.createSession \
             -H "Content-Type: application/json" \
-            -d "{\"text\": \"New release ${{ github.ref_name }} is now live! Check out the changelog here: https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/${{ github.ref_name }}\"}" \
-            ${{ secrets.BLUESKY_API_URL }}
+            -d "{\"identifier\":\"$BSKY_IDENTIFIER\",\"password\":\"$BSKY_PASSWORD\"}" | \
+            jq -r .accessJwt)
+          
+          # Create post content
+          VERSION=${GITHUB_REF_NAME#v}
+          # TODO: Change me back to this text
+          # POST_TEXT="${{ github.event.repository.name }} ${VERSION} has been released!\n\nCheck out the changelog: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+          POST_TEXT="Test"
+          
+          # Create the post
+          curl -X POST https://bsky.social/xrpc/com.atproto.repo.createRecord \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${SESSION_TOKEN}" \
+            -d "{
+              \"repo\": \"$BSKY_IDENTIFIER\",
+              \"collection\": \"app.bsky.feed.post\",
+              \"record\": {
+                \"\$type\": \"app.bsky.feed.post\",
+                \"text\": \"$POST_TEXT\",
+                \"createdAt\": \"$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")\"
+              }
+            }"
