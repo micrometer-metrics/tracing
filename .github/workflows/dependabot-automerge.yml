@@ -1,0 +1,23 @@
+name: Dependabot auto-merge
+on:
+  pull_request:
+  workflow_dispatch: # Enables manual trigger
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{github.event.pull_request.user.login == 'dependabot[bot]'  && github.event_name == 'pull_request'}}
+    steps:
+      - name: Set merge target
+        id: set-target
+        run: |
+          if [ "${{ github.event.pull_request.base.ref }}" = "main" ]; then
+            echo "target=minor" >> $GITHUB_OUTPUT
+          else
+            echo "target=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: ahmadnassri/action-dependabot-auto-merge@v2
+        with:
+          github-token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          target: ${{ steps.set-target.outputs.target }}

@@ -4,7 +4,7 @@ updates:
     directory: "/"
     target-branch: "1.1.x" # oldest OSS supported branch
     schedule:
-      interval: "weekly"
+      interval: "daily"
 # Non-build dependencies; target every supported branch
   - package-ecosystem: gradle
     directory: "/"
