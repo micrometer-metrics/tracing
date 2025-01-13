@@ -80,7 +80,7 @@ jobs:
           milestone_name=${GITHUB_REF_NAME#v}
           curl --location --request POST '${{ secrets.SPRING_RELEASE_GCHAT_WEBHOOK_URL }}' \
           --header 'Content-Type: application/json' \
-          --data-raw "{ text: \"${{ github.event.repository.name }}-announcing ${milestone_name}\"}"
+          --data-raw "{ text: \"micrometer-${{ github.event.repository.name }}-announcing ${milestone_name}\"}"
 
       - name: Post on Bluesky
         env:
@@ -95,7 +95,7 @@ jobs:
 
           # Create post content
           VERSION=${GITHUB_REF_NAME#v}
-          POST_TEXT="${{ github.event.repository.name }} ${VERSION} has been released!\n\nCheck out the changelog: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+          POST_TEXT="micrometer-${{ github.event.repository.name }} ${VERSION} has been released!\n\nCheck out the changelog: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
 
           # Create the post
           curl -X POST https://bsky.social/xrpc/com.atproto.repo.createRecord \
