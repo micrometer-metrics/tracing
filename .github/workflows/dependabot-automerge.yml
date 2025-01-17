@@ -10,24 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{github.event.pull_request.user.login == 'dependabot[bot]'  && github.event_name == 'pull_request'}}
     steps:
-      - name: Set merge target
-        id: set-target
-        run: |
-          if [ "${{ github.event.pull_request.base.ref }}" = "main" ]; then
-            echo "target=minor" >> $GITHUB_OUTPUT
-          else
-            echo "target=patch" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2
-        env:
-          GH_TOKEN: ${{secrets.GH_ACTIONS_REPO_TOKEN}}
-        with:
-          github-token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
       - name: Enable auto-merge for Dependabot PRs
-        if: steps.metadata.outputs.update-type == format('version-update:semver-{0}', steps.set-target.outputs.target)
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
