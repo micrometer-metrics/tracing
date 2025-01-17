@@ -2,7 +2,9 @@ name: Dependabot auto-merge
 on:
   pull_request:
   workflow_dispatch: # Enables manual trigger
-
+permissions:
+  pull-requests: write
+  contents: write
 jobs:
   dependabot:
     runs-on: ubuntu-latest
@@ -20,8 +22,10 @@ jobs:
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v2
+        env:
+          GH_TOKEN: ${{secrets.GH_ACTIONS_REPO_TOKEN}}
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          github-token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
       - name: Enable auto-merge for Dependabot PRs
         if: steps.metadata.outputs.update-type == format('version-update:semver-{0}', steps.set-target.outputs.target)
         run: gh pr merge --auto --merge "$PR_URL"
