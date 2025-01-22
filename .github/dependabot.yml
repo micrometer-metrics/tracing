@@ -13,6 +13,12 @@ updates:
     target-branch: "1.1.x"
     milestone: 14
     ignore:
+      # Block all OpenTelemetry instrumentation updates
+      - dependency-name: "io.opentelemetry.instrumentation:*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+          - version-update:semver-patch
       # only upgrade patch versions
       - dependency-name: "*"
         update-types:
@@ -26,6 +32,12 @@ updates:
     target-branch: "1.2.x"
     milestone: 47
     ignore:
+      # Block all OpenTelemetry instrumentation updates
+      - dependency-name: "io.opentelemetry.instrumentation:*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+          - version-update:semver-patch
       # only upgrade patch versions
       - dependency-name: "*"
         update-types:
