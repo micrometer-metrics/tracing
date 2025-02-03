@@ -1,30 +1,18 @@
-name: Dependabot auto-merge
+name: Merge Dependabot PR
+
 on:
   pull_request:
-  workflow_dispatch: # Enables manual trigger
+    branches:
+      - main
+      - '*.x'
+
+run-name: Merge Dependabot PR ${{ github.ref_name }}
 
 jobs:
-  dependabot:
-    runs-on: ubuntu-latest
-    if: ${{github.event.pull_request.user.login == 'dependabot[bot]'  && github.event_name == 'pull_request'}}
-    steps:
-      - name: Set merge target
-        id: set-target
-        run: |
-          if [ "${{ github.event.pull_request.base.ref }}" = "main" ]; then
-            echo "target=minor" >> $GITHUB_OUTPUT
-          else
-            echo "target=patch" >> $GITHUB_OUTPUT
-          fi
+  merge-dependabot-pr:
+    permissions: write-all
 
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2
-        with:
-          github-token: "${{ secrets.GH_ACTIONS_REPO_TOKEN }}"
-      - name: Enable auto-merge for Dependabot PRs
-        if: steps.metadata.outputs.update-type == format('version-update:semver-{0}', steps.set-target.outputs.target)
-        run: gh pr merge --auto --merge "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GH_TOKEN: ${{secrets.GH_ACTIONS_REPO_TOKEN}}
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-merge-dependabot-pr.yml@v5
+    with:
+      mergeArguments: --auto --squash
+      autoMergeSnapshots: true
