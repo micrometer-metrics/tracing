@@ -17,7 +17,6 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
-import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
@@ -26,7 +25,10 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -36,14 +38,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  * @deprecated in favour of {@code opentelemetry-sdk-testing} artifact's
- * {@link InMemorySpanExporter}
  */
 @Deprecated
 public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
 
     private static final Logger log = LoggerFactory.getLogger(ArrayListSpanProcessor.class);
 
-    private final InMemorySpanExporter delegate = InMemorySpanExporter.create();
+    private final Queue<SpanData> spans = new ConcurrentLinkedQueue<>();
 
     @Override
     public void onStart(Context parent, ReadWriteSpan span) {
@@ -63,7 +64,7 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
     @Override
     public void onEnd(ReadableSpan span) {
         logWarn();
-        delegate.export(Collections.singletonList(span.toSpanData()));
+        this.spans.add(span.toSpanData());
     }
 
     @Override
@@ -74,7 +75,8 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
     @Override
     public CompletableResultCode export(Collection<SpanData> spans) {
         logWarn();
-        return delegate.export(spans);
+        this.spans.addAll(spans.stream().filter(f -> !this.spans.contains(f)).collect(Collectors.toList()));
+        return CompletableResultCode.ofSuccess();
     }
 
     @Override
@@ -103,11 +105,7 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
      */
     public SpanData takeLocalSpan() {
         logWarn();
-        List<SpanData> items = this.delegate.getFinishedSpanItems();
-        if (items.isEmpty()) {
-            return null;
-        }
-        return items.get(0);
+        return this.spans.poll();
     }
 
     /**
@@ -116,7 +114,7 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
      */
     public Queue<SpanData> spans() {
         logWarn();
-        return new LinkedList<>(this.delegate.getFinishedSpanItems());
+        return this.spans;
     }
 
     /**
@@ -124,12 +122,12 @@ public class ArrayListSpanProcessor implements SpanProcessor, SpanExporter {
      */
     public void clear() {
         logWarn();
-        this.delegate.reset();
+        this.spans.clear();
     }
 
     @Override
     public String toString() {
-        return "ArrayListSpanProcessor{" + "spans=" + delegate.getFinishedSpanItems() + '}';
+        return "ArrayListSpanProcessor{" + "spans=" + spans + '}';
     }
 
 }
