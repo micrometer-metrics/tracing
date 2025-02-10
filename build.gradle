@@ -306,11 +306,6 @@ subprojects {
 
 	repositories {
 		mavenCentral()
-		// For micrometer
-		maven {
-			name = 'Milestone'
-			url = 'https://repo.spring.io/milestone'
-		}
 	}
 
 	def check = tasks.findByName('check')
