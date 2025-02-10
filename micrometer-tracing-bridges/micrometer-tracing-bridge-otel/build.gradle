@@ -15,6 +15,7 @@ dependencies {
 	api 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator'
 	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
 	optionalApi 'io.opentelemetry:opentelemetry-opentracing-shim'
+	optionalApi 'io.opentelemetry:opentelemetry-sdk-testing'
 
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation 'io.micrometer:micrometer-core'

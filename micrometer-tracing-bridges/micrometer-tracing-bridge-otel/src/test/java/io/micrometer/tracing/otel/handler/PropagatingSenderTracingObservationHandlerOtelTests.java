@@ -1,17 +1,15 @@
 /**
  * Copyright 2022 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * <p>
  * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package io.micrometer.tracing.otel.handler;
 
@@ -30,6 +28,7 @@ import io.micrometer.tracing.test.simple.SpansAssert;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
@@ -38,7 +37,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -46,7 +44,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 @SuppressWarnings("unchecked")
 class PropagatingSenderTracingObservationHandlerOtelTests {
 
-    ArrayListSpanProcessor testSpanProcessor = new ArrayListSpanProcessor();
+    InMemorySpanExporter testSpanProcessor = InMemorySpanExporter.create();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
@@ -97,7 +95,7 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
         child.stop();
         parent.stop();
 
-        List<FinishedSpan> spans = testSpanProcessor.spans()
+        List<FinishedSpan> spans = testSpanProcessor.getFinishedSpanItems()
             .stream()
             .map(OtelFinishedSpan::fromOtel)
             .collect(Collectors.toList());
@@ -131,9 +129,9 @@ class PropagatingSenderTracingObservationHandlerOtelTests {
     }
 
     private SpanData takeOnlySpan() {
-        Queue<SpanData> spans = testSpanProcessor.spans();
+        List<SpanData> spans = testSpanProcessor.getFinishedSpanItems();
         then(spans).hasSize(1);
-        return testSpanProcessor.takeLocalSpan();
+        return testSpanProcessor.getFinishedSpanItems().get(0);
     }
 
 }

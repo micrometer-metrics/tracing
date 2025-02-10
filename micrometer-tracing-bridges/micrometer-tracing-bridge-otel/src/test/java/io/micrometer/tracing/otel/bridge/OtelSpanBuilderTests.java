@@ -24,10 +24,12 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -41,11 +43,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelSpanBuilderTests {
 
-    ArrayListSpanProcessor processor = new ArrayListSpanProcessor();
+    InMemorySpanExporter processor = InMemorySpanExporter.create();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-        .addSpanProcessor(processor)
+        .addSpanProcessor(SimpleSpanProcessor.create(processor))
         .build();
 
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
@@ -80,7 +82,7 @@ class OtelSpanBuilderTests {
 
         builder.addLink(new Link(span1.context())).addLink(new Link(span2, tags())).start().end();
 
-        SpanData finishedSpan = processor.spans().poll();
+        SpanData finishedSpan = processor.getFinishedSpanItems().get(0);
         then(finishedSpan.getLinks().get(0).getSpanContext())
             .isEqualTo(OtelTraceContext.toOtelSpanContext(span1.context()));
         then(finishedSpan.getLinks().get(1).getSpanContext())
@@ -104,7 +106,7 @@ class OtelSpanBuilderTests {
             .start()
             .end();
 
-        SpanData poll = processor.spans().poll();
+        SpanData poll = processor.getFinishedSpanItems().get(0);
         then(poll.getAttributes().get(AttributeKey.stringKey("string"))).isEqualTo("string");
         then(poll.getAttributes().get(AttributeKey.doubleKey("double"))).isEqualTo(2.5);
         then(poll.getAttributes().get(AttributeKey.longKey("long"))).isEqualTo(2L);
@@ -121,7 +123,7 @@ class OtelSpanBuilderTests {
             .start()
             .end();
 
-        SpanData poll = processor.spans().poll();
+        SpanData poll = processor.getFinishedSpanItems().get(0);
         Attributes attributes = poll.getAttributes();
         then(attributes.get(AttributeKey.stringArrayKey("strings"))).isEqualTo(Arrays.asList("s1", "s2", "s3"));
         then(attributes.get(AttributeKey.doubleArrayKey("doubles"))).isEqualTo(Arrays.asList(1.0, 2.5, 3.7));
@@ -148,7 +150,7 @@ class OtelSpanBuilderTests {
     void should_add_event_with_exception_and_set_error_status() {
         new OtelSpanBuilder(otelTracer).name("foo").error(new RuntimeException("something went wrong")).start().end();
 
-        SpanData spanData = processor.spans().poll();
+        SpanData spanData = processor.getFinishedSpanItems().get(0);
         assertThat(spanData).isNotNull();
         List<EventData> events = spanData.getEvents();
         assertThat(events).hasSize(1);

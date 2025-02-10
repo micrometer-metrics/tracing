@@ -27,11 +27,13 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -149,10 +151,10 @@ class OtelFinishedSpanTests {
 
     @Test
     void should_set_links() {
-        ArrayListSpanProcessor processor = new ArrayListSpanProcessor();
+        InMemorySpanExporter processor = InMemorySpanExporter.create();
         SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
             .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-            .addSpanProcessor(processor)
+            .addSpanProcessor(SimpleSpanProcessor.create(processor))
             .build();
         OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
             .setTracerProvider(sdkTracerProvider)
@@ -168,7 +170,7 @@ class OtelFinishedSpanTests {
 
         builder.addLink(new Link(span1.context())).addLink(new Link(span2, tags())).start().end();
 
-        SpanData traceFinishedSpan = processor.spans().poll();
+        SpanData traceFinishedSpan = processor.getFinishedSpanItems().get(0);
         OtelFinishedSpan finishedSpan = new OtelFinishedSpan(traceFinishedSpan);
 
         finishedSpan.addLink(new Link(span3, tags()));

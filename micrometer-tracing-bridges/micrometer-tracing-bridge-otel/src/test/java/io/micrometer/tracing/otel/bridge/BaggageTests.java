@@ -36,6 +36,7 @@ import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
@@ -78,7 +79,7 @@ class BaggageTests {
 
     public static final String OBSERVATION_BAGGAGE_VALUE = "observationValue";
 
-    ArrayListSpanProcessor spanExporter = new ArrayListSpanProcessor();
+    InMemorySpanExporter spanExporter = InMemorySpanExporter.create();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
@@ -254,8 +255,8 @@ class BaggageTests {
             span.end();
         }
 
-        then(spanExporter.spans()).hasSize(1);
-        SpanData spanData = spanExporter.spans().poll();
+        then(spanExporter.getFinishedSpanItems()).hasSize(1);
+        SpanData spanData = spanExporter.getFinishedSpanItems().get(0);
         then(spanData.getAttributes().get(AttributeKey.stringKey(TAG_KEY))).isEqualTo(TAG_VALUE);
     }
 
@@ -285,8 +286,8 @@ class BaggageTests {
         then(tracer.getBaggage(OBSERVATION_BAGGAGE_KEY).get()).isNull();
         observation.stop();
 
-        then(spanExporter.spans()).hasSize(1);
-        SpanData spanData = spanExporter.spans().poll();
+        then(spanExporter.getFinishedSpanItems()).hasSize(1);
+        SpanData spanData = spanExporter.getFinishedSpanItems().get(0);
         then(spanData.getAttributes().get(AttributeKey.stringKey(KEY_1))).isEqualTo(TAG_VALUE);
         then(spanData.getAttributes().get(AttributeKey.stringKey(OBSERVATION_BAGGAGE_KEY)))
             .isEqualTo(OBSERVATION_BAGGAGE_VALUE);
@@ -308,8 +309,8 @@ class BaggageTests {
             span.end();
         }
 
-        then(spanExporter.spans()).hasSize(1);
-        SpanData spanData = spanExporter.spans().poll();
+        then(spanExporter.getFinishedSpanItems()).hasSize(1);
+        SpanData spanData = spanExporter.getFinishedSpanItems().get(0);
         then(spanData.getAttributes().get(AttributeKey.stringKey(TAG_KEY))).isEqualTo(TAG_VALUE);
     }
 

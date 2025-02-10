@@ -31,7 +31,9 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.ResourceAttributes;
 
 import java.util.Collections;
@@ -87,7 +89,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
         private String applicationName = "observability-test";
 
-        private Function<ArrayListSpanProcessor, SdkTracerProvider> sdkTracerProvider;
+        private Function<InMemorySpanExporter, SdkTracerProvider> sdkTracerProvider;
 
         private Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
 
@@ -114,7 +116,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-            private final ArrayListSpanProcessor arrayListSpanProcessor;
+            private final InMemorySpanExporter arrayListSpanProcessor;
 
             /**
              * Creates a new instance of {@link OtelBuildingBlocks}.
@@ -127,7 +129,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             public OtelBuildingBlocks(SdkTracerProvider sdkTracerProvider, OtelTracer otelTracer,
                     OtelPropagator propagator,
                     BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers,
-                    ArrayListSpanProcessor arrayListSpanProcessor) {
+                    InMemorySpanExporter arrayListSpanProcessor) {
                 this.sdkTracerProvider = sdkTracerProvider;
                 this.otelTracer = otelTracer;
                 this.propagator = propagator;
@@ -147,7 +149,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.arrayListSpanProcessor.spans()
+                return this.arrayListSpanProcessor.getFinishedSpanItems()
                     .stream()
                     .map(OtelFinishedSpan::fromOtel)
                     .collect(Collectors.toList());
@@ -175,7 +177,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
          * @param sdkTracerProvider sdk tracer provider function
          * @return this for chaining
          */
-        public Builder sdkTracerProvider(Function<ArrayListSpanProcessor, SdkTracerProvider> sdkTracerProvider) {
+        public Builder sdkTracerProvider(Function<InMemorySpanExporter, SdkTracerProvider> sdkTracerProvider) {
             this.sdkTracerProvider = sdkTracerProvider;
             return this;
         }
@@ -249,7 +251,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
          * @return setup with all OTel building blocks
          */
         public InMemoryOtelSetup register(ObservationRegistry registry) {
-            ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
+            InMemorySpanExporter arrayListSpanProcessor = InMemorySpanExporter.create();
             SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null
                     ? this.sdkTracerProvider.apply(arrayListSpanProcessor)
                     : sdkTracerProvider(arrayListSpanProcessor, this.applicationName);
@@ -272,11 +274,11 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             return new InMemoryOtelSetup(closingFunction, otelBuildingBlocks);
         }
 
-        private static SdkTracerProvider sdkTracerProvider(ArrayListSpanProcessor arrayListSpanProcessor,
+        private static SdkTracerProvider sdkTracerProvider(InMemorySpanExporter arrayListSpanProcessor,
                 String applicationName) {
             return SdkTracerProvider.builder()
                 .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                .addSpanProcessor(arrayListSpanProcessor)
+                .addSpanProcessor(SimpleSpanProcessor.create(arrayListSpanProcessor))
                 .setResource(Resource.getDefault()
                     .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
                 .build();

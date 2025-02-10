@@ -22,9 +22,11 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -33,11 +35,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelSpanTests {
 
-    ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
+    InMemorySpanExporter arrayListSpanProcessor = InMemorySpanExporter.create();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-        .addSpanProcessor(arrayListSpanProcessor)
+        .addSpanProcessor(SimpleSpanProcessor.create(arrayListSpanProcessor))
         .build();
 
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
@@ -53,7 +55,7 @@ class OtelSpanTests {
 
         otelSpan.error(new RuntimeException("boom!")).end();
 
-        SpanData poll = arrayListSpanProcessor.spans().poll();
+        SpanData poll = arrayListSpanProcessor.getFinishedSpanItems().get(0);
         then(poll.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "boom!"));
         then(poll.getEvents()).hasSize(1);
         then(poll.getEvents().get(0).getAttributes().asMap().values()).containsAnyOf("boom!");
@@ -80,7 +82,7 @@ class OtelSpanTests {
             .tagOfBooleans("booleans", Arrays.asList(true, false, false))
             .end();
 
-        SpanData poll = arrayListSpanProcessor.spans().poll();
+        SpanData poll = arrayListSpanProcessor.getFinishedSpanItems().get(0);
         Attributes attributes = poll.getAttributes();
         then(attributes.get(AttributeKey.stringArrayKey("strings"))).isEqualTo(Arrays.asList("s1", "s2", "s3"));
         then(attributes.get(AttributeKey.doubleArrayKey("doubles"))).isEqualTo(Arrays.asList(1.0, 2.5, 3.7));

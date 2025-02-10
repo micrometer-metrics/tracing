@@ -34,7 +34,9 @@ import io.micrometer.tracing.test.simple.SimpleTracer;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Nested;
@@ -118,11 +120,11 @@ class ObservationAwareSpanThreadLocalAccessorTests {
     @Nested
     class OTelConfig extends AbstractObservationAwareSpanThreadLocalAccessorTests {
 
-        ArrayListSpanProcessor spanExporter = new ArrayListSpanProcessor();
+        InMemorySpanExporter spanExporter = InMemorySpanExporter.create();
 
         SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
             .setSampler(alwaysOn())
-            .addSpanProcessor(spanExporter)
+            .addSpanProcessor(SimpleSpanProcessor.create(spanExporter))
             .build();
 
         OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
