@@ -33,8 +33,10 @@ import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.semconv.ResourceAttributes;
 import zipkin2.reporter.BytesMessageSender;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
@@ -134,7 +136,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-            private final ArrayListSpanProcessor arrayListSpanProcessor;
+            private final InMemorySpanExporter arrayListSpanProcessor;
 
             /**
              * Creates a new instance of {@link OtelBuildingBlocks}.
@@ -152,7 +154,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
                     SdkTracerProvider sdkTracerProvider, OpenTelemetrySdk openTelemetrySdk, Tracer tracer,
                     OtelTracer otelTracer, OtelPropagator propagator,
                     BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers,
-                    ArrayListSpanProcessor arrayListSpanProcessor) {
+                    InMemorySpanExporter arrayListSpanProcessor) {
                 this.sender = sender;
                 this.zipkinSpanExporter = zipkinSpanExporter;
                 this.sdkTracerProvider = sdkTracerProvider;
@@ -184,7 +186,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.arrayListSpanProcessor.spans()
+                return this.arrayListSpanProcessor.getFinishedSpanItems()
                     .stream()
                     .map(OtelFinishedSpan::fromOtel)
                     .collect(Collectors.toList());
@@ -319,7 +321,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
             BytesMessageSender sender = this.sender != null ? this.sender.get() : sender(this.zipkinUrl);
             ZipkinSpanExporter zipkinSpanExporter = this.zipkinSpanExporter != null
                     ? this.zipkinSpanExporter.apply(sender) : zipkinSpanExporter(sender);
-            ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
+            InMemorySpanExporter arrayListSpanProcessor = InMemorySpanExporter.create();
             SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null
                     ? this.sdkTracerProvider.apply(zipkinSpanExporter)
                     : sdkTracerProvider(zipkinSpanExporter, arrayListSpanProcessor, this.applicationName);
@@ -358,10 +360,10 @@ public final class ZipkinOtelSetup implements AutoCloseable {
         }
 
         private static SdkTracerProvider sdkTracerProvider(ZipkinSpanExporter zipkinSpanExporter,
-                ArrayListSpanProcessor arrayListSpanProcessor, String applicationName) {
+                InMemorySpanExporter arrayListSpanProcessor, String applicationName) {
             return SdkTracerProvider.builder()
                 .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                .addSpanProcessor(arrayListSpanProcessor)
+                .addSpanProcessor(SimpleSpanProcessor.create(arrayListSpanProcessor))
                 .addSpanProcessor(BatchSpanProcessor.builder(zipkinSpanExporter)
                     .setScheduleDelay(100, TimeUnit.MILLISECONDS)
                     .setExporterTimeout(300, TimeUnit.MILLISECONDS)

@@ -35,6 +35,7 @@ import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 
@@ -141,7 +142,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             private final BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-            private final ArrayListSpanProcessor arrayListSpanProcessor;
+            private final InMemorySpanExporter arrayListSpanProcessor;
 
             /**
              * Creates a new instance of {@link OtelBuildingBlocks}.
@@ -154,7 +155,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
             public OtelBuildingBlocks(WavefrontOtelSpanExporter wavefrontOTelSpanExporter, OtelTracer otelTracer,
                     OtelPropagator propagator,
                     BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers,
-                    ArrayListSpanProcessor arrayListSpanProcessor) {
+                    InMemorySpanExporter arrayListSpanProcessor) {
                 this.wavefrontOTelSpanExporter = wavefrontOTelSpanExporter;
                 this.otelTracer = otelTracer;
                 this.propagator = propagator;
@@ -179,7 +180,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
             @Override
             public List<FinishedSpan> getFinishedSpans() {
-                return this.arrayListSpanProcessor.spans()
+                return this.arrayListSpanProcessor.getFinishedSpanItems()
                     .stream()
                     .map(OtelFinishedSpan::fromOtel)
                     .collect(Collectors.toList());
@@ -308,7 +309,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
         public WavefrontOtelSetup register(ObservationRegistry observationRegistry, MeterRegistry meterRegistry) {
             WavefrontSpanHandler wavefrontSpanHandler = wavefrontSpanHandlerOrMock(meterRegistry);
             WavefrontOtelSpanExporter wavefrontOTelSpanExporter = wavefrontOtelSpanHandler(wavefrontSpanHandler);
-            ArrayListSpanProcessor arrayListSpanProcessor = new ArrayListSpanProcessor();
+            InMemorySpanExporter arrayListSpanProcessor = InMemorySpanExporter.create();
             SdkTracerProvider sdkTracerProvider = this.sdkTracerProvider != null
                     ? this.sdkTracerProvider.apply(wavefrontOTelSpanExporter)
                     : sdkTracerProvider(wavefrontOTelSpanExporter, arrayListSpanProcessor);
@@ -358,10 +359,10 @@ public final class WavefrontOtelSetup implements AutoCloseable {
         }
 
         private static SdkTracerProvider sdkTracerProvider(WavefrontOtelSpanExporter spanHandler,
-                ArrayListSpanProcessor arrayListSpanProcessor) {
+                InMemorySpanExporter arrayListSpanProcessor) {
             return SdkTracerProvider.builder()
                 .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
-                .addSpanProcessor(arrayListSpanProcessor)
+                .addSpanProcessor(SimpleSpanProcessor.create(arrayListSpanProcessor))
                 .addSpanProcessor(SimpleSpanProcessor.create(spanHandler))
                 .build();
         }

@@ -19,7 +19,6 @@ import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.otel.bridge.ArrayListSpanProcessor;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
@@ -27,8 +26,10 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,11 +50,11 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 class BaseTests {
 
-    ArrayListSpanProcessor spans = new ArrayListSpanProcessor();
+    InMemorySpanExporter spans = InMemorySpanExporter.create();
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(alwaysOn())
-        .addSpanProcessor(spans)
+        .addSpanProcessor(SimpleSpanProcessor.create(spans))
         .build();
 
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
@@ -71,7 +72,7 @@ class BaseTests {
 
     @BeforeEach
     void setup() {
-        this.spans.clear();
+        this.spans.reset();
     }
 
     @AfterEach
@@ -102,8 +103,8 @@ class BaseTests {
         }
         // end::manual_span_creation[]
 
-        then(this.spans.spans()).hasSize(1);
-        SpanData spanData = this.spans.takeLocalSpan();
+        then(spans.getFinishedSpanItems()).hasSize(1);
+        SpanData spanData = this.spans.getFinishedSpanItems().get(0);
         then(spanData.getName()).isEqualTo("calculateTax");
         then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
         then(spanData.getEvents()).hasSize(1);
@@ -132,8 +133,8 @@ class BaseTests {
         }
         // end::manual_span_continuation[]
 
-        then(spans.spans()).hasSize(1);
-        SpanData spanData = this.spans.takeLocalSpan();
+        then(spans.getFinishedSpanItems()).hasSize(1);
+        SpanData spanData = this.spans.getFinishedSpanItems().get(0);
         then(spanData.getName()).isEqualTo("calculateTax");
         then(spanData.getAttributes().asMap()).containsEntry(AttributeKey.stringKey("taxValue"), "10");
         then(spanData.getEvents()).hasSize(1);
@@ -172,7 +173,7 @@ class BaseTests {
             // end::manual_span_joining[]
         }).get();
         ;
-        Optional<SpanData> calculateTax = spans.spans()
+        Optional<SpanData> calculateTax = spans.getFinishedSpanItems()
             .stream()
             .filter(span -> span.getName().equals("calculateCommission"))
             .findFirst();
