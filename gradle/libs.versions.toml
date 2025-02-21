@@ -43,6 +43,8 @@ jmh = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmhGeneratorAnnProcess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "jsr305" }
 junitBom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junitJupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerContextPropagation = { module = "io.micrometer:context-propagation", version.ref = "micrometerContextPropagation" }
