@@ -43,10 +43,11 @@ dependencies {
 	api libs.wavefrontReporter
 
 	// Tests
-	api 'org.junit.jupiter:junit-jupiter'
+	api libs.junitJupiter
 	api libs.assertj
 
 	// Tests for tests
+	testRuntimeOnly libs.junitPlatformLauncher
 	testImplementation libs.springContext
 	testImplementation libs.mockitoCore
 	testImplementation libs.wiremock
