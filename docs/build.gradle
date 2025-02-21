@@ -34,7 +34,8 @@ dependencies {
 	testImplementation project(':micrometer-tracing-test')
 	testImplementation project(':micrometer-tracing-integration-test')
 	testImplementation libs.aspectjweaver
-	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation libs.junitJupiter
+	testRuntimeOnly libs.junitPlatformLauncher
 	testImplementation libs.mockitoCore
 	testImplementation libs.assertj
 	testImplementation libs.springContext

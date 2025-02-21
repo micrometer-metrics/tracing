@@ -18,7 +18,8 @@ dependencies {
 	optionalApi libs.logback
 	optionalApi libs.log4j
 
-	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation libs.junitJupiter
+	testRuntimeOnly libs.junitPlatformLauncher
 	testImplementation libs.assertj
 	testImplementation libs.mockitoCore
 	testImplementation libs.mockitoJunit

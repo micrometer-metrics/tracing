@@ -8,7 +8,8 @@ dependencies {
 
     // Tests for tests
     testImplementation libs.logback
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation libs.junitJupiter
+    testRuntimeOnly libs.junitPlatformLauncher
     testImplementation 'org.mockito:mockito-core'
 
     // aspects
