@@ -20,11 +20,14 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadableSpan;
-import io.opentelemetry.semconv.SemanticAttributes;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_ADDRESS;
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
+import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
 
 /**
  * OpenTelemetry implementation of a {@link Span}.
@@ -160,8 +163,8 @@ public class OtelSpan implements Span {
 
     @Override
     public Span remoteIpAndPort(String ip, int port) {
-        this.delegate.setAttribute(SemanticAttributes.NET_SOCK_PEER_ADDR, ip);
-        this.delegate.setAttribute(SemanticAttributes.NET_PEER_PORT, port);
+        this.delegate.setAttribute(NETWORK_PEER_ADDRESS, ip);
+        this.delegate.setAttribute(NETWORK_PEER_PORT, port);
         return this;
     }
 
@@ -187,7 +190,7 @@ public class OtelSpan implements Span {
 
     @Override
     public Span remoteServiceName(String remoteServiceName) {
-        this.delegate.setAttribute(OtelSpanBuilder.REMOTE_SERVICE_NAME_KEY, remoteServiceName);
+        this.delegate.setAttribute(PEER_SERVICE, remoteServiceName);
         return this;
     }
 

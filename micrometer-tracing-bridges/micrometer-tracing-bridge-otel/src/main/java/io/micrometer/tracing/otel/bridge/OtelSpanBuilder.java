@@ -23,7 +23,6 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.*;
-import io.opentelemetry.semconv.SemanticAttributes;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -32,6 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_ADDRESS;
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
+import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
+
 /**
  * OpenTelemetry implementation of a {@link Span.Builder}.
  *
@@ -39,8 +42,6 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0.0
  */
 class OtelSpanBuilder implements Span.Builder {
-
-    static final String REMOTE_SERVICE_NAME_KEY = "peer.service";
 
     private final Tracer tracer;
 
@@ -177,14 +178,14 @@ class OtelSpanBuilder implements Span.Builder {
 
     @Override
     public Span.Builder remoteServiceName(String remoteServiceName) {
-        this.attributes.put(REMOTE_SERVICE_NAME_KEY, remoteServiceName);
+        this.attributes.put(PEER_SERVICE, remoteServiceName);
         return this;
     }
 
     @Override
     public Span.Builder remoteIpAndPort(String ip, int port) {
-        this.attributes.put(SemanticAttributes.NET_SOCK_PEER_ADDR.getKey(), ip);
-        this.attributes.put(SemanticAttributes.NET_PEER_PORT.getKey(), port);
+        this.attributes.put(NETWORK_PEER_ADDRESS, ip);
+        this.attributes.put(NETWORK_PEER_PORT, port);
         return this;
     }
 
