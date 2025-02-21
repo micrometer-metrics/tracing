@@ -37,7 +37,6 @@ import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import io.opentelemetry.semconv.ResourceAttributes;
 import zipkin2.reporter.BytesMessageSender;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
@@ -51,6 +50,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 
 /**
  * Provides Zipkin setup with OTel.
@@ -368,8 +369,7 @@ public final class ZipkinOtelSetup implements AutoCloseable {
                     .setScheduleDelay(100, TimeUnit.MILLISECONDS)
                     .setExporterTimeout(300, TimeUnit.MILLISECONDS)
                     .build())
-                .setResource(Resource.getDefault()
-                    .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
+                .setResource(Resource.getDefault().merge(Resource.create(Attributes.of(SERVICE_NAME, applicationName))))
                 .build();
         }
 

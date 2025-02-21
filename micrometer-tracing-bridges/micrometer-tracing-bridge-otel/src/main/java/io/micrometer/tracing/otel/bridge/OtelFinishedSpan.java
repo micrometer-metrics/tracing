@@ -29,13 +29,18 @@ import io.opentelemetry.sdk.trace.data.DelegatingSpanData;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.semconv.SemanticAttributes;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.opentelemetry.semconv.ExceptionAttributes.EXCEPTION_MESSAGE;
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_ADDRESS;
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
 
 /**
  * OpenTelemetry implementation of a {@link FinishedSpan}.
@@ -188,7 +193,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     @Override
     @Nullable
     public String getRemoteIp() {
-        return getTags().get(SemanticAttributes.NET_SOCK_PEER_ADDR.getKey());
+        return getTags().get(NETWORK_PEER_ADDRESS.getKey());
     }
 
     @Override
@@ -235,7 +240,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     @Override
     public int getRemotePort() {
-        String port = getTags().get("net.peer.port");
+        String port = getTags().get(NETWORK_PEER_PORT.getKey());
         if (port == null) {
             return 0;
         }
@@ -244,7 +249,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     @Override
     public FinishedSpan setRemotePort(int port) {
-        this.spanData.tags.put(AttributeKey.longKey("net.peer.port"), String.valueOf(port));
+        this.spanData.tags.put(NETWORK_PEER_PORT, String.valueOf(port));
         return this;
     }
 
@@ -271,8 +276,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     @Override
     public FinishedSpan setError(Throwable error) {
         this.spanData.getEvents()
-            .add(EventData.create(System.nanoTime(), "exception",
-                    Attributes.of(AttributeKey.stringKey("exception.message"), error.toString())));
+            .add(EventData.create(System.nanoTime(), "exception", Attributes.of(EXCEPTION_MESSAGE, error.toString())));
         return this;
     }
 
@@ -287,23 +291,23 @@ public class OtelFinishedSpan implements FinishedSpan {
     @Override
     @Nullable
     public String getRemoteServiceName() {
-        return this.spanData.getAttributes().get(AttributeKey.stringKey("peer.service"));
+        return this.spanData.getAttributes().get(PEER_SERVICE);
     }
 
     @Override
     public FinishedSpan setRemoteServiceName(String remoteServiceName) {
-        this.spanData.tags.put(AttributeKey.stringKey("peer.service"), remoteServiceName);
+        this.spanData.tags.put(PEER_SERVICE, remoteServiceName);
         return this;
     }
 
     @Override
     public String getLocalServiceName() {
-        return this.spanData.getResource().getAttribute(AttributeKey.stringKey("service.name"));
+        return this.spanData.getResource().getAttribute(SERVICE_NAME);
     }
 
     @Override
     public FinishedSpan setLocalServiceName(String localServiceName) {
-        this.spanData.resources.put(AttributeKey.stringKey("service.name"), localServiceName);
+        this.spanData.resources.put(SERVICE_NAME, localServiceName);
         return this;
     }
 
@@ -354,7 +358,7 @@ public class OtelFinishedSpan implements FinishedSpan {
         public final Attributes attributes;
 
         AssertingThrowable(Attributes attributes) {
-            super(attributes.get(AttributeKey.stringKey("exception.message")));
+            super(attributes.get(EXCEPTION_MESSAGE));
             this.attributes = attributes;
         }
 

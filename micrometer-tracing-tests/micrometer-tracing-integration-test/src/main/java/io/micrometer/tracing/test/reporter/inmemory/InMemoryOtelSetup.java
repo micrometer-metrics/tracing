@@ -34,7 +34,6 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import io.opentelemetry.semconv.ResourceAttributes;
 
 import java.util.Collections;
 import java.util.Deque;
@@ -44,6 +43,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 
 /**
  * Provides Zipkin setup with OTel.
@@ -279,8 +280,7 @@ public final class InMemoryOtelSetup implements AutoCloseable {
             return SdkTracerProvider.builder()
                 .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
                 .addSpanProcessor(SimpleSpanProcessor.create(arrayListSpanProcessor))
-                .setResource(Resource.getDefault()
-                    .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, applicationName))))
+                .setResource(Resource.getDefault().merge(Resource.create(Attributes.of(SERVICE_NAME, applicationName))))
                 .build();
         }
 

@@ -29,12 +29,14 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import io.opentelemetry.semconv.SemanticAttributes;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
 
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_ADDRESS;
+import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
+import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class PropagatingReceiverTracingObservationHandlerOtelTests {
@@ -85,7 +87,7 @@ class PropagatingReceiverTracingObservationHandlerOtelTests {
         handler.onStop(receiverContext);
 
         SpanData data = takeOnlySpan();
-        then(data.getAttributes().get(SemanticAttributes.PEER_SERVICE)).isEqualTo("a-remote-service");
+        then(data.getAttributes().get(PEER_SERVICE)).isEqualTo("a-remote-service");
     }
 
     @Test
@@ -98,8 +100,8 @@ class PropagatingReceiverTracingObservationHandlerOtelTests {
         handler.onStop(receiverContext);
 
         SpanData data = takeOnlySpan();
-        then(data.getAttributes().get(SemanticAttributes.NET_SOCK_PEER_ADDR)).isEqualTo("127.0.0.1");
-        then(data.getAttributes().get(SemanticAttributes.NET_PEER_PORT)).isEqualTo(1234L);
+        then(data.getAttributes().get(NETWORK_PEER_ADDRESS)).isEqualTo("127.0.0.1");
+        then(data.getAttributes().get(NETWORK_PEER_PORT)).isEqualTo(1234L);
     }
 
     private SpanData takeOnlySpan() {
