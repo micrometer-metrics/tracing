@@ -8,11 +8,10 @@ dependencies {
 	api 'io.micrometer:micrometer-observation'
 
 	api 'io.opentelemetry:opentelemetry-api'
-	api 'io.opentelemetry.semconv:opentelemetry-semconv-incubating' // brings in io.opentelemetry.semconv:opentelemetry-semconv
+	api libs.otelSemconvAlpha
 	api 'io.opentelemetry:opentelemetry-sdk-common'
 	api 'io.opentelemetry:opentelemetry-sdk-trace'
 	api 'io.opentelemetry:opentelemetry-sdk'
-	api 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator'
 	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
 	optionalApi 'io.opentelemetry:opentelemetry-opentracing-shim'
 

@@ -35,7 +35,7 @@ def MICROMETER_PLATFORM_VERSIONS = [
 def PLATFORM_VERSIONS = [
 	libs.zipkinReporterBom,
 	libs.braveBom,
-	libs.otelInstrumentationBomAlpha,
+	libs.otelBom,
 	libs.reactorBom,
 	libs.junitBom
 ]
