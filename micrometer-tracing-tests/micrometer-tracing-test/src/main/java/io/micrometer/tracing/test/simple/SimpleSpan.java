@@ -122,6 +122,11 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
+    public Span error(String message) {
+        return this;
+    }
+
+    @Override
     public SimpleSpan remoteIpAndPort(String ip, int port) {
         this.ip = ip;
         this.port = port;

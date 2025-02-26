@@ -17,10 +17,12 @@ package io.micrometer.tracing.otel.bridge;
 
 import io.micrometer.tracing.Span;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +38,8 @@ import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_
  * @since 1.0.0
  */
 public class OtelSpan implements Span {
+
+    private static final AttributeKey<String> ERROR_MESSAGE = AttributeKey.stringKey("error.message");
 
     final io.opentelemetry.api.trace.Span delegate;
 
@@ -172,6 +176,14 @@ public class OtelSpan implements Span {
     public Span error(Throwable throwable) {
         this.delegate.recordException(throwable);
         this.delegate.setStatus(StatusCode.ERROR, throwable.getMessage());
+        return this;
+    }
+
+    @Override
+    public Span error(String message) {
+        Attributes attributes = Attributes.of(ERROR_MESSAGE, message);
+        this.delegate.setStatus(StatusCode.ERROR, message);
+        this.delegate.addEvent(message, attributes, Instant.now());
         return this;
     }
 

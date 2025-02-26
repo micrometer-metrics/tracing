@@ -78,6 +78,11 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
         }
 
         @Override
+        public Span error(String message) {
+            return this;
+        }
+
+        @Override
         public void end() {
 
         }
@@ -228,6 +233,13 @@ public interface Span extends io.micrometer.tracing.SpanCustomizer {
      * @return this span
      */
     Span error(Throwable throwable);
+
+    /**
+     * Records an error in this span.
+     * @param message to record
+     * @return this span
+     */
+    Span error(String message);
 
     /**
      * Ends the span. The span gets stopped and recorded if not noop.
