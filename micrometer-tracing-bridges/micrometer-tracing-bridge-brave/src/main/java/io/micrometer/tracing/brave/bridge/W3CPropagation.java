@@ -257,7 +257,7 @@ class W3CBaggagePropagator {
                 entry = entry.substring(0, beginningOfMetadata);
             }
             String[] keyAndValue = entry.split("=");
-            for (int i = 0; i < keyAndValue.length; i += 2) {
+            for (int i = 0; i < keyAndValue.length - 1; i += 2) {
                 try {
                     String key = keyAndValue[i].trim();
                     String value = keyAndValue[i + 1].trim();
