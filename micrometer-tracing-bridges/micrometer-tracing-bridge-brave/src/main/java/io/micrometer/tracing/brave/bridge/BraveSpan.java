@@ -115,6 +115,12 @@ public class BraveSpan implements Span {
     }
 
     @Override
+    public Span error(String message) {
+        this.delegate.tag("error", message);
+        return this;
+    }
+
+    @Override
     public void end() {
         this.delegate.finish();
     }
