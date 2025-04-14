@@ -1,6 +1,6 @@
 [versions]
 micrometer = "1.14.5"
-micrometerContextPropagation="1.1.2"
+micrometerContextPropagation="1.1.3"
 junit = "5.11.4"
 javaxServlet="4.0.1"
 jmh="1.37"
