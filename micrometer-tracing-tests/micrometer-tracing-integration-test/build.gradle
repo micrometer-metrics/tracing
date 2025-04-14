@@ -6,6 +6,7 @@ dependencies {
 	api project(':micrometer-tracing')
 	api project(':micrometer-tracing-test')
 	api project(':micrometer-tracing-reporter-wavefront')
+	api platform(libs.micrometerBom)
 	api 'io.micrometer:micrometer-core'
 	api 'io.micrometer:micrometer-test'
 
@@ -15,7 +16,7 @@ dependencies {
 	api 'io.zipkin.brave:brave-context-slf4j'
 	api 'io.zipkin.brave:brave-instrumentation-http'
 	api 'io.zipkin.brave:brave-tests'
-	api 'io.zipkin.aws:brave-propagation-aws'
+	api libs.zipkinAws
 	api 'io.zipkin.reporter2:zipkin-reporter-brave'
 
 	// OTel
@@ -26,6 +27,7 @@ dependencies {
 	api 'io.opentelemetry:opentelemetry-sdk-testing'
 
 	// Zipkin
+	api platform(libs.zipkinReporterBom)
 	api 'io.zipkin.zipkin2:zipkin'
 	api 'io.zipkin.reporter2:zipkin-reporter'
 	api 'io.zipkin.reporter2:zipkin-sender-urlconnection'
@@ -53,7 +55,8 @@ dependencies {
 	testImplementation libs.wiremock
 	testImplementation libs.awaitility
 	testImplementation libs.logback
+	testImplementation platform(libs.reactorBom)
 	testImplementation 'io.projectreactor:reactor-core'
-	testImplementation 'org.testcontainers:testcontainers'
-	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation libs.testcontainers
+	testImplementation libs.testcontainersJunit
 }

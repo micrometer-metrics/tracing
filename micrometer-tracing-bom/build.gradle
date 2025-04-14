@@ -4,6 +4,16 @@ plugins {
 
 description 'Micrometer Tracing BOM (Bill of Materials) for managing Micrometer Tracing artifact versions'
 
+dependencies {
+	constraints {
+		rootProject.subprojects
+			.findAll { !it.name.contains('micrometer-tracing-bom') && !it.name.contains('benchmarks') }
+			.each { api(group: it.group, name: it.name, version: it.version.toString()) }
+	}
+	javaPlatform.allowDependencies()
+	api platform(libs.micrometerBom)
+}
+
 publishing {
 	publications {
 		nebula(MavenPublication) {

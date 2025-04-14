@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+	api platform(libs.micrometerBom)
 	api 'io.micrometer:micrometer-observation'
 	api 'io.micrometer:context-propagation'
 	api libs.aopAlliance
@@ -12,12 +13,14 @@ dependencies {
 
 	// exemplars support
 	optionalApi 'io.micrometer:micrometer-core'
+	optionalApi platform(libs.reactorBom)
 	optionalApi 'io.projectreactor:reactor-core'
 
 	// log monitoring
 	optionalApi libs.logback
 	optionalApi libs.log4j
 
+	testImplementation platform(libs.junitBom)
 	testImplementation libs.junitJupiter
 	testRuntimeOnly libs.junitPlatformLauncher
 	testImplementation libs.assertj

@@ -8,14 +8,16 @@ dependencies {
 
     // Tests for tests
     testImplementation libs.logback
+    testImplementation platform(libs.junitBom)
     testImplementation libs.junitJupiter
     testRuntimeOnly libs.junitPlatformLauncher
-    testImplementation 'org.mockito:mockito-core'
+    testImplementation libs.mockitoCore
 
     // aspects
     testImplementation libs.springContext
     testImplementation libs.aspectjweaver
 
+    testImplementation platform(libs.reactorBom)
     testImplementation 'io.projectreactor:reactor-core'
     testImplementation 'io.projectreactor:reactor-core-micrometer'
     testImplementation 'io.projectreactor:reactor-test'

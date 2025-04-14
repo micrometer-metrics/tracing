@@ -39,6 +39,7 @@ dependencies {
 	testImplementation libs.mockitoCore
 	testImplementation libs.assertj
 	testImplementation libs.springContext
+	testImplementation platform(libs.reactorBom)
 	testImplementation 'io.projectreactor:reactor-core'
 	testImplementation 'io.projectreactor:reactor-core-micrometer'
 }

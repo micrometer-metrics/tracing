@@ -8,6 +8,7 @@ dependencies {
 	optionalApi libs.javaxServlet
 	optionalApi libs.jakartaWeb
 
+	api platform(libs.braveBom)
 	api 'io.zipkin.brave:brave'
 	api 'io.zipkin.brave:brave-context-slf4j'
 	api 'io.zipkin.brave:brave-instrumentation-http'
@@ -15,6 +16,7 @@ dependencies {
 	api libs.bravePropagationW3c
 
 	testImplementation project(':micrometer-tracing-test')
+	testImplementation platform(libs.micrometerBom)
 	testImplementation 'io.micrometer:micrometer-core'
 	testImplementation 'io.micrometer:micrometer-observation-test'
 	testImplementation libs.junitJupiter
@@ -23,6 +25,7 @@ dependencies {
 	testImplementation libs.awaitility
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
 	testImplementation libs.logback
+	testImplementation platform(libs.reactorBom)
 	testImplementation 'io.projectreactor:reactor-core'
 	testImplementation 'io.projectreactor:reactor-core-micrometer'
 }
