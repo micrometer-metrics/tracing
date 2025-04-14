@@ -170,7 +170,7 @@ subprojects {
 			}
 		}
 
-		task dockerTest(type: Test) {
+		tasks.register('dockerTest', Test) {
 			// set heap size for the test JVM(s)
 			maxHeapSize = '1500m'
 
