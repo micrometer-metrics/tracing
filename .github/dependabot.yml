@@ -48,7 +48,7 @@ updates:
     schedule:
       interval: daily
     target-branch: "main"
-    milestone: 27
+    milestone: 96
     ignore:
       # upgrade minor and patch versions on main
       - dependency-name: "*"
