@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_ADDRESS;
 import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
-import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
 
 /**
  * OpenTelemetry implementation of a {@link Span}.
@@ -36,6 +35,8 @@ import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_
  * @since 1.0.0
  */
 public class OtelSpan implements Span {
+
+    static final AttributeKey<String> PEER_SERVICE = AttributeKey.stringKey("peer.service");
 
     final io.opentelemetry.api.trace.Span delegate;
 
