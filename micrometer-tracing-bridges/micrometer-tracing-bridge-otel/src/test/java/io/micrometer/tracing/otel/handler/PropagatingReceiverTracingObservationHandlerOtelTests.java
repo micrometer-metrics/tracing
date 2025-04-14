@@ -21,6 +21,7 @@ import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.bridge.OtelPropagator;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -36,7 +37,6 @@ import java.util.List;
 
 import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_ADDRESS;
 import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
-import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class PropagatingReceiverTracingObservationHandlerOtelTests {
@@ -87,7 +87,7 @@ class PropagatingReceiverTracingObservationHandlerOtelTests {
         handler.onStop(receiverContext);
 
         SpanData data = takeOnlySpan();
-        then(data.getAttributes().get(PEER_SERVICE)).isEqualTo("a-remote-service");
+        then(data.getAttributes().get(AttributeKey.stringKey("peer.service"))).isEqualTo("a-remote-service");
     }
 
     @Test

@@ -36,11 +36,11 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.micrometer.tracing.otel.bridge.OtelSpan.PEER_SERVICE;
 import static io.opentelemetry.semconv.ExceptionAttributes.EXCEPTION_MESSAGE;
 import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_ADDRESS;
 import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.incubating.PeerIncubatingAttributes.PEER_SERVICE;
 
 /**
  * OpenTelemetry implementation of a {@link FinishedSpan}.
