@@ -23,9 +23,6 @@ dependencies {
 
 	// Tests
 	testImplementation project(':micrometer-tracing-test')
-	testImplementation platform(libs.junitBom)
-	testImplementation libs.junitJupiter
-	testRuntimeOnly libs.junitPlatformLauncher
 	testImplementation libs.assertj
 	testImplementation libs.awaitility
 	testImplementation libs.logback

@@ -19,8 +19,6 @@ dependencies {
 	testImplementation platform(libs.micrometerBom)
 	testImplementation 'io.micrometer:micrometer-core'
 	testImplementation 'io.micrometer:micrometer-observation-test'
-	testImplementation libs.junitJupiter
-	testRuntimeOnly libs.junitPlatformLauncher
 	testImplementation libs.assertj
 	testImplementation libs.awaitility
 	testImplementation 'io.zipkin.brave:brave-instrumentation-http-tests'
