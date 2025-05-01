@@ -110,6 +110,11 @@ class RevertingScope implements CurrentTraceContext.Scope {
         for (String remoteField : tracer.getBaggageFields()) {
             lowerCaseRemoteFields.add(remoteField.toLowerCase());
         }
+
+        if (lowerCaseRemoteFields.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         Collection<KeyValue> baggageKeyValues = new ArrayList<>();
         for (KeyValue keyValue : context.getAllKeyValues()) {
             if (lowerCaseRemoteFields.contains(keyValue.getKey().toLowerCase())) {
