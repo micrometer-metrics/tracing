@@ -257,19 +257,26 @@ class W3CBaggagePropagator {
                 entry = entry.substring(0, beginningOfMetadata);
             }
             String[] keyAndValue = entry.split("=");
-            for (int i = 0; i < keyAndValue.length - 1; i += 2) {
-                try {
-                    String key = keyAndValue[i].trim();
-                    String value = keyAndValue[i + 1].trim();
-                    Baggage baggage = this.braveBaggageManager.createBaggage(key);
-                    pairs.add(new AbstractMap.SimpleEntry<>(baggage, value));
-                }
-                catch (Exception e) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Exception occurred while trying to parse baggage with key value ["
-                                + Arrays.toString(keyAndValue) + "]. Will ignore that entry.", e);
+            if (keyAndValue.length % 2 == 0) {
+                for (int i = 0; i < keyAndValue.length - 1; i += 2) {
+                    try {
+                        String key = keyAndValue[i].trim();
+                        String value = keyAndValue[i + 1].trim();
+                        Baggage baggage = this.braveBaggageManager.createBaggage(key);
+                        pairs.add(new AbstractMap.SimpleEntry<>(baggage, value));
+                    }
+                    catch (Exception e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Exception occurred while trying to parse baggage with key value "
+                                    + Arrays.toString(keyAndValue) + ". Will ignore that entry.", e);
+                        }
                     }
                 }
+            }
+            else if (log.isDebugEnabled()) {
+                log.debug(
+                        "Unable to to parse baggage with key value since it seems something is not in key=value format: "
+                                + Arrays.toString(keyAndValue) + ". Will ignore that entry.");
             }
         }
         return pairs;
