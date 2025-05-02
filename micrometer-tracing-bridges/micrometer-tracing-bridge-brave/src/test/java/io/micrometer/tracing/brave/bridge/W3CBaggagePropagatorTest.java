@@ -27,7 +27,6 @@ import io.micrometer.observation.transport.ReceiverContext;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandler;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
@@ -36,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 /**
  * Test taken from OpenTelemetry.
@@ -72,6 +72,46 @@ class W3CBaggagePropagatorTest {
         TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
 
         assertThat(contextWithBaggage).isEqualTo(contextWithBraveBaggageFields(context));
+    }
+
+    @Test
+    void extract_metadataOnlyBaggageHeader() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", ";metadata");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        assertThat(baggageEntries(contextWithBaggage)).isEmpty();
+    }
+
+    @Test
+    void extract_noValueBaggageHeader() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "a=");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        assertThat(baggageEntries(contextWithBaggage)).isEmpty();
+    }
+
+    @Test
+    void extract_noValueButMetadataBaggageHeader() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "a=;metadata");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        assertThat(baggageEntries(contextWithBaggage)).isEmpty();
+    }
+
+    @Test
+    void extract_keyValuesNotinPairBaggageHeader() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "a=b,oops,c=,=d,=");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+        assertThat(baggageEntries(contextWithBaggage)).containsExactly(entry("a", "b"));
     }
 
     @Test
@@ -147,7 +187,6 @@ class W3CBaggagePropagatorTest {
      * data, to make sure we don't blow up with it.
      */
     @Test
-    @Disabled("We don't support additional data")
     void extract_invalidHeader() {
         TraceContextOrSamplingFlags context = context();
         Map<String, String> carrier = new HashMap<>();
@@ -155,9 +194,8 @@ class W3CBaggagePropagatorTest {
                 + "value; othermetadata, key2 =value2 , key3 =\tvalue3 ; ");
 
         TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
-
-        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
-        assertThat(baggageEntries).isEmpty();
+        assertThat(baggageEntries(contextWithBaggage)).containsExactly(entry("key1", "v"), entry("key2", "value2"),
+                entry("key3", "value3"));
     }
 
     @Test
