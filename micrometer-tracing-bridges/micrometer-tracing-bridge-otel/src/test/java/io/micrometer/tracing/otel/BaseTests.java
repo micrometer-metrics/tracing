@@ -172,7 +172,7 @@ class BaseTests {
             }
             // end::manual_span_joining[]
         }).get();
-        ;
+
         Optional<SpanData> calculateTax = spans.getFinishedSpanItems()
             .stream()
             .filter(span -> span.getName().equals("calculateCommission"))
@@ -184,7 +184,7 @@ class BaseTests {
     }
 
     @Test
-    void should_not_fail_when_baggage_manager_is_noop() throws Exception {
+    void should_not_fail_when_baggage_manager_is_noop() {
         tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
         });
 

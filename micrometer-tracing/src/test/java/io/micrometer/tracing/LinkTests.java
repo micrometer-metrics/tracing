@@ -67,7 +67,7 @@ class LinkTests {
     }
 
     @Test
-    void hashchode_should_work_with_tags() {
+    void hashcode_should_work_with_tags() {
         TraceContext traceContext = BDDMockito.mock(TraceContext.class);
         Link link1 = new Link(traceContext, tags1());
         Link link2 = new Link(traceContext, tags1());
