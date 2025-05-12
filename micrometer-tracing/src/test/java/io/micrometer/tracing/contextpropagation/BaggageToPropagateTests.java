@@ -38,7 +38,7 @@ class BaggageToPropagateTests {
     }
 
     @Test
-    void should_set_baggage_to_propagate_entries_with_varrgs() {
+    void should_set_baggage_to_propagate_entries_with_varargs() {
         Map<String, String> map = new HashMap<>();
         map.put("foo", "bar");
         map.put("baz", "bar2");
