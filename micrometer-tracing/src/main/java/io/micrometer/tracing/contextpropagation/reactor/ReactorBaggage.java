@@ -59,10 +59,11 @@ public final class ReactorBaggage {
     private static Context append(Context context, Map<String, String> baggage) {
         BaggageToPropagate baggageToPropagate = context.getOrDefault(ObservationAwareBaggageThreadLocalAccessor.KEY,
                 null);
-        Map<String, String> mergedBaggage = new HashMap<>(baggage);
+        Map<String, String> mergedBaggage = new HashMap<>();
         if (baggageToPropagate != null) {
             mergedBaggage.putAll(baggageToPropagate.getBaggage());
         }
+        mergedBaggage.putAll(baggage);
         BaggageToPropagate merged = new BaggageToPropagate(mergedBaggage);
         return context.put(ObservationAwareBaggageThreadLocalAccessor.KEY, merged);
     }
@@ -71,10 +72,10 @@ public final class ReactorBaggage {
         BaggageToPropagate baggageToPropagate = context.getOrDefault(ObservationAwareBaggageThreadLocalAccessor.KEY,
                 null);
         Map<String, String> mergedBaggage = new HashMap<>();
-        mergedBaggage.put(key, value);
         if (baggageToPropagate != null) {
             mergedBaggage.putAll(baggageToPropagate.getBaggage());
         }
+        mergedBaggage.put(key, value);
         BaggageToPropagate merged = new BaggageToPropagate(mergedBaggage);
         return context.put(ObservationAwareBaggageThreadLocalAccessor.KEY, merged);
     }
