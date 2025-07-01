@@ -23,6 +23,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.*;
+import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -49,11 +50,11 @@ class OtelSpanBuilder implements Span.Builder {
 
     private final AttributesBuilder attributes = Attributes.builder();
 
-    private String name;
+    private @Nullable String name;
 
-    private Throwable error;
+    private @Nullable Throwable error;
 
-    private TraceContext parentTraceContext;
+    private @Nullable TraceContext parentTraceContext;
 
     private boolean noParent;
 
@@ -61,7 +62,7 @@ class OtelSpanBuilder implements Span.Builder {
 
     private long startTimestamp;
 
-    private TimeUnit startTimestampUnit;
+    private @Nullable TimeUnit startTimestampUnit;
 
     private List<Map.Entry<SpanContext, Attributes>> links = new ArrayList<>();
 

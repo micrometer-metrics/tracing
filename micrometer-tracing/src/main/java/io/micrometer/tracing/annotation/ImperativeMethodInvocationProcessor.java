@@ -69,12 +69,13 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
     }
 
     @Override
-    public Object process(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable {
+    public Object process(MethodInvocation invocation, @Nullable NewSpan newSpan, @Nullable ContinueSpan continueSpan)
+            throws Throwable {
         return proceedUnderSynchronousSpan(invocation, newSpan, continueSpan);
     }
 
-    private Object proceedUnderSynchronousSpan(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan)
-            throws Throwable {
+    private Object proceedUnderSynchronousSpan(MethodInvocation invocation, @Nullable NewSpan newSpan,
+            @Nullable ContinueSpan continueSpan) throws Throwable {
         Span span = tracer.currentSpan();
         // in case of @ContinueSpan and no span in tracer we start new span and should
         // close it on completion
@@ -84,6 +85,8 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
             newSpanParser.parse(invocation, newSpan, span);
             span.start();
         }
+        // Makes NullAway understand that span cannot be null from this point
+        assert span != null;
         String log = log(continueSpan);
         boolean hasLog = StringUtils.isNotBlank(log);
         try (Tracer.SpanInScope ignored = tracer.withSpan(span)) {

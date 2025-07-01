@@ -31,6 +31,7 @@ import io.micrometer.tracing.handler.PropagatingReceiverTracingObservationHandle
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
+import org.jspecify.annotations.Nullable;
 import zipkin2.reporter.BytesMessageSender;
 import zipkin2.reporter.brave.AsyncZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
@@ -90,21 +91,21 @@ public final class ZipkinBraveSetup implements AutoCloseable {
 
         private String zipkinUrl = "http://localhost:9411";
 
-        private Supplier<BytesMessageSender> sender;
+        private @Nullable Supplier<BytesMessageSender> sender;
 
-        private Function<BytesMessageSender, AsyncZipkinSpanHandler> spanHandler;
+        private @Nullable Function<BytesMessageSender, AsyncZipkinSpanHandler> spanHandler;
 
-        private Function<AsyncZipkinSpanHandler, Tracing> tracing;
+        private @Nullable Function<AsyncZipkinSpanHandler, Tracing> tracing;
 
-        private Function<Tracing, Tracer> tracer;
+        private @Nullable Function<Tracing, Tracer> tracer;
 
-        private Function<Tracing, HttpTracing> httpTracing;
+        private @Nullable Function<Tracing, HttpTracing> httpTracing;
 
-        private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
+        private @Nullable Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+        private @Nullable BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-        private Consumer<BraveBuildingBlocks> closingFunction;
+        private @Nullable Consumer<BraveBuildingBlocks> closingFunction;
 
         /**
          * All Brave building blocks required to communicate with Zipkin.

@@ -133,7 +133,7 @@ public class OtelTraceContext implements TraceContext {
     }
 
     @Override
-    public Boolean sampled() {
+    public @Nullable Boolean sampled() {
         return this.delegate.isSampled();
     }
 

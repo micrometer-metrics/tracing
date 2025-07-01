@@ -18,6 +18,7 @@ package io.micrometer.tracing;
 import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -73,7 +74,7 @@ class NoopTracerTests {
                 .start();
             BDDAssertions.then(spanBuilder).isSameAs(Span.Builder.NOOP);
 
-            SpanCustomizer spanCustomizer = tracer.currentSpanCustomizer();
+            SpanCustomizer spanCustomizer = Objects.requireNonNull(tracer.currentSpanCustomizer());
             spanCustomizer.event("foo").name("foo").tag("foo", "bar");
             BDDAssertions.then(spanCustomizer).isSameAs(SpanCustomizer.NOOP);
 

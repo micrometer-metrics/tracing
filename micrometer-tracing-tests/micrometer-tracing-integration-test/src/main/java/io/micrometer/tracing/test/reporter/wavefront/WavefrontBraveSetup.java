@@ -36,11 +36,9 @@ import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontBraveSpanHandler;
 import io.micrometer.tracing.reporter.wavefront.WavefrontSpanHandler;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,7 +53,7 @@ import java.util.stream.Collectors;
 public final class WavefrontBraveSetup implements AutoCloseable {
 
     // To be used in tests ONLY
-    static WavefrontSpanHandler mockHandler;
+    static @Nullable WavefrontSpanHandler mockHandler;
 
     private final Consumer<Builder.BraveBuildingBlocks> closingFunction;
 
@@ -97,25 +95,25 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private final String token;
 
-        private String source;
+        private @Nullable String source;
 
-        private String applicationName;
+        private @Nullable String applicationName;
 
-        private String serviceName;
+        private @Nullable String serviceName;
 
-        private Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler;
+        private @Nullable Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler;
 
-        private Function<WavefrontBraveSpanHandler, Tracing> tracing;
+        private @Nullable Function<WavefrontBraveSpanHandler, Tracing> tracing;
 
-        private Function<Tracing, Tracer> tracer;
+        private @Nullable Function<Tracing, Tracer> tracer;
 
-        private Function<Tracing, HttpTracing> httpTracing;
+        private @Nullable Function<Tracing, HttpTracing> httpTracing;
 
-        private Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
+        private @Nullable Function<BraveBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+        private @Nullable BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-        private Consumer<BraveBuildingBlocks> closingFunction;
+        private @Nullable Consumer<BraveBuildingBlocks> closingFunction;
 
         /**
          * Creates a new instance of {@link Builder}.
@@ -335,7 +333,7 @@ public final class WavefrontBraveSetup implements AutoCloseable {
 
         private WavefrontSpanHandler wavefrontSpanHandler(MeterRegistry meterRegistry) {
             return new WavefrontSpanHandler(50000, new WavefrontClient.Builder(this.server, this.token).build(),
-                    new MeterRegistrySpanMetrics(meterRegistry), this.source,
+                    new MeterRegistrySpanMetrics(meterRegistry), Objects.requireNonNull(this.source),
                     new ApplicationTags.Builder(this.applicationName, this.serviceName).build(), new HashSet<>());
         }
 

@@ -17,6 +17,7 @@ package io.micrometer.tracing.test.simple;
 
 import io.micrometer.tracing.*;
 import io.micrometer.tracing.CurrentTraceContext.Scope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A test implementation of a span in scope.
@@ -28,11 +29,11 @@ public class SimpleSpanInScope implements Tracer.SpanInScope {
 
     private volatile boolean closed;
 
-    private final ThreadLocal<SpanAndScope> scopedSpans;
+    private final @Nullable ThreadLocal<SpanAndScope> scopedSpans;
 
-    private final SpanAndScope spanAndScope;
+    private final @Nullable SpanAndScope spanAndScope;
 
-    private final SpanAndScope previousSpanAndScope;
+    private final @Nullable SpanAndScope previousSpanAndScope;
 
     private final CurrentTraceContext.Scope scope;
 

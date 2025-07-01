@@ -17,6 +17,7 @@ package io.micrometer.tracing.test.simple;
 
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.internal.EncodingUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Random;
@@ -38,7 +39,7 @@ public class SimpleTraceContext implements TraceContext {
 
     private volatile String spanId = "";
 
-    private volatile Boolean sampled = false;
+    private volatile @Nullable Boolean sampled = false;
 
     private Map<String, String> baggageFromParent = new ConcurrentHashMap<>();
 
@@ -58,7 +59,7 @@ public class SimpleTraceContext implements TraceContext {
     }
 
     @Override
-    public Boolean sampled() {
+    public @Nullable Boolean sampled() {
         return this.sampled;
     }
 
@@ -90,7 +91,7 @@ public class SimpleTraceContext implements TraceContext {
      * Sets the sampling decision.
      * @param sampled sampled, or not?
      */
-    public void setSampled(Boolean sampled) {
+    public void setSampled(@Nullable Boolean sampled) {
         this.sampled = sampled;
     }
 

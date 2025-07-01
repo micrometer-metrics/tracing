@@ -27,6 +27,7 @@ import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static org.assertj.core.api.BDDAssertions.thenNoException;
@@ -64,7 +65,7 @@ class SimpleTracerTests {
 
             @Override
             public Observation writeValues(Map<Object, Object> valuesToWrite, Observation targetContext) {
-                return (Observation) valuesToWrite.get(ObservationThreadLocalAccessor.KEY);
+                return (Observation) Objects.requireNonNull(valuesToWrite.get(ObservationThreadLocalAccessor.KEY));
             }
         });
 

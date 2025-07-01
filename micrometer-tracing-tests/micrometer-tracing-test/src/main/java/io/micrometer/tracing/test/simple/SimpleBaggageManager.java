@@ -79,7 +79,8 @@ public class SimpleBaggageManager implements BaggageManager {
 
     @Override
     public Baggage getBaggage(String name) {
-        Baggage baggage = getBaggage(simpleTracer.currentTraceContext().context(), name);
+        TraceContext context = simpleTracer.currentTraceContext().context();
+        Baggage baggage = context == null ? null : getBaggage(context, name);
         return baggageOrNoop(baggage);
     }
 
@@ -114,6 +115,8 @@ public class SimpleBaggageManager implements BaggageManager {
         return createSimpleBaggage(name);
     }
 
+    // TODO figure out how to fix later
+    @SuppressWarnings("NullAway")
     private Baggage createSimpleBaggage(String name) {
         TraceContext current = simpleTracer.currentTraceContext().context();
         SimpleBaggageInScope baggage = baggageForName(current, name);
@@ -146,7 +149,10 @@ public class SimpleBaggageManager implements BaggageManager {
     }
 
     @Override
-    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+    public Map<String, String> getAllBaggage(@Nullable TraceContext traceContext) {
+        if (traceContext == null) {
+            return getAllBaggage();
+        }
         return getAllBaggageForCtx(traceContext);
     }
 

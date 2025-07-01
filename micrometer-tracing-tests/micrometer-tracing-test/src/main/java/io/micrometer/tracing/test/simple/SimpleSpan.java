@@ -18,6 +18,7 @@ package io.micrometer.tracing.test.simple;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.exporter.FinishedSpan;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.*;
@@ -44,19 +45,19 @@ public class SimpleSpan implements Span, FinishedSpan {
 
     private volatile long endMillis;
 
-    private volatile Throwable throwable;
+    private volatile @Nullable Throwable throwable;
 
-    private volatile String remoteServiceName;
+    private volatile @Nullable String remoteServiceName;
 
-    private volatile String localServiceName;
+    private volatile @Nullable String localServiceName;
 
-    private volatile Span.Kind spanKind;
+    private volatile Span.@Nullable Kind spanKind;
 
     private final Queue<Event> events = new ConcurrentLinkedQueue<>();
 
-    private volatile String name;
+    private volatile @Nullable String name;
 
-    private volatile String ip;
+    private volatile @Nullable String ip;
 
     private volatile int port;
 
@@ -177,7 +178,7 @@ public class SimpleSpan implements Span, FinishedSpan {
      * @return remote service name
      */
     @Override
-    public String getRemoteServiceName() {
+    public @Nullable String getRemoteServiceName() {
         return this.remoteServiceName;
     }
 
@@ -188,7 +189,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public String getLocalServiceName() {
+    public @Nullable String getLocalServiceName() {
         return this.localServiceName;
     }
 
@@ -233,12 +234,12 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public String getRemoteIp() {
+    public @Nullable String getRemoteIp() {
         return this.ip;
     }
 
     @Override
-    public String getLocalIp() {
+    public @Nullable String getLocalIp() {
         return this.ip;
     }
 
@@ -263,7 +264,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public Throwable getError() {
+    public @Nullable Throwable getError() {
         return this.throwable;
     }
 
@@ -273,7 +274,7 @@ public class SimpleSpan implements Span, FinishedSpan {
     }
 
     @Override
-    public Kind getKind() {
+    public @Nullable Kind getKind() {
         return this.spanKind;
     }
 
@@ -286,6 +287,9 @@ public class SimpleSpan implements Span, FinishedSpan {
      * Span name.
      * @return span name
      */
+    @Override
+    // TODO decide what to do about name nullability
+    @SuppressWarnings("NullAway")
     public String getName() {
         return this.name;
     }

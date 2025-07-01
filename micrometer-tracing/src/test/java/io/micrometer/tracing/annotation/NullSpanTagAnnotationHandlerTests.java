@@ -28,9 +28,11 @@ import static org.assertj.core.api.Assertions.fail;
 
 class NullSpanTagAnnotationHandlerTests {
 
-    ValueResolver ValueResolver = parameter -> null;
+    // TODO should this test be deleted now that ValueResolver is marked non-null?
+    @SuppressWarnings("NullAway")
+    ValueResolver valueResolver = parameter -> null;
 
-    ValueExpressionResolver ValueExpressionResolver = (expression, parameter) -> "";
+    ValueExpressionResolver valueExpressionResolver = (expression, parameter) -> "";
 
     SpanCustomizer spanCustomizer = new SpanCustomizer() {
         @Override
@@ -49,16 +51,16 @@ class NullSpanTagAnnotationHandlerTests {
         }
     };
 
-    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(aClass -> ValueResolver,
-            aClass -> ValueExpressionResolver);
+    SpanTagAnnotationHandler handler = new SpanTagAnnotationHandler(aClass -> valueResolver,
+            aClass -> valueExpressionResolver);
 
     @Test
     void shouldUseEmptyStringWheCustomValueResolverReturnsNull() throws NoSuchMethodException, SecurityException {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForValueResolver", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> ValueResolver,
-                    aClass -> ValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> valueResolver,
+                    aClass -> valueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("");
         }
         else {
@@ -71,8 +73,8 @@ class NullSpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForTagValueExpression", String.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> ValueResolver,
-                    aClass -> ValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, "test", aClass -> valueResolver,
+                    aClass -> valueExpressionResolver);
 
             assertThat(resolvedValue).isEqualTo("");
         }
@@ -86,8 +88,8 @@ class NullSpanTagAnnotationHandlerTests {
         Method method = AnnotationMockClass.class.getMethod("getAnnotationForArgumentToString", Long.class);
         Annotation annotation = method.getParameterAnnotations()[0][0];
         if (annotation instanceof SpanTag) {
-            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, null, aClass -> ValueResolver,
-                    aClass -> ValueExpressionResolver);
+            String resolvedValue = this.handler.resolveTagValue((SpanTag) annotation, null, aClass -> valueResolver,
+                    aClass -> valueExpressionResolver);
             assertThat(resolvedValue).isEqualTo("");
         }
         else {

@@ -100,7 +100,11 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeSenderSpan(context, span);
-        span.name(context.getContextualName() != null ? context.getContextualName() : context.getName());
+        // TODO do something else when getContextualName and getName are null?
+        String name = context.getContextualName() != null ? context.getContextualName() : context.getName();
+        if (name != null) {
+            span.name(name);
+        }
         endSpan(context, span);
     }
 

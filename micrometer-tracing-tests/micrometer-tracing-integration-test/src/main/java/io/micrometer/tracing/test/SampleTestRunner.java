@@ -35,6 +35,7 @@ import io.micrometer.tracing.test.reporter.wavefront.WavefrontBraveSetup;
 import io.micrometer.tracing.test.reporter.wavefront.WavefrontOtelSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinBraveSetup;
 import io.micrometer.tracing.test.reporter.zipkin.ZipkinOtelSetup;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -43,12 +44,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import zipkin2.reporter.BytesMessageSender;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 /**
@@ -356,6 +352,7 @@ public abstract class SampleTestRunner {
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(WAVEFRONT_OTEL, sampleTestRunner.getTracingSetup());
                 checkWavefrontAssumptions(sampleRunnerConfig);
+                assert sampleRunnerConfig.wavefrontToken != null;
                 scopeObservationHandlers(observationRegistry, () -> {
                     WavefrontOtelSetup setup = WavefrontOtelSetup
                         .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
@@ -390,6 +387,7 @@ public abstract class SampleTestRunner {
                     MeterRegistry meterRegistry, SampleTestRunner sampleTestRunner) {
                 checkTracingSetupAssumptions(WAVEFRONT_BRAVE, sampleTestRunner.getTracingSetup());
                 checkWavefrontAssumptions(sampleRunnerConfig);
+                assert sampleRunnerConfig.wavefrontToken != null;
                 scopeObservationHandlers(observationRegistry, () -> {
                     WavefrontBraveSetup setup = WavefrontBraveSetup
                         .builder(sampleRunnerConfig.wavefrontServerUrl, sampleRunnerConfig.wavefrontToken)
@@ -436,7 +434,7 @@ public abstract class SampleTestRunner {
             String traceId = "";
             try (Observation.Scope ws = observation.openScope()) {
                 Tracer tracer = bb.getTracer();
-                traceId = tracer.currentSpan().context().traceId();
+                traceId = Objects.requireNonNull(tracer.currentSpan()).context().traceId();
                 runnable.accept(bb, meterRegistry);
             }
             catch (Exception ex) {
@@ -481,20 +479,21 @@ public abstract class SampleTestRunner {
      */
     public static class SampleRunnerConfig {
 
-        private String wavefrontToken;
+        private final @Nullable String wavefrontToken;
 
-        private String wavefrontServerUrl;
+        private final String wavefrontServerUrl;
 
         String zipkinUrl;
 
-        private String wavefrontApplicationName;
+        private final String wavefrontApplicationName;
 
-        private String wavefrontServiceName;
+        private final String wavefrontServiceName;
 
-        private String wavefrontSource;
+        private final String wavefrontSource;
 
-        SampleRunnerConfig(String wavefrontToken, String wavefrontServerUrl, String wavefrontApplicationName,
-                String wavefrontServiceName, String wavefrontSource, String zipkinUrl) {
+        SampleRunnerConfig(@Nullable String wavefrontToken, @Nullable String wavefrontServerUrl,
+                @Nullable String wavefrontApplicationName, @Nullable String wavefrontServiceName,
+                @Nullable String wavefrontSource, @Nullable String zipkinUrl) {
             this.wavefrontToken = wavefrontToken;
             this.wavefrontServerUrl = wavefrontServerUrl != null ? wavefrontServerUrl : "https://vmware.wavefront.com";
             this.wavefrontApplicationName = wavefrontApplicationName != null ? wavefrontApplicationName
@@ -516,17 +515,17 @@ public abstract class SampleTestRunner {
          */
         public static class Builder {
 
-            private String wavefrontToken;
+            private @Nullable String wavefrontToken;
 
-            private String wavefrontUrl;
+            private @Nullable String wavefrontUrl;
 
-            private String wavefrontApplicationName;
+            private @Nullable String wavefrontApplicationName;
 
-            private String wavefrontServiceName;
+            private @Nullable String wavefrontServiceName;
 
-            private String wavefrontSource;
+            private @Nullable String wavefrontSource;
 
-            private String zipkinUrl;
+            private @Nullable String zipkinUrl;
 
             /**
              * Token required to connect to Tanzu Observability by Wavefront.

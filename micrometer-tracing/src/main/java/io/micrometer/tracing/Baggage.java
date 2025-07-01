@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Inspired by OpenZipkin Brave's {@code BaggageField}. Since some tracer implementations
  * require a scope to be wrapped around baggage, baggage must be closed so that the scope
@@ -36,21 +38,21 @@ public interface Baggage extends BaggageView {
     Baggage NOOP = new Baggage() {
         @Override
         public String name() {
+            return "no-op";
+        }
+
+        @Override
+        public @Nullable String get() {
             return null;
         }
 
         @Override
-        public String get() {
+        public @Nullable String get(TraceContext traceContext) {
             return null;
         }
 
         @Override
-        public String get(TraceContext traceContext) {
-            return null;
-        }
-
-        @Override
-        public Baggage set(String value) {
+        public Baggage set(@Nullable String value) {
             return this;
         }
 
@@ -82,7 +84,7 @@ public interface Baggage extends BaggageView {
      * @deprecated use {@link Baggage#makeCurrent(String)}
      */
     @Deprecated
-    Baggage set(String value);
+    Baggage set(@Nullable String value);
 
     /**
      * Sets the baggage value for the given {@link TraceContext}.

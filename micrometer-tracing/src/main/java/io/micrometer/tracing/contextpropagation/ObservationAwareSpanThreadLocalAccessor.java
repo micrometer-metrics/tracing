@@ -25,6 +25,7 @@ import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccess
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.TracingObservationHandler;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.Map;
@@ -94,7 +95,7 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
     }
 
     @Override
-    public Span getValue() {
+    public @Nullable Span getValue() {
         Observation currentObservation = registry.getCurrentObservation();
         Span currentSpan = tracer.currentSpan();
         if (currentObservation != null) {
@@ -198,13 +199,13 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
 
     static class SpanAction implements AutoCloseable {
 
-        final SpanAction previous;
+        final @Nullable SpanAction previous;
 
         final Map<Thread, SpanAction> todo;
 
-        AutoCloseable scope;
+        @Nullable AutoCloseable scope;
 
-        SpanAction(Map<Thread, SpanAction> spanActions, SpanAction previous) {
+        SpanAction(Map<Thread, SpanAction> spanActions, @Nullable SpanAction previous) {
             this.previous = previous;
             this.todo = spanActions;
         }

@@ -17,6 +17,7 @@ import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -31,9 +32,9 @@ public class SimpleBaggageInScope implements Baggage, BaggageInScope {
 
     private final String name;
 
-    private volatile TraceContext traceContext = null;
+    private volatile @Nullable TraceContext traceContext = null;
 
-    private volatile String value = null;
+    private volatile @Nullable String value = null;
 
     private volatile boolean inScope = false;
 
@@ -81,12 +82,15 @@ public class SimpleBaggageInScope implements Baggage, BaggageInScope {
     }
 
     @Override
-    public String get() {
+    public @Nullable String get() {
+        if (currentTraceContext.context() == null) {
+            return null;
+        }
         return get(currentTraceContext.context());
     }
 
     @Override
-    public String get(TraceContext traceContext) {
+    public @Nullable String get(TraceContext traceContext) {
         if (!this.inScope) {
             return null;
         }
@@ -98,7 +102,7 @@ public class SimpleBaggageInScope implements Baggage, BaggageInScope {
 
     @Override
     @Deprecated
-    public Baggage set(String value) {
+    public Baggage set(@Nullable String value) {
         this.value = value;
         this.traceContext = currentTraceContext.context();
         return this;

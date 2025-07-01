@@ -46,6 +46,7 @@ class TracingObservationHandlerTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway") // TODO check if test can be written differently
     void iseShouldBeCalledWhenNoSpanInContext() {
         TracingObservationHandler<Observation.Context> handler = () -> null;
 
@@ -75,6 +76,7 @@ class TracingObservationHandlerTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway") // TODO check if test can be written differently
     void nullScopeShouldBeSupported() {
         TracingObservationHandler<Observation.Context> handler = () -> null;
 

@@ -19,6 +19,7 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
-    public TraceContext context() {
+    public @Nullable TraceContext context() {
         Span span = this.simpleTracer.currentSpan();
         if (span != null) {
             return span.context();
@@ -56,7 +57,7 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
-    public Scope newScope(TraceContext context) {
+    public Scope newScope(@Nullable TraceContext context) {
         if (context == null) {
             SimpleTracer.resetCurrentSpan();
             return Scope.NOOP;
@@ -73,7 +74,7 @@ public class SimpleCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
-    public Scope maybeScope(TraceContext context) {
+    public Scope maybeScope(@Nullable TraceContext context) {
         if (context == null) {
             SimpleTracer.resetCurrentSpan();
             return Scope.NOOP;

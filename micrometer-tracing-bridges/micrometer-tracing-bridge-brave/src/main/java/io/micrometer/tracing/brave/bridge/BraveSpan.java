@@ -69,9 +69,6 @@ public class BraveSpan implements Span {
 
     @Override
     public TraceContext context() {
-        if (this.delegate == null) {
-            return null;
-        }
         return new BraveTraceContext(this.delegate.context());
     }
 

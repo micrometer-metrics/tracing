@@ -126,7 +126,7 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     @Override
-    public io.micrometer.tracing.Baggage getBaggage(TraceContext traceContext, String name) {
+    public io.micrometer.tracing.@Nullable Baggage getBaggage(TraceContext traceContext, String name) {
         OtelTraceContext context = (OtelTraceContext) traceContext;
         LinkedList<Context> stack = new LinkedList<>();
         Context current = Context.current();
@@ -181,7 +181,7 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     @Deprecated
-    public io.micrometer.tracing.Baggage createBaggage(String name, String value) {
+    public io.micrometer.tracing.Baggage createBaggage(String name, @Nullable String value) {
         io.micrometer.tracing.Baggage baggage = baggageWithValue(name, value);
         return baggage.set(value);
     }
@@ -305,7 +305,7 @@ class Entry implements BaggageEntry {
     }
 
     @Override
-    public String getValue() {
+    public @Nullable String getValue() {
         return this.value;
     }
 

@@ -70,6 +70,8 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
+    // TODO figure out what to do about name nullability
+    @SuppressWarnings("NullAway")
     public String getName() {
         return this.mutableSpan.name();
     }
@@ -118,17 +120,17 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public String getParentId() {
+    public @Nullable String getParentId() {
         return this.mutableSpan.parentId();
     }
 
     @Override
-    public String getRemoteIp() {
+    public @Nullable String getRemoteIp() {
         return this.mutableSpan.remoteIp();
     }
 
     @Override
-    public String getLocalIp() {
+    public @Nullable String getLocalIp() {
         return this.mutableSpan.localIp();
     }
 
@@ -166,7 +168,7 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public Span.Kind getKind() {
+    public Span.@Nullable Kind getKind() {
         if (this.mutableSpan.kind() == null) {
             return null;
         }
@@ -185,7 +187,7 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public String getLocalServiceName() {
+    public @Nullable String getLocalServiceName() {
         return this.mutableSpan.localServiceName();
     }
 

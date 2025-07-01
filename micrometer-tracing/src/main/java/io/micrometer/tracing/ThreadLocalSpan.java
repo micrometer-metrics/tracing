@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayDeque;
 
 /**
@@ -58,9 +60,9 @@ public class ThreadLocalSpan {
     /**
      * Removes the current span from thread local and brings back the previous span to the
      * current thread local.
-     * @return removed span of {@code null} if there was none
+     * @return removed span or {@code null} if there was none
      */
-    public SpanAndScope remove() {
+    public @Nullable SpanAndScope remove() {
         SpanAndScope spanAndScope = getCurrentSpanInScopeStack().pollFirst();
         if (spanAndScope == null) {
             return null;
