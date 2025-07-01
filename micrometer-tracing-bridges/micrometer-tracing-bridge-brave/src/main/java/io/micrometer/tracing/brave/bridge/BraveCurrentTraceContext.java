@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.brave.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 
@@ -60,8 +60,7 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
-    @Nullable
-    public TraceContext context() {
+    public @Nullable TraceContext context() {
         brave.propagation.TraceContext context = this.delegate.get();
         if (context == null) {
             return null;

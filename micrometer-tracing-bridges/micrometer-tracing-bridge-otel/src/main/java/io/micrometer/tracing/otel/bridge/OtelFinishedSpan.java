@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
@@ -52,8 +52,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     private final MutableSpanData spanData;
 
-    @Nullable
-    private volatile String linkLocalIp;
+    private volatile @Nullable String linkLocalIp;
 
     OtelFinishedSpan(SpanData spanData) {
         this.spanData = new MutableSpanData(spanData);
@@ -185,14 +184,12 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    @Nullable
-    public String getParentId() {
+    public @Nullable String getParentId() {
         return this.spanData.getParentSpanId();
     }
 
     @Override
-    @Nullable
-    public String getRemoteIp() {
+    public @Nullable String getRemoteIp() {
         return getTags().get(NETWORK_PEER_ADDRESS.getKey());
     }
 
@@ -218,8 +215,7 @@ public class OtelFinishedSpan implements FinishedSpan {
         return this;
     }
 
-    @Nullable
-    private String produceLinkLocalIp() {
+    private @Nullable String produceLinkLocalIp() {
         try {
             Enumeration<NetworkInterface> nics = NetworkInterface.getNetworkInterfaces();
             while (nics.hasMoreElements()) {
@@ -259,8 +255,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    @Nullable
-    public Throwable getError() {
+    public @Nullable Throwable getError() {
         Attributes attributes = this.spanData.getEvents()
             .stream()
             .filter(e -> e.getName().equals("exception"))
@@ -289,8 +284,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    @Nullable
-    public String getRemoteServiceName() {
+    public @Nullable String getRemoteServiceName() {
         return this.spanData.getAttributes().get(PEER_SERVICE);
     }
 

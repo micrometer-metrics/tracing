@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
 import io.micrometer.tracing.CurrentTraceContext;
@@ -121,8 +121,7 @@ public class OtelBaggageManager implements BaggageManager {
         return otelBaggage(entry);
     }
 
-    @Nullable
-    private Entry getBaggage(String name, io.opentelemetry.api.baggage.Baggage baggage) {
+    private @Nullable Entry getBaggage(String name, io.opentelemetry.api.baggage.Baggage baggage) {
         return entryForName(name, baggage);
     }
 
@@ -148,20 +147,17 @@ public class OtelBaggageManager implements BaggageManager {
         return null;
     }
 
-    @Nullable
-    Entry getEntry(OtelTraceContext traceContext, String name) {
+    @Nullable Entry getEntry(OtelTraceContext traceContext, String name) {
         OtelTraceContext context = traceContext;
         Context ctx = context.context();
         return getBaggage(name, Baggage.fromContext(ctx));
     }
 
-    @Nullable
-    Context removeFirst(Deque<Context> stack) {
+    @Nullable Context removeFirst(Deque<Context> stack) {
         return stack.isEmpty() ? null : stack.removeFirst();
     }
 
-    @Nullable
-    private Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
+    private @Nullable Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
         return Entry.fromBaggage(baggage)
             .stream()
             .filter(e -> e.getKey().equalsIgnoreCase(name))
@@ -269,8 +265,7 @@ class CompositeBaggage implements io.opentelemetry.api.baggage.Baggage {
     }
 
     @Override
-    @Nullable
-    public String getEntryValue(String entryKey) {
+    public @Nullable String getEntryValue(String entryKey) {
         return this.entries.stream()
             .filter(entry -> entryKey.equals(entry.getKey()))
             .map(Entry::getValue)
@@ -289,8 +284,7 @@ class Entry implements BaggageEntry {
 
     final String key;
 
-    @Nullable
-    final String value;
+    final @Nullable String value;
 
     final BaggageEntryMetadata entryMetadata;
 

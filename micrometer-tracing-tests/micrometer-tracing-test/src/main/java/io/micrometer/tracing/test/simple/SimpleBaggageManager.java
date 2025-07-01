@@ -13,7 +13,7 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.BaggageManager;
@@ -89,15 +89,14 @@ public class SimpleBaggageManager implements BaggageManager {
         return baggageOrNoop(simpleBaggageInScope);
     }
 
-    private static Baggage baggageOrNoop(Baggage baggage) {
+    private static Baggage baggageOrNoop(@Nullable Baggage baggage) {
         if (baggage == null) {
             return Baggage.NOOP;
         }
         return baggage;
     }
 
-    @Nullable
-    private SimpleBaggageInScope baggageForName(TraceContext traceContext, String name) {
+    private @Nullable SimpleBaggageInScope baggageForName(@Nullable TraceContext traceContext, String name) {
         if (traceContext == null) {
             return null;
         }

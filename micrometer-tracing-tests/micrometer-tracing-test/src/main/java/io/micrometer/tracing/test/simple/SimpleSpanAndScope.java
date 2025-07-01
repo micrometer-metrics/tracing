@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.test.simple;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.SpanAndScope;
 import io.micrometer.tracing.TraceContext;
@@ -39,7 +39,7 @@ public class SimpleSpanAndScope extends SpanAndScope {
      * @param span span
      * @param scope scope
      */
-    public SimpleSpanAndScope(Span span, @Nullable Tracer.SpanInScope scope) {
+    public SimpleSpanAndScope(Span span, Tracer.@Nullable SpanInScope scope) {
         super(span, scope);
         this.traceContext = span.context();
     }
@@ -49,7 +49,7 @@ public class SimpleSpanAndScope extends SpanAndScope {
      * @param traceContext trace context
      * @param scope scope
      */
-    public SimpleSpanAndScope(TraceContext traceContext, @Nullable Tracer.SpanInScope scope) {
+    public SimpleSpanAndScope(TraceContext traceContext, Tracer.@Nullable SpanInScope scope) {
         super(Objects.requireNonNull(SimpleTracer.getSpanForTraceContext(traceContext),
                 "You must create a span with this context before"), scope);
         this.traceContext = traceContext;

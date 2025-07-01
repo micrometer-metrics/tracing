@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.exporter;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,8 +34,7 @@ public class TestSpanReporter implements SpanReporter {
      * Polls stored spans for the latest entry.
      * @return latest stored span
      */
-    @Nullable
-    public FinishedSpan poll() {
+    public @Nullable FinishedSpan poll() {
         return this.spans.poll();
     }
 

@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -93,8 +93,7 @@ public interface BaggageManager {
      * @param name baggage name
      * @return baggage if present or creates a new one if missing with {@code null} value
      */
-    @Nullable
-    Baggage getBaggage(String name);
+    @Nullable Baggage getBaggage(String name);
 
     /**
      * Retrieves {@link Baggage} for the given name.
@@ -102,8 +101,7 @@ public interface BaggageManager {
      * @param name baggage name
      * @return baggage or {@code null} if not present on the {@link TraceContext}
      */
-    @Nullable
-    Baggage getBaggage(TraceContext traceContext, String name);
+    @Nullable Baggage getBaggage(TraceContext traceContext, String name);
 
     /**
      * Creates a new {@link Baggage} entry for the given name or returns an existing one

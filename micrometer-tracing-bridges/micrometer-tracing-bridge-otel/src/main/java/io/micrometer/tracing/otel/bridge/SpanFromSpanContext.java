@@ -19,12 +19,12 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import io.micrometer.common.lang.Nullable;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
+import org.jspecify.annotations.Nullable;
 
 class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
 
@@ -34,7 +34,7 @@ class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
 
     final OtelTraceContext parentTraceContext;
 
-    SpanFromSpanContext(@Nullable io.opentelemetry.api.trace.Span span, SpanContext newSpanContext,
+    SpanFromSpanContext(io.opentelemetry.api.trace.@Nullable Span span, SpanContext newSpanContext,
             OtelTraceContext parentTraceContext) {
         this.span = span != null ? span : io.opentelemetry.api.trace.Span.wrap(newSpanContext);
         this.newSpanContext = newSpanContext;

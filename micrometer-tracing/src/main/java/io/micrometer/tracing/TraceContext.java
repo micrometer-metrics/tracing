@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contains trace and span data.
@@ -60,8 +60,7 @@ public interface TraceContext {
      * Parent span id.
      * @return parent span id or {@code null} if one is not set
      */
-    @Nullable
-    String parentId();
+    @Nullable String parentId();
 
     /**
      * Span id.
@@ -73,8 +72,7 @@ public interface TraceContext {
      * @return {@code true} when sampled, {@code false} when not sampled and {@code null}
      * when sampling decision should be deferred
      */
-    @Nullable
-    Boolean sampled();
+    @Nullable Boolean sampled();
 
     /**
      * Builder for {@link TraceContext}.

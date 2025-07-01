@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.concurrent.Callable;
@@ -82,8 +82,7 @@ public interface CurrentTraceContext {
     /**
      * @return current {@link TraceContext} or {@code null} if not set.
      */
-    @Nullable
-    TraceContext context();
+    @Nullable TraceContext context();
 
     /**
      * Sets the current span in scope until the returned object is closed. It is a

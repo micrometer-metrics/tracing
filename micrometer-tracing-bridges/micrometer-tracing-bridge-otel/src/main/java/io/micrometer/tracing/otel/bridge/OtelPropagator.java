@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.propagation.Propagator;
@@ -80,7 +80,7 @@ public class OtelPropagator implements Propagator {
     }
 
     private static OtelTraceContext getOtelTraceContext(Context extracted,
-            @Nullable io.opentelemetry.api.trace.Span span) {
+            io.opentelemetry.api.trace.@Nullable Span span) {
         if (span == null || span.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
             io.opentelemetry.api.trace.Span invalid = io.opentelemetry.api.trace.Span.getInvalid();
             return new OtelTraceContext(extracted, invalid.getSpanContext(), invalid);

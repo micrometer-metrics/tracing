@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -115,8 +115,7 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    @Nullable
-    public Span currentSpan() {
+    public @Nullable Span currentSpan() {
         OtelTraceContext context = (OtelTraceContext) this.otelCurrentTraceContext.context();
         if (context != null && context.span != null) {
             if (io.opentelemetry.api.trace.Span.getInvalid().equals(context.span)) {
@@ -168,14 +167,12 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    @Nullable
-    public Baggage getBaggage(String name) {
+    public @Nullable Baggage getBaggage(String name) {
         return this.otelBaggageManager.getBaggage(name);
     }
 
     @Override
-    @Nullable
-    public Baggage getBaggage(TraceContext traceContext, String name) {
+    public @Nullable Baggage getBaggage(TraceContext traceContext, String name) {
         return this.otelBaggageManager.getBaggage(traceContext, name);
     }
 

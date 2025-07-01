@@ -17,7 +17,7 @@ package io.micrometer.tracing.brave.bridge;
 
 import java.util.Objects;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.TraceContext;
 
 /**
@@ -43,8 +43,7 @@ public class BraveTraceContext implements TraceContext {
      * @param traceContext Tracing version
      * @return Brave version
      */
-    @Nullable
-    public static brave.propagation.TraceContext toBrave(@Nullable TraceContext traceContext) {
+    public static brave.propagation.@Nullable TraceContext toBrave(@Nullable TraceContext traceContext) {
         if (traceContext == null) {
             return null;
         }
@@ -66,8 +65,7 @@ public class BraveTraceContext implements TraceContext {
     }
 
     @Override
-    @Nullable
-    public String parentId() {
+    public @Nullable String parentId() {
         return this.traceContext.parentIdString();
     }
 
@@ -77,8 +75,7 @@ public class BraveTraceContext implements TraceContext {
     }
 
     @Override
-    @Nullable
-    public Boolean sampled() {
+    public @Nullable Boolean sampled() {
         return this.traceContext.sampled();
     }
 
