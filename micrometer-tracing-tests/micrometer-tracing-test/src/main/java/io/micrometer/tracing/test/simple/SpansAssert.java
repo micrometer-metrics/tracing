@@ -227,6 +227,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @throws AssertionError if there is no span with the given name (ignoring case)
      * @since 1.0.0
      */
+    @SuppressWarnings("ReturnValueIgnored")
     public SpansAssert hasASpanWithNameIgnoreCase(String name) {
         isNotEmpty();
         this.actual.stream().filter(f -> name.equalsIgnoreCase(f.getName())).findFirst().orElseThrow(() -> {
@@ -460,6 +461,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @throws AssertionError if there is no span with given remote service name
      * @since 1.0.0
      */
+    @SuppressWarnings("ReturnValueIgnored")
     public SpansAssert hasASpanWithRemoteServiceName(String remoteServiceName) {
         isNotEmpty();
         this.actual.stream()
@@ -489,6 +491,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @throws AssertionError if there is no span with given tag key and value
      * @since 1.0.0
      */
+    @SuppressWarnings("ReturnValueIgnored")
     public SpansAssert hasASpanWithATag(String key, String value) {
         isNotEmpty();
         this.actual.stream().filter(f -> {
@@ -517,6 +520,7 @@ public class SpansAssert extends CollectionAssert<FinishedSpan> {
      * @throws AssertionError if there is no span with given tag key
      * @since 1.0.0
      */
+    @SuppressWarnings("ReturnValueIgnored")
     public SpansAssert hasASpanWithATagKey(String key) {
         isNotEmpty();
         this.actual.stream().filter(f -> f.getTags().containsKey(key)).findFirst().orElseThrow(() -> {

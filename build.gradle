@@ -6,6 +6,7 @@ buildscript {
 	}
 
 	dependencies {
+		classpath libs.plugin.errorprone
 		classpath libs.plugin.license
 		classpath libs.plugin.nebulaRelease
 		classpath libs.plugin.nebulaPublishing
@@ -55,9 +56,19 @@ allprojects {
 }
 
 subprojects {
+	apply plugin: 'net.ltgt.errorprone'
 	apply plugin: 'signing'
 
 	if (project.name != 'micrometer-tracing-bom') {
+		tasks.withType(JavaCompile).configureEach {
+			if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+				// Error Prone does not work with JDK <17
+				options.errorprone.enabled = false
+			}
+			if (System.env.CI != null) {
+				options.errorprone.disableAllWarnings = true
+			}
+		}
 		if (project.name.contains('benchmarks')) {
 			apply plugin: 'java'
 		} else {
@@ -92,6 +103,7 @@ subprojects {
 			// JSR-305 only used for non-required meta-annotations
 			optionalApi libs.jsr305
 			checkstyle libs.javaFormatForPlugins
+			errorprone(libs.errorprone)
 			jmh libs.jmh
 			jmh libs.jmhGeneratorAnnProcess
 			jmhAnnotationProcessor libs.jmhGeneratorAnnProcess

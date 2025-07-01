@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -105,8 +104,8 @@ class OtelPropagatorTests {
     void should_use_created_child_context_in_scope_instead_of_parent() {
         OtelBaggageManager baggageManager = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
                 Collections.emptyList());
-        OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, Function.identity()::apply,
-                baggageManager);
+        OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, e -> {
+        }, baggageManager);
 
         Map<String, String> carrier = new HashMap<>();
         carrier.put("traceparent", "00-3e425f2373d89640bde06e8285e7bf88-9a5fdefae3abb440-00");
