@@ -47,7 +47,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     // but someone wanted to set baggage
     private brave.propagation.@Nullable TraceContext traceContext;
 
-    @Nullable private final Span span;
+    private final @Nullable Span span;
 
     BraveBaggageInScope(BaggageField delegate, brave.propagation.@Nullable TraceContext traceContext,
             @Nullable Span span, List<String> tagFields) {

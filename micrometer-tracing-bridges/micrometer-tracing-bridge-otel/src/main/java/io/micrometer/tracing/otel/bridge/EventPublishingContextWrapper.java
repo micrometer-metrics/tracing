@@ -117,7 +117,7 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
          * {@link Context} corresponding to the scope being restored. Might be
          * {@code null}.
          */
-        @Nullable final Context context;
+        final @Nullable Context context;
 
         /**
          * Create a new event.
