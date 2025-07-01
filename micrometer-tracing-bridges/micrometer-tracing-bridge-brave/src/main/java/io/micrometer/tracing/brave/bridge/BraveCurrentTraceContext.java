@@ -60,7 +60,7 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
-    @Nullable public TraceContext context() {
+    public @Nullable TraceContext context() {
         brave.propagation.TraceContext context = this.delegate.get();
         if (context == null) {
             return null;

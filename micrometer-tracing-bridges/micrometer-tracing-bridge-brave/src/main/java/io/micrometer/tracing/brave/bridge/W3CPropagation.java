@@ -52,9 +52,9 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
 
     private static final List<String> FIELDS = Collections.unmodifiableList(Arrays.asList(TRACEPARENT, TRACESTATE));
 
-    @Nullable private final W3CBaggagePropagator baggagePropagator;
+    private final @Nullable W3CBaggagePropagator baggagePropagator;
 
-    @Nullable private final BaggageManager braveBaggageManager;
+    private final @Nullable BaggageManager braveBaggageManager;
 
     /**
      * Creates an instance of {@link W3CPropagation} with baggage support.

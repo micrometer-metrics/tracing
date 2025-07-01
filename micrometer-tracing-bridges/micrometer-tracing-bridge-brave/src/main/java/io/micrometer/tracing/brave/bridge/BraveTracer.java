@@ -61,7 +61,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    @Nullable public Span nextSpan(@Nullable Span parent) {
+    public @Nullable Span nextSpan(@Nullable Span parent) {
         if (parent == null) {
             return nextSpan();
         }
@@ -83,7 +83,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    @Nullable public Span currentSpan() {
+    public @Nullable Span currentSpan() {
         brave.Span currentSpan = this.tracer.currentSpan();
         if (currentSpan == null) {
             return null;
@@ -122,12 +122,12 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    @Nullable public Baggage getBaggage(String name) {
+    public @Nullable Baggage getBaggage(String name) {
         return this.braveBaggageManager.getBaggage(name);
     }
 
     @Override
-    @Nullable public Baggage getBaggage(TraceContext traceContext, String name) {
+    public @Nullable Baggage getBaggage(TraceContext traceContext, String name) {
         return this.braveBaggageManager.getBaggage(traceContext, name);
     }
 

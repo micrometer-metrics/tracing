@@ -38,7 +38,7 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
 
     private final List<String> baggageFields;
 
-    @Nullable private Tracer tracer;
+    private @Nullable Tracer tracer;
 
     /**
      * Create an instance of {@link BraveBaggageManager}.
@@ -96,7 +96,7 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     @Override
-    @Nullable public Baggage getBaggage(TraceContext traceContext, String name) {
+    public @Nullable Baggage getBaggage(TraceContext traceContext, String name) {
         BaggageField baggageField = BaggageField.getByName(BraveTraceContext.toBrave(traceContext), name);
         if (baggageField == null) {
             return null;
@@ -124,7 +124,7 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
     }
 
     // Taken from BraveField
-    @Nullable private Span currentSpan() {
+    private @Nullable Span currentSpan() {
         if (tracer != null) {
             io.micrometer.tracing.Span span = tracer.currentSpan();
             return BraveSpan.toBrave(span);

@@ -142,7 +142,7 @@ public interface FinishedSpan {
     /**
      * @return span's local ip
      */
-    @Nullable default String getLocalIp() {
+    default @Nullable String getLocalIp() {
         return null;
     }
 
@@ -203,7 +203,7 @@ public interface FinishedSpan {
      * @return local service name or {@code null} if not set
      * @since 1.5
      */
-    @Nullable default String getLocalServiceName() {
+    default @Nullable String getLocalServiceName() {
         return null;
     }
 

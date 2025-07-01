@@ -43,7 +43,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     private static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
 
     @Override
-    @Nullable public TraceContext context() {
+    public @Nullable TraceContext context() {
         OtelTraceContext otelTraceContext = Context.current().get(OTEL_CONTEXT_KEY);
         if (otelTraceContext != null) {
             return otelTraceContext;
@@ -139,9 +139,9 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
         final io.opentelemetry.context.Scope scope;
 
-        @Nullable final OtelTraceContext currentOtelTraceContext;
+        final @Nullable OtelTraceContext currentOtelTraceContext;
 
-        @Nullable final Context oldContext;
+        final @Nullable Context oldContext;
 
         WrappedScope(io.opentelemetry.context.Scope scope) {
             this(scope, null, null);

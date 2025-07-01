@@ -42,14 +42,14 @@ public class SpanAspect {
     }
 
     @Around("@annotation(io.micrometer.tracing.annotation.ContinueSpan)")
-    @Nullable public Object continueSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
+    public @Nullable Object continueSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         ContinueSpan continueSpan = method.getAnnotation(ContinueSpan.class);
         return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), null, continueSpan);
     }
 
     @Around("@annotation(io.micrometer.tracing.annotation.NewSpan)")
-    @Nullable public Object newSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
+    public @Nullable Object newSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         NewSpan newSpan = method.getAnnotation(NewSpan.class);
         return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), newSpan, null);

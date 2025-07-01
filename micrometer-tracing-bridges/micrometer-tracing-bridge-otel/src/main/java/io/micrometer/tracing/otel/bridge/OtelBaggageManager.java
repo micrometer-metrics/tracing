@@ -121,7 +121,7 @@ public class OtelBaggageManager implements BaggageManager {
         return otelBaggage(entry);
     }
 
-    @Nullable private Entry getBaggage(String name, io.opentelemetry.api.baggage.Baggage baggage) {
+    private @Nullable Entry getBaggage(String name, io.opentelemetry.api.baggage.Baggage baggage) {
         return entryForName(name, baggage);
     }
 
@@ -157,7 +157,7 @@ public class OtelBaggageManager implements BaggageManager {
         return stack.isEmpty() ? null : stack.removeFirst();
     }
 
-    @Nullable private Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
+    private @Nullable Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
         return Entry.fromBaggage(baggage)
             .stream()
             .filter(e -> e.getKey().equalsIgnoreCase(name))
@@ -265,7 +265,7 @@ class CompositeBaggage implements io.opentelemetry.api.baggage.Baggage {
     }
 
     @Override
-    @Nullable public String getEntryValue(String entryKey) {
+    public @Nullable String getEntryValue(String entryKey) {
         return this.entries.stream()
             .filter(entry -> entryKey.equals(entry.getKey()))
             .map(Entry::getValue)
@@ -284,7 +284,7 @@ class Entry implements BaggageEntry {
 
     final String key;
 
-    @Nullable final String value;
+    final @Nullable String value;
 
     final BaggageEntryMetadata entryMetadata;
 

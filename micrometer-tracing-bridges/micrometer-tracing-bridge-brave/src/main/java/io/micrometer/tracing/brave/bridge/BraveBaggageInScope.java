@@ -64,12 +64,12 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     }
 
     @Override
-    @Nullable public String get() {
+    public @Nullable String get() {
         return this.traceContext != null ? this.delegate.getValue(traceContext) : this.delegate.getValue();
     }
 
     @Override
-    @Nullable public String get(TraceContext traceContext) {
+    public @Nullable String get(TraceContext traceContext) {
         return this.delegate.getValue(BraveTraceContext.toBrave(traceContext));
     }
 

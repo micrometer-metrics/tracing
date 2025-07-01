@@ -149,7 +149,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
      * @param context a {@link Observation.ContextView}
      * @return parent span or {@code null} when there's none
      */
-    @Nullable default Span getParentSpan(Observation.ContextView context) {
+    default @Nullable Span getParentSpan(Observation.ContextView context) {
         // This would mean that the user has manually created a tracing context
         TracingContext tracingContext = context.get(TracingContext.class);
         Span currentSpan = getTracer().currentSpan();

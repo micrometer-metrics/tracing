@@ -36,7 +36,7 @@ public class OtelTraceContextBuilder implements TraceContext.Builder {
 
     private String spanId;
 
-    @Nullable private Boolean sampled;
+    private @Nullable Boolean sampled;
 
     @Override
     public TraceContext.Builder traceId(String traceId) {

@@ -84,7 +84,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @Override
-    @Nullable public String get() {
+    public @Nullable String get() {
         if (entry.get() != null) {
             return entry.get().value;
         }
@@ -92,7 +92,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @Override
-    @Nullable public String get(TraceContext traceContext) {
+    public @Nullable String get(TraceContext traceContext) {
         Entry entry = this.otelBaggageManager.getEntry((OtelTraceContext) traceContext, entry().getKey());
         if (entry == null) {
             return null;

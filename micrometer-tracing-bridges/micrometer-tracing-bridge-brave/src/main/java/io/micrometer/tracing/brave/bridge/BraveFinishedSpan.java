@@ -155,7 +155,7 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    @Nullable public Throwable getError() {
+    public @Nullable Throwable getError() {
         return this.mutableSpan.error();
     }
 
@@ -174,7 +174,7 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    @Nullable public String getRemoteServiceName() {
+    public @Nullable String getRemoteServiceName() {
         return this.mutableSpan.remoteServiceName();
     }
 

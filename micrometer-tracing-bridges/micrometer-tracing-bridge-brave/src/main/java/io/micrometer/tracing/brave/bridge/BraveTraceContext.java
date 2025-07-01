@@ -65,7 +65,7 @@ public class BraveTraceContext implements TraceContext {
     }
 
     @Override
-    @Nullable public String parentId() {
+    public @Nullable String parentId() {
         return this.traceContext.parentIdString();
     }
 
@@ -75,7 +75,7 @@ public class BraveTraceContext implements TraceContext {
     }
 
     @Override
-    @Nullable public Boolean sampled() {
+    public @Nullable Boolean sampled() {
         return this.traceContext.sampled();
     }
 

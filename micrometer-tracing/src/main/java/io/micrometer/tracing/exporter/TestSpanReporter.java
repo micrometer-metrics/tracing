@@ -34,7 +34,7 @@ public class TestSpanReporter implements SpanReporter {
      * Polls stored spans for the latest entry.
      * @return latest stored span
      */
-    @Nullable public FinishedSpan poll() {
+    public @Nullable FinishedSpan poll() {
         return this.spans.poll();
     }
 

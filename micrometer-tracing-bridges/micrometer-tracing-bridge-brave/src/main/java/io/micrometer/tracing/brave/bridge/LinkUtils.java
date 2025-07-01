@@ -75,7 +75,7 @@ class LinkUtils {
             .size();
     }
 
-    @Nullable static Link toLink(List<Map.Entry<String, String>> groupedTags) {
+    static @Nullable Link toLink(List<Map.Entry<String, String>> groupedTags) {
         String traceId = "";
         String spanId = "";
         Map<String, Object> tags = new HashMap<>();
@@ -120,7 +120,7 @@ class LinkUtils {
         return fromString[fromString.length == 2 ? 1 : 0];
     }
 
-    @Nullable static String tagKeyNameFromString(String tag) {
+    static @Nullable String tagKeyNameFromString(String tag) {
         Matcher matcher = TAG_KEY.matcher(tag);
         if (matcher.matches()) {
             return matcher.group(1);
