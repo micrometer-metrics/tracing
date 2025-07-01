@@ -66,6 +66,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
      * @return scope that always must be closed
      */
     @Override
+    @SuppressWarnings("MustBeClosedChecker")
     public Scope newScope(@Nullable TraceContext context) {
         OtelTraceContext otelTraceContext = (OtelTraceContext) context;
         if (otelTraceContext == null) {
@@ -107,6 +108,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     }
 
     @Override
+    @SuppressWarnings("MustBeClosedChecker")
     public Scope maybeScope(@Nullable TraceContext context) {
         if (context == null) {
             io.opentelemetry.context.Scope scope = Context.root().makeCurrent();

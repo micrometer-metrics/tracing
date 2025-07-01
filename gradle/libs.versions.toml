@@ -34,6 +34,7 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 braveBom = { module = "io.zipkin.brave:brave-bom", version.ref = "braveBom" }
 bravePropagationW3c = { module = "io.zipkin.contrib.brave-propagation-w3c:brave-propagation-tracecontext", version.ref = "bravePropagationW3c" }
+errorprone = { module = "com.google.errorprone:error_prone_core", version = "2.39.0" }
 jakartaWeb = { module = "jakarta.platform:jakarta.jakartaee-web-api", version.ref = "jakartaWeb" }
 javaFormatForPlugins = { module = "io.spring.javaformat:spring-javaformat-checkstyle", version.ref = "javaFormatForPlugins" }
 javaxServlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
@@ -61,6 +62,7 @@ zipkinAws = { module = "io.zipkin.aws:brave-propagation-aws", version.ref = "zip
 zipkinReporterBom = { module = "io.zipkin.reporter2:zipkin-reporter-bom", version.ref = "zipkinReporterBom" }
 
 # plugin dependencies
+plugin-errorprone = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version = "4.3.0" }
 plugin-license = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 plugin-nebulaRelease = { module = "com.netflix.nebula:nebula-release-plugin", version = "18.0.8" }
 plugin-nebulaPublishing = { module = "com.netflix.nebula:nebula-publishing-plugin", version = "20.3.0" }

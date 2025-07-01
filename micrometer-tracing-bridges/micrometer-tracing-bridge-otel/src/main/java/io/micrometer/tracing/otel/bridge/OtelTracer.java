@@ -66,6 +66,7 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
+    @SuppressWarnings("MustBeClosedChecker")
     public Span nextSpan(@Nullable Span parent) {
         if (parent == null) {
             return nextSpan();
@@ -136,6 +137,7 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
+    @SuppressWarnings("MustBeClosedChecker")
     public ScopedSpan startScopedSpan(String name) {
         io.opentelemetry.api.trace.Span span = this.tracer.spanBuilder(name).startSpan();
         return new OtelScopedSpan(span, span.makeCurrent());

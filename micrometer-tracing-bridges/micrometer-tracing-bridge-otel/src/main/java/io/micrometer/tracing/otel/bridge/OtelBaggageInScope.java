@@ -166,6 +166,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @Override
+    @SuppressWarnings("MustBeClosedChecker")
     public BaggageInScope makeCurrent() {
         Entry storedEntry = entry();
         Context context = contextWithBaggage.get();
