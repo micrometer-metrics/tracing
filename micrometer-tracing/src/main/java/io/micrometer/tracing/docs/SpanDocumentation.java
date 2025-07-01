@@ -16,6 +16,7 @@
 package io.micrometer.tracing.docs;
 
 import io.micrometer.common.docs.KeyName;
+import org.jspecify.annotations.Nullable;
 
 /**
  * In order to describe your spans via e.g. enums instead of Strings you can use this
@@ -105,7 +106,7 @@ public interface SpanDocumentation {
      * @return {@link io.micrometer.observation.docs.ObservationDocumentation} for which
      * you don't want to create a default span documentation
      */
-    default Enum<?> overridesDefaultSpanFrom() {
+    default @Nullable Enum<?> overridesDefaultSpanFrom() {
         return null;
     }
 

@@ -24,6 +24,7 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
 
 import java.net.URI;
+import java.util.Objects;
 
 /**
  * A {@link TracingObservationHandler} called when sending occurred - e.g. of messages or
@@ -100,7 +101,9 @@ public class PropagatingSenderTracingObservationHandler<T extends SenderContext>
         Span span = getRequiredSpan(context);
         tagSpan(context, span);
         customizeSenderSpan(context, span);
-        span.name(context.getContextualName() != null ? context.getContextualName() : context.getName());
+        // TODO do something other than throw NPE when context.getName is null?
+        span.name(context.getContextualName() != null ? context.getContextualName()
+                : Objects.requireNonNull(context.getName()));
         endSpan(context, span);
     }
 

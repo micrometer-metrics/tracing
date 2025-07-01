@@ -55,7 +55,7 @@ public class BravePropagator implements Propagator {
     }
 
     @Override
-    public <C> Span.Builder extract(C carrier, Getter<C> getter) {
+    public <C> Span.Builder extract(@Nullable C carrier, Getter<C> getter) {
         TraceContextOrSamplingFlags extract = this.tracing.propagation().extractor(getter::get).extract(carrier);
         updateExistingBaggageFieldsWithUpdatedValues(extract);
         return BraveSpanBuilder.toBuilder(this.tracing.tracer(), extract);

@@ -81,8 +81,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         SpanContext spanContext = otelTraceContext.delegate;
         boolean sameSpan = spanFromCurrentCtx.getSpanContext().equals(spanFromCtxOnNewSpan.getSpanContext())
                 && spanFromCurrentCtx.getSpanContext().equals(spanContext);
-        SpanFromSpanContext fromContext = new SpanFromSpanContext(((OtelTraceContext) context).span, spanContext,
-                otelTraceContext);
+        SpanFromSpanContext fromContext = new SpanFromSpanContext(otelTraceContext.span, spanContext, otelTraceContext);
         Baggage currentBaggage = Baggage.fromContext(current);
         Baggage oldBaggage = Baggage.fromContext(oldContext);
         boolean sameBaggage = sameBaggage(currentBaggage, oldBaggage);

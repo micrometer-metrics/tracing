@@ -17,6 +17,7 @@ package io.micrometer.tracing.annotation;
 
 import io.micrometer.tracing.Span;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Parses data for a span created via a {@link NewSpan} annotation.
@@ -32,6 +33,6 @@ public interface NewSpanParser {
      * @param newSpan meta data of the new span
      * @param span span to customize
      */
-    void parse(MethodInvocation methodInvocation, NewSpan newSpan, Span span);
+    void parse(MethodInvocation methodInvocation, @Nullable NewSpan newSpan, Span span);
 
 }

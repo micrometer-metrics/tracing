@@ -20,6 +20,7 @@ import brave.propagation.TraceContextOrSamplingFlags;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ class BraveSpanBuilder implements Span.Builder {
 
     brave.Span delegate;
 
-    TraceContextOrSamplingFlags parentContext;
+    @Nullable TraceContextOrSamplingFlags parentContext;
 
     private long startTimestamp;
 

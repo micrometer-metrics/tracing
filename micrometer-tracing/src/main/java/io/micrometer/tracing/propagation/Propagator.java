@@ -50,12 +50,11 @@ public interface Propagator {
         }
 
         @Override
-        public <C> void inject(TraceContext context, C carrier, Setter<C> setter) {
-
+        public <C> void inject(TraceContext context, @Nullable C carrier, Setter<C> setter) {
         }
 
         @Override
-        public <C> Span.Builder extract(C carrier, Getter<C> getter) {
+        public <C> Span.Builder extract(@Nullable C carrier, Getter<C> getter) {
             return Span.Builder.NOOP;
         }
     };
@@ -90,7 +89,7 @@ public interface Propagator {
      * @param <C> carrier of propagation fields, such as an http request.
      * @return the {@code Context} containing the extracted value.
      */
-    <C> Span.Builder extract(C carrier, Getter<C> getter);
+    <C> Span.Builder extract(@Nullable C carrier, Getter<C> getter);
 
     /**
      * Class that allows a {@code Propagator} to set propagated fields into a carrier.

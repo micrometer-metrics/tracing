@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.Closeable;
 
 /**
@@ -38,16 +40,16 @@ public interface BaggageInScope extends BaggageView, Closeable {
     BaggageInScope NOOP = new BaggageInScope() {
         @Override
         public String name() {
+            return "no-op";
+        }
+
+        @Override
+        public @Nullable String get() {
             return null;
         }
 
         @Override
-        public String get() {
-            return null;
-        }
-
-        @Override
-        public String get(TraceContext traceContext) {
+        public @Nullable String get(TraceContext traceContext) {
             return null;
         }
 
