@@ -100,8 +100,6 @@ subprojects {
 		// All projects use optional annotations, but since we don't expose them downstream we would
 		// have to add the dependency in every project, which is tedious so just do it here.
 		dependencies {
-			// JSR-305 only used for non-required meta-annotations
-			optionalApi libs.jsr305
 			checkstyle libs.javaFormatForPlugins
 			errorprone(libs.errorprone)
 			jmh libs.jmh
