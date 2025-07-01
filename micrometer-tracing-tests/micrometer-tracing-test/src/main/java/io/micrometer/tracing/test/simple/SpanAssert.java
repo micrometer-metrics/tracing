@@ -16,7 +16,7 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.common.docs.KeyName;
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;

@@ -15,7 +15,6 @@
  */
 package io.micrometer.tracing.handler;
 
-import io.micrometer.common.lang.NonNullApi;
 import io.micrometer.core.instrument.observation.MeterObservationHandler;
 import io.micrometer.observation.Observation;
 import io.micrometer.tracing.CurrentTraceContext;
@@ -32,7 +31,6 @@ import io.micrometer.tracing.Tracer;
  * @author Jonatan Ivanov
  * @since 1.0.0
  */
-@NonNullApi
 public class TracingAwareMeterObservationHandler<T extends Observation.Context> implements MeterObservationHandler<T> {
 
     private final MeterObservationHandler<T> delegate;

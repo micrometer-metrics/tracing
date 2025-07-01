@@ -16,7 +16,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.handler.MutableSpan;
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
@@ -155,8 +155,7 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    @Nullable
-    public Throwable getError() {
+    @Nullable public Throwable getError() {
         return this.mutableSpan.error();
     }
 
@@ -175,8 +174,7 @@ public class BraveFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    @Nullable
-    public String getRemoteServiceName() {
+    @Nullable public String getRemoteServiceName() {
         return this.mutableSpan.remoteServiceName();
     }
 

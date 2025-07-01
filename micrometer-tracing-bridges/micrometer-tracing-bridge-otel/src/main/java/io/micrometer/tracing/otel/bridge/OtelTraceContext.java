@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -37,8 +37,7 @@ public class OtelTraceContext implements TraceContext {
 
     final SpanContext delegate;
 
-    @Nullable
-    final Span span;
+    @Nullable final Span span;
 
     OtelTraceContext(@Nullable Context context, SpanContext delegate, @Nullable Span span) {
         this(new AtomicReference<>(context == null ? Context.current() : context), delegate, span);
@@ -101,8 +100,7 @@ public class OtelTraceContext implements TraceContext {
      * @return OTel version
      * @since 1.1.0
      */
-    @Nullable
-    public static SpanContext toOtelSpanContext(TraceContext context) {
+    @Nullable public static SpanContext toOtelSpanContext(TraceContext context) {
         if (context instanceof OtelTraceContext) {
             return ((OtelTraceContext) context).delegate;
         }
@@ -115,8 +113,7 @@ public class OtelTraceContext implements TraceContext {
     }
 
     @Override
-    @Nullable
-    public String parentId() {
+    @Nullable public String parentId() {
         Span spanContextSpanOrSpan = this.span instanceof SpanFromSpanContext ? ((SpanFromSpanContext) this.span).span
                 : this.span;
         if (spanContextSpanOrSpan instanceof ReadableSpan) {

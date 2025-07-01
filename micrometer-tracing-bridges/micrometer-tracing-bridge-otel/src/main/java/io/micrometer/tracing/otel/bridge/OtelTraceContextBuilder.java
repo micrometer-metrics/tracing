@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.SpanContext;
@@ -36,8 +36,7 @@ public class OtelTraceContextBuilder implements TraceContext.Builder {
 
     private String spanId;
 
-    @Nullable
-    private Boolean sampled;
+    @Nullable private Boolean sampled;
 
     @Override
     public TraceContext.Builder traceId(String traceId) {

@@ -22,7 +22,7 @@ import brave.propagation.Propagation;
 import brave.propagation.TraceContext;
 import brave.propagation.TraceContextOrSamplingFlags;
 import brave.propagation.tracecontext.TraceparentFormat;
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
@@ -52,11 +52,9 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
 
     private static final List<String> FIELDS = Collections.unmodifiableList(Arrays.asList(TRACEPARENT, TRACESTATE));
 
-    @Nullable
-    private final W3CBaggagePropagator baggagePropagator;
+    @Nullable private final W3CBaggagePropagator baggagePropagator;
 
-    @Nullable
-    private final BaggageManager braveBaggageManager;
+    @Nullable private final BaggageManager braveBaggageManager;
 
     /**
      * Creates an instance of {@link W3CPropagation} with baggage support.

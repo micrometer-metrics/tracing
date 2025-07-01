@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.annotation;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.CurrentTraceContext;
@@ -34,8 +34,7 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
 
     final CurrentTraceContext currentTraceContext;
 
-    @Nullable
-    SpanTagAnnotationHandler spanTagAnnotationHandler;
+    @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler;
 
     AbstractMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
             CurrentTraceContext currentTraceContext, @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler) {

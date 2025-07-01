@@ -16,7 +16,7 @@
 package io.micrometer.tracing.brave.bridge;
 
 import brave.propagation.TraceContextOrSamplingFlags;
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.*;
 
 import java.util.List;
@@ -61,8 +61,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    @Nullable
-    public Span nextSpan(@Nullable Span parent) {
+    @Nullable public Span nextSpan(@Nullable Span parent) {
         if (parent == null) {
             return nextSpan();
         }
@@ -84,8 +83,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    @Nullable
-    public Span currentSpan() {
+    @Nullable public Span currentSpan() {
         brave.Span currentSpan = this.tracer.currentSpan();
         if (currentSpan == null) {
             return null;
@@ -124,14 +122,12 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    @Nullable
-    public Baggage getBaggage(String name) {
+    @Nullable public Baggage getBaggage(String name) {
         return this.braveBaggageManager.getBaggage(name);
     }
 
     @Override
-    @Nullable
-    public Baggage getBaggage(TraceContext traceContext, String name) {
+    @Nullable public Baggage getBaggage(TraceContext traceContext, String name) {
         return this.braveBaggageManager.getBaggage(traceContext, name);
     }
 

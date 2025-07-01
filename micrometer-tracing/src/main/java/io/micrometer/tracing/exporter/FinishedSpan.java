@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 
@@ -132,20 +132,17 @@ public interface FinishedSpan {
     /**
      * @return span's parent id or {@code null} if not set
      */
-    @Nullable
-    String getParentId();
+    @Nullable String getParentId();
 
     /**
      * @return span's remote ip
      */
-    @Nullable
-    String getRemoteIp();
+    @Nullable String getRemoteIp();
 
     /**
      * @return span's local ip
      */
-    @Nullable
-    default String getLocalIp() {
+    @Nullable default String getLocalIp() {
         return null;
     }
 
@@ -176,8 +173,7 @@ public interface FinishedSpan {
     /**
      * @return corresponding error or {@code null} if one was not thrown
      */
-    @Nullable
-    Throwable getError();
+    @Nullable Throwable getError();
 
     /**
      * Sets the error.
@@ -194,8 +190,7 @@ public interface FinishedSpan {
     /**
      * @return remote service name or {@code null} if not set
      */
-    @Nullable
-    String getRemoteServiceName();
+    @Nullable String getRemoteServiceName();
 
     /**
      * Sets the remote service name.
@@ -208,8 +203,7 @@ public interface FinishedSpan {
      * @return local service name or {@code null} if not set
      * @since 1.5
      */
-    @Nullable
-    default String getLocalServiceName() {
+    @Nullable default String getLocalServiceName() {
         return null;
     }
 

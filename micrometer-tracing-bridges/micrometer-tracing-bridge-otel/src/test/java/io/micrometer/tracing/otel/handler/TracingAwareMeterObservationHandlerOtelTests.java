@@ -15,7 +15,6 @@
  */
 package io.micrometer.tracing.otel.handler;
 
-import io.micrometer.common.lang.NonNull;
 import io.micrometer.core.instrument.observation.MeterObservationHandler;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.tck.TestObservationRegistry;
@@ -96,7 +95,7 @@ class TracingAwareMeterObservationHandlerOtelTests {
         }
 
         @Override
-        public void onStop(@NonNull Observation.Context context) {
+        public void onStop(Observation.Context context) {
             this.currentSpan = tracer.currentSpan();
         }
 

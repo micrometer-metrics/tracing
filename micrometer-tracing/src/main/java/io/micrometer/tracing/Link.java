@@ -15,8 +15,6 @@
  */
 package io.micrometer.tracing;
 
-import io.micrometer.common.lang.NonNull;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -80,7 +78,6 @@ public class Link {
      * {@link TraceContext} attached to this link.
      * @return trace context
      */
-    @NonNull
     public TraceContext getTraceContext() {
         return this.traceContext;
     }
@@ -89,7 +86,6 @@ public class Link {
      * Tags attached to this link.
      * @return tags
      */
-    @NonNull
     public Map<String, Object> getTags() {
         return this.tags;
     }

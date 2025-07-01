@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
@@ -76,8 +76,7 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
         /**
          * Context corresponding to the attached scope. Might be {@code null}.
          */
-        @Nullable
-        final Context context;
+        @Nullable final Context context;
 
         /**
          * Create a new event.
@@ -87,13 +86,11 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
             this.context = context;
         }
 
-        @Nullable
-        public Span getSpan() {
+        @Nullable public Span getSpan() {
             return Span.fromContextOrNull(context);
         }
 
-        @Nullable
-        public Baggage getBaggage() {
+        @Nullable public Baggage getBaggage() {
             return Baggage.fromContextOrNull(context);
         }
 
@@ -120,8 +117,7 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
          * {@link Context} corresponding to the scope being restored. Might be
          * {@code null}.
          */
-        @Nullable
-        final Context context;
+        @Nullable final Context context;
 
         /**
          * Create a new event.
@@ -131,13 +127,11 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
             this.context = context;
         }
 
-        @Nullable
-        public Span getSpan() {
+        @Nullable public Span getSpan() {
             return Span.fromContextOrNull(context);
         }
 
-        @Nullable
-        public Baggage getBaggage() {
+        @Nullable public Baggage getBaggage() {
             return Baggage.fromContextOrNull(context);
         }
 

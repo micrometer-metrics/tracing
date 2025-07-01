@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Inspired by OpenZipkin Brave's {@code BaggageField}. Represents a single, immutable
@@ -57,15 +57,13 @@ public interface BaggageView {
      * Retrieves baggage value.
      * @return value of the baggage entry or {@code null} if not set.
      */
-    @Nullable
-    String get();
+    @Nullable String get();
 
     /**
      * Retrieves baggage value from the given {@link TraceContext}.
      * @param traceContext context containing baggage
      * @return value of the baggage entry or {@code null} if not set.
      */
-    @Nullable
-    String get(TraceContext traceContext);
+    @Nullable String get(TraceContext traceContext);
 
 }

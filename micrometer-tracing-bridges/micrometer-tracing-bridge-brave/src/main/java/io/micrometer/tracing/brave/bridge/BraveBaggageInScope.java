@@ -18,12 +18,12 @@ package io.micrometer.tracing.brave.bridge;
 import brave.Span;
 import brave.Tags;
 import brave.baggage.BaggageField;
-import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.TraceContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -45,13 +45,11 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     // Null TC would happen pretty much in exceptional cases (there was no span in scope)
     // but someone wanted to set baggage
-    @Nullable
-    private brave.propagation.TraceContext traceContext;
+    private brave.propagation.@Nullable TraceContext traceContext;
 
-    @Nullable
-    private final Span span;
+    @Nullable private final Span span;
 
-    BraveBaggageInScope(BaggageField delegate, @Nullable brave.propagation.TraceContext traceContext,
+    BraveBaggageInScope(BaggageField delegate, brave.propagation.@Nullable TraceContext traceContext,
             @Nullable Span span, List<String> tagFields) {
         this.delegate = delegate;
         this.traceContext = traceContext;
@@ -66,14 +64,12 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
     }
 
     @Override
-    @Nullable
-    public String get() {
+    @Nullable public String get() {
         return this.traceContext != null ? this.delegate.getValue(traceContext) : this.delegate.getValue();
     }
 
     @Override
-    @Nullable
-    public String get(TraceContext traceContext) {
+    @Nullable public String get(TraceContext traceContext) {
         return this.delegate.getValue(BraveTraceContext.toBrave(traceContext));
     }
 

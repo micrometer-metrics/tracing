@@ -17,7 +17,6 @@ package io.micrometer.tracing.brave.handler;
 
 import brave.Tracing;
 import brave.test.TestSpanHandler;
-import io.micrometer.common.lang.NonNull;
 import io.micrometer.core.instrument.observation.MeterObservationHandler;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.tck.TestObservationRegistry;
@@ -85,7 +84,7 @@ class TracingAwareMeterObservationHandlerBraveTests {
         }
 
         @Override
-        public void onStop(@NonNull Observation.Context context) {
+        public void onStop(Observation.Context context) {
             this.currentSpan = tracer.currentSpan();
         }
 

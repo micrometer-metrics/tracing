@@ -16,7 +16,7 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.common.KeyValue;
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.observation.Observation.ContextView;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;

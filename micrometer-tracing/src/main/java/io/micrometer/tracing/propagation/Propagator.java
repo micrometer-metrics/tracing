@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.propagation;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 
@@ -154,8 +154,7 @@ public interface Propagator {
          * @return the first value of the given propagation {@code key} or returns
          * {@code null}.
          */
-        @Nullable
-        String get(C carrier, String key);
+        @Nullable String get(C carrier, String key);
 
     }
 

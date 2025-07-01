@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageInScope;
@@ -84,8 +84,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @Override
-    @Nullable
-    public String get() {
+    @Nullable public String get() {
         if (entry.get() != null) {
             return entry.get().value;
         }
@@ -93,8 +92,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @Override
-    @Nullable
-    public String get(TraceContext traceContext) {
+    @Nullable public String get(TraceContext traceContext) {
         Entry entry = this.otelBaggageManager.getEntry((OtelTraceContext) traceContext, entry().getKey());
         if (entry == null) {
             return null;

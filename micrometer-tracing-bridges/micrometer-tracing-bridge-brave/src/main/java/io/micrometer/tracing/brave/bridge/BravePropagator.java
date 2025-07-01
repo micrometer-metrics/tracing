@@ -19,10 +19,10 @@ import brave.Tracing;
 import brave.baggage.BaggageField;
 import brave.internal.baggage.BaggageFields;
 import brave.propagation.TraceContextOrSamplingFlags;
-import io.micrometer.common.lang.Nullable;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.propagation.Propagator;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 

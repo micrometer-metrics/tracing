@@ -15,12 +15,11 @@
  */
 package io.micrometer.tracing.annotation;
 
-import io.micrometer.common.lang.NonNullApi;
-import io.micrometer.common.lang.Nullable;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Method;
 
@@ -34,7 +33,6 @@ import java.lang.reflect.Method;
  * @see ImperativeMethodInvocationProcessor
  */
 @Aspect
-@NonNullApi
 public class SpanAspect {
 
     private final MethodInvocationProcessor methodInvocationProcessor;
@@ -44,16 +42,14 @@ public class SpanAspect {
     }
 
     @Around("@annotation(io.micrometer.tracing.annotation.ContinueSpan)")
-    @Nullable
-    public Object continueSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
+    @Nullable public Object continueSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         ContinueSpan continueSpan = method.getAnnotation(ContinueSpan.class);
         return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), null, continueSpan);
     }
 
     @Around("@annotation(io.micrometer.tracing.annotation.NewSpan)")
-    @Nullable
-    public Object newSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
+    @Nullable public Object newSpanMethod(ProceedingJoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         NewSpan newSpan = method.getAnnotation(NewSpan.class);
         return methodInvocationProcessor.process(new SpanAspectMethodInvocation(pjp, method), newSpan, null);

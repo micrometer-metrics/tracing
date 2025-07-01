@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.baggage.Baggage;
@@ -43,8 +43,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     private static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
 
     @Override
-    @Nullable
-    public TraceContext context() {
+    @Nullable public TraceContext context() {
         OtelTraceContext otelTraceContext = Context.current().get(OTEL_CONTEXT_KEY);
         if (otelTraceContext != null) {
             return otelTraceContext;
@@ -140,11 +139,9 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
         final io.opentelemetry.context.Scope scope;
 
-        @Nullable
-        final OtelTraceContext currentOtelTraceContext;
+        @Nullable final OtelTraceContext currentOtelTraceContext;
 
-        @Nullable
-        final Context oldContext;
+        @Nullable final Context oldContext;
 
         WrappedScope(io.opentelemetry.context.Scope scope) {
             this(scope, null, null);

@@ -15,7 +15,7 @@
  */
 package io.micrometer.tracing;
 
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.propagation.Propagator;
 
 import java.io.Closeable;
@@ -158,8 +158,7 @@ public interface Tracer extends BaggageManager {
      * @param parent parent span
      * @return a child span for the given parent, {@code null} if context was empty.
      */
-    @Nullable
-    Span nextSpan(@Nullable Span parent);
+    @Nullable Span nextSpan(@Nullable Span parent);
 
     /**
      * Makes the given span the "current span" and returns an object that exits that scope
@@ -228,15 +227,13 @@ public interface Tracer extends BaggageManager {
      * Allows to customize the current span in scope.
      * @return current span customizer
      */
-    @Nullable
-    SpanCustomizer currentSpanCustomizer();
+    @Nullable SpanCustomizer currentSpanCustomizer();
 
     /**
      * Retrieves the current span in scope or {@code null} if one is not available.
      * @return current span in scope
      */
-    @Nullable
-    Span currentSpan();
+    @Nullable Span currentSpan();
 
     /**
      * Scope of a span. Needs to be closed so that resources are let go (e.g. MDC is

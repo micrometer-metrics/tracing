@@ -19,7 +19,7 @@ import java.io.Closeable;
 
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Container object for {@link Span} and its corresponding {@link Tracer.SpanInScope}.
@@ -41,7 +41,7 @@ public class SpanAndScope implements Closeable {
      * @param span span
      * @param scope scope
      */
-    public SpanAndScope(Span span, @Nullable Tracer.SpanInScope scope) {
+    public SpanAndScope(Span span, Tracer.@Nullable SpanInScope scope) {
         this.span = span;
         this.scope = scope;
     }
@@ -58,8 +58,7 @@ public class SpanAndScope implements Closeable {
      * Gets the scope.
      * @return scope
      */
-    @Nullable
-    public Tracer.SpanInScope getScope() {
+    public Tracer.@Nullable SpanInScope getScope() {
         return this.scope;
     }
 
