@@ -50,7 +50,7 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
         }
         if (invocation instanceof SpanAspectMethodInvocation) {
             SpanAspectMethodInvocation spanInvocation = (SpanAspectMethodInvocation) invocation;
-            if (spanTagAnnotationHandler != null) {
+            if (spanTagAnnotationHandler != null && tracer.currentSpanCustomizer() != null) {
                 spanTagAnnotationHandler.addAnnotatedParameters(tracer.currentSpanCustomizer(),
                         spanInvocation.getPjp());
             }
@@ -86,7 +86,7 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
         span.tag(AnnotationSpanDocumentation.Tags.METHOD.asString(), invocation.getMethod().getName());
     }
 
-    void logEvent(Span span, String name) {
+    void logEvent(@Nullable Span span, String name) {
         if (span == null) {
             logger.warn("You were trying to continue a span which was null. Please "
                     + "remember that if two proxied methods are calling each other from "
@@ -97,7 +97,7 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
         span.event(name);
     }
 
-    String log(ContinueSpan continueSpan) {
+    String log(@Nullable ContinueSpan continueSpan) {
         if (continueSpan != null) {
             return continueSpan.log();
         }

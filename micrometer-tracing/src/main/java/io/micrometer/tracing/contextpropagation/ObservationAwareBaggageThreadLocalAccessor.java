@@ -26,9 +26,11 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.Tracer.SpanInScope;
 import io.micrometer.tracing.handler.TracingObservationHandler;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -72,7 +74,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
     }
 
     @Override
-    public BaggageToPropagate getValue() {
+    public @Nullable BaggageToPropagate getValue() {
         Observation currentObservation = registry.getCurrentObservation();
         Span currentSpan = getCurrentSpan(currentObservation);
         Map<String, String> baggage = currentSpan != null ? tracer.getAllBaggage(currentSpan.context())
@@ -84,7 +86,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         return (baggage == null || baggage.isEmpty()) ? null : new BaggageToPropagate(baggage);
     }
 
-    private Span getCurrentSpan(Observation currentObservation) {
+    private @Nullable Span getCurrentSpan(@Nullable Observation currentObservation) {
         Span currentSpan = tracer.currentSpan();
         if (currentObservation != null) {
             // There's a current observation so OTLA hooked in
@@ -136,7 +138,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
     }
 
     private BaggageAndScope openScopeForEachBaggageEntry(Set<Entry<String, String>> entries, Span span,
-            BaggageAndScope scope) {
+            @Nullable BaggageAndScope scope) {
         for (Entry<String, String> entry : entries) {
             if (log.isTraceEnabled()) {
                 Baggage baggage = tracer.getBaggage(span.context(), entry.getKey());
@@ -152,11 +154,11 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
             }
             scope = baggageScopeClosingScope(entry, scope, baggage);
         }
-        return scope;
+        return Objects.requireNonNull(scope);
     }
 
-    private static BaggageAndScope baggageScopeClosingScope(Entry<String, String> entry, BaggageAndScope scope,
-            BaggageInScope baggage) {
+    private static BaggageAndScope baggageScopeClosingScope(Entry<String, String> entry,
+            @Nullable BaggageAndScope scope, BaggageInScope baggage) {
         if (scope == null) {
             return scopeClosingBaggageAndScope(entry, baggage);
         }
@@ -193,7 +195,8 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         }
     }
 
-    private BaggageAndScope scopeRestoringBaggageAndScope(BaggageAndScope currentScope, BaggageAndScope previousScope) {
+    private BaggageAndScope scopeRestoringBaggageAndScope(BaggageAndScope currentScope,
+            @Nullable BaggageAndScope previousScope) {
         return currentScope.andThen(o -> {
             if (previousScope != null) {
                 if (log.isTraceEnabled()) {
@@ -251,20 +254,20 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         ThreadLocalAccessor.super.reset();
     }
 
-    static class BaggageAndScope implements Consumer<Object> {
+    static class BaggageAndScope implements Consumer<@Nullable Object> {
 
         private static final InternalLogger log = InternalLoggerFactory.getInstance(BaggageInScope.class);
 
-        private final Consumer<Object> consumer;
+        private final Consumer<@Nullable Object> consumer;
 
-        private final Entry<String, String> entry;
+        private final @Nullable Entry<String, String> entry;
 
-        BaggageAndScope(Consumer<Object> consumer, Entry<String, String> entry) {
+        BaggageAndScope(Consumer<@Nullable Object> consumer, @Nullable Entry<String, String> entry) {
             this.consumer = consumer;
             this.entry = entry;
         }
 
-        BaggageAndScope(Consumer<Object> consumer) {
+        BaggageAndScope(Consumer<@Nullable Object> consumer) {
             this.consumer = consumer;
             this.entry = null;
         }
@@ -275,7 +278,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         }
 
         @Override
-        public void accept(Object o) {
+        public void accept(@Nullable Object o) {
             if (log.isTraceEnabled()) {
                 log.trace("Accepting consumer [" + this + "]");
             }
@@ -283,7 +286,7 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         }
 
         @Override
-        public BaggageAndScope andThen(Consumer<? super Object> after) {
+        public BaggageAndScope andThen(Consumer<? super @Nullable Object> after) {
             return new BaggageAndScope(Consumer.super.andThen(after), entry);
         }
 

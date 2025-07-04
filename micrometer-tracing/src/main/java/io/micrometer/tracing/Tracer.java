@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.propagation.Propagator;
 
@@ -78,12 +79,12 @@ public interface Tracer extends BaggageManager {
         }
 
         @Override
-        public Span nextSpan(Span parent) {
+        public Span nextSpan(@Nullable Span parent) {
             return Span.NOOP;
         }
 
         @Override
-        public SpanInScope withSpan(Span span) {
+        public SpanInScope withSpan(@Nullable Span span) {
             return () -> {
 
             };

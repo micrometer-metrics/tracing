@@ -194,7 +194,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public String getLocalIp() {
+    public @Nullable String getLocalIp() {
         // taken from Brave
         // uses synchronized variant of double-checked locking as getting the endpoint can
         // be expensive
@@ -276,7 +276,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public Span.Kind getKind() {
+    public Span.@Nullable Kind getKind() {
         if (this.spanData.getKind() == SpanKind.INTERNAL) {
             return null;
         }
@@ -295,7 +295,7 @@ public class OtelFinishedSpan implements FinishedSpan {
     }
 
     @Override
-    public String getLocalServiceName() {
+    public @Nullable String getLocalServiceName() {
         return this.spanData.getResource().getAttribute(SERVICE_NAME);
     }
 

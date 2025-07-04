@@ -107,7 +107,7 @@ class SpanFromSpanContext implements io.opentelemetry.api.trace.Span {
     }
 
     @Override
-    public <T> io.opentelemetry.api.trace.Span setAttribute(AttributeKey<T> key, T value) {
+    public <T> io.opentelemetry.api.trace.Span setAttribute(AttributeKey<T> key, @Nullable T value) {
         return span.setAttribute(key, value);
     }
 

@@ -33,7 +33,7 @@ class RevertingScope implements CurrentTraceContext.Scope {
 
     private final CurrentTraceContext.Scope currentScope;
 
-    private final CurrentTraceContext.Scope previousScope;
+    private final CurrentTraceContext.@Nullable Scope previousScope;
 
     RevertingScope(TracingContext tracingContext, Scope currentScope, @Nullable Scope previousScope) {
         this.tracingContext = tracingContext;
@@ -72,7 +72,7 @@ class RevertingScope implements CurrentTraceContext.Scope {
 
     static RevertingScope maybeWithBaggage(Tracer tracer, TracingContext tracingContext,
             @Nullable TraceContext newContext, RevertingScope revertingScopeForSpan,
-            Scope previousScopeOnThisObservation) {
+            @Nullable Scope previousScopeOnThisObservation) {
         RevertingScope revertingScope = revertingScopeForSpan;
         ContextView context = tracingContext.getContext();
         if (context == null) {
@@ -91,7 +91,7 @@ class RevertingScope implements CurrentTraceContext.Scope {
         }, previousScopeOnThisObservation);
     }
 
-    private static ArrayDeque<BaggageInScope> startBaggageScopes(Tracer tracer, TraceContext newContext,
+    private static ArrayDeque<BaggageInScope> startBaggageScopes(Tracer tracer, @Nullable TraceContext newContext,
             Collection<KeyValue> baggageKeyValues) {
         ArrayDeque<BaggageInScope> scopes = new ArrayDeque<>();
         for (KeyValue keyValue : baggageKeyValues) {

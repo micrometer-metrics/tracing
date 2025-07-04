@@ -16,6 +16,7 @@
 package io.micrometer.tracing.annotation;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contract for processing annotations.
@@ -33,6 +34,7 @@ public interface MethodInvocationProcessor {
      * @return executed method result
      * @throws Throwable exception upon running a method
      */
-    Object process(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable;
+    Object process(MethodInvocation invocation, @Nullable NewSpan newSpan, @Nullable ContinueSpan continueSpan)
+            throws Throwable;
 
 }
