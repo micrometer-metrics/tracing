@@ -16,6 +16,7 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.tracing.TraceContext;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A test implementation of the trace context builder.
@@ -25,13 +26,13 @@ import io.micrometer.tracing.TraceContext;
  */
 public class SimpleTraceContextBuilder implements TraceContext.Builder {
 
-    private String traceId;
+    private @Nullable String traceId;
 
-    private String parentId;
+    private @Nullable String parentId;
 
-    private String spanId;
+    private @Nullable String spanId;
 
-    private Boolean sampled;
+    private @Nullable Boolean sampled;
 
     @Override
     public TraceContext.Builder traceId(String traceId) {
@@ -52,7 +53,7 @@ public class SimpleTraceContextBuilder implements TraceContext.Builder {
     }
 
     @Override
-    public TraceContext.Builder sampled(Boolean sampled) {
+    public TraceContext.Builder sampled(@Nullable Boolean sampled) {
         this.sampled = sampled;
         return this;
     }

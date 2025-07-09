@@ -34,6 +34,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Deque;
@@ -90,19 +91,19 @@ public final class InMemoryOtelSetup implements AutoCloseable {
 
         private String applicationName = "observability-test";
 
-        private Function<InMemorySpanExporter, SdkTracerProvider> sdkTracerProvider;
+        private @Nullable Function<InMemorySpanExporter, SdkTracerProvider> sdkTracerProvider;
 
-        private Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
+        private @Nullable Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
 
-        private Function<OpenTelemetrySdk, Tracer> tracer;
+        private @Nullable Function<OpenTelemetrySdk, Tracer> tracer;
 
-        private Function<Tracer, OtelTracer> otelTracer;
+        private @Nullable Function<Tracer, OtelTracer> otelTracer;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+        private @Nullable BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-        private Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
+        private @Nullable Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
-        private Consumer<OtelBuildingBlocks> closingFunction;
+        private @Nullable Consumer<OtelBuildingBlocks> closingFunction;
 
         /**
          * All OTel building blocks required to communicate with Zipkin.

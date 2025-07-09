@@ -30,6 +30,7 @@ import io.micrometer.tracing.internal.SpanNameUtil;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -68,7 +69,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         if (StringUtils.isNotBlank(context.getContextualName())) {
             name = context.getContextualName();
         }
-        return SpanNameUtil.toLowerHyphen(name);
+        return SpanNameUtil.toLowerHyphen(Objects.requireNonNull(name));
     }
 
     /**
@@ -231,17 +232,17 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
      */
     class TracingContext implements AutoCloseable {
 
-        private Span span;
+        private @Nullable Span span;
 
         private Map<Thread, CurrentTraceContext.Scope> scopes = new ConcurrentHashMap<>();
 
-        private Observation.ContextView context;
+        private Observation.@Nullable ContextView context;
 
         /**
          * Returns the span.
          * @return span
          */
-        public Span getSpan() {
+        public @Nullable Span getSpan() {
             return this.span;
         }
 
@@ -249,7 +250,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
          * Sets the span.
          * @param span span to set
          */
-        public void setSpan(Span span) {
+        public void setSpan(@Nullable Span span) {
             this.span = span;
         }
 
@@ -257,7 +258,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
          * Returns the scope of the span.
          * @return scope of the span
          */
-        public CurrentTraceContext.Scope getScope() {
+        public CurrentTraceContext.@Nullable Scope getScope() {
             return this.scopes.get(Thread.currentThread());
         }
 
@@ -265,7 +266,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
          * Sets the current trace context scope.
          * @param scope scope to set
          */
-        public void setScope(CurrentTraceContext.Scope scope) {
+        public void setScope(CurrentTraceContext.@Nullable Scope scope) {
             if (scope == null) {
                 this.scopes.remove(Thread.currentThread());
             }
@@ -298,7 +299,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
          * @param span span to set
          * @param scope scope to set
          */
-        public void setSpanAndScope(Span span, CurrentTraceContext.Scope scope) {
+        public void setSpanAndScope(@Nullable Span span, CurrentTraceContext.Scope scope) {
             setSpan(span);
             setScope(scope);
         }

@@ -61,12 +61,36 @@ subprojects {
 
 	if (project.name != 'micrometer-tracing-bom') {
 		tasks.withType(JavaCompile).configureEach {
-			if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-				// Error Prone does not work with JDK <17
-				options.errorprone.enabled = false
-			}
-			if (System.env.CI != null) {
-				options.errorprone.disableAllWarnings = true
+			options.errorprone {
+				disableWarningsInGeneratedCode = true
+				// ignore test code for now; see gh-1125
+				excludedPaths =	".*/src/test/.*"
+
+				disable(
+						"StringConcatToTextBlock" // Requires JDK 15+
+				)
+
+				error("NullAway")
+
+				// useful for giving NullAway info it can't derive from the program logic
+				option("NullAway:AssertsEnabled", "true")
+				option("NullAway:OnlyNullMarked", "true")
+				option("NullAway:CustomContractAnnotations", "io.micrometer.common.lang.internal.Contract")
+				option("NullAway:CheckContracts", "true")
+				option("NullAway:HandleTestAssertionLibraries", "true")
+				option("NullAway:ExcludedFieldAnnotations", "org.mockito.Mock,org.mockito.InjectMocks")
+				if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
+					// see https://bugs.openjdk.org/browse/JDK-8346471
+					// see https://github.com/uber/NullAway/wiki/JSpecify-Support
+					option("NullAway:JSpecifyMode", "true")
+				}
+				if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+					// Error Prone does not work with JDK <17
+					enabled = false
+				}
+				if (System.env.CI != null) {
+					disableAllWarnings = true
+				}
 			}
 		}
 		if (project.name.contains('benchmarks')) {
@@ -102,6 +126,7 @@ subprojects {
 		dependencies {
 			checkstyle libs.javaFormatForPlugins
 			errorprone(libs.errorprone)
+			errorprone(libs.nullAway)
 			jmh libs.jmh
 			jmh libs.jmhGeneratorAnnProcess
 			jmhAnnotationProcessor libs.jmhGeneratorAnnProcess

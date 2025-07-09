@@ -423,6 +423,7 @@ public class WavefrontSpanHandler implements Runnable, Closeable {
 
         static final DeathPill INSTANCE = new DeathPill();
 
+        @SuppressWarnings("NullAway")
         private DeathPill() {
             super(null, null);
         }

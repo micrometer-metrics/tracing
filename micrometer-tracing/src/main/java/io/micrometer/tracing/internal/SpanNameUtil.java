@@ -15,7 +15,9 @@
  */
 package io.micrometer.tracing.internal;
 
+import io.micrometer.common.lang.internal.Contract;
 import io.micrometer.common.util.StringUtils;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility class that provides the name in hyphen based notation.
@@ -36,7 +38,8 @@ public final class SpanNameUtil {
      * @param name name to shorten
      * @return shortened name
      */
-    public static String shorten(String name) {
+    @Contract("!null -> !null")
+    public static @Nullable String shorten(@Nullable String name) {
         if (!StringUtils.isNotBlank(name)) {
             return name;
         }

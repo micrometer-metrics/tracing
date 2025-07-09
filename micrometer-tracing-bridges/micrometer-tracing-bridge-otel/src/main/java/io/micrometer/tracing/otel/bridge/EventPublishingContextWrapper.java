@@ -60,7 +60,7 @@ public final class EventPublishingContextWrapper implements Function<ContextStor
             }
 
             @Override
-            public Context current() {
+            public @Nullable Context current() {
                 return contextStorage.current();
             }
         };

@@ -27,8 +27,6 @@ import io.micrometer.tracing.Tracer;
  */
 public class SimpleSpanCustomizer implements SpanCustomizer {
 
-    private final SimpleSpan span;
-
     private final Tracer tracer;
 
     /**
@@ -38,7 +36,6 @@ public class SimpleSpanCustomizer implements SpanCustomizer {
      */
     @Deprecated
     public SimpleSpanCustomizer(SimpleSpan span) {
-        this.span = span;
         this.tracer = Tracer.NOOP;
     }
 
@@ -47,7 +44,6 @@ public class SimpleSpanCustomizer implements SpanCustomizer {
      * @param tracer simple tracer
      */
     public SimpleSpanCustomizer(SimpleTracer tracer) {
-        this.span = null;
         this.tracer = tracer;
     }
 

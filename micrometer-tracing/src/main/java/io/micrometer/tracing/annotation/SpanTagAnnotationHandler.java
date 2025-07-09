@@ -22,6 +22,7 @@ import io.micrometer.common.annotation.ValueExpressionResolver;
 import io.micrometer.common.annotation.ValueResolver;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.SpanCustomizer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
 
@@ -58,7 +59,7 @@ public class SpanTagAnnotationHandler extends AnnotationHandler<SpanCustomizer> 
         return StringUtils.isNotBlank(annotation.value()) ? annotation.value() : annotation.key();
     }
 
-    static String resolveTagValue(SpanTag annotation, Object argument,
+    static String resolveTagValue(SpanTag annotation, @Nullable Object argument,
             Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
             Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
         String value = null;

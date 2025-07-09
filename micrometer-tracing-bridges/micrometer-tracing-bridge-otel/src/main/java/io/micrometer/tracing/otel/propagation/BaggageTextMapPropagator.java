@@ -25,6 +25,7 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
+import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.List;
@@ -69,12 +70,12 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
     }
 
     @Override
-    public <C> void inject(Context context, C c, TextMapSetter<C> setter) {
-        List<Map.Entry<String, String>> baggageEntries = applicableBaggageEntries(c);
-        baggageEntries.forEach(e -> setter.set(c, e.getKey(), e.getValue()));
+    public <C> void inject(Context context, @Nullable C carrier, TextMapSetter<C> setter) {
+        List<Map.Entry<String, String>> baggageEntries = applicableBaggageEntries();
+        baggageEntries.forEach(e -> setter.set(carrier, e.getKey(), e.getValue()));
     }
 
-    private <C> List<Map.Entry<String, String>> applicableBaggageEntries(C c) {
+    private List<Map.Entry<String, String>> applicableBaggageEntries() {
         Map<String, String> allBaggage = this.baggageManager.getAllBaggage();
         List<String> lowerCaseKeys = this.remoteFields.stream().map(String::toLowerCase).collect(Collectors.toList());
         return allBaggage.entrySet()
@@ -84,7 +85,7 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
     }
 
     @Override
-    public <C> Context extract(Context context, C c, TextMapGetter<C> getter) {
+    public <C> Context extract(Context context, @Nullable C c, TextMapGetter<C> getter) {
         Map<String, String> baggageEntries = this.remoteFields.stream()
             .map(s -> new AbstractMap.SimpleEntry<>(s, getter.get(c, s)))
             .filter(e -> e.getValue() != null)

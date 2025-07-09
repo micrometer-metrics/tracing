@@ -16,6 +16,7 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.common.docs.KeyName;
+import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Link;
@@ -26,6 +27,7 @@ import org.assertj.core.api.AbstractThrowableAssert;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -150,6 +152,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
         hasTagWithKey(key);
         Map<String, String> tags = this.actual.getTags();
         String tagValue = tags.get(key);
+        Assertions.assertThat(tagValue).isNotNull();
         if (!tagValue.equals(value)) {
             failWithMessage(
                     "Span should have a tag with key <%s> and value <%s>. The key is correct but the value is <%s>",
@@ -563,7 +566,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF hasIpEqualTo(String ip) {
         isNotNull();
-        if (!this.actual.getRemoteIp().equals(ip)) {
+        if (!Objects.equals(this.actual.getRemoteIp(), ip)) {
             failWithMessage("Span should have ip equal to <%s> but has <%s>", ip, this.actual.getRemoteIp());
         }
         return (SELF) this;
@@ -585,7 +588,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
      */
     public SELF doesNotHaveIpEqualTo(String ip) {
         isNotNull();
-        if (this.actual.getRemoteIp().equals(ip)) {
+        if (Objects.equals(this.actual.getRemoteIp(), ip)) {
             failWithMessage("Span should not have ip equal to <%s>", ip, this.actual.getRemoteIp());
         }
         return (SELF) this;
@@ -911,7 +914,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
             }
         }
 
-        if (!parentSpanId.equals(this.actual.getParentId())) {
+        if (!Objects.equals(parentSpanId, this.actual.getParentId())) {
             failWithMessage("Span should have parent span id equal to <%s> but has <%s>", parentSpanId,
                     this.actual.getParentId());
         }
@@ -944,7 +947,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
             }
         }
 
-        if (parentSpanId.equals(this.actual.getParentId())) {
+        if (Objects.equals(parentSpanId, this.actual.getParentId())) {
             failWithMessage("Span should not have parent span id equal to <%s>", parentSpanId);
         }
         return (SELF) this;
@@ -1010,7 +1013,7 @@ public class SpanAssert<SELF extends SpanAssert<SELF>> extends AbstractAssert<SE
          * @param throwable throwable to assert
          * @param spanAssert span assert to go back to
          */
-        public SpanAssertReturningAssert(Throwable throwable, SpanAssert spanAssert) {
+        public SpanAssertReturningAssert(@Nullable Throwable throwable, SpanAssert spanAssert) {
             super(throwable, SpanAssertReturningAssert.class);
             this.spanAssert = spanAssert;
         }

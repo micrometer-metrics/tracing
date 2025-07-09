@@ -62,7 +62,7 @@ public class OtelPropagator implements Propagator {
     }
 
     @Override
-    public <C> Span.Builder extract(C carrier, Getter<C> getter) {
+    public <C> Span.Builder extract(@Nullable C carrier, Getter<C> getter) {
         Context extracted = this.propagator.extract(Context.current(), carrier, new TextMapGetter<C>() {
             @Override
             public Iterable<String> keys(C carrier) {
@@ -70,7 +70,10 @@ public class OtelPropagator implements Propagator {
             }
 
             @Override
-            public String get(@Nullable C carrier, String key) {
+            public @Nullable String get(@Nullable C carrier, String key) {
+                if (carrier == null) {
+                    return null;
+                }
                 return getter.get(carrier, key);
             }
         });

@@ -102,11 +102,11 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     @Deprecated
-    public io.micrometer.tracing.Baggage set(String value) {
+    public io.micrometer.tracing.Baggage set(@Nullable String value) {
         return doSet(this.currentTraceContext.context(), value);
     }
 
-    private io.micrometer.tracing.Baggage doSet(@Nullable TraceContext context, String value) {
+    private io.micrometer.tracing.Baggage doSet(@Nullable TraceContext context, @Nullable String value) {
         if (context == null) {
             return this;
         }
@@ -139,12 +139,15 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         return this;
     }
 
-    private void updateAttributesForBaggage(String value, Span currentSpan) {
+    private void updateAttributesForBaggage(@Nullable String value, Span currentSpan) {
         if (this.tagFields.stream().anyMatch(s -> s.equalsIgnoreCase(entry().getKey()))) {
             currentSpan.setAttribute(entry().getKey(), value);
         }
     }
 
+    // entry is set to a non-null value in the constructor and doSet method - it is never
+    // null
+    @SuppressWarnings("NullAway")
     private Entry entry() {
         return this.entry.get();
     }

@@ -30,11 +30,11 @@ import io.opentelemetry.api.trace.TraceState;
  */
 public class OtelTraceContextBuilder implements TraceContext.Builder {
 
-    private String traceId;
+    private @Nullable String traceId;
 
-    private String parentId;
+    private @Nullable String parentId;
 
-    private String spanId;
+    private @Nullable String spanId;
 
     private @Nullable Boolean sampled;
 
@@ -65,18 +65,22 @@ public class OtelTraceContextBuilder implements TraceContext.Builder {
     @Override
     public TraceContext build() {
         boolean actualSampled = this.sampled != null && this.sampled;
+        // OTel will replace null IDs with the Invalid ID.
+        // Passing null IDs may be better than throwing a NPE.
+        assert this.traceId != null;
+        assert this.spanId != null;
         if (StringUtils.isNotEmpty(this.parentId)) {
             return new OtelTraceContext(
                     SpanContext.createFromRemoteParent(this.traceId, this.spanId,
                             actualSampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
                     null) {
                 @Override
-                public String parentId() {
+                public @Nullable String parentId() {
                     return parentId;
                 }
 
                 @Override
-                public Boolean sampled() {
+                public @Nullable Boolean sampled() {
                     return sampled;
                 }
             };
@@ -86,7 +90,7 @@ public class OtelTraceContextBuilder implements TraceContext.Builder {
                         actualSampled ? TraceFlags.getSampled() : TraceFlags.getDefault(), TraceState.getDefault()),
                 null) {
             @Override
-            public Boolean sampled() {
+            public @Nullable Boolean sampled() {
                 return sampled;
             }
         };

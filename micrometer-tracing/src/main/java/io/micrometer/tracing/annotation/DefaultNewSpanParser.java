@@ -21,6 +21,7 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.internal.SpanNameUtil;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of the {@link NewSpanParser} that parses only the span name.
@@ -35,7 +36,7 @@ public class DefaultNewSpanParser implements NewSpanParser {
     private static final InternalLogger log = InternalLoggerFactory.getInstance(DefaultNewSpanParser.class);
 
     @Override
-    public void parse(MethodInvocation pjp, NewSpan newSpan, Span span) {
+    public void parse(MethodInvocation pjp, @Nullable NewSpan newSpan, Span span) {
         String name = spanName(newSpan, pjp);
         String changedName = SpanNameUtil.toLowerHyphen(name);
         if (log.isDebugEnabled()) {
@@ -45,7 +46,7 @@ public class DefaultNewSpanParser implements NewSpanParser {
         span.name(changedName);
     }
 
-    private String spanName(NewSpan newSpan, MethodInvocation pjp) {
+    private String spanName(@Nullable NewSpan newSpan, MethodInvocation pjp) {
         if (newSpan == null) {
             return pjp.getMethod().getName();
         }

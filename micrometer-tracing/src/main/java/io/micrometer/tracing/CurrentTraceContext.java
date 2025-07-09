@@ -45,14 +45,14 @@ public interface CurrentTraceContext {
         }
 
         @Override
-        public Scope newScope(TraceContext context) {
+        public Scope newScope(@Nullable TraceContext context) {
             return () -> {
 
             };
         }
 
         @Override
-        public Scope maybeScope(TraceContext context) {
+        public Scope maybeScope(@Nullable TraceContext context) {
             return () -> {
 
             };

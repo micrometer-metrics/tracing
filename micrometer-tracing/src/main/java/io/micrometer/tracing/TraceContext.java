@@ -35,7 +35,7 @@ public interface TraceContext {
         }
 
         @Override
-        public String parentId() {
+        public @Nullable String parentId() {
             return null;
         }
 
@@ -45,7 +45,7 @@ public interface TraceContext {
         }
 
         @Override
-        public Boolean sampled() {
+        public @Nullable Boolean sampled() {
             return null;
         }
     };
@@ -101,7 +101,7 @@ public interface TraceContext {
             }
 
             @Override
-            public Builder sampled(Boolean sampled) {
+            public Builder sampled(@Nullable Boolean sampled) {
                 return this;
             }
 

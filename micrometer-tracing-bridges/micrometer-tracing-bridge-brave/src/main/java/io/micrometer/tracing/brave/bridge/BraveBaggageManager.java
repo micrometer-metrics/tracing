@@ -79,7 +79,9 @@ public class BraveBaggageManager implements Closeable, BaggageManager {
 
     @Override
     public Map<String, String> getAllBaggage() {
-        return BaggageField.getAllValues();
+        // I think this Brave API is mislabeled as Nullable, but it may be Nullable in a
+        // different version.
+        return Objects.requireNonNull(BaggageField.getAllValues());
     }
 
     @Override

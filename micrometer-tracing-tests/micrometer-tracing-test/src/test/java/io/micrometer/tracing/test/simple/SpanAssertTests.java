@@ -503,6 +503,7 @@ class SpanAssertTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway")
     void should_not_fail_when_parentId_is_equal() {
         SimpleSpan span = new SimpleSpan();
         span.context().setParentId(null);
@@ -512,6 +513,7 @@ class SpanAssertTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway")
     void should_not_fail_when_parentId_is_not_equal() {
         SimpleSpan span = new SimpleSpan();
         span.context().setSpanId("1");
@@ -523,6 +525,7 @@ class SpanAssertTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway")
     void should_fail_when_parentId_is_equal() {
         SimpleSpan span = new SimpleSpan();
         span.context().setParentId("1");

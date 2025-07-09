@@ -38,6 +38,7 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -54,7 +55,7 @@ import java.util.stream.Collectors;
 public final class WavefrontOtelSetup implements AutoCloseable {
 
     // To be used in tests ONLY
-    static WavefrontSpanHandler mockHandler;
+    static @Nullable WavefrontSpanHandler mockHandler;
 
     private final Consumer<Builder.OtelBuildingBlocks> closingFunction;
 
@@ -96,27 +97,27 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
         private final String token;
 
-        private String source;
+        private @Nullable String source;
 
-        private String applicationName;
+        private @Nullable String applicationName;
 
-        private String serviceName;
+        private @Nullable String serviceName;
 
-        private Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler;
+        private @Nullable Function<MeterRegistry, WavefrontSpanHandler> wavefrontSpanHandler;
 
-        private Function<WavefrontOtelSpanExporter, SdkTracerProvider> sdkTracerProvider;
+        private @Nullable Function<WavefrontOtelSpanExporter, SdkTracerProvider> sdkTracerProvider;
 
-        private Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
+        private @Nullable Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
 
-        private Function<OpenTelemetrySdk, io.opentelemetry.api.trace.Tracer> tracer;
+        private @Nullable Function<OpenTelemetrySdk, io.opentelemetry.api.trace.Tracer> tracer;
 
-        private Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer;
+        private @Nullable Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+        private @Nullable BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-        private Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
+        private @Nullable Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
-        private Consumer<OtelBuildingBlocks> closingFunction;
+        private @Nullable Consumer<OtelBuildingBlocks> closingFunction;
 
         /**
          * Creates a new instance of {@link Builder}.
@@ -350,7 +351,7 @@ public final class WavefrontOtelSetup implements AutoCloseable {
 
         private WavefrontSpanHandler wavefrontSpanHandler(MeterRegistry meterRegistry) {
             return new WavefrontSpanHandler(50000, new WavefrontClient.Builder(this.server, this.token).build(),
-                    new MeterRegistrySpanMetrics(meterRegistry), this.source,
+                    new MeterRegistrySpanMetrics(meterRegistry), Objects.requireNonNull(this.source),
                     new ApplicationTags.Builder(this.applicationName, this.serviceName).build(), new HashSet<>());
         }
 

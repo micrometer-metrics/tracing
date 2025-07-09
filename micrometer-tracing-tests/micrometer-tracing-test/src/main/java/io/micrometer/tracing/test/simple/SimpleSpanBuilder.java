@@ -18,6 +18,7 @@ package io.micrometer.tracing.test.simple;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,15 +40,15 @@ public class SimpleSpanBuilder implements Span.Builder {
 
     private List<Link> links = new ArrayList<>();
 
-    private Throwable throwable;
+    private @Nullable Throwable throwable;
 
-    private String remoteServiceName;
+    private @Nullable String remoteServiceName;
 
-    private Span.Kind spanKind;
+    private Span.@Nullable Kind spanKind;
 
-    private String name;
+    private @Nullable String name;
 
-    private String ip;
+    private @Nullable String ip;
 
     private int port;
 
@@ -55,9 +56,9 @@ public class SimpleSpanBuilder implements Span.Builder {
 
     private long startTimestamp;
 
-    private TimeUnit startTimestampUnit;
+    private @Nullable TimeUnit startTimestampUnit;
 
-    private TraceContext parentContext;
+    private @Nullable TraceContext parentContext;
 
     /**
      * Creates a new instance of {@link SimpleSpanBuilder}.
@@ -140,11 +141,7 @@ public class SimpleSpanBuilder implements Span.Builder {
         SimpleSpan span = new SimpleSpan();
         this.getTags().forEach(span::tag);
         this.getEvents().forEach(span::event);
-        span.remoteServiceName(this.getRemoteServiceName());
-        span.error(this.getThrowable());
-        span.setSpanKind(this.getSpanKind());
-        span.name(this.getName());
-        span.remoteIpAndPort(this.getIp(), this.getPort());
+        setMaybeNullFields(span);
         span.addLinks(this.links);
 
         if (parentContext != null) {
@@ -161,6 +158,15 @@ public class SimpleSpanBuilder implements Span.Builder {
         }
         this.simpleTracer.getSpans().add(span);
         return span;
+    }
+
+    @SuppressWarnings("NullAway")
+    private void setMaybeNullFields(SimpleSpan span) {
+        span.remoteServiceName(this.getRemoteServiceName());
+        span.error(this.getThrowable());
+        span.setSpanKind(this.getSpanKind());
+        span.name(this.getName());
+        span.remoteIpAndPort(this.getIp(), this.getPort());
     }
 
     /**
@@ -183,7 +189,7 @@ public class SimpleSpanBuilder implements Span.Builder {
      * Throwable corresponding to the span.
      * @return throwable
      */
-    public Throwable getThrowable() {
+    public @Nullable Throwable getThrowable() {
         return throwable;
     }
 
@@ -191,7 +197,7 @@ public class SimpleSpanBuilder implements Span.Builder {
      * Remote service name of the span.
      * @return service name
      */
-    public String getRemoteServiceName() {
+    public @Nullable String getRemoteServiceName() {
         return remoteServiceName;
     }
 
@@ -199,7 +205,7 @@ public class SimpleSpanBuilder implements Span.Builder {
      * Span kind.
      * @return span kind
      */
-    public Span.Kind getSpanKind() {
+    public Span.@Nullable Kind getSpanKind() {
         return spanKind;
     }
 
@@ -207,7 +213,7 @@ public class SimpleSpanBuilder implements Span.Builder {
      * Span name.
      * @return span name
      */
-    public String getName() {
+    public @Nullable String getName() {
         return name;
     }
 
@@ -215,7 +221,7 @@ public class SimpleSpanBuilder implements Span.Builder {
      * Remote service ip.
      * @return ip
      */
-    public String getIp() {
+    public @Nullable String getIp() {
         return ip;
     }
 

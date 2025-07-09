@@ -37,6 +37,7 @@ import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import org.jspecify.annotations.Nullable;
 import zipkin2.reporter.BytesMessageSender;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
@@ -98,23 +99,23 @@ public final class ZipkinOtelSetup implements AutoCloseable {
 
         private String zipkinUrl = "http://localhost:9411";
 
-        private Supplier<BytesMessageSender> sender;
+        private @Nullable Supplier<BytesMessageSender> sender;
 
-        private Function<BytesMessageSender, ZipkinSpanExporter> zipkinSpanExporter;
+        private @Nullable Function<BytesMessageSender, ZipkinSpanExporter> zipkinSpanExporter;
 
-        private Function<ZipkinSpanExporter, SdkTracerProvider> sdkTracerProvider;
+        private @Nullable Function<ZipkinSpanExporter, SdkTracerProvider> sdkTracerProvider;
 
-        private Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
+        private @Nullable Function<SdkTracerProvider, OpenTelemetrySdk> openTelemetrySdk;
 
-        private Function<OpenTelemetrySdk, io.opentelemetry.api.trace.Tracer> tracer;
+        private @Nullable Function<OpenTelemetrySdk, io.opentelemetry.api.trace.Tracer> tracer;
 
-        private Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer;
+        private @Nullable Function<io.opentelemetry.api.trace.Tracer, OtelTracer> otelTracer;
 
-        private BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
+        private @Nullable BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizers;
 
-        private Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
+        private @Nullable Function<OtelBuildingBlocks, ObservationHandler<? extends Observation.Context>> handlers;
 
-        private Consumer<OtelBuildingBlocks> closingFunction;
+        private @Nullable Consumer<OtelBuildingBlocks> closingFunction;
 
         /**
          * All OTel building blocks required to communicate with Zipkin.

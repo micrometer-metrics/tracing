@@ -78,12 +78,12 @@ public interface Tracer extends BaggageManager {
         }
 
         @Override
-        public Span nextSpan(Span parent) {
+        public Span nextSpan(@Nullable Span parent) {
             return Span.NOOP;
         }
 
         @Override
-        public SpanInScope withSpan(Span span) {
+        public SpanInScope withSpan(@Nullable Span span) {
             return () -> {
 
             };

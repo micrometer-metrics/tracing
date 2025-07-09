@@ -19,6 +19,7 @@ import io.micrometer.common.annotation.ValueExpressionResolver;
 import io.micrometer.common.annotation.ValueResolver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.expression.Expression;
@@ -110,17 +111,18 @@ class SpanTagAnnotationHandlerTests {
         private static final Log log = LogFactory.getLog(SpelValueExpressionResolver.class);
 
         @Override
-        public String resolve(String expression, Object parameter) {
+        public String resolve(String expression, @Nullable Object parameter) {
             try {
                 SimpleEvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
                 ExpressionParser expressionParser = new SpelExpressionParser();
                 Expression expressionToEvaluate = expressionParser.parseExpression(expression);
-                return expressionToEvaluate.getValue(context, parameter, String.class);
+                String value = expressionToEvaluate.getValue(context, parameter, String.class);
+                return value == null ? "" : value;
             }
             catch (Exception ex) {
                 log.error("Exception occurred while tying to evaluate the SPEL expression [" + expression + "]", ex);
             }
-            return parameter.toString();
+            return parameter == null ? "" : parameter.toString();
         }
 
     }

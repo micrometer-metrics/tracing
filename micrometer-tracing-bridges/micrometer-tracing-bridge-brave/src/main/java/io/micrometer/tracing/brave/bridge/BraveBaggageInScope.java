@@ -39,7 +39,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     private final BaggageField delegate;
 
-    private final String previousBaggage;
+    private final @Nullable String previousBaggage;
 
     private final List<String> tagFields;
 
@@ -75,7 +75,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
 
     @Override
     @Deprecated
-    public Baggage set(String value) {
+    public Baggage set(@Nullable String value) {
         if (this.traceContext != null) {
             boolean success = this.delegate.updateValue(this.traceContext, value);
             if (logger.isTraceEnabled()) {
@@ -114,7 +114,7 @@ class BraveBaggageInScope implements Baggage, BaggageInScope {
         return this;
     }
 
-    private brave.propagation.TraceContext updateBraveTraceContext(TraceContext traceContext) {
+    private brave.propagation.@Nullable TraceContext updateBraveTraceContext(TraceContext traceContext) {
         brave.propagation.TraceContext braveContext = BraveTraceContext.toBrave(traceContext);
         if (this.traceContext != braveContext) {
             logger.debug(

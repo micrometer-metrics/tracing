@@ -20,6 +20,7 @@ import brave.propagation.TraceContextOrSamplingFlags;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,25 +38,25 @@ class BraveSpanBuilder implements Span.Builder {
 
     private final Tracer tracer;
 
-    brave.Span delegate;
+    brave.@Nullable Span delegate;
 
-    TraceContextOrSamplingFlags parentContext;
+    @Nullable TraceContextOrSamplingFlags parentContext;
 
     private long startTimestamp;
 
-    private String name;
+    private @Nullable String name;
 
     private List<String> events = new ArrayList<>();
 
     private Map<String, String> tags = new HashMap<>();
 
-    private Throwable error;
+    private @Nullable Throwable error;
 
-    private brave.Span.Kind kind;
+    private brave.Span.@Nullable Kind kind;
 
-    private String remoteServiceName;
+    private @Nullable String remoteServiceName;
 
-    private String ip;
+    private @Nullable String ip;
 
     private int port;
 
@@ -155,8 +156,10 @@ class BraveSpanBuilder implements Span.Builder {
     public Span.Builder addLink(Link link) {
         brave.propagation.TraceContext braveContext = BraveTraceContext.toBrave(link.getTraceContext());
         long nextId = LinkUtils.nextIndex(this.tags);
-        this.tags.put(LinkUtils.spanIdKey(nextId), braveContext.spanIdString());
-        this.tags.put(LinkUtils.traceIdKey(nextId), braveContext.traceIdString());
+        if (braveContext != null) {
+            this.tags.put(LinkUtils.spanIdKey(nextId), braveContext.spanIdString());
+            this.tags.put(LinkUtils.traceIdKey(nextId), braveContext.traceIdString());
+        }
         link.getTags().forEach((key, value) -> this.tags.put(LinkUtils.tagKey(nextId, key), String.valueOf(value)));
         return this;
     }

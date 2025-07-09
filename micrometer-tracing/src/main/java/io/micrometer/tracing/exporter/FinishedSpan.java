@@ -185,7 +185,7 @@ public interface FinishedSpan {
     /**
      * @return span's kind
      */
-    Span.Kind getKind();
+    Span.@Nullable Kind getKind();
 
     /**
      * @return remote service name or {@code null} if not set

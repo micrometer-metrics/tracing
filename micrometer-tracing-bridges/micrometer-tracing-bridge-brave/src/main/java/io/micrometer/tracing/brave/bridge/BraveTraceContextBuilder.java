@@ -17,6 +17,7 @@ package io.micrometer.tracing.brave.bridge;
 
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.internal.EncodingUtils;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Brave implementation of a {@link TraceContext.Builder}.
@@ -56,7 +57,7 @@ class BraveTraceContextBuilder implements TraceContext.Builder {
     }
 
     @Override
-    public TraceContext.Builder sampled(Boolean sampled) {
+    public TraceContext.Builder sampled(@Nullable Boolean sampled) {
         this.delegate.sampled(sampled);
         return this;
     }

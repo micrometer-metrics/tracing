@@ -14,6 +14,7 @@
 package io.micrometer.tracing.test.simple;
 
 import io.micrometer.tracing.*;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Deque;
@@ -48,23 +49,22 @@ public class SimpleTracer implements Tracer {
     }
 
     @Override
-    public SimpleSpan nextSpan(Span parent) {
+    public SimpleSpan nextSpan(@Nullable Span parent) {
         SimpleSpan span = simpleSpan(parent);
         this.spans.add(span);
         return span;
     }
 
-    private SimpleSpan simpleSpan(Span parent) {
+    private SimpleSpan simpleSpan(@Nullable Span parent) {
         Map<String, String> baggageFromParent = Collections.emptyMap();
         SimpleSpan span = new SimpleSpan();
-        boolean hasParent = parent != null;
-        if (hasParent) {
+        if (parent != null) {
             span.context().setParentId(parent.context().spanId());
             baggageFromParent = simpleBaggageManager.getAllBaggageForCtx(parent.context());
         }
-        String traceId = hasParent ? parent.context().traceId() : span.context().generateId();
+        String traceId = parent != null ? parent.context().traceId() : span.context().generateId();
         span.context().setTraceId(traceId);
-        span.context().setSpanId(hasParent ? span.context().generateId() : traceId);
+        span.context().setSpanId(parent != null ? span.context().generateId() : traceId);
         span.context().addParentBaggage(baggageFromParent);
         return span;
     }
@@ -103,7 +103,7 @@ public class SimpleTracer implements Tracer {
     }
 
     @Override
-    public SimpleSpanInScope withSpan(Span span) {
+    public SimpleSpanInScope withSpan(@Nullable Span span) {
         return new SimpleSpanInScope(this.currentTraceContext.newScope(span != null ? span.context() : null));
     }
 
@@ -113,7 +113,7 @@ public class SimpleTracer implements Tracer {
     }
 
     @Override
-    public SimpleSpan currentSpan() {
+    public @Nullable SimpleSpan currentSpan() {
         return scopedSpans.get();
     }
 
@@ -160,7 +160,10 @@ public class SimpleTracer implements Tracer {
     }
 
     @Override
-    public Map<String, String> getAllBaggage(TraceContext traceContext) {
+    public Map<String, String> getAllBaggage(@Nullable TraceContext traceContext) {
+        if (traceContext == null) {
+            return this.simpleBaggageManager.getAllBaggage();
+        }
         return this.simpleBaggageManager.getAllBaggageForCtx(traceContext);
     }
 
@@ -211,7 +214,7 @@ public class SimpleTracer implements Tracer {
      * @param traceContext the traceContext to use to fetch the span
      * @return the span that is bounded to the given traceContext (null if none)
      */
-    static SimpleSpan getSpanForTraceContext(TraceContext traceContext) {
+    static @Nullable SimpleSpan getSpanForTraceContext(TraceContext traceContext) {
         return traceContextToSpans.get(traceContext);
     }
 

@@ -34,7 +34,7 @@ public class SpanAndScope implements Closeable {
 
     private final Span span;
 
-    private final Tracer.SpanInScope scope;
+    private final Tracer.@Nullable SpanInScope scope;
 
     /**
      * Creates a new span and scope

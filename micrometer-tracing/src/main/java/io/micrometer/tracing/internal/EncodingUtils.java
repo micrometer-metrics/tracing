@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Arrays;
 
 /**
@@ -69,7 +71,7 @@ public final class EncodingUtils {
      * @param chars the base8 or base16 representation of the {@code long}
      * @return long array from string. Either contains high and low or just low trace id
      */
-    public static long[] fromString(CharSequence chars) {
+    public static long[] fromString(@Nullable CharSequence chars) {
         if (chars == null || chars.length() == 0) {
             return new long[] { 0 };
         }

@@ -157,10 +157,10 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
         if (context.context() == null) {
             return context;
         }
-        return this.baggagePropagator.contextWithBaggage(carrier, context, getter);
+        return Objects.requireNonNull(this.baggagePropagator).contextWithBaggage(carrier, context, getter);
     }
 
-    TraceContextOrSamplingFlags context(TraceContext contextFromParentHeader, String traceStateHeader) {
+    TraceContextOrSamplingFlags context(TraceContext contextFromParentHeader, @Nullable String traceStateHeader) {
         if (!StringUtils.isNotBlank(traceStateHeader)) {
             return TraceContextOrSamplingFlags.create(contextFromParentHeader);
         }
