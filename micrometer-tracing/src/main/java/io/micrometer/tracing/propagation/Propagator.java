@@ -155,6 +155,30 @@ public interface Propagator {
          */
         @Nullable String get(C carrier, String key);
 
+        /**
+         * Get all values of the given propagation {@code key}, if any exist. This should
+         * only be used when it is expected that the key may be repeated.
+         * {@link #get(Object, String)} should be preferred in other cases for
+         * performance.
+         * @param carrier carrier of propagation fields, such as an http request.
+         * @param key the key of the field.
+         * @return all values of the given propagation {@code key} or returns an empty
+         * {@code Iterable} if no values are found.
+         * @implNote For backward-compatibility, a default implementation is provided that
+         * returns a list with the value of {@link #get(Object, String)} or an empty list
+         * if no values are found. Implementors of this interface should override this
+         * method to provide an implementation that returns all present values of the
+         * given propagation {@code key}.
+         * @since 1.6.0
+         */
+        default Iterable<String> getAll(C carrier, String key) {
+            String firstValue = get(carrier, key);
+            if (firstValue == null) {
+                return Collections.emptyList();
+            }
+            return Collections.singletonList(firstValue);
+        }
+
     }
 
 }

@@ -22,6 +22,7 @@ import io.micrometer.observation.transport.ReceiverContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 
@@ -55,8 +56,18 @@ public class PropagatingReceiverTracingObservationHandler<T extends ReceiverCont
 
     @Override
     public void onStart(T context) {
-        Span.Builder extractedSpan = this.propagator.extract(context.getCarrier(),
-                (carrier, key) -> context.getGetter().get(carrier, key));
+        io.micrometer.observation.transport.Propagator.Getter<Object> getter = context.getGetter();
+        Span.Builder extractedSpan = this.propagator.extract(context.getCarrier(), new Propagator.Getter<Object>() {
+            @Override
+            public @Nullable String get(Object carrier, String key) {
+                return getter.get(carrier, key);
+            }
+
+            @Override
+            public Iterable<String> getAll(Object carrier, String key) {
+                return getter.getAll(carrier, key);
+            }
+        });
         extractedSpan.kind(Span.Kind.valueOf(context.getKind().name()));
         if (context.getRemoteServiceName() != null) {
             extractedSpan.remoteServiceName(context.getRemoteServiceName());
