@@ -26,6 +26,8 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -75,6 +77,14 @@ public class OtelPropagator implements Propagator {
                     return null;
                 }
                 return getter.get(carrier, key);
+            }
+
+            @Override
+            public Iterator<String> getAll(@Nullable C carrier, String key) {
+                if (carrier == null) {
+                    return Collections.emptyIterator();
+                }
+                return getter.getAll(carrier, key).iterator();
             }
         });
         io.opentelemetry.api.trace.Span span = io.opentelemetry.api.trace.Span.fromContextOrNull(extracted);
