@@ -26,7 +26,6 @@ import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
-import io.micrometer.tracing.internal.SpanNameUtil;
 
 import java.util.Collections;
 import java.util.Map;
@@ -60,7 +59,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
     }
 
     /**
-     * Get the span name.
+     * Get the span name based on the given context.
      * @param context handler context
      * @return name for the span
      */
@@ -69,7 +68,7 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         if (StringUtils.isNotBlank(context.getContextualName())) {
             name = context.getContextualName();
         }
-        return SpanNameUtil.toLowerHyphen(Objects.requireNonNull(name));
+        return Objects.requireNonNull(name);
     }
 
     /**
