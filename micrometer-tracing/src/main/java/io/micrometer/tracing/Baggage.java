@@ -57,7 +57,7 @@ public interface Baggage extends BaggageView {
         }
 
         @Override
-        public Baggage set(TraceContext traceContext, String value) {
+        public Baggage set(TraceContext traceContext, @Nullable String value) {
             return this;
         }
 
@@ -67,12 +67,12 @@ public interface Baggage extends BaggageView {
         }
 
         @Override
-        public BaggageInScope makeCurrent(String value) {
+        public BaggageInScope makeCurrent(@Nullable String value) {
             return BaggageInScope.NOOP;
         }
 
         @Override
-        public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
+        public BaggageInScope makeCurrent(TraceContext traceContext, @Nullable String value) {
             return BaggageInScope.NOOP;
         }
     };
@@ -94,7 +94,7 @@ public interface Baggage extends BaggageView {
      * @deprecated use {@link Baggage#makeCurrent(TraceContext, String)}
      */
     @Deprecated
-    Baggage set(TraceContext traceContext, String value);
+    Baggage set(TraceContext traceContext, @Nullable String value);
 
     /**
      * Sets the current baggage in scope.
@@ -107,7 +107,7 @@ public interface Baggage extends BaggageView {
      * @param value to set
      * @return a {@link BaggageInScope} instance
      */
-    default BaggageInScope makeCurrent(String value) {
+    default BaggageInScope makeCurrent(@Nullable String value) {
         return set(value).makeCurrent();
     }
 
@@ -117,7 +117,7 @@ public interface Baggage extends BaggageView {
      * @param value to set
      * @return a {@link BaggageInScope} instance
      */
-    default BaggageInScope makeCurrent(TraceContext traceContext, String value) {
+    default BaggageInScope makeCurrent(TraceContext traceContext, @Nullable String value) {
         return set(traceContext, value).makeCurrent();
     }
 

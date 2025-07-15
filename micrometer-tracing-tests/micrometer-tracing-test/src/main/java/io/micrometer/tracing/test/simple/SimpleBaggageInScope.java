@@ -110,20 +110,20 @@ public class SimpleBaggageInScope implements Baggage, BaggageInScope {
 
     @Override
     @Deprecated
-    public Baggage set(TraceContext traceContext, String value) {
+    public Baggage set(TraceContext traceContext, @Nullable String value) {
         this.value = value;
         this.traceContext = traceContext;
         return this;
     }
 
     @Override
-    public BaggageInScope makeCurrent(String value) {
+    public BaggageInScope makeCurrent(@Nullable String value) {
         this.value = value;
         return makeCurrent();
     }
 
     @Override
-    public BaggageInScope makeCurrent(TraceContext traceContext, String value) {
+    public BaggageInScope makeCurrent(TraceContext traceContext, @Nullable String value) {
         this.value = value;
         this.traceContext = traceContext;
         return makeCurrent();
