@@ -26,9 +26,11 @@ import java.util.Collection;
 /**
  * A {@link SpanExporter} that sends spans to Wavefront.
  *
+ * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
+@Deprecated
 public class WavefrontOtelSpanExporter implements SpanExporter {
 
     private final WavefrontSpanHandler spanHandler;

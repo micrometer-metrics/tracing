@@ -65,8 +65,10 @@ import static com.wavefront.sdk.common.Constants.*;
  * don't call {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront
  * code, as it might throw an exception.
  *
+ * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
  * @since 1.0.0
  */
+@Deprecated
 public class WavefrontSpanHandler implements Runnable, Closeable {
 
     private static final InternalLogger LOG = InternalLoggerFactory.getInstance(WavefrontSpanHandler.class);

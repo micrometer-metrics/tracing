@@ -20,9 +20,11 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Reports metrics from {@link WavefrontSpanHandler}.
  *
+ * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
  * @author Moritz Halbritter
  * @since 1.0.0
  */
+@Deprecated
 public interface SpanMetrics {
 
     /**

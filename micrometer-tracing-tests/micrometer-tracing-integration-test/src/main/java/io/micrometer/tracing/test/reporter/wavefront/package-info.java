@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * Deprecated since 1.16.0 because Wavefront's End of Life Announcement.
+ */
 @NullMarked
+@Deprecated
 package io.micrometer.tracing.test.reporter.wavefront;
 
 import org.jspecify.annotations.NullMarked;

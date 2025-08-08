@@ -345,7 +345,9 @@ public abstract class SampleTestRunner {
 
         /**
          * Wavefront Exporter with OTel Tracer.
+         * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
          */
+        @Deprecated
         WAVEFRONT_OTEL {
             @Override
             void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
@@ -380,7 +382,9 @@ public abstract class SampleTestRunner {
 
         /**
          * Wavefront Exporter with Brave Tracer.
+         * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
          */
+        @Deprecated
         WAVEFRONT_BRAVE {
             @Override
             void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,
@@ -529,9 +533,11 @@ public abstract class SampleTestRunner {
 
             /**
              * Token required to connect to Tanzu Observability by Wavefront.
+             * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
              * @param wavefrontToken wavefront token
              * @return this
              */
+            @Deprecated
             public Builder wavefrontToken(String wavefrontToken) {
                 this.wavefrontToken = wavefrontToken;
                 return this;
@@ -539,9 +545,11 @@ public abstract class SampleTestRunner {
 
             /**
              * URL of your Tanzu Observability by Wavefront installation.
+             * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
              * @param wavefrontUrl wavefront URL.
              * @return this
              */
+            @Deprecated
             public Builder wavefrontUrl(String wavefrontUrl) {
                 this.wavefrontUrl = wavefrontUrl;
                 return this;
@@ -559,9 +567,11 @@ public abstract class SampleTestRunner {
 
             /**
              * Name of the application grouping in Tanzu Observability by Wavefront.
+             * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
              * @param wavefrontApplicationName wavefront application name
              * @return this
              */
+            @Deprecated
             public Builder wavefrontApplicationName(String wavefrontApplicationName) {
                 this.wavefrontApplicationName = wavefrontApplicationName;
                 return this;
@@ -569,9 +579,11 @@ public abstract class SampleTestRunner {
 
             /**
              * Name of this service in Tanzu Observability by Wavefront.
+             * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
              * @param wavefrontServiceName wavefront service name
              * @return this
              */
+            @Deprecated
             public Builder wavefrontServiceName(String wavefrontServiceName) {
                 this.wavefrontServiceName = wavefrontServiceName;
                 return this;
@@ -579,9 +591,11 @@ public abstract class SampleTestRunner {
 
             /**
              * Name of the source to be presented in Tanzu Observability by Wavefront.
+             * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
              * @param wavefrontSource wavefront source
              * @return this
              */
+            @Deprecated
             public Builder wavefrontSource(String wavefrontSource) {
                 this.wavefrontSource = wavefrontSource;
                 return this;

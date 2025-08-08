@@ -15,20 +15,22 @@
  */
 package io.micrometer.tracing.reporter.wavefront;
 
-import java.io.Closeable;
-
 import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
 import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
 import io.micrometer.tracing.brave.bridge.BraveTraceContext;
 
+import java.io.Closeable;
+
 /**
  * A {@link SpanHandler} that sends spans to Wavefront.
  *
+ * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
+@Deprecated
 public class WavefrontBraveSpanHandler extends SpanHandler implements Runnable, Closeable {
 
     private final WavefrontSpanHandler spanHandler;

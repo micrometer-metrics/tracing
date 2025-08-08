@@ -47,9 +47,11 @@ import java.util.stream.Collectors;
 /**
  * Provides Wavefront setup with Brave.
  *
+ * @deprecated since 1.6.0 because Wavefront's End of Life Announcement
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
+@Deprecated
 public final class WavefrontBraveSetup implements AutoCloseable {
 
     // To be used in tests ONLY
