@@ -1,5 +1,5 @@
 [versions]
-micrometer = "1.16.0-SNAPSHOT"
+micrometer = "1.16.0-M2"
 junit = "5.13.4"
 javaxServlet="4.0.1"
 jmh="1.37"

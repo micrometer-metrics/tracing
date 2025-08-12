@@ -345,7 +345,6 @@ subprojects {
 
 	repositories {
 		mavenCentral()
-		maven { url = 'https://repo.spring.io/snapshot' }
 	}
 
 	def check = tasks.findByName('check')
