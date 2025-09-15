@@ -15,6 +15,7 @@
  */
 package io.micrometer.tracing.otel.propagation;
 
+import io.micrometer.common.lang.Nullable;
 import io.micrometer.common.util.internal.logging.InternalLogger;
 import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageManager;
@@ -29,6 +30,7 @@ import io.opentelemetry.context.propagation.TextMapSetter;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
@@ -84,20 +86,22 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
     }
 
     @Override
-    public <C> Context extract(Context context, C c, TextMapGetter<C> getter) {
-        Map<String, String> baggageEntries = this.remoteFields.stream()
+    public <C> Context extract(Context context, @Nullable C c, TextMapGetter<C> getter) {
+        Map<String, String> carrierEntries = this.remoteFields.stream()
             .map(s -> new AbstractMap.SimpleEntry<>(s, getter.get(c, s)))
             .filter(e -> e.getValue() != null)
-            .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()));
-        BaggageBuilder builder = Baggage.current().toBuilder();
-        baggageEntries
-            .forEach((key, value) -> builder.put(key, value, BaggageEntryMetadata.create(PROPAGATION_UNLIMITED)));
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+
+        BaggageBuilder builder = Baggage.empty().toBuilder();
         Baggage.fromContext(context)
             .forEach((s, baggageEntry) -> builder.put(s, baggageEntry.getValue(), baggageEntry.getMetadata()));
+        carrierEntries
+            .forEach((key, value) -> builder.put(key, value, BaggageEntryMetadata.create(PROPAGATION_UNLIMITED)));
+
         Baggage baggage = builder.build();
         Context withBaggage = context.with(baggage);
         if (log.isDebugEnabled()) {
-            log.debug("Will propagate new baggage context for entries " + baggageEntries);
+            log.debug("Will propagate new baggage context for entries " + carrierEntries);
         }
         return withBaggage;
     }
