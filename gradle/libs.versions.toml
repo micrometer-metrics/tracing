@@ -1,6 +1,6 @@
 [versions]
 micrometer = "1.16.0-M3"
-junit = "5.13.4"
+junit = "5.14.0"
 javaxServlet="4.0.1"
 jmh="1.37"
 jakartaWeb="9.1.0"
