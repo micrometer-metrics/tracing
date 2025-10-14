@@ -63,8 +63,6 @@ subprojects {
 		tasks.withType(JavaCompile).configureEach {
 			options.errorprone {
 				disableWarningsInGeneratedCode = true
-				// ignore test code for now; see gh-1125
-				excludedPaths =	".*/src/test/.*"
 
 				disable(
 						"StringConcatToTextBlock" // Requires JDK 15+

@@ -38,6 +38,7 @@ import org.mockito.BDDMockito;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -124,7 +125,7 @@ class CompositeSpanExporterTests {
 
         BDDAssertions.then(resultCode.isSuccess()).isTrue();
         BDDAssertions.then(testSpanReporter.spans()).hasSize(1);
-        BDDAssertions.then(testSpanReporter.poll().getName()).isEqualTo("bar");
+        BDDAssertions.then(Objects.requireNonNull(testSpanReporter.poll()).getName()).isEqualTo("bar");
     }
 
     static class CustomSpanData implements SpanData {

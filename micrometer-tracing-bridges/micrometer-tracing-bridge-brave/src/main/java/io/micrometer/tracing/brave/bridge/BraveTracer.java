@@ -122,7 +122,7 @@ public class BraveTracer implements Tracer {
     }
 
     @Override
-    public @Nullable Baggage getBaggage(String name) {
+    public Baggage getBaggage(String name) {
         return this.braveBaggageManager.getBaggage(name);
     }
 

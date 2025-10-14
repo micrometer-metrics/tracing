@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -66,7 +67,8 @@ class OtelPropagatorTests {
 
         Span span = extract.start();
 
-        try (BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent()) {
+        try (BaggageInScope baggage = Objects.requireNonNull(otelBaggageManager.getBaggage(span.context(), "foo"))
+            .makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }
     }
@@ -79,7 +81,8 @@ class OtelPropagatorTests {
 
         Span span = extract.start();
 
-        try (BaggageInScope baggage = otelBaggageManager.getBaggage(span.context(), "foo").makeCurrent()) {
+        try (BaggageInScope baggage = Objects.requireNonNull(otelBaggageManager.getBaggage(span.context(), "foo"))
+            .makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }
     }
@@ -92,9 +95,10 @@ class OtelPropagatorTests {
 
         Span span = extract.start();
 
-        try (BaggageInScope baggage = new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(),
-                Collections.emptyList())
-            .getBaggage(span.context(), "foo")
+        try (BaggageInScope baggage = Objects
+            .requireNonNull(
+                    new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList())
+                        .getBaggage(span.context(), "foo"))
             .makeCurrent()) {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }

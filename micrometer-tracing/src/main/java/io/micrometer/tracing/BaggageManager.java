@@ -93,7 +93,7 @@ public interface BaggageManager {
      * @param name baggage name
      * @return baggage if present or creates a new one if missing with {@code null} value
      */
-    @Nullable Baggage getBaggage(String name);
+    Baggage getBaggage(String name);
 
     /**
      * Retrieves {@link Baggage} for the given name.

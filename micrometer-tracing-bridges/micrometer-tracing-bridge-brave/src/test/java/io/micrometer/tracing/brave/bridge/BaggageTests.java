@@ -34,6 +34,7 @@ import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccess
 import io.micrometer.tracing.*;
 import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.propagation.Propagator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -46,10 +47,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -138,12 +136,14 @@ class BaggageTests {
     void injectAndExtractKeepsTheBaggage() {
         // GIVEN
         Map<String, String> carrier = new HashMap<>();
+        Propagator.Setter<Map<String, String>> setter = (stringStringMap, key,
+                value) -> Objects.requireNonNull(stringStringMap).put(key, value);
 
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
             try (BaggageInScope baggageInScope = this.tracer.createBaggageInScope(KEY_1, VALUE_1)) {
                 // WHEN
-                this.propagator.inject(tracer.currentTraceContext().context(), carrier, Map::put);
+                this.propagator.inject(Objects.requireNonNull(tracer.currentTraceContext().context()), carrier, setter);
             }
 
             // THEN
@@ -166,13 +166,15 @@ class BaggageTests {
     void injectAndExtractKeepsTheBaggageWithLegacyApi() {
         // GIVEN
         Map<String, String> carrier = new HashMap<>();
+        Propagator.Setter<Map<String, String>> setter = (stringStringMap, key,
+                value) -> Objects.requireNonNull(stringStringMap).put(key, value);
 
         Span span = tracer.nextSpan().start();
         try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
             this.tracer.createBaggage(KEY_1, VALUE_1);
 
             // WHEN
-            this.propagator.inject(tracer.currentTraceContext().context(), carrier, Map::put);
+            this.propagator.inject(Objects.requireNonNull(tracer.currentTraceContext().context()), carrier, setter);
 
             // THEN
             then(carrier.get(KEY_1)).isEqualTo(VALUE_1);

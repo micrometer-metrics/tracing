@@ -27,6 +27,7 @@ import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.Objects;
 
 class OtelBaggageManagerTests {
 
@@ -56,7 +57,7 @@ class OtelBaggageManagerTests {
             Span span = otelTracer.spanBuilder("foo").startSpan();
             TraceContext traceContext = OtelTraceContext.fromOtel(span.getSpanContext());
             Baggage baggage = otelBaggageManager.getBaggage(traceContext, "foo");
-            try (BaggageInScope baggageInScope = baggage.makeCurrent()) {
+            try (BaggageInScope baggageInScope = Objects.requireNonNull(baggage).makeCurrent()) {
                 BDDAssertions.then(baggage).isNotNull();
                 BDDAssertions.then(baggage.get()).isEqualTo("bar");
             }

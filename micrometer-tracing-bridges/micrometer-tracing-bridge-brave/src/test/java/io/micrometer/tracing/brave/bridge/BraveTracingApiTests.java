@@ -32,10 +32,12 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import io.micrometer.tracing.*;
 import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
@@ -151,7 +153,7 @@ class BraveTracingApiTests {
             // let's assume that we're in a thread Y and we've received
             // the `initialSpan` from thread X. `initialSpan` will be the parent
             // of the `newSpan`
-            Span newSpan = this.tracer.nextSpan(initialSpan).name("calculateCommission");
+            Span newSpan = Objects.requireNonNull(this.tracer.nextSpan(initialSpan)).name("calculateCommission");
             // ...
             // You can tag a span
             newSpan.tag("commissionValue", commissionValue);
@@ -281,7 +283,7 @@ class BraveTracingApiTests {
             }
 
             @Override
-            public <T> T readValue(Observation sourceContext, Object key) {
+            public <T> @Nullable T readValue(Observation sourceContext, Object key) {
                 return (T) sourceContext;
             }
 
@@ -292,7 +294,7 @@ class BraveTracingApiTests {
 
             @Override
             public Observation writeValues(Map<Object, Object> valuesToWrite, Observation targetContext) {
-                return (Observation) valuesToWrite.get(ObservationThreadLocalAccessor.KEY);
+                return (Observation) Objects.requireNonNull(valuesToWrite.get(ObservationThreadLocalAccessor.KEY));
             }
         });
 

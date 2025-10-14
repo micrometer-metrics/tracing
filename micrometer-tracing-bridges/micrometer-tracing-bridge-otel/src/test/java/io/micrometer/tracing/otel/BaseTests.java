@@ -184,6 +184,7 @@ class BaseTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway")
     void should_not_fail_when_baggage_manager_is_noop() {
         tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
         });

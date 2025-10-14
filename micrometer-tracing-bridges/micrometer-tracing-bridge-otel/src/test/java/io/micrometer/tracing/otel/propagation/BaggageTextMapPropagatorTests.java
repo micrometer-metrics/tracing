@@ -22,6 +22,7 @@ import io.opentelemetry.api.baggage.BaggageEntry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import org.assertj.core.api.BDDAssertions;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,6 +46,7 @@ class BaggageTextMapPropagatorTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway")
     void should_append_baggage_to_existing_one() {
         Baggage baggage = Baggage.empty().toBuilder().put("foo", "undesired").put("lorem", "ipsum").build();
         Context parent = Context.root().with(baggage);
@@ -81,7 +83,7 @@ class BaggageTextMapPropagatorTests {
 
         Map<String, BaggageEntry> extractedBaggage = Baggage.fromContext(extracted).asMap();
         BDDAssertions.then(extractedBaggage).doesNotContainKey("current-key");
-        BDDAssertions.then(extractedBaggage.get("foo").getValue()).isEqualTo("bar");
+        BDDAssertions.then(Objects.requireNonNull(extractedBaggage.get("foo")).getValue()).isEqualTo("bar");
     }
 
     private TextMapGetter<Map<String, String>> textMapGetter(final List<String> remoteFields) {
@@ -92,8 +94,8 @@ class BaggageTextMapPropagatorTests {
             }
 
             @Override
-            public String get(Map<String, String> carrier, String key) {
-                return carrier.get(key);
+            public @Nullable String get(@Nullable Map<String, String> carrier, String key) {
+                return carrier == null ? null : carrier.get(key);
             }
         };
     }

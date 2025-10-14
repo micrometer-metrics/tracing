@@ -66,7 +66,7 @@ class OtelSpanTests {
         Span span = otelTracer.spanBuilder("foo").startSpan();
         OtelSpan otelSpan = new OtelSpan(span);
         OtelSpan otelSpanFromSpanContext = new OtelSpan(
-                new SpanFromSpanContext(span, null, new OtelTraceContext(span)));
+                new SpanFromSpanContext(span, span.getSpanContext(), new OtelTraceContext(span)));
 
         then(otelSpan).isEqualTo(otelSpanFromSpanContext);
         then(otelSpanFromSpanContext).isEqualTo(otelSpan);

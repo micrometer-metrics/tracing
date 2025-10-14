@@ -24,6 +24,7 @@ import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.test.simple.SimpleSpan;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,7 +90,7 @@ class WavefrontSpanHandlerTests {
         }
 
         @Override
-        public String parentId() {
+        public @Nullable String parentId() {
             return null;
         }
 

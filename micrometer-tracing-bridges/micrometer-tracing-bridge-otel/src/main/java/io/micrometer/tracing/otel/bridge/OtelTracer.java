@@ -169,7 +169,7 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    public @Nullable Baggage getBaggage(String name) {
+    public Baggage getBaggage(String name) {
         return this.otelBaggageManager.getBaggage(name);
     }
 

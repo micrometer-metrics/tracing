@@ -15,10 +15,7 @@
  */
 package io.micrometer.tracing.test;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Locale;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
@@ -87,6 +84,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
         return registry;
     }
 
+    @SuppressWarnings("NullAway.Init")
     Deque<ObservationHandler<? extends Observation.Context>> handlers;
 
     @Override
@@ -147,7 +145,7 @@ class SampleTestRunnerTests extends SampleTestRunner {
             Tracer tracer = bb.getTracer();
 
             BDDAssertions.then(tracer.currentSpan()).isNotNull();
-            traces.add(tracer.currentSpan().context().traceId());
+            traces.add(Objects.requireNonNull(tracer.currentSpan()).context().traceId());
 
             Observation start = Observation.start("name", registry);
             try (Observation.Scope scope = start.openScope()) {

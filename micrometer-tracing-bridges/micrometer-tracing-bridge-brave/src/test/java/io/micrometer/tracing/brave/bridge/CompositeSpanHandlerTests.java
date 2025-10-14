@@ -24,6 +24,7 @@ import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.Objects;
 
 class CompositeSpanHandlerTests {
 
@@ -39,7 +40,7 @@ class CompositeSpanHandlerTests {
 
         BDDAssertions.then(success).isTrue();
         BDDAssertions.then(testSpanReporter.spans()).hasSize(1);
-        BDDAssertions.then(testSpanReporter.poll().getName()).isEqualTo("bar");
+        BDDAssertions.then(Objects.requireNonNull(testSpanReporter.poll()).getName()).isEqualTo("bar");
     }
 
     private static long id() {

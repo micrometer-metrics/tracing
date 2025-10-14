@@ -67,6 +67,7 @@ class ProbabilityBasedSamplerTests {
     }
 
     @Test
+    @SuppressWarnings("NullAway")
     void should_fail_given_no_probability() {
         assertThatThrownBy(() -> new ProbabilityBasedSampler(null)).isInstanceOf(IllegalArgumentException.class)
             .hasMessage("probability property is required for ProbabilityBasedSampler");

@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 class BravePropagatorTests {
 
@@ -63,7 +64,7 @@ class BravePropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = tracer.getBaggage(span.context(), "foo").makeCurrent();
+        BaggageInScope baggage = Objects.requireNonNull(tracer.getBaggage(span.context(), "foo")).makeCurrent();
         try {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }
@@ -80,7 +81,7 @@ class BravePropagatorTests {
 
         Span span = extract.start();
 
-        BaggageInScope baggage = tracer.getBaggage(span.context(), "foo").makeCurrent();
+        BaggageInScope baggage = Objects.requireNonNull(tracer.getBaggage(span.context(), "foo")).makeCurrent();
         try {
             BDDAssertions.then(baggage.get(span.context())).isEqualTo("bar");
         }

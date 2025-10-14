@@ -173,6 +173,9 @@ class W3CBaggagePropagatorTest {
     }
 
     private Map<String, String> baggageEntries(TraceContextOrSamplingFlags flags) {
+        if (flags.context() == null) {
+            throw new AssertionError("Extracted Tracing context is null");
+        }
         if (flags.context().extra().isEmpty() || !(flags.context().extra().get(0) instanceof BraveBaggageFields)) {
             throw new AssertionError("Extra doesn't contain BraveBaggageFields as first entry");
         }

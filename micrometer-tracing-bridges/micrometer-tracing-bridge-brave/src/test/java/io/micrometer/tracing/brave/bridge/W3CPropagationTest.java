@@ -202,7 +202,7 @@ class W3CPropagationTest {
 
         TraceContext context = W3CPropagationType.WITH_BAGGAGE.get().extractor(getter).extract(carrier).context();
 
-        Map<String, String> baggageEntries = baggageEntries(context);
+        Map<String, String> baggageEntries = baggageEntries(Objects.requireNonNull(context));
         assertThat(baggageEntries).doesNotContainKey(TRACESTATE).containsEntry("mybaggage", "mybaggagevalue");
     }
 

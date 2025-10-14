@@ -164,7 +164,7 @@ class BaseTests {
 
         Optional<MutableSpan> calculateTax = spans.spans()
             .stream()
-            .filter(span -> span.name().equals("calculateCommission"))
+            .filter(span -> "calculateCommission".equals(span.name()))
             .findFirst();
         BDDAssertions.then(calculateTax).isPresent();
         BDDAssertions.then(calculateTax.get().tags()).containsEntry("commissionValue", "10");
