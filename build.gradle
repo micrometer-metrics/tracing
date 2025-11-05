@@ -82,8 +82,8 @@ subprojects {
 					// see https://github.com/uber/NullAway/wiki/JSpecify-Support
 					option("NullAway:JSpecifyMode", "true")
 				}
-				if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-					// Error Prone does not work with JDK <17
+				if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_21)) {
+                    // Error Prone 2.43.0 requires JDK 21+
 					enabled = false
 				}
 				if (System.env.CI != null) {
@@ -123,8 +123,11 @@ subprojects {
 		// have to add the dependency in every project, which is tedious so just do it here.
 		dependencies {
 			checkstyle libs.javaFormatForPlugins
-			errorprone(libs.errorprone)
-			errorprone(libs.nullAway)
+            if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_21)) {
+                // Error Prone 2.43.0 requires JDK 21+
+                errorprone(libs.errorprone)
+                errorprone(libs.nullAway)
+            }
 			jmh libs.jmh
 			jmh libs.jmhGeneratorAnnProcess
 			jmhAnnotationProcessor libs.jmhGeneratorAnnProcess
