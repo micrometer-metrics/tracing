@@ -4,7 +4,7 @@ executors:
   circle-jdk24-executor:
     working_directory: ~/micrometer-tracing
     environment:
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: cimg/openjdk:24.0.2
   circle-jdk-executor:
