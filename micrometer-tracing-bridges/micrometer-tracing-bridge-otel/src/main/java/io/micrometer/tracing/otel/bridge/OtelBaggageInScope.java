@@ -47,15 +47,15 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     private final List<String> tagFields;
 
-    private final AtomicReference<Entry> entry = new AtomicReference<>();
+    private final AtomicReference<@Nullable Entry> entry = new AtomicReference<>();
 
-    private final AtomicReference<Context> contextWithoutBaggage = new AtomicReference<>(null);
+    private final AtomicReference<@Nullable Context> contextWithoutBaggage = new AtomicReference<>();
 
-    private final AtomicReference<OtelTraceContext> mutatedTraceContext = new AtomicReference<>(null);
+    private final AtomicReference<@Nullable OtelTraceContext> mutatedTraceContext = new AtomicReference<>();
 
-    private final AtomicReference<Context> contextWithBaggage = new AtomicReference<>(null);
+    private final AtomicReference<@Nullable Context> contextWithBaggage = new AtomicReference<>();
 
-    private final AtomicReference<Scope> scope = new AtomicReference<>();
+    private final AtomicReference<@Nullable Scope> scope = new AtomicReference<>();
 
     OtelBaggageInScope(OtelBaggageManager otelBaggageManager, CurrentTraceContext currentTraceContext,
             List<String> tagFields, Entry entry) {

@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class OtelTraceContext implements TraceContext {
 
-    final AtomicReference<Context> otelContext;
+    final AtomicReference<@Nullable Context> otelContext;
 
     final SpanContext delegate;
 
@@ -43,7 +43,7 @@ public class OtelTraceContext implements TraceContext {
         this(new AtomicReference<>(context == null ? Context.current() : context), delegate, span);
     }
 
-    OtelTraceContext(AtomicReference<Context> context, SpanContext delegate, @Nullable Span span) {
+    OtelTraceContext(AtomicReference<@Nullable Context> context, SpanContext delegate, @Nullable Span span) {
         this.otelContext = context;
         this.delegate = delegate;
         this.span = span;
@@ -59,7 +59,7 @@ public class OtelTraceContext implements TraceContext {
         this(context(span), span.getSpanContext(), span);
     }
 
-    private static AtomicReference<Context> context(@Nullable Span span) {
+    private static AtomicReference<@Nullable Context> context(@Nullable Span span) {
         if (span instanceof SpanFromSpanContext) {
             Context contextFromParent = ((SpanFromSpanContext) span).parentTraceContext.context();
             return new AtomicReference<>(contextFromParent);
