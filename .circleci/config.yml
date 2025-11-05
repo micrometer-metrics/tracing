@@ -10,19 +10,19 @@ executors:
   circle-jdk-executor:
     working_directory: ~/micrometer-tracing
     environment:
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: cimg/openjdk:21.0.8
   circle-jdk17-executor:
     working_directory: ~/micrometer-tracing
     environment:
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: cimg/openjdk:17.0.16
   circle-jdk11-executor:
     working_directory: ~/micrometer-tracing
     environment:
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError"'
     docker:
       - image: cimg/openjdk:11.0.28
   machine-executor:
