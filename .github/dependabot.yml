@@ -47,6 +47,25 @@ updates:
     directory: "/"
     schedule:
       interval: daily
+    target-branch: "1.6.x"
+    milestone: 105
+    ignore:
+      # Block all OpenTelemetry instrumentation updates
+      - dependency-name: "io.opentelemetry.instrumentation:*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+          - version-update:semver-patch
+      # only upgrade patch versions
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+    open-pull-requests-limit: 30
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: daily
     target-branch: "main"
     milestone: 105
     ignore:
