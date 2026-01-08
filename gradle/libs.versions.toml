@@ -21,10 +21,10 @@ bravePropagationW3c = "0.2.0"
 zipkinReporterBom = "3.5.1"
 reactorBom = "2024.0.13"
 asmForPlugins = "7.3.1"
-javaFormatForPlugins = "0.0.47"
 jsr305 = "3.0.2"
 aspectjweaver = "1.9.25.1"
 spring = "5.3.39"
+spring-javaformat = "0.0.47"
 
 [libraries]
 aopAlliance = { module = "aopalliance:aopalliance", version.ref = "aopalliance" }
@@ -36,7 +36,6 @@ braveBom = { module = "io.zipkin.brave:brave-bom", version.ref = "braveBom" }
 bravePropagationW3c = { module = "io.zipkin.contrib.brave-propagation-w3c:brave-propagation-tracecontext", version.ref = "bravePropagationW3c" }
 errorprone = { module = "com.google.errorprone:error_prone_core", version = "2.45.0" }
 jakartaWeb = { module = "jakarta.platform:jakarta.jakartaee-web-api", version.ref = "jakartaWeb" }
-javaFormatForPlugins = { module = "io.spring.javaformat:spring-javaformat-checkstyle", version.ref = "javaFormatForPlugins" }
 javaxServlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
 jmh = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmhGeneratorAnnProcess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
@@ -55,6 +54,7 @@ reactorBom = { module = "io.projectreactor:reactor-bom", version.ref = "reactorB
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 springCore = { module = "org.springframework:spring-core", version.ref = "spring" }
 springContext = { module = "org.springframework:spring-context", version.ref = "spring" }
+spring-javaformatCheckstyle = { module = "io.spring.javaformat:spring-javaformat-checkstyle", version.ref = "spring-javaformat" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainersJunit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 wavefrontReporter = { module = "com.wavefront:wavefront-internal-reporter-java", version.ref = "wavefrontReporter" }
@@ -65,13 +65,13 @@ zipkinReporterBom = { module = "io.zipkin.reporter2:zipkin-reporter-bom", versio
 # plugin dependencies
 plugin-errorprone = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version = "4.3.0" }
 plugin-license = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
-plugin-nebulaRelease = { module = "com.netflix.nebula:nebula-release-plugin", version = "18.0.8" }
-plugin-nebulaPublishing = { module = "com.netflix.nebula:nebula-publishing-plugin", version = "20.3.0" }
-plugin-nebulaProject = { module = "com.netflix.nebula:nebula-project-plugin", version = "10.1.5" }
-plugin-nebulaInfo = { module = "com.netflix.nebula:gradle-info-plugin", version = "12.1.6" }
+plugin-nebulaRelease = { module = "com.netflix.nebula:nebula-release-plugin", version = "21.0.0" }
+plugin-nebulaPublishing = { module = "com.netflix.nebula:nebula-publishing-plugin", version = "23.0.0" }
+plugin-nebulaProject = { module = "com.netflix.nebula:nebula-project-plugin", version = "13.0.0" }
+plugin-nebulaInfo = { module = "com.netflix.nebula:gradle-info-plugin", version = "16.0.0" }
 plugin-noHttp = { module = "io.spring.nohttp:nohttp-gradle", version = "0.0.11" }
-plugin-nexusPublish = { module = "io.github.gradle-nexus:publish-plugin", version = "1.3.0" }
-plugin-javaformat = { module = "io.spring.javaformat:spring-javaformat-gradle-plugin", version = "0.0.47" }
+plugin-nexusPublish = { module = "io.github.gradle-nexus:publish-plugin", version = "2.0.0" }
+plugin-javaformat = { module = "io.spring.javaformat:spring-javaformat-gradle-plugin", version.ref = "spring-javaformat" }
 plugin-jmh = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.3" }
 plugin-spring-antora = { module = "io.spring.gradle.antora:spring-antora-plugin", version = "0.0.1" }
 plugin-antora = { module = "org.antora:gradle-antora-plugin", version = "1.0.0" }

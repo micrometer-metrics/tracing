@@ -1,4 +1,7 @@
 buildscript {
+	ext.gradleJvmVersion = JavaLanguageVersion.of(JavaVersion.current().getMajorVersion())
+	ext.javaLanguageVersion = project.hasProperty('toolchainVersion') && project.property('toolchainVersion') != '' ? JavaLanguageVersion.of(project.property('toolchainVersion') as int) : gradleJvmVersion
+	ext.javaTargetVersion = JavaVersion.VERSION_1_8
 
 	repositories {
 		mavenCentral()
@@ -43,10 +46,12 @@ if (project.hasProperty('antora')) {
 
 // TODO: remove this hack, see: https://github.com/nebula-plugins/nebula-release-plugin/issues/213
 def releaseStage = findProperty('release.stage')
-apply plugin: 'nebula.release'
+apply plugin: 'com.netflix.nebula.release'
 release.defaultVersionStrategy = nebula.plugin.release.git.opinion.Strategies.SNAPSHOT
 
 apply plugin: 'io.github.gradle-nexus.publish-plugin'
+apply plugin: 'com.netflix.nebula.info'
+apply plugin: 'com.netflix.nebula.project'
 
 allprojects {
 	group = 'io.micrometer'
@@ -58,11 +63,13 @@ allprojects {
 subprojects {
 	apply plugin: 'net.ltgt.errorprone'
 	apply plugin: 'signing'
+	apply plugin: 'io.spring.javaformat'
 
 	if (project.name != 'micrometer-tracing-bom') {
 		tasks.withType(JavaCompile).configureEach {
 			options.errorprone {
 				disableWarningsInGeneratedCode = true
+				excludedPaths = ".*/generated/.*"
 
 				disable(
 						"StringConcatToTextBlock" // Requires JDK 15+
@@ -73,17 +80,17 @@ subprojects {
 				// useful for giving NullAway info it can't derive from the program logic
 				option("NullAway:AssertsEnabled", "true")
 				option("NullAway:OnlyNullMarked", "true")
-				option("NullAway:CustomContractAnnotations", "io.micrometer.common.lang.internal.Contract")
+				option("NullAway:CustomContractAnnotations", "io.micrometer.common.lang.internal.Contract,org.assertj.core.internal.annotation.Contract")
 				option("NullAway:CheckContracts", "true")
 				option("NullAway:HandleTestAssertionLibraries", "true")
 				option("NullAway:ExcludedFieldAnnotations", "org.mockito.Mock,org.mockito.InjectMocks")
-				if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
+				if (javaLanguageVersion.canCompileOrRun(22)) {
 					// see https://bugs.openjdk.org/browse/JDK-8346471
 					// see https://github.com/uber/NullAway/wiki/JSpecify-Support
 					option("NullAway:JSpecifyMode", "true")
 				}
-				if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_21)) {
-                    // Error Prone 2.43.0 requires JDK 21+
+				if (!javaLanguageVersion.canCompileOrRun(21)) {
+					// Error Prone 2.43.0 requires JDK 21+
 					enabled = false
 				}
 				if (System.env.CI != null) {
@@ -106,7 +113,6 @@ subprojects {
 		apply plugin: 'com.github.hierynomus.license'
 		apply plugin: 'checkstyle'
 		apply plugin: 'io.spring.nohttp'
-		apply plugin: 'io.spring.javaformat'
 		apply plugin: 'me.champeau.jmh'
 
 		java {
@@ -119,17 +125,23 @@ subprojects {
 			registerFeature('optional') {
 				usingSourceSet(sourceSets.main)
 			}
+
+			toolchain {
+				languageVersion = javaLanguageVersion
+			}
+			sourceCompatibility = javaTargetVersion
+			targetCompatibility = javaTargetVersion
 		}
 
 		// All projects use optional annotations, but since we don't expose them downstream we would
 		// have to add the dependency in every project, which is tedious so just do it here.
 		dependencies {
-			checkstyle libs.javaFormatForPlugins
-            if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_21)) {
-                // Error Prone 2.43.0 requires JDK 21+
-                errorprone(libs.errorprone)
-                errorprone(libs.nullAway)
-            }
+			checkstyle libs.spring.javaformatCheckstyle
+			if (javaLanguageVersion.canCompileOrRun(21)) {
+				// Error Prone 2.43.0 requires JDK 21+
+				errorprone(libs.errorprone)
+				errorprone(libs.nullAway)
+			}
 			jmh libs.jmh
 			jmh libs.jmhGeneratorAnnProcess
 			jmhAnnotationProcessor libs.jmhGeneratorAnnProcess
@@ -145,19 +157,22 @@ subprojects {
 				options.encoding = 'UTF-8'
 				options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
 
-				sourceCompatibility = JavaVersion.VERSION_1_8
-				targetCompatibility = JavaVersion.VERSION_1_8
+				sourceCompatibility = javaTargetVersion
+				targetCompatibility = javaTargetVersion
 
 				// ensure Java 8 baseline is enforced for main source
-				if (JavaVersion.current().isJava9Compatible()) {
-					options.release = 8
+				options.release = 8
+
+				doLast {
+					task -> logger.info("Compiling with " + task.javaCompiler.get().executablePath)
 				}
 			}
 			compileTestJava {
 				options.encoding = 'UTF-8'
 				options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
-				sourceCompatibility = JavaVersion.VERSION_1_8
-				targetCompatibility = JavaVersion.VERSION_1_8
+
+				sourceCompatibility = JavaVersion.VERSION_11
+				targetCompatibility = JavaVersion.VERSION_11
 			}
 
 			javadoc {
@@ -167,6 +182,7 @@ subprojects {
 							'implSpec:a:Implementation Requirements:',
 							'implNote:a:Implementation Note:'
 					)
+					options.addBooleanOption('Xdoclint:all,-missing', true)
 				}
 			}
 		}
@@ -205,11 +221,6 @@ subprojects {
 			useJUnitPlatform {
 				excludeTags 'docker'
 			}
-
-			develocity.testRetry {
-				maxFailures = 5
-				maxRetries = 3
-			}
 		}
 
 		tasks.register('dockerTest', Test) {
@@ -221,15 +232,19 @@ subprojects {
 			}
 		}
 
-		project.tasks.withType(Test) { Test testTask ->
-			testTask.testLogging.exceptionFormat = 'full'
+		tasks.withType(Test).configureEach {
+			testLogging.exceptionFormat = 'full'
+			develocity.testRetry {
+				maxFailures = 5
+				maxRetries = 3
+			}
 		}
 
 		license {
 			header rootProject.file('gradle/licenseHeader.txt')
 			strictCheck true
 			mapping {
-				kt = 'SLASHSTAR_STYLE'
+				java = 'SLASHSTAR_STYLE'
 			}
 			sourceSets = project.sourceSets
 
@@ -240,9 +255,6 @@ subprojects {
 
 		// Publish resolved versions.
 		plugins.withId('maven-publish') {
-			sourceCompatibility = JavaVersion.VERSION_1_8
-			targetCompatibility = JavaVersion.VERSION_1_8
-
 			publishing {
 				publications {
 					nebula(MavenPublication) {
@@ -306,7 +318,7 @@ subprojects {
 		}
 	}
 
-	if (!['samples', 'benchmarks'].find { project.name.contains(it) }) {
+	if (!['benchmarks'].find { project.name.contains(it) }) {
 		apply plugin: 'com.netflix.nebula.maven-publish'
 		apply plugin: 'com.netflix.nebula.maven-manifest'
 		apply plugin: 'com.netflix.nebula.maven-developer'
@@ -366,7 +378,7 @@ nexusPublishing {
 }
 
 wrapper {
-	gradleVersion = '8.14.3'
+	gradleVersion = '9.2.1'
 }
 
 defaultTasks 'build'

@@ -13,11 +13,3 @@ dependencies {
 	javaPlatform.allowDependencies()
 	api platform(libs.micrometerBom)
 }
-
-publishing {
-	publications {
-		nebula(MavenPublication) {
-			from components.javaPlatform
-		}
-	}
-}
