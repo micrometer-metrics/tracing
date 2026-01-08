@@ -96,6 +96,8 @@ subprojects {
 		} else {
 			apply plugin: 'java-library'
 			dependencies {
+				api(libs.jspecify)
+
 				testImplementation platform(libs.junitBom)
 				testImplementation libs.junitJupiter
 				testRuntimeOnly libs.junitPlatformLauncher
