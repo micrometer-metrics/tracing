@@ -40,6 +40,7 @@ javaFormatForPlugins = { module = "io.spring.javaformat:spring-javaformat-checks
 javaxServlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
 jmh = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmhGeneratorAnnProcess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
+jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
 junitBom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junitJupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junitPlatformLauncher = { module = "org.junit.platform:junit-platform-launcher" }
