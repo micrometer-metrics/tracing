@@ -63,7 +63,7 @@ zipkinAws = { module = "io.zipkin.aws:brave-propagation-aws", version.ref = "zip
 zipkinReporterBom = { module = "io.zipkin.reporter2:zipkin-reporter-bom", version.ref = "zipkinReporterBom" }
 
 # plugin dependencies
-plugin-errorprone = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version = "4.3.0" }
+plugin-errorprone = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version = "4.4.0" }
 plugin-license = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 plugin-nebulaRelease = { module = "com.netflix.nebula:nebula-release-plugin", version = "21.0.0" }
 plugin-nebulaPublishing = { module = "com.netflix.nebula:nebula-publishing-plugin", version = "23.0.0" }
