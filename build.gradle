@@ -67,6 +67,11 @@ subprojects {
 
 	if (project.name != 'micrometer-tracing-bom') {
 		tasks.withType(JavaCompile).configureEach {
+			if (javaLanguageVersion.asInt() == 21) {
+				// Helps NullAway with type annotations on JDK 21
+				// See https://github.com/uber/NullAway/wiki/JSpecify-Support#supported-jdk-versions
+				options.compilerArgs.add("-XDaddTypeAnnotationsToSymbol=true")
+			}
 			options.errorprone {
 				disableWarningsInGeneratedCode = true
 				excludedPaths = ".*/generated/.*"
@@ -84,7 +89,7 @@ subprojects {
 				option("NullAway:CheckContracts", "true")
 				option("NullAway:HandleTestAssertionLibraries", "true")
 				option("NullAway:ExcludedFieldAnnotations", "org.mockito.Mock,org.mockito.InjectMocks")
-				if (javaLanguageVersion.canCompileOrRun(22)) {
+				if (javaLanguageVersion.canCompileOrRun(21)) {
 					// see https://bugs.openjdk.org/browse/JDK-8346471
 					// see https://github.com/uber/NullAway/wiki/JSpecify-Support
 					option("NullAway:JSpecifyMode", "true")
