@@ -34,7 +34,7 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 braveBom = { module = "io.zipkin.brave:brave-bom", version.ref = "braveBom" }
 bravePropagationW3c = { module = "io.zipkin.contrib.brave-propagation-w3c:brave-propagation-tracecontext", version.ref = "bravePropagationW3c" }
-errorprone = { module = "com.google.errorprone:error_prone_core", version = "2.46.0" }
+errorprone = { module = "com.google.errorprone:error_prone_core", version = "2.47.0" }
 jakartaWeb = { module = "jakarta.platform:jakarta.jakartaee-web-api", version.ref = "jakartaWeb" }
 javaxServlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
 jmh = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
