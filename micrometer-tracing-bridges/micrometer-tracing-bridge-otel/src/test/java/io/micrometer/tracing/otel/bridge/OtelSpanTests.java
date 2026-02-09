@@ -61,6 +61,19 @@ class OtelSpanTests {
         then(poll.getEvents().get(0).getAttributes().asMap().values()).containsAnyOf("boom!");
     }
 
+    // gh-1320
+    @Test
+    void should_have_empty_description_when_throwable_message_is_null() {
+        OtelSpan otelSpan = new OtelSpan(otelTracer.spanBuilder("foo").startSpan());
+
+        otelSpan.error(new RuntimeException((String) null)).end();
+
+        SpanData poll = arrayListSpanProcessor.getFinishedSpanItems().get(0);
+        then(poll.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, ""));
+        then(poll.getEvents()).hasSize(1);
+        then(poll.getEvents().get(0).getAttributes().asMap().values()).contains("java.lang.RuntimeException");
+    }
+
     @Test
     void should_be_equal_when_two_span_delegates_are_equal() {
         Span span = otelTracer.spanBuilder("foo").startSpan();

@@ -172,7 +172,12 @@ public class OtelSpan implements Span {
     @Override
     public Span error(Throwable throwable) {
         this.delegate.recordException(throwable);
-        this.delegate.setStatus(StatusCode.ERROR, throwable.getMessage());
+        if (throwable.getMessage() == null) {
+            this.delegate.setStatus(StatusCode.ERROR);
+        }
+        else {
+            this.delegate.setStatus(StatusCode.ERROR, throwable.getMessage());
+        }
         return this;
     }
 
