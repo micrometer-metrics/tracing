@@ -254,20 +254,19 @@ class W3CBaggagePropagator {
             if (beginningOfMetadata > 0) {
                 entry = entry.substring(0, beginningOfMetadata);
             }
-            String[] keyAndValue = entry.split("=");
-            if (keyAndValue.length % 2 == 0) {
-                for (int i = 0; i < keyAndValue.length - 1; i += 2) {
-                    try {
-                        String key = keyAndValue[i].trim();
-                        String value = keyAndValue[i + 1].trim();
-                        Baggage baggage = this.braveBaggageManager.createBaggage(key);
-                        pairs.add(new AbstractMap.SimpleEntry<>(baggage, value));
-                    }
-                    catch (Exception e) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Exception occurred while trying to parse baggage with key value "
-                                    + Arrays.toString(keyAndValue) + ". Will ignore that entry.", e);
-                        }
+            String[] keyAndValue = entry.split("=", 2);
+            boolean hasValue = keyAndValue.length == 2 && !keyAndValue[1].isEmpty();
+            if (hasValue) {
+                try {
+                    String key = keyAndValue[0].trim();
+                    String value = keyAndValue[1].trim();
+                    Baggage baggage = this.braveBaggageManager.createBaggage(key);
+                    pairs.add(new AbstractMap.SimpleEntry<>(baggage, value));
+                }
+                catch (Exception e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Exception occurred while trying to parse baggage with key value "
+                                + Arrays.toString(keyAndValue) + ". Will ignore that entry.", e);
                     }
                 }
             }
