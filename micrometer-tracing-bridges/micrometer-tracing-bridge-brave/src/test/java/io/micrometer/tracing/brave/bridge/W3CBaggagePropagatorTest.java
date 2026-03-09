@@ -115,6 +115,19 @@ class W3CBaggagePropagatorTest {
     }
 
     @Test
+    // gh-1350
+    void extract_valueWithEquals() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "key=value=with=equals");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        assertThat(baggageEntries).hasSize(1).containsEntry("key", "value=with=equals");
+    }
+
+    @Test
     void extract_singleEntry() {
         TraceContextOrSamplingFlags context = context();
         Map<String, String> carrier = new HashMap<>();
