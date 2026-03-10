@@ -10,6 +10,4 @@ dependencies {
 			.findAll {proj -> !['bom', 'benchmarks', 'docs'].find { proj.name.contains(it) } }
 			.each { api(group: it.group, name: it.name, version: it.version.toString()) }
 	}
-	javaPlatform.allowDependencies()
-	api platform(libs.micrometerBom)
 }
