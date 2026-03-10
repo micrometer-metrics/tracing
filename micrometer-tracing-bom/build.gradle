@@ -7,7 +7,7 @@ description 'Micrometer Tracing BOM (Bill of Materials) for managing Micrometer 
 dependencies {
 	constraints {
 		rootProject.subprojects
-			.findAll { !it.name.contains('micrometer-tracing-bom') && !it.name.contains('benchmarks') }
+			.findAll {proj -> !['bom', 'benchmarks', 'docs'].find { proj.name.contains(it) } }
 			.each { api(group: it.group, name: it.name, version: it.version.toString()) }
 	}
 	javaPlatform.allowDependencies()
