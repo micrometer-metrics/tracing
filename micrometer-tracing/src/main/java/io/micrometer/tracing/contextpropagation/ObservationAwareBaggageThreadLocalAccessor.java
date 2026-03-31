@@ -245,15 +245,6 @@ public class ObservationAwareBaggageThreadLocalAccessor implements ThreadLocalAc
         closeCurrentScope();
     }
 
-    @Override
-    @Deprecated
-    public void reset() {
-        if (log.isTraceEnabled()) {
-            log.trace("Calling reset()");
-        }
-        ThreadLocalAccessor.super.reset();
-    }
-
     static class BaggageAndScope implements Consumer<@Nullable Object> {
 
         private static final InternalLogger log = InternalLoggerFactory.getInstance(BaggageInScope.class);

@@ -56,7 +56,7 @@ class TracingObservationHandlerTests {
     }
 
     @Test
-    void spanShouldBeClearedOnScopeReset() {
+    void stackedScopesShouldBeClosedInOrder() {
         TracingObservationHandler<Observation.Context> handler = () -> tracer;
         Observation.Context context = new Observation.Context();
         TracingObservationHandler.TracingContext tracingContext = new TracingObservationHandler.TracingContext();
@@ -67,12 +67,12 @@ class TracingObservationHandlerTests {
         tracingContext.setScope(revertingScope2);
         context.put(TracingObservationHandler.TracingContext.class, tracingContext);
 
-        handler.onScopeReset(context);
+        handler.onScopeClosed(context);
+        handler.onScopeClosed(context);
 
         InOrder inOrder = inOrder(scope2, scope1);
         inOrder.verify(scope2).close();
         inOrder.verify(scope1).close();
-        BDDMockito.then(currentTraceContext).should().maybeScope(null);
     }
 
     @Test
@@ -84,7 +84,7 @@ class TracingObservationHandlerTests {
     }
 
     @Test
-    void spanShouldNotBeOverriddenWhenResettingScope() {
+    void spanShouldNotBeOverriddenWhenClosingScope() {
         Span span = mock(Span.class);
         Observation.Context context = new Observation.Context();
         TracingObservationHandler.TracingContext tracingContext = new TracingObservationHandler.TracingContext();
@@ -92,7 +92,7 @@ class TracingObservationHandlerTests {
         context.put(TracingObservationHandler.TracingContext.class, tracingContext);
         TracingObservationHandler<Observation.Context> handler = () -> tracer;
 
-        handler.onScopeReset(context);
+        handler.onScopeClosed(context);
 
         assertThat(tracingContext.getSpan()).isSameAs(span);
     }

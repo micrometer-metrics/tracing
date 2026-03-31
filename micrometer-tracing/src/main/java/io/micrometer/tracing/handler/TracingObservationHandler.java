@@ -16,7 +16,6 @@
 package io.micrometer.tracing.handler;
 
 import io.micrometer.common.KeyValue;
-import org.jspecify.annotations.Nullable;
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.Observation.Event;
@@ -26,6 +25,7 @@ import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Map;
@@ -102,6 +102,12 @@ public interface TracingObservationHandler<T extends Observation.Context> extend
         tracingContext.setSpanAndScope(spanFromThisObservation, revertingScope);
     }
 
+    /**
+     * @deprecated Only invoked when {@link Observation.Scope#reset()} or
+     * {@link Observation.Scope#makeCurrent()} is called; both are deprecated and no
+     * longer called by Micrometer code. This method will be removed in a future release.
+     */
+    @Deprecated
     @Override
     default void onScopeReset(T context) {
         TracingContext tracingContext = getTracingContext(context);
