@@ -74,8 +74,8 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
     /**
      * Creates a new instance of {@link ImperativeMethodInvocationProcessor}. This
      * constructor allows the resolver providers to be shared with the
-     * {@link BaggageKeyValueAnnotationHandler} so that expression-based resolution
-     * (e.g. SpEL) works for {@link BaggageKeyValue} annotations.
+     * {@link BaggageKeyValueAnnotationHandler} so that expression-based resolution (e.g.
+     * SpEL) works for {@link BaggageKeyValue} annotations.
      * @param newSpanParser new span parser
      * @param tracer tracer
      * @param spanTagAnnotationHandler resolves tags to be added to the span from the
