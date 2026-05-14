@@ -386,8 +386,4 @@ nexusPublishing {
 	}
 }
 
-wrapper {
-	gradleVersion = '9.3.0'
-}
-
 defaultTasks 'build'
