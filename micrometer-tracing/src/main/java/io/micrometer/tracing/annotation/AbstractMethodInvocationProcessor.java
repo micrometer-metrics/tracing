@@ -36,12 +36,21 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
 
     @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler;
 
+    @Nullable BaggageKeyValueAnnotationHandler baggageKeyValueAnnotationHandler;
+
     AbstractMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
             CurrentTraceContext currentTraceContext, @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler) {
+        this(newSpanParser, tracer, currentTraceContext, spanTagAnnotationHandler, null);
+    }
+
+    AbstractMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
+            CurrentTraceContext currentTraceContext, @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler,
+            @Nullable BaggageKeyValueAnnotationHandler baggageKeyValueAnnotationHandler) {
         this.newSpanParser = newSpanParser;
         this.tracer = tracer;
         this.currentTraceContext = currentTraceContext;
         this.spanTagAnnotationHandler = spanTagAnnotationHandler;
+        this.baggageKeyValueAnnotationHandler = baggageKeyValueAnnotationHandler;
     }
 
     void before(MethodInvocation invocation, Span span, String log, boolean hasLog) {
@@ -110,6 +119,14 @@ abstract class AbstractMethodInvocationProcessor implements MethodInvocationProc
      */
     public void setSpanTagAnnotationHandler(SpanTagAnnotationHandler spanTagAnnotationHandler) {
         this.spanTagAnnotationHandler = spanTagAnnotationHandler;
+    }
+
+    /**
+     * Setting this enables support for {@link BaggageKeyValue}.
+     * @param baggageKeyValueAnnotationHandler baggage key value annotation handler
+     */
+    public void setBaggageKeyValueAnnotationHandler(BaggageKeyValueAnnotationHandler baggageKeyValueAnnotationHandler) {
+        this.baggageKeyValueAnnotationHandler = baggageKeyValueAnnotationHandler;
     }
 
 }
