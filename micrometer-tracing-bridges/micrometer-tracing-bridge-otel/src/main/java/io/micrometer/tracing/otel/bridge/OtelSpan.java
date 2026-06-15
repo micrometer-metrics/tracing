@@ -42,19 +42,32 @@ public class OtelSpan implements Span {
 
     final OtelTraceContext otelTraceContext;
 
+    final SpanErrorStatusHandler errorStatusHandler;
+
     public OtelSpan(io.opentelemetry.api.trace.Span delegate) {
+        this(delegate, SpanErrorStatusHandler.DEFAULT);
+    }
+
+    public OtelSpan(io.opentelemetry.api.trace.Span delegate, SpanErrorStatusHandler errorStatusHandler) {
         this.delegate = delegate;
         this.otelTraceContext = new OtelTraceContext(delegate.getSpanContext(), delegate);
+        this.errorStatusHandler = Objects.requireNonNull(errorStatusHandler, "errorStatusHandler must not be null");
     }
 
     public OtelSpan(io.opentelemetry.api.trace.Span delegate, Context context) {
         this.delegate = delegate;
         this.otelTraceContext = new OtelTraceContext(context, delegate.getSpanContext(), delegate);
+        this.errorStatusHandler = SpanErrorStatusHandler.DEFAULT;
     }
 
     public OtelSpan(OtelTraceContext traceContext) {
+        this(traceContext, SpanErrorStatusHandler.DEFAULT);
+    }
+
+    public OtelSpan(OtelTraceContext traceContext, SpanErrorStatusHandler errorStatusHandler) {
         this.delegate = traceContext.span != null ? traceContext.span : io.opentelemetry.api.trace.Span.current();
         this.otelTraceContext = traceContext;
+        this.errorStatusHandler = Objects.requireNonNull(errorStatusHandler, "errorStatusHandler must not be null");
     }
 
     public static io.opentelemetry.api.trace.Span toOtel(Span span) {
@@ -63,6 +76,10 @@ public class OtelSpan implements Span {
 
     public static Span fromOtel(io.opentelemetry.api.trace.Span span) {
         return new OtelSpan(span);
+    }
+
+    public static Span fromOtel(io.opentelemetry.api.trace.Span span, SpanErrorStatusHandler errorStatusHandler) {
+        return new OtelSpan(span, errorStatusHandler);
     }
 
     public static Span fromOtel(io.opentelemetry.api.trace.Span span, Context context) {
@@ -169,12 +186,7 @@ public class OtelSpan implements Span {
     @Override
     public Span error(Throwable throwable) {
         this.delegate.recordException(throwable);
-        if (throwable.getMessage() == null) {
-            this.delegate.setStatus(StatusCode.ERROR);
-        }
-        else {
-            this.delegate.setStatus(StatusCode.ERROR, throwable.getMessage());
-        }
+        this.errorStatusHandler.handle(throwable, this.delegate);
         return this;
     }
 

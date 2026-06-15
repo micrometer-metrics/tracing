@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static io.micrometer.tracing.otel.bridge.OtelSpan.PEER_SERVICE;
@@ -45,6 +46,8 @@ import static io.opentelemetry.semconv.NetworkAttributes.NETWORK_PEER_PORT;
 class OtelSpanBuilder implements Span.Builder {
 
     private final Tracer tracer;
+
+    private final SpanErrorStatusHandler errorStatusHandler;
 
     private final List<String> annotations = new LinkedList<>();
 
@@ -67,7 +70,12 @@ class OtelSpanBuilder implements Span.Builder {
     private List<Map.Entry<SpanContext, Attributes>> links = new ArrayList<>();
 
     OtelSpanBuilder(Tracer tracer) {
+        this(tracer, SpanErrorStatusHandler.DEFAULT);
+    }
+
+    OtelSpanBuilder(Tracer tracer, SpanErrorStatusHandler errorStatusHandler) {
         this.tracer = tracer;
+        this.errorStatusHandler = Objects.requireNonNull(errorStatusHandler, "errorStatusHandler must not be null");
     }
 
     static Span.Builder fromOtel(Tracer tracer) {
@@ -242,14 +250,15 @@ class OtelSpanBuilder implements Span.Builder {
         io.opentelemetry.api.trace.Span span = spanBuilder.startSpan();
         if (this.error != null) {
             span.recordException(this.error);
-            span.setStatus(StatusCode.ERROR, this.error.getMessage());
+            this.errorStatusHandler.handle(this.error, span);
         }
         this.annotations.forEach(span::addEvent);
         if (this.parentTraceContext != null) {
             return OtelSpan.fromOtel(
-                    new SpanFromSpanContext(span, span.getSpanContext(), (OtelTraceContext) this.parentTraceContext));
+                    new SpanFromSpanContext(span, span.getSpanContext(), (OtelTraceContext) this.parentTraceContext),
+                    this.errorStatusHandler);
         }
-        return OtelSpan.fromOtel(span);
+        return OtelSpan.fromOtel(span, this.errorStatusHandler);
     }
 
 }

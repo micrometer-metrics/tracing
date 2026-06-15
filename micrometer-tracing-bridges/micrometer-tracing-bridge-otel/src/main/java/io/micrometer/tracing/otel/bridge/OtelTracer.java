@@ -22,6 +22,7 @@ import io.opentelemetry.context.Scope;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * OpenTelemetry implementation of a {@link Tracer}.
@@ -39,6 +40,8 @@ public class OtelTracer implements Tracer {
 
     private final EventPublisher publisher;
 
+    private final SpanErrorStatusHandler errorStatusHandler;
+
     /**
      * Creates a new instance of {@link OtelTracer}.
      * @param tracer tracer
@@ -48,10 +51,26 @@ public class OtelTracer implements Tracer {
      */
     public OtelTracer(io.opentelemetry.api.trace.Tracer tracer, OtelCurrentTraceContext otelCurrentTraceContext,
             EventPublisher publisher, BaggageManager otelBaggageManager) {
+        this(tracer, otelCurrentTraceContext, publisher, otelBaggageManager, SpanErrorStatusHandler.DEFAULT);
+    }
+
+    /**
+     * Creates a new instance of {@link OtelTracer}.
+     * @param tracer tracer
+     * @param otelCurrentTraceContext current trace context
+     * @param publisher event publisher
+     * @param otelBaggageManager baggage manager
+     * @param errorStatusHandler handler determining the span status when an error is
+     * reported
+     * @since 1.8.0
+     */
+    public OtelTracer(io.opentelemetry.api.trace.Tracer tracer, OtelCurrentTraceContext otelCurrentTraceContext,
+            EventPublisher publisher, BaggageManager otelBaggageManager, SpanErrorStatusHandler errorStatusHandler) {
         this.tracer = tracer;
         this.publisher = publisher;
         this.otelBaggageManager = otelBaggageManager;
         this.otelCurrentTraceContext = otelCurrentTraceContext;
+        this.errorStatusHandler = Objects.requireNonNull(errorStatusHandler, "errorStatusHandler must not be null");
     }
 
     /**
@@ -79,9 +98,9 @@ public class OtelTracer implements Tracer {
             scope = otelContext.makeCurrent();
         }
         try {
-            return OtelSpan.fromOtel(this.tracer.spanBuilder("")
-                .setParent(OtelTraceContext.toOtelContext(parent.context()))
-                .startSpan());
+            return OtelSpan.fromOtel(
+                    this.tracer.spanBuilder("").setParent(OtelTraceContext.toOtelContext(parent.context())).startSpan(),
+                    this.errorStatusHandler);
         }
         finally {
             if (scope != null) {
@@ -122,30 +141,30 @@ public class OtelTracer implements Tracer {
             if (io.opentelemetry.api.trace.Span.getInvalid().equals(context.span)) {
                 return null;
             }
-            return new OtelSpan(context);
+            return new OtelSpan(context, this.errorStatusHandler);
         }
         io.opentelemetry.api.trace.Span currentSpan = io.opentelemetry.api.trace.Span.current();
         if (currentSpan == null || currentSpan.equals(io.opentelemetry.api.trace.Span.getInvalid())) {
             return null;
         }
-        return new OtelSpan(currentSpan);
+        return new OtelSpan(currentSpan, this.errorStatusHandler);
     }
 
     @Override
     public Span nextSpan() {
-        return new OtelSpan(this.tracer.spanBuilder("").startSpan());
+        return new OtelSpan(this.tracer.spanBuilder("").startSpan(), this.errorStatusHandler);
     }
 
     @Override
     @SuppressWarnings("MustBeClosedChecker")
     public ScopedSpan startScopedSpan(String name) {
         io.opentelemetry.api.trace.Span span = this.tracer.spanBuilder(name).startSpan();
-        return new OtelScopedSpan(span, span.makeCurrent());
+        return new OtelScopedSpan(span, span.makeCurrent(), this.errorStatusHandler);
     }
 
     @Override
     public Span.Builder spanBuilder() {
-        return new OtelSpanBuilder(this.tracer);
+        return new OtelSpanBuilder(this.tracer, this.errorStatusHandler);
     }
 
     @Override

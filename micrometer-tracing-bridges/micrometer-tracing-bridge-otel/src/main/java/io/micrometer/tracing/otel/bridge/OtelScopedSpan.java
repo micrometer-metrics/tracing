@@ -22,6 +22,8 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 
+import java.util.Objects;
+
 /**
  * OpenTelemetry implementation of a {@link ScopedSpan}.
  *
@@ -34,9 +36,16 @@ class OtelScopedSpan implements ScopedSpan {
 
     final Scope scope;
 
+    final SpanErrorStatusHandler errorStatusHandler;
+
     OtelScopedSpan(Span span, Scope scope) {
+        this(span, scope, SpanErrorStatusHandler.DEFAULT);
+    }
+
+    OtelScopedSpan(Span span, Scope scope, SpanErrorStatusHandler errorStatusHandler) {
         this.span = span;
         this.scope = scope;
+        this.errorStatusHandler = Objects.requireNonNull(errorStatusHandler, "errorStatusHandler must not be null");
     }
 
     @Override
@@ -70,7 +79,7 @@ class OtelScopedSpan implements ScopedSpan {
     @Override
     public ScopedSpan error(Throwable throwable) {
         this.span.recordException(throwable);
-        this.span.setStatus(StatusCode.ERROR, throwable.getMessage());
+        this.errorStatusHandler.handle(throwable, this.span);
         return this;
     }
 
