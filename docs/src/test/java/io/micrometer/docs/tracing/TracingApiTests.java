@@ -237,14 +237,20 @@ class TracingApiTests {
         // with correlation fields (currently we're setting empty list)
         Slf4JBaggageEventListener slf4JBaggageEventListener = new Slf4JBaggageEventListener(Collections.emptyList());
 
+        // [Micrometer Tracing component] The event publisher wires the Slf4J listeners
+        // to scope events (span start/end). Extracted as a named field so it can be
+        // reused when registering the EventPublishingContextWrapper (see below).
+        OtelTracer.EventPublisher eventPublisher = event -> {
+            slf4JEventListener.onEvent(event);
+            slf4JBaggageEventListener.onEvent(event);
+        };
+
         // [Micrometer Tracing component] A Micrometer Tracing wrapper for OTel's Tracer.
         // You can consider
         // customizing the baggage manager with correlation and remote fields (currently
         // we're setting empty lists)
-        OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
-            slf4JEventListener.onEvent(event);
-            slf4JBaggageEventListener.onEvent(event);
-        }, new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
+        OtelTracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, eventPublisher,
+                new OtelBaggageManager(otelCurrentTraceContext, Collections.emptyList(), Collections.emptyList()));
 
         // end::otel_setup[]
 
