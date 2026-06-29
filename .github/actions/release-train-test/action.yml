@@ -24,4 +24,4 @@ runs:
       run: ./gradlew dockerTest -Prelease.version=${{ env.RELEASE_VERSION }} -Prelease.ignoreSuppliedVersionVerification=true --stacktrace --console=plain
 
 # TODO:
-#  - run build with all required java versions (11,17,24)
+#  - run build with all required java versions (11,17,24,25)
