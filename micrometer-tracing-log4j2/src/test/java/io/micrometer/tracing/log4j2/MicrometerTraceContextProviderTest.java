@@ -1,5 +1,5 @@
-/*
- * Copyright 2026 VMware, Inc.
+/**
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ class MicrometerTraceContextProviderTest {
 
     @AfterEach
     void tearDown() {
-        // Clean up the static tracer after each test
         MicrometerTraceContextProvider.setTracer(null);
     }
 
@@ -70,6 +69,6 @@ class MicrometerTraceContextProviderTest {
 
         assertThat(provider.getTraceId()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
         assertThat(provider.getSpanId()).isEqualTo("00f067aa0ba902b7");
-        assertThat(provider.getTraceFlags()).isNull(); // Micrometer does not expose native W3C flags directly
+        assertThat(provider.getTraceFlags()).isNull();
     }
 }
