@@ -7,8 +7,9 @@ repositories {
 dependencies {
     api project(':micrometer-tracing')
 
-    compileOnly 'org.apache.logging.log4j:log4j-api'
-    testImplementation 'org.apache.logging.log4j:log4j-core'
+    // Compile against the latest Log4j API (which has your new SPI)
+    compileOnly 'org.apache.logging.log4j:log4j-api:2.27.0-SNAPSHOT'
+    testImplementation 'org.apache.logging.log4j:log4j-core:2.27.0-SNAPSHOT'
     testImplementation(libs.junitJupiter)
     testImplementation(libs.assertj)
     testImplementation(libs.mockitoCore)
