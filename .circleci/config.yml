@@ -7,12 +7,6 @@ executors:
      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError"'
    docker:
      - image: cimg/openjdk:25.0
-  jdk24-executor:
-    working_directory: ~/micrometer-tracing
-    environment:
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError"'
-    docker:
-      - image: cimg/openjdk:24.0.2
   jdk21-executor:
     working_directory: ~/micrometer-tracing
     environment:
@@ -72,12 +66,6 @@ jobs:
       - gradlew-build:
           toolchainVersion: '25'
 
-  build-jdk24:
-    executor: jdk24-executor
-    steps:
-      - gradlew-build:
-          toolchainVersion: '24'
-
   build-jdk21:
     executor: jdk21-executor
     steps:
@@ -91,7 +79,7 @@ jobs:
           toolchainVersion: '17'
 
   build-jdk11:
-    executor: jdk21-executor
+    executor: jdk25-executor
     steps:
       - gradlew-build:
           toolchainVersion: '11'
@@ -103,7 +91,7 @@ jobs:
           command: dockerTest
 
   deploy:
-    executor: jdk21-executor
+    executor: jdk25-executor
     steps:
       - checkout
       - restore_cache:
@@ -119,7 +107,6 @@ workflows:
       - build-jdk11
       - build-jdk17
       - build-jdk21
-      - build-jdk24
       - build-jdk25
       - docker-tests
       - deploy:
@@ -129,7 +116,6 @@ workflows:
             - build-jdk11
             - build-jdk17
             - build-jdk21
-            - build-jdk24
             - build-jdk25
             - docker-tests
           filters:
@@ -157,12 +143,6 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+(-(RC|M)\d+)?$/
-      - build-jdk24:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+(-(RC|M)\d+)?$/
       - build-jdk25:
           filters:
             branches:
@@ -182,7 +162,6 @@ workflows:
             - build-jdk11
             - build-jdk17
             - build-jdk21
-            - build-jdk24
             - build-jdk25
             - docker-tests
           filters:
