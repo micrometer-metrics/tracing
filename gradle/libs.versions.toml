@@ -34,7 +34,7 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 braveBom = { module = "io.zipkin.brave:brave-bom", version.ref = "braveBom" }
 bravePropagationW3c = { module = "io.zipkin.contrib.brave-propagation-w3c:brave-propagation-tracecontext", version.ref = "bravePropagationW3c" }
-errorprone = { module = "com.google.errorprone:error_prone_core", version = "2.49.0" }
+errorprone = { module = "com.google.errorprone:error_prone_core", version = "2.50.0" }
 jakartaWeb = { module = "jakarta.platform:jakarta.jakartaee-web-api", version.ref = "jakartaWeb" }
 javaxServlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
 jmh = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
@@ -48,7 +48,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerBom = { module = "io.micrometer:micrometer-bom", version.ref = "micrometer" }
 mockitoCore = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockitoJunit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
-nullAway = { module = "com.uber.nullaway:nullaway", version = "0.13.7" }
+nullAway = { module = "com.uber.nullaway:nullaway", version = "0.13.8" }
 otelInstrumentationBom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version.ref = "otelInstrumentationBom" }
 reactorBom = { module = "io.projectreactor:reactor-bom", version.ref = "reactorBom" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
@@ -68,7 +68,7 @@ plugin-license = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license
 plugin-nebulaRelease = { module = "com.netflix.nebula:nebula-release-plugin", version = "21.0.0" }
 plugin-nebulaPublishing = { module = "com.netflix.nebula:nebula-publishing-plugin", version = "23.1.0" }
 plugin-nebulaProject = { module = "com.netflix.nebula:nebula-project-plugin", version = "13.1.2" }
-plugin-nebulaInfo = { module = "com.netflix.nebula:gradle-info-plugin", version = "16.2.1" }
+plugin-nebulaInfo = { module = "com.netflix.nebula:gradle-info-plugin", version = "16.3.0" }
 plugin-noHttp = { module = "io.spring.nohttp:nohttp-gradle", version = "0.0.11" }
 plugin-nexusPublish = { module = "io.github.gradle-nexus:publish-plugin", version = "2.0.0" }
 plugin-javaformat = { module = "io.spring.javaformat:spring-javaformat-gradle-plugin", version.ref = "spring-javaformat" }
