@@ -13,9 +13,13 @@ dependencies {
 
 jmh {
     jmhVersion = '1.37'
-    fork = 1
-    warmupIterations = 1
-    iterations = 1
+    fork = 2
+    warmupIterations = 3
+    iterations = 5
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
     zip64 = true
+    if (project.hasProperty('jmhInclude')) {
+        includes = [project.property('jmhInclude')]
+    }
+    profilers = ['gc']
 }

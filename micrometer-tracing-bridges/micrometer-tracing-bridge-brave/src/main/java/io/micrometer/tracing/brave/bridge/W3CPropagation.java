@@ -29,6 +29,8 @@ import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageManager;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static brave.propagation.tracecontext.TraceContextPropagation.TRACEPARENT;
@@ -45,7 +47,6 @@ import static java.util.Collections.singletonList;
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
-@SuppressWarnings({ "unchecked", "deprecation" })
 public class W3CPropagation extends Propagation.Factory implements Propagation<String> {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(W3CPropagation.class.getName());
@@ -97,7 +98,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
         };
     }
 
-    private <R> void addTraceState(Setter<R, String> setter, TraceContext context, R carrier) {
+    private <R> void addTraceState(Setter<R, String> setter, TraceContext context, @Nullable R carrier) {
         if (carrier != null && this.braveBaggageManager != null) {
             Baggage baggage = this.braveBaggageManager.getBaggage(BraveTraceContext.fromBrave(context), TRACESTATE);
             if (baggage == null) {
@@ -152,7 +153,7 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
         };
     }
 
-    private <R> TraceContextOrSamplingFlags withBaggage(TraceContextOrSamplingFlags context, R carrier,
+    private <R> TraceContextOrSamplingFlags withBaggage(TraceContextOrSamplingFlags context, @Nullable R carrier,
             Getter<R, String> getter) {
         if (context.context() == null) {
             return context;
@@ -185,7 +186,6 @@ public class W3CPropagation extends Propagation.Factory implements Propagation<S
 /**
  * Taken from OpenTelemetry API.
  */
-@SuppressWarnings("deprecation")
 class W3CBaggagePropagator {
 
     private static final InternalLogger log = InternalLoggerFactory.getInstance(W3CBaggagePropagator.class);
@@ -196,13 +196,167 @@ class W3CBaggagePropagator {
 
     private static final List<String> FIELDS = singletonList(FIELD);
 
+    // https://www.w3.org/TR/baggage/#limits
+    private static final int MAX_BAGGAGE_ENTRIES = 64;
+
+    // https://www.w3.org/TR/baggage/#limits
+    private static final int MAX_BAGGAGE_BYTES = 8192;
+
     private final BaggageManager braveBaggageManager;
 
-    private final List<String> localFields;
+    private final String[] localFieldsArray;
+
+    private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+
+    private static final long INVALID_KEY_MASK_LOW;
+
+    private static final long INVALID_KEY_MASK_HIGH;
+
+    static {
+        long low = 0;
+        long high = 0;
+        // Characters 0 to 32 are invalid
+        for (int i = 0; i <= 32; i++) {
+            low |= (1L << i);
+        }
+        // DEL (127) is invalid
+        high |= (1L << (127 - 64));
+        char[] delimiters = "\"(),/:;<=>?@[\\]{}".toCharArray();
+        for (char c : delimiters) {
+            if (c < 64) {
+                low |= (1L << c);
+            }
+            else {
+                high |= (1L << (c - 64));
+            }
+        }
+        INVALID_KEY_MASK_LOW = low;
+        INVALID_KEY_MASK_HIGH = high;
+    }
+
+    /**
+     * Check a baggage key against the specification of valid characters. <pre>
+     * {@code
+     * key            =  token ; as defined in RFC 7230, Section 3.2.6
+     *
+     * token          = 1*tchar
+     *
+     * tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+     *                / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+     *                / DIGIT / ALPHA
+     *                ; any VCHAR, except delimiters
+     *
+     * Delimiters are chosen from the set of US-ASCII visual characters not allowed in a token
+     *    (DQUOTE and "(),/:;<=>?@[\]{}").
+     * }
+     * </pre>
+     * @param key baggage key to check
+     * @return whether the key is invalid
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6">Section
+     * 3.2.6 of RFC7230</a>
+     */
+    private static boolean isInvalidBaggageKey(String key) {
+        if (key.isEmpty()) {
+            return true;
+        }
+        for (int i = 0; i < key.length(); i++) {
+            char ch = key.charAt(i);
+            // CTL are invalid, DEL and non-ASCII chars are invalid
+            if (ch <= 32 || ch >= 127) {
+                return true;
+            }
+            if (ch < 64) {
+                if (((INVALID_KEY_MASK_LOW >>> ch) & 1L) != 0) {
+                    return true;
+                }
+            }
+            else {
+                if (((INVALID_KEY_MASK_HIGH >>> (ch - 64)) & 1L) != 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static String percentEncode(String rawValue) {
+        byte[] bytes = rawValue.getBytes(StandardCharsets.UTF_8);
+        StringBuilder sb = new StringBuilder(bytes.length);
+        for (byte b : bytes) {
+            if (isBaggageOctet(b) && b != '%' && b != '=') {
+                sb.append((char) b);
+            }
+            else {
+                sb.append('%');
+                sb.append(HEX_DIGITS[(b >> 4) & 0xF]);
+                sb.append(HEX_DIGITS[b & 0xF]);
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Check a character against the W3C Baggage specification definition for valid
+     * baggage characters. <pre>
+     * {@code
+     * baggage-octet          =  %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
+     *                           ; US-ASCII characters excluding CTLs,
+     *                           ; whitespace, DQUOTE, comma, semicolon,
+     *                           ; and backslash
+     * }
+     * </pre>
+     * @param b UTF-8 character as a byte
+     * @return whether it is a valid baggage character
+     * @see <a href="https://www.w3.org/TR/baggage/#definition">W3C Baggage
+     * specification</a>
+     */
+    private static boolean isBaggageOctet(byte b) {
+        // excludes CTL = %x00-1F / %x7F, space %x20, non-ASCII chars
+        if (b < 0x21 || b > 0x7E) {
+            return false;
+        }
+        if (b == 0x22 // double quote '"'
+                || b == 0x2C // comma ','
+                || b == 0x3B // semicolon ';'
+                || b == 0x5C // backslash '\'
+        ) {
+            return false;
+        }
+        return true;
+    }
+
+    private static String percentDecode(String value) {
+        if (value.indexOf('%') < 0) {
+            return value;
+        }
+        try {
+            byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+            ByteArrayOutputStream out = new ByteArrayOutputStream(bytes.length);
+            for (int i = 0; i < bytes.length; i++) {
+                byte b = bytes[i];
+                if (b == '%') {
+                    if (i + 2 < bytes.length) {
+                        int hi = Character.digit((char) bytes[i + 1], 16);
+                        int lo = Character.digit((char) bytes[i + 2], 16);
+                        if (hi >= 0 && lo >= 0) {
+                            out.write((hi << 4) | lo);
+                            i += 2;
+                            continue;
+                        }
+                    }
+                }
+                out.write(b);
+            }
+            return out.toString(StandardCharsets.UTF_8.name());
+        }
+        catch (Exception e) {
+            return value;
+        }
+    }
 
     W3CBaggagePropagator(BaggageManager baggageManager, List<String> localFields) {
         this.braveBaggageManager = baggageManager;
-        this.localFields = localFields;
+        this.localFieldsArray = localFields.toArray(new String[0]);
     }
 
     public List<String> keys() {
@@ -217,19 +371,27 @@ class W3CBaggagePropagator {
             }
             StringBuilder headerContent = new StringBuilder();
             // We ignore local keys - they won't get propagated
-            String[] strings = this.localFields.toArray(new String[0]);
-            Map<String, String> filtered = extra.toMapFilteringFieldNames(strings);
+            Map<String, String> filtered = extra.toMapFilteringFieldNames(this.localFieldsArray);
+            int entryCount = 0;
             for (Map.Entry<String, String> entry : filtered.entrySet()) {
                 if (TRACE_STATE.equalsIgnoreCase(entry.getKey())) {
                     continue;
                 }
-                headerContent.append(entry.getKey()).append("=").append(entry.getValue());
-                // TODO: [OTEL] No metadata support
-                // String metadataValue = entry.getEntryMetadata().getValue();
-                // if (metadataValue != null && !metadataValue.isEmpty()) {
-                // headerContent.append(";").append(metadataValue);
-                // }
-                headerContent.append(",");
+                if (entryCount >= MAX_BAGGAGE_ENTRIES) {
+                    break;
+                }
+                String key = entry.getKey();
+                if (isInvalidBaggageKey(key)) {
+                    continue;
+                }
+                String value = percentEncode(entry.getValue());
+                // note: we do not support metadata currently
+                int entryLength = key.length() + 1 + value.length() + 1; // "key=value,"
+                if (headerContent.length() + entryLength - 1 > MAX_BAGGAGE_BYTES) {
+                    break;
+                }
+                headerContent.append(key).append('=').append(value).append(',');
+                entryCount++;
             }
             if (headerContent.length() > 0) {
                 headerContent.setLength(headerContent.length() - 1);
@@ -238,18 +400,28 @@ class W3CBaggagePropagator {
         };
     }
 
-    <R> TraceContextOrSamplingFlags contextWithBaggage(R carrier, TraceContextOrSamplingFlags flags,
+    <R> TraceContextOrSamplingFlags contextWithBaggage(@Nullable R carrier, TraceContextOrSamplingFlags flags,
             Propagation.Getter<R, String> getter) {
         String baggageHeader = getter.get(carrier, FIELD);
-        List<AbstractMap.SimpleEntry<Baggage, String>> pairs = baggageHeader == null || baggageHeader.isEmpty()
-                ? Collections.emptyList() : addBaggageToContext(baggageHeader);
-        return flags.toBuilder().addExtra(new BraveBaggageFields(pairs)).build();
+        if (baggageHeader == null || baggageHeader.isEmpty()) {
+            return flags.toBuilder().addExtra(new BraveBaggageFields(Collections.emptyList())).build();
+        }
+        if (baggageHeader.length() > MAX_BAGGAGE_BYTES) {
+            if (log.isDebugEnabled()) {
+                log.debug("Baggage header length (" + baggageHeader.length()
+                        + ") exceeds W3C limit of 8192 bytes. Truncating header.");
+            }
+            baggageHeader = baggageHeader.substring(0, MAX_BAGGAGE_BYTES);
+        }
+        return flags.toBuilder().addExtra(new BraveBaggageFields(addBaggageToContext(baggageHeader))).build();
     }
 
     List<AbstractMap.SimpleEntry<Baggage, String>> addBaggageToContext(String baggageHeader) {
-        List<AbstractMap.SimpleEntry<Baggage, String>> pairs = new ArrayList<>();
-        String[] entries = baggageHeader.split(",");
-        for (String entry : entries) {
+        String[] entries = baggageHeader.split(",", MAX_BAGGAGE_ENTRIES + 1);
+        List<AbstractMap.SimpleEntry<Baggage, String>> pairs = new ArrayList<>(entries.length);
+        int maxToInspect = Math.min(entries.length, MAX_BAGGAGE_ENTRIES);
+        for (int i = 0; i < maxToInspect; i++) {
+            String entry = entries[i];
             int beginningOfMetadata = entry.indexOf(";");
             if (beginningOfMetadata > 0) {
                 entry = entry.substring(0, beginningOfMetadata);
@@ -259,7 +431,11 @@ class W3CBaggagePropagator {
             if (hasValue) {
                 try {
                     String key = keyAndValue[0].trim();
-                    String value = keyAndValue[1].trim();
+                    if (isInvalidBaggageKey(key)) {
+                        continue;
+                    }
+                    String value = percentDecode(keyAndValue[1].trim());
+                    @SuppressWarnings("deprecation")
                     Baggage baggage = this.braveBaggageManager.createBaggage(key);
                     pairs.add(new AbstractMap.SimpleEntry<>(baggage, value));
                 }
