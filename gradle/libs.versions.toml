@@ -70,7 +70,6 @@ plugin-nebulaPublishing = { module = "com.netflix.nebula:nebula-publishing-plugi
 plugin-nebulaProject = { module = "com.netflix.nebula:nebula-project-plugin", version = "13.1.2" }
 plugin-nebulaInfo = { module = "com.netflix.nebula:gradle-info-plugin", version = "16.3.0" }
 plugin-noHttp = { module = "io.spring.nohttp:nohttp-gradle", version = "0.0.11" }
-plugin-nexusPublish = { module = "io.github.gradle-nexus:publish-plugin", version = "2.0.0" }
 plugin-javaformat = { module = "io.spring.javaformat:spring-javaformat-gradle-plugin", version.ref = "spring-javaformat" }
 plugin-jmh = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.3" }
 plugin-spring-antora = { module = "io.spring.gradle.antora:spring-antora-plugin", version = "0.0.1" }
