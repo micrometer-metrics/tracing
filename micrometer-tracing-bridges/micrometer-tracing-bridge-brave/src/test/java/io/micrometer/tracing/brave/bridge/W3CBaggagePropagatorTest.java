@@ -215,6 +215,21 @@ class W3CBaggagePropagatorTest {
     }
 
     @Test
+    void inject_nullValue() {
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        BaggageField field = BaggageField.create("my-key");
+        builder.addExtra(BaggageFields.newFactory(Arrays.asList(field), 10).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        field.updateValue(context, null);
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        assertThat(carrier).isEmpty();
+    }
+
+    @Test
     void inject_noBaggage() {
         TraceContextOrSamplingFlags context = context();
         Map<String, String> carrier = new HashMap<>();
@@ -240,7 +255,56 @@ class W3CBaggagePropagatorTest {
             .inject(context.context(), carrier);
 
         assertThat(carrier).containsExactlyInAnyOrderEntriesOf(
-                singletonMap("baggage", "nometa=nometa-value,meta=meta-value;somemetadata; someother=foo"));
+                singletonMap("baggage", "nometa=nometa-value,meta=meta-value%3Bsomemetadata%3B%20someother%3Dfoo"));
+    }
+
+    @Test
+    void inject_percentEncodesSpecialCharacters() {
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        BaggageField field = BaggageField.create("my-key");
+        builder.addExtra(BaggageFields.newFactory(Arrays.asList(field), 10).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        field.updateValue(context, "value,with=delimiters;and spaces");
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        assertThat(carrier).containsEntry("baggage", "my-key=value%2Cwith%3Ddelimiters%3Band%20spaces");
+    }
+
+    @Test
+    void injectAndExtract_preservesUnicodeCharactersCorrectly() {
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        BaggageField field = BaggageField.create("my-key");
+        builder.addExtra(BaggageFields.newFactory(Arrays.asList(field), 10).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        // "世界" in UTF-8 is %E4%B8%96%E7%95%8C. "é" is %C3%A9.
+        field.updateValue(context, "世界, café");
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        // Verify injection percent-encodes the UTF-8 bytes of the Unicode characters
+        assertThat(carrier).containsEntry("baggage", "my-key=%E4%B8%96%E7%95%8C%2C%20caf%C3%A9");
+
+        // Verify extraction decodes it back to the original Unicode string
+        TraceContextOrSamplingFlags extractedContext = propagator.contextWithBaggage(carrier, context(), Map::get);
+        Map<String, String> baggageEntries = baggageEntries(extractedContext);
+        assertThat(baggageEntries).containsEntry("my-key", "世界, café");
+    }
+
+    @Test
+    void extract_neutralizesDelimiterInjection() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("baggage", "my-key=value%2Ctenant-id%3Dadmin");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        assertThat(baggageEntries).containsEntry("my-key", "value,tenant-id=admin").doesNotContainKey("tenant-id");
     }
 
     @Test
@@ -375,6 +439,254 @@ class W3CBaggagePropagatorTest {
                 .build());
         }
         return builder.build();
+    }
+
+    @Test
+    void extract_ignoresInvalidKeys() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        // Key contains non-printable character (ASCII 15)
+        carrier.put("baggage", "valid-key=value,in\u000fvalid-key=value2");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        assertThat(baggageEntries).containsEntry("valid-key", "value")
+            .hasSize(1)
+            .doesNotContainKey("in\u000fvalid-key");
+    }
+
+    @Test
+    void extract_ignoresKeysWithDelimitersAndSpaces() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        // Keys containing space, delimiters '?', '<', '>', '@', '/', '[', ']', '{', '}'
+        carrier.put("baggage",
+                "valid-key=value,key?with?question=value2,key<with<brackets=value3,key@with@at=value4,key/with/slash=value5,key[with]brackets=value6,key{with}braces=value7,key with space=value8");
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        assertThat(baggageEntries).containsEntry("valid-key", "value")
+            .hasSize(1)
+            .doesNotContainKey("key?with?question")
+            .doesNotContainKey("key<with<brackets")
+            .doesNotContainKey("key@with@at")
+            .doesNotContainKey("key/with/slash")
+            .doesNotContainKey("key[with]brackets")
+            .doesNotContainKey("key{with}braces")
+            .doesNotContainKey("key with space");
+    }
+
+    @Test
+    void inject_ignoresInvalidKeys() {
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        BaggageField validField = BaggageField.create("valid-key");
+        BaggageField invalidField = BaggageField.create("in\u000fvalid-key");
+        builder.addExtra(BaggageFields.newFactory(Arrays.asList(validField, invalidField), 10).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        validField.updateValue(context, "value");
+        invalidField.updateValue(context, "value2");
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        assertThat(carrier).containsEntry("baggage", "valid-key=value");
+    }
+
+    @Test
+    void inject_ignoresKeysWithDelimitersAndSpaces() {
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        BaggageField validField = BaggageField.create("valid-key");
+        BaggageField spaceField = BaggageField.create("key with space");
+        BaggageField delimiterField = BaggageField.create("key?with?question");
+        builder.addExtra(BaggageFields.newFactory(Arrays.asList(validField, spaceField, delimiterField), 10).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        validField.updateValue(context, "value");
+        spaceField.updateValue(context, "value2");
+        delimiterField.updateValue(context, "value3");
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        assertThat(carrier).containsEntry("baggage", "valid-key=value");
+    }
+
+    @Test
+    void extract_limitsTo64EntriesWithInvalidKey() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        StringBuilder sb = new StringBuilder("invalid key=value,");
+        for (int i = 1; i <= 70; i++) {
+            sb.append("k").append(i).append("=v").append(i).append(",");
+        }
+        sb.setLength(sb.length() - 1);
+        carrier.put("baggage", sb.toString());
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        // Only inspects first 64 list-members in header: item 0 (invalid) + items 1..63
+        // (k1..k63)
+        assertThat(baggageEntries).hasSize(63);
+        assertThat(baggageEntries).containsEntry("k63", "v63");
+        assertThat(baggageEntries).doesNotContainKey("k64");
+        // Verify no value contains unparsed header remnants
+        assertThat(baggageEntries.values()).allSatisfy(v -> assertThat(v).doesNotContain(","));
+    }
+
+    @Test
+    void extract_limitsTo64Entries() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i <= 70; i++) {
+            sb.append("k").append(i).append("=v").append(i).append(",");
+        }
+        sb.setLength(sb.length() - 1);
+        carrier.put("baggage", sb.toString());
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        assertThat(baggageEntries).hasSize(64);
+        assertThat(baggageEntries).containsEntry("k1", "v1").containsEntry("k64", "v64").doesNotContainKey("k65");
+    }
+
+    @Test
+    void inject_limitsTo64Entries() {
+        // Note: Brave's BaggageFields.newFactory has a hard limit of 64
+        // maxDynamicEntries.
+        // We cannot create a TraceContext with more than 64 dynamic fields to test the
+        // propagator's limit directly. However, we verify here that exactly 64 fields
+        // are successfully injected, and the propagator's safety check
+        // (MAX_BAGGAGE_ENTRIES = 64)
+        // is in place as a defensive hardening measure.
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        List<BaggageField> fields = new ArrayList<>();
+        for (int i = 1; i <= 64; i++) {
+            fields.add(BaggageField.create("k" + i));
+        }
+        builder.addExtra(BaggageFields.newFactory(fields, 64).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        for (int i = 1; i <= 64; i++) {
+            fields.get(i - 1).updateValue(context, "v" + i);
+        }
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        String baggageHeader = carrier.get("baggage");
+        assertThat(baggageHeader).isNotNull();
+        String[] parts = baggageHeader.split(",");
+        assertThat(parts).hasSize(64);
+    }
+
+    @Test
+    void extract_truncatesHeaderExceeding8192Bytes() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        // Generate a very large header, e.g. 10000 bytes
+        int i = 1;
+        while (sb.length() < 10000) {
+            sb.append("key").append(i).append("=").append("value").append(i).append(",");
+            i++;
+        }
+        sb.setLength(sb.length() - 1);
+        carrier.put("baggage", sb.toString());
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        // Should parse some entries but stop before 8192 bytes
+        assertThat(baggageEntries).isNotEmpty();
+        // The total number of entries should be limited, and no key from the truncated
+        // part should exist
+        String lastKey = "key" + (i - 1);
+        assertThat(baggageEntries).doesNotContainKey(lastKey);
+    }
+
+    @Test
+    void inject_limitsTo8192Bytes() {
+        final int BAGGAGE_COUNT = 64;
+        String longString = "value-with-long-string-to-make-it-exceed-the-limit-value-with-long-string-to-make-it-exceed-the-limit-value-with-long-string-to-make-it-exceed-the-limit-";
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+        List<BaggageField> fields = new ArrayList<>();
+        // Create enough fields to exceed 8192 bytes when serialized
+        for (int i = 1; i <= BAGGAGE_COUNT; i++) {
+            fields.add(BaggageField.create("key" + i));
+        }
+        builder.addExtra(BaggageFields.newFactory(fields, BAGGAGE_COUNT).create());
+        TraceContextOrSamplingFlags context = builder.build();
+        for (int i = 1; i <= BAGGAGE_COUNT; i++) {
+            // Each entry is very long to exceed 8192 bytes total
+            fields.get(i - 1).updateValue(context, longString + i);
+        }
+        assertThat(longString.length() * BAGGAGE_COUNT).isGreaterThan(8192);
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        String baggageHeader = carrier.get("baggage");
+        assertThat(baggageHeader).isNotNull();
+        assertThat(baggageHeader.length()).isLessThanOrEqualTo(8192);
+    }
+
+    @Test
+    void extract_ignoresOversizedKeyAndValue() {
+        TraceContextOrSamplingFlags context = context();
+        Map<String, String> carrier = new HashMap<>();
+
+        // Value is 8193 bytes long (exceeds 8192 total limit)
+        StringBuilder largeValueSb = new StringBuilder();
+        for (int i = 0; i < 8193; i++) {
+            largeValueSb.append("v");
+        }
+        String largeValue = largeValueSb.toString();
+
+        carrier.put("baggage", "valid-key=value,valid-key2=" + largeValue);
+
+        TraceContextOrSamplingFlags contextWithBaggage = propagator.contextWithBaggage(carrier, context, Map::get);
+
+        Map<String, String> baggageEntries = baggageEntries(contextWithBaggage);
+        // The entire header is truncated at 8192, which cuts off valid-key2's value or
+        // the entry itself
+        assertThat(baggageEntries).containsEntry("valid-key", "value");
+    }
+
+    @Test
+    void inject_limitsTo8192BytesExceeded() {
+        TraceContextOrSamplingFlags.Builder builder = context().toBuilder();
+
+        // Generate a value that will push the total header size past 8192 bytes
+        StringBuilder largeValueSb = new StringBuilder();
+        for (int i = 0; i < 8190; i++) {
+            largeValueSb.append("v");
+        }
+        String largeValue = largeValueSb.toString();
+
+        BaggageField validField = BaggageField.create("valid-key");
+        BaggageField largeValueField = BaggageField.create("valid-key2");
+
+        builder.addExtra(BaggageFields.newFactory(Arrays.asList(validField, largeValueField), 10).create());
+        TraceContextOrSamplingFlags context = builder.build();
+
+        validField.updateValue(context, "value");
+        largeValueField.updateValue(context, largeValue);
+
+        Map<String, String> carrier = new HashMap<>();
+
+        propagator.injector((Propagation.Setter<Map<String, String>, String>) Map::put)
+            .inject(context.context(), carrier);
+
+        // Since valid-key2=largeValue exceeds 8192 bytes, it should be dropped during
+        // injection
+        assertThat(carrier).containsEntry("baggage", "valid-key=value");
     }
 
 }
