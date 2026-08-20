@@ -24,7 +24,7 @@ asmForPlugins = "7.3.1"
 jsr305 = "3.0.2"
 aspectjweaver = "1.9.25.1"
 spring = "5.3.39"
-spring-javaformat = "0.0.47"
+spring-javaformat = "0.0.48"
 
 [libraries]
 aopAlliance = { module = "aopalliance:aopalliance", version.ref = "aopalliance" }
