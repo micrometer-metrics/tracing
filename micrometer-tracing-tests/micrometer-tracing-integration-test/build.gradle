@@ -21,7 +21,7 @@ dependencies {
 
 	// OTel
 	api project(':micrometer-tracing-bridge-otel')
-	api 'io.opentelemetry:opentelemetry-exporter-zipkin'
+	api libs.otelZipkinExporter
 	api 'io.opentelemetry:opentelemetry-sdk-trace'
 	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
 	api 'io.opentelemetry:opentelemetry-sdk-testing'

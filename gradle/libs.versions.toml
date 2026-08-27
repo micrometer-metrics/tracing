@@ -50,6 +50,8 @@ mockitoCore = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockitoJunit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 nullAway = { module = "com.uber.nullaway:nullaway", version = "0.14.0" }
 otelInstrumentationBom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version.ref = "otelInstrumentationBom" }
+# OpenTelemetry stopped publishing this exporter after 1.64.0.
+otelZipkinExporter = { module = "io.opentelemetry:opentelemetry-exporter-zipkin", version = "1.64.0" }
 reactorBom = { module = "io.projectreactor:reactor-bom", version.ref = "reactorBom" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 springCore = { module = "org.springframework:spring-core", version.ref = "spring" }
