@@ -21,7 +21,8 @@ dependencies {
 
 	// OTel
 	api project(':micrometer-tracing-bridge-otel')
-	api 'io.opentelemetry:opentelemetry-exporter-zipkin'
+	// Discontinued by OTel: https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.65.0
+	api 'io.opentelemetry:opentelemetry-exporter-zipkin:1.64.0'
 	api 'io.opentelemetry:opentelemetry-sdk-trace'
 	api 'io.opentelemetry:opentelemetry-extension-trace-propagators'
 	api 'io.opentelemetry:opentelemetry-sdk-testing'

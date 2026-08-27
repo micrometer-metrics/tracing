@@ -29,6 +29,8 @@ implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
 ----
 
+CAUTION: Support for the OTel Zipkin Exporter has been deprecated because `opentelemetry-exporter-zipkin` was discontinued by OpenTelemetry.
+
 .An OpenZipkin URL sender dependency to send out spans to Zipkin via a `URLConnectionSender`
 [source,groovy,subs=+attributes]
 ----
@@ -63,6 +65,8 @@ The following example shows the required dependency in Maven (assuming that Micr
     <artifactId>opentelemetry-exporter-zipkin</artifactId>
 </dependency>
 ----
+
+CAUTION: Support for the OTel Zipkin Exporter has been deprecated because `opentelemetry-exporter-zipkin` was discontinued by OpenTelemetry.
 
 .An OpenZipkin URL sender dependency to send out spans to Zipkin via a `URLConnectionSender`
 [source,xml,subs=+attributes]
