@@ -291,7 +291,14 @@ public abstract class SampleTestRunner {
 
         /**
          * Zipkin Exporter with OTel Tracer.
+         * @deprecated Since io.opentelemetry:opentelemetry-exporter-zipkin was
+         * discontinued by OpenTelemetry. According to the OTel release notes, users
+         * should migrate to OTLP or use a Zipkin-compatible collector exporter.
+         * @see <a href=
+         * "https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.65.0">OTel
+         * Release Notes</a>
          */
+        @Deprecated
         ZIPKIN_OTEL {
             @Override
             void run(SampleRunnerConfig sampleRunnerConfig, ObservationRegistry observationRegistry,

@@ -31,9 +31,9 @@ import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
 import io.micrometer.tracing.brave.bridge.BraveTracer;
 import io.micrometer.tracing.otel.bridge.*;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.zipkin.ZipkinSpanExporterBuilder;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
@@ -201,14 +201,8 @@ class TracingApiTests {
         // tag::otel_setup[]
         // [OTel component] Example of using a SpanExporter. SpanExporter is a component
         // that gets called when a span is finished. Here we have an example of setting it
-        // up with sending spans
-        // in a Zipkin format to the provided location via the UrlConnectionSender
-        // (through the <io.opentelemetry:opentelemetry-exporter-zipkin> and
-        // <io.zipkin.reporter2:zipkin-sender-urlconnection> dependencies)
-        // Another option could be to use an ArrayListSpanProcessor for testing purposes
-        SpanExporter spanExporter = new ZipkinSpanExporterBuilder()
-            .setSender(URLConnectionSender.create("http://localhost:9411/api/v2/spans"))
-            .build();
+        // up with an in-memory exporter that should be used for testing purposes only.
+        SpanExporter spanExporter = InMemorySpanExporter.create();
 
         // [OTel component] SdkTracerProvider is an SDK implementation for TracerProvider
         SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()

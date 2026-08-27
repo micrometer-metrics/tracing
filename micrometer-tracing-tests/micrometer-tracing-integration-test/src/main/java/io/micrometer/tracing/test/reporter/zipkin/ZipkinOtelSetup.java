@@ -57,9 +57,16 @@ import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 /**
  * Provides Zipkin setup with OTel.
  *
+ * @deprecated Since io.opentelemetry:opentelemetry-exporter-zipkin was discontinued by
+ * OpenTelemetry. According to the OTel release notes, users should migrate to OTLP or use
+ * a Zipkin-compatible collector exporter.
+ * @see <a href=
+ * "https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.65.0">OTel
+ * Release Notes</a>
  * @author Marcin Grzejszczak
  * @since 1.0.0
  */
+@Deprecated
 public final class ZipkinOtelSetup implements AutoCloseable {
 
     private final Consumer<OtelBuildingBlocks> closingFunction;

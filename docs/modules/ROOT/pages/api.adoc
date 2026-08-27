@@ -40,7 +40,7 @@ include::{include-java}/tracing/TracingApiTests.java[tags=brave_setup,indent=0]
 
 In this subsection, we set up Micrometer Tracing with OpenTelemetry (OTel).
 
-The following example shows how to create a Micrometer Tracing `Tracer` by using OTel components that would send completed spans to Zipkin:
+The following example shows how to create a Micrometer Tracing `Tracer` by using OTel's in-memory exporter that does not send spans anywhere but shows the integration point with the OTel `SpanExporter` interface:
 
 [source,java,subs=+attributes]
 -----
