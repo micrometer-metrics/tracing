@@ -23,6 +23,8 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import org.aopalliance.intercept.MethodInvocation;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -44,7 +46,8 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
     public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
             Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
             Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
-        this(newSpanParser, tracer, new SpanTagAnnotationHandler(resolverProvider, expressionResolverProvider));
+        this(newSpanParser, tracer, new SpanTagAnnotationHandler(resolverProvider, expressionResolverProvider),
+                new BaggageKeyValueAnnotationHandler(resolverProvider, expressionResolverProvider));
     }
 
     /**
@@ -53,7 +56,7 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
      * @param tracer tracer
      */
     public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer) {
-        this(newSpanParser, tracer, null);
+        this(newSpanParser, tracer, (SpanTagAnnotationHandler) null);
     }
 
     /**
@@ -65,7 +68,44 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
      */
     public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
             @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler) {
-        super(newSpanParser, tracer, tracer.currentTraceContext(), spanTagAnnotationHandler);
+        this(newSpanParser, tracer, spanTagAnnotationHandler, new BaggageKeyValueAnnotationHandler());
+    }
+
+    /**
+     * Creates a new instance of {@link ImperativeMethodInvocationProcessor}. This
+     * constructor allows the resolver providers to be shared with the
+     * {@link BaggageKeyValueAnnotationHandler} so that expression-based resolution (e.g.
+     * SpEL) works for {@link BaggageKeyValue} annotations.
+     * @param newSpanParser new span parser
+     * @param tracer tracer
+     * @param spanTagAnnotationHandler resolves tags to be added to the span from the
+     * annotations
+     * @param resolverProvider converts a class into an instance of resolver provider
+     * @param expressionResolverProvider converts a class into an instance of expression
+     * resolver provider
+     */
+    public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
+            @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler,
+            Function<Class<? extends ValueResolver>, ? extends ValueResolver> resolverProvider,
+            Function<Class<? extends ValueExpressionResolver>, ? extends ValueExpressionResolver> expressionResolverProvider) {
+        this(newSpanParser, tracer, spanTagAnnotationHandler,
+                new BaggageKeyValueAnnotationHandler(resolverProvider, expressionResolverProvider));
+    }
+
+    /**
+     * Creates a new instance of {@link ImperativeMethodInvocationProcessor}.
+     * @param newSpanParser new span parser
+     * @param tracer tracer
+     * @param spanTagAnnotationHandler resolves tags to be added to the span from the
+     * annotations
+     * @param baggageKeyValueAnnotationHandler resolves baggage to be put in scope from
+     * the annotations
+     */
+    public ImperativeMethodInvocationProcessor(NewSpanParser newSpanParser, Tracer tracer,
+            @Nullable SpanTagAnnotationHandler spanTagAnnotationHandler,
+            @Nullable BaggageKeyValueAnnotationHandler baggageKeyValueAnnotationHandler) {
+        super(newSpanParser, tracer, tracer.currentTraceContext(), spanTagAnnotationHandler,
+                baggageKeyValueAnnotationHandler);
     }
 
     @Override
@@ -89,8 +129,13 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
         assert span != null;
         String log = log(continueSpan);
         boolean hasLog = StringUtils.isNotBlank(log);
+        List<io.micrometer.tracing.BaggageInScope> baggageScopes = Collections.emptyList();
         try (Tracer.SpanInScope ignored = tracer.withSpan(span)) {
             before(invocation, span, log, hasLog);
+            if (baggageKeyValueAnnotationHandler != null && invocation instanceof SpanAspectMethodInvocation) {
+                baggageScopes = baggageKeyValueAnnotationHandler.openBaggageScopes(tracer,
+                        ((SpanAspectMethodInvocation) invocation).getPjp());
+            }
             return invocation.proceed();
         }
         catch (Exception ex) {
@@ -98,6 +143,9 @@ public class ImperativeMethodInvocationProcessor extends AbstractMethodInvocatio
             throw ex;
         }
         finally {
+            for (io.micrometer.tracing.BaggageInScope baggageScope : baggageScopes) {
+                baggageScope.close();
+            }
             after(span, startNewSpan, log, hasLog);
         }
     }

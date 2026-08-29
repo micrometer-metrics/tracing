@@ -82,7 +82,7 @@ include::{include-bridges-java}/micrometer-tracing-bridge-otel/src/test/java/io/
 
 == Aspect Oriented Programming
 
-Micrometer Tracing contains `@NewSpan`, `@ContinueSpan`, and `@SpanTag` annotations that frameworks can use to create or customize spans for either specific types of methods such as those serving web request endpoints or, more generally, to all methods.
+Micrometer Tracing contains `@NewSpan`, `@ContinueSpan`, `@SpanTag`, and `@BaggageKeyValue` annotations that frameworks can use to create or customize spans for either specific types of methods such as those serving web request endpoints or, more generally, to all methods.
 
 WARNING: Micrometer's Spring Boot configuration does _not_ recognize these aspects on arbitrary methods.
 
@@ -106,4 +106,73 @@ include::{include-java}/tracing/TracingSpanAspectTests.java[tags=example,indent=
 include::{include-java}/tracing/TracingSpanAspectTests.java[tags=usage_example,indent=0]
 
 -----
+
+=== `@BaggageKeyValue` Annotation
+
+The `@BaggageKeyValue` annotation can be placed on method parameters to automatically put the parameter value into baggage scope for the duration of the method execution. The baggage scope is automatically closed when the method completes, preventing memory leaks.
+
+There are three ways to resolve the baggage value, with the following precedence:
+
+1. **Resolver**: Use a `ValueResolver` implementation (highest precedence)
+2. **Expression**: Evaluate an expression (e.g. SpEL when using Spring)
+3. **toString()**: Use the `toString()` value of the parameter (default)
+
+[source,java]
+-----
+// The parameter value will be put into baggage with name "userId" for the duration of the method
+@NewSpan
+public void processOrder(@BaggageKeyValue("userId") String userId) {
+    // The baggage "userId" is available in scope here
+    // It will be automatically closed when the method returns
+}
+
+// The 'key' attribute is an alias for 'value'
+@NewSpan
+public void processWithKey(@BaggageKeyValue(key = "tenantId") String tenant) {
+    // The baggage "tenantId" is in scope
+}
+
+// Multiple baggage entries can be added
+@NewSpan
+public void processRequest(@BaggageKeyValue("requestId") String requestId,
+                           @BaggageKeyValue("tenantId") String tenantId) {
+    // Both "requestId" and "tenantId" are in baggage scope
+}
+
+// Use an expression to extract a value from a complex object
+@NewSpan
+public void processOrder(@BaggageKeyValue(value = "orderId", expression = "id") Order order) {
+    // The baggage "orderId" is set to the result of evaluating "id" on the Order object
+}
+
+// Use a custom resolver for full control over the value
+@NewSpan
+public void processOrder(@BaggageKeyValue(value = "orderInfo", resolver = OrderResolver.class) Order order) {
+    // The baggage "orderInfo" is set to the value returned by OrderResolver
+}
+-----
+
+NOTE: The `@BaggageKeyValue` annotation requires the method to also be annotated with `@NewSpan` or `@ContinueSpan` so that it is intercepted by the `SpanAspect`.
+
+To enable `@BaggageKeyValue` support with expression and resolver capabilities, pass the resolver providers to the `ImperativeMethodInvocationProcessor`. The preferred approach is to use the 5-arg constructor so that both `@SpanTag` and `@BaggageKeyValue` share the same resolver providers:
+
+[source,java]
+-----
+// Preferred: pass resolver providers so both @SpanTag and @BaggageKeyValue can use them
+ImperativeMethodInvocationProcessor processor = new ImperativeMethodInvocationProcessor(
+    newSpanParser, tracer, spanTagAnnotationHandler,
+    resolverProvider, expressionResolverProvider);
+-----
+
+Alternatively, you can construct a `BaggageKeyValueAnnotationHandler` directly and use the 4-arg constructor:
+
+[source,java]
+-----
+BaggageKeyValueAnnotationHandler baggageHandler = new BaggageKeyValueAnnotationHandler(
+    resolverProvider, expressionResolverProvider);
+ImperativeMethodInvocationProcessor processor = new ImperativeMethodInvocationProcessor(
+    newSpanParser, tracer, spanTagAnnotationHandler, baggageHandler);
+-----
+
+TIP: In a Spring application, `resolverProvider` and `expressionResolverProvider` are typically `beanFactory::getBean`, which enables SpEL expression resolution and Spring-managed `ValueResolver` beans.
 
