@@ -1,0 +1,10 @@
+plugins {
+	id 'idea'
+}
+
+dependencies {
+	testImplementation project(':micrometer-tracing')
+	testImplementation project(':micrometer-tracing-test')
+	testImplementation libs.springContext
+	testImplementation libs.assertj
+}

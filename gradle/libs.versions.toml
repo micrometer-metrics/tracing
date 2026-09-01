@@ -53,6 +53,7 @@ otelInstrumentationBom = { module = "io.opentelemetry.instrumentation:openteleme
 reactorBom = { module = "io.projectreactor:reactor-bom", version.ref = "reactorBom" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 springCore = { module = "org.springframework:spring-core", version.ref = "spring" }
+springAop = { module = "org.springframework:spring-aop", version.ref = "spring" }
 springContext = { module = "org.springframework:spring-context", version.ref = "spring" }
 spring-javaformatCheckstyle = { module = "io.spring.javaformat:spring-javaformat-checkstyle", version.ref = "spring-javaformat" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }

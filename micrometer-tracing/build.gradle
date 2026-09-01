@@ -6,9 +6,8 @@ dependencies {
 	api platform(libs.micrometerBom)
 	api 'io.micrometer:micrometer-observation'
 	api 'io.micrometer:context-propagation'
-	api libs.aopAlliance
-
 	// aspects
+	optionalApi libs.aopAlliance
 	optionalApi libs.aspectjweaver
 
 	// exemplars support
