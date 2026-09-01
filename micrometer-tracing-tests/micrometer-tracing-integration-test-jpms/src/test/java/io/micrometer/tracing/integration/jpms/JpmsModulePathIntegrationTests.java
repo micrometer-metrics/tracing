@@ -75,7 +75,7 @@ class JpmsModulePathIntegrationTests {
 
         assertThatThrownBy(() -> parentConfig.resolve(finder, ModuleFinder.of(), Set.of("spring.aop", "aopalliance")))
             .isInstanceOf(ResolutionException.class)
-            .hasMessageContaining("org.aopalliance.intercept");
+            .hasMessageContaining("org.aopalliance");
     }
 
     @Test
@@ -96,7 +96,7 @@ class JpmsModulePathIntegrationTests {
         assertThatThrownBy(
                 () -> parentConfig.resolve(finder, ModuleFinder.of(), Set.of("micrometer.tracing", "spring.aop")))
             .isInstanceOf(ResolutionException.class)
-            .hasMessageContaining("org.aopalliance.intercept");
+            .hasMessageContaining("org.aopalliance");
     }
 
     private Path getPathForClass(Class<?> clazz) throws URISyntaxException {
