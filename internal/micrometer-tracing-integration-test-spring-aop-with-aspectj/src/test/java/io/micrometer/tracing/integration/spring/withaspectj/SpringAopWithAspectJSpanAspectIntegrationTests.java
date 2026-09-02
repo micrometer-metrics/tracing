@@ -15,6 +15,8 @@
  */
 package io.micrometer.tracing.integration.spring.withaspectj;
 
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.annotation.ContinueSpan;
 import io.micrometer.tracing.annotation.DefaultNewSpanParser;
 import io.micrometer.tracing.annotation.ImperativeMethodInvocationProcessor;
@@ -25,13 +27,13 @@ import io.micrometer.tracing.annotation.SpanTag;
 import io.micrometer.tracing.test.simple.SimpleSpan;
 import io.micrometer.tracing.test.simple.SimpleTracer;
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.Deque;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,12 +41,7 @@ class SpringAopWithAspectJSpanAspectIntegrationTests {
 
     SimpleTracer tracer = new SimpleTracer();
 
-    Deque<SimpleSpan> spans;
-
-    @BeforeEach
-    void setup() {
-        spans = tracer.getSpans();
-    }
+    Deque<SimpleSpan> spans = tracer.getSpans();
 
     @Test
     void shouldLoadMethodInvocationFromSpringAop() {
@@ -71,10 +68,23 @@ class SpringAopWithAspectJSpanAspectIntegrationTests {
     @Test
     void shouldContinueSpanWithSpringAopProxy() {
         TestService service = createProxy(new TestServiceImpl());
-        service.annotatedMethod("test-value");
-        service.continueMethod("continued-value");
+        Span span = this.tracer.nextSpan().name("parent-span").start();
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(span)) {
+            service.continueMethod("continued-value");
+        }
+        finally {
+            span.end();
+        }
 
-        assertThat(this.spans).hasSize(2);
+        assertThat(this.spans).hasSize(1);
+        SimpleSpan continuedSpan = this.spans.peek();
+        assertThat(continuedSpan.getName()).isEqualTo("parent-span");
+        assertThat(continuedSpan.getTags()).containsEntry("continueTag", "continued-value")
+            .containsEntry("annotated.class", "TestServiceImpl")
+            .containsEntry("annotated.method", "continueMethod");
+        assertThat(continuedSpan.getEvents().stream().map(Map.Entry::getValue)).contains("continueLog.before",
+                "continueLog.after");
+        assertThat(this.tracer.currentSpan()).isNull();
     }
 
     private TestService createProxy(TestService target) {
