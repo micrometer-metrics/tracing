@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micrometer.tracing.integration.noaspectj;
+package io.micrometer.tracing.integration.spring.noaspectj;
 
 import io.micrometer.tracing.annotation.ContinueSpan;
 import io.micrometer.tracing.annotation.DefaultNewSpanParser;
@@ -26,8 +26,8 @@ import io.micrometer.tracing.annotation.SpanTagAnnotationHandler;
 import io.micrometer.tracing.test.simple.SimpleSpan;
 import io.micrometer.tracing.test.simple.SimpleTracer;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.aop.framework.ProxyFactory;
 
 import java.lang.reflect.Method;
@@ -36,16 +36,11 @@ import java.util.Deque;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class NoAspectJSpanAspectIntegrationTests {
+class SpringAopNoAspectJSpanAspectIntegrationTests {
 
     SimpleTracer tracer = new SimpleTracer();
 
-    Deque<SimpleSpan> spans;
-
-    @BeforeEach
-    void setup() {
-        spans = tracer.getSpans();
-    }
+    Deque<SimpleSpan> spans = tracer.getSpans();
 
     @Test
     void shouldFailToReflectAspectMethodsOnSpanAspectWithoutAspectJOnClasspath() {
@@ -60,21 +55,19 @@ class NoAspectJSpanAspectIntegrationTests {
                 tracer);
 
         assertThatThrownBy(() -> {
-            Class<?> clazz = Class.forName("org.springframework.aop.aspectj.annotation.AspectJProxyFactory");
-            Object pf = clazz.getConstructor(Object.class).newInstance(new SampleServiceImpl());
-            clazz.getMethod("addAspect", Object.class).invoke(pf, new SpanAspect(processor));
-            clazz.getMethod("getProxy").invoke(pf);
-        }).isInstanceOf(Throwable.class).hasCauseInstanceOf(NoClassDefFoundError.class);
+            AspectJProxyFactory aspectJProxyFactory = new AspectJProxyFactory(new SampleServiceImpl());
+            aspectJProxyFactory.addAspect(new SpanAspect(processor));
+            aspectJProxyFactory.getProxy();
+        }).isInstanceOf(NoClassDefFoundError.class).hasMessageContaining("org/aspectj/lang/annotation/Pointcut");
     }
 
     @Test
     void shouldDemonstrateThatSpanTagAndClassTagsAreIgnoredWithoutAspectJ() {
         // When using pure Spring AOP without AspectJ, a custom MethodInterceptor can pass
-        // a
-        // Spring MethodInvocation to MethodInvocationProcessor.process().
-        // However, because MethodInvocationProcessor expects a SpanAspectMethodInvocation
-        // (which wraps AspectJ's ProceedingJoinPoint), @SpanTag annotations and class
-        // tags are silently ignored.
+        // a Spring MethodInvocation to MethodInvocationProcessor.process().
+        // However, because AbstractMethodInvocationProcessor expects a
+        // SpanAspectMethodInvocation (which wraps AspectJ's ProceedingJoinPoint),
+        // @SpanTag annotations and class tags are silently ignored.
         MethodInvocationProcessor processor = new ImperativeMethodInvocationProcessor(new DefaultNewSpanParser(),
                 tracer, new SpanTagAnnotationHandler(aClass -> null, aClass -> null));
 

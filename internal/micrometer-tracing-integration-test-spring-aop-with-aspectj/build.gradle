@@ -5,6 +5,7 @@ plugins {
 dependencies {
 	testImplementation project(':micrometer-tracing')
 	testImplementation project(':micrometer-tracing-test')
-	testImplementation libs.springContext
+	testImplementation libs.springAop
+	testImplementation libs.aspectjweaver
 	testImplementation libs.assertj
 }

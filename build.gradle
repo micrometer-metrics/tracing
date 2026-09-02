@@ -333,7 +333,7 @@ subprojects {
 
 	// Exclude non-published modules from maven publishing.
 	// Note: 'integration-test-' (with a trailing hyphen) matches internal test modules
-	// (e.g., micrometer-tracing-integration-test-spring-aop) while preserving publishing for
+	// (e.g., micrometer-tracing-integration-test-spring-aop-with-aspectj) while preserving publishing for
 	// micrometer-tracing-integration-test.
 	if (!['benchmarks', 'integration-test-'].find { project.name.contains(it) }) {
 		apply plugin: 'com.netflix.nebula.maven-publish'

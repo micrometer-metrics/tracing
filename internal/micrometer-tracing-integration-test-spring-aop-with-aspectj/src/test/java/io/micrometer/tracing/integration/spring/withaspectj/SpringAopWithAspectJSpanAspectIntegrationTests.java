@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micrometer.tracing.integration.spring;
+package io.micrometer.tracing.integration.spring.withaspectj;
 
 import io.micrometer.tracing.annotation.ContinueSpan;
 import io.micrometer.tracing.annotation.DefaultNewSpanParser;
@@ -35,7 +35,7 @@ import java.util.Deque;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class SpringAopSpanAspectIntegrationTests {
+class SpringAopWithAspectJSpanAspectIntegrationTests {
 
     SimpleTracer tracer = new SimpleTracer();
 
