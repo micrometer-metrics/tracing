@@ -81,8 +81,8 @@ class JpmsModulePathIntegrationTests {
     @Test
     void shouldFailWhenTracingResolvesBothSpringAopAndTransitiveAopAllianceOnModulePath() throws URISyntaxException {
         // When aopalliance was a transitive API dependency, a modular application
-        // requiring
-        // micrometer.tracing and spring.aop would have all three on the module path.
+        // requiring micrometer.tracing and spring.aop would have all three on the module
+        // path.
         Path tracingPath = getPathForClass(Tracer.class);
         Path springAopPath = getPathForClass(ProxyFactory.class);
         Path aopAlliancePath = getAopAlliancePath();
