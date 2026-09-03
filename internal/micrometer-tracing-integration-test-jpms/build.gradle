@@ -1,0 +1,10 @@
+plugins {
+	id 'idea'
+}
+
+dependencies {
+	testImplementation project(':micrometer-tracing')
+	testImplementation libs.springAop
+	testImplementation libs.aopAlliance
+	testImplementation libs.assertj
+}

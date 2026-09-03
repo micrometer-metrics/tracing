@@ -7,7 +7,10 @@ description 'Micrometer Tracing BOM (Bill of Materials) for managing Micrometer 
 dependencies {
 	constraints {
 		rootProject.subprojects
-			.findAll {proj -> !['bom', 'benchmarks', 'docs'].find { proj.name.contains(it) } }
+			// Exclude non-published modules from the BOM.
+			// Note: 'integration-test-' (with a trailing hyphen) matches internal test modules
+			// while preserving micrometer-tracing-integration-test in the BOM.
+			.findAll {proj -> !['bom', 'benchmarks', 'docs', 'integration-test-'].find { proj.name.contains(it) } }
 			.each { api(group: it.group, name: it.name, version: it.version.toString()) }
 	}
 }

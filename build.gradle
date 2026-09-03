@@ -331,7 +331,11 @@ subprojects {
 		}
 	}
 
-	if (!['benchmarks'].find { project.name.contains(it) }) {
+	// Exclude non-published modules from maven publishing.
+	// Note: 'integration-test-' (with a trailing hyphen) matches internal test modules
+	// (e.g., micrometer-tracing-integration-test-spring-aop-with-aspectj) while preserving publishing for
+	// micrometer-tracing-integration-test.
+	if (!['benchmarks', 'integration-test-'].find { project.name.contains(it) }) {
 		apply plugin: 'com.netflix.nebula.maven-publish'
 		apply plugin: 'com.netflix.nebula.maven-manifest'
 		apply plugin: 'com.netflix.nebula.maven-developer'
