@@ -77,4 +77,3 @@ CAUTION: Support for the OTel Zipkin Exporter has been deprecated because `opent
 </dependency>
 ----
 
-IMPORTANT: Remember that, by default, Brave adds Zipkin as a dependency. If you want to use only Wavefront and you use classpath dependent solutions, such as Spring Boot, you might be required to exclude the transitive dependency on Zipkin when using Brave (for example, by excluding the `io.zipkin.reporter2` group).
