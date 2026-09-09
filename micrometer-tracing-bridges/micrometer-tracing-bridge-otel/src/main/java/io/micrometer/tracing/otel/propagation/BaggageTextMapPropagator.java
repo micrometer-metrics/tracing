@@ -27,11 +27,11 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import org.jspecify.annotations.Nullable;
 
-import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /**
  * {@link TextMapPropagator} that adds compatible baggage entries (name of the field means
@@ -49,9 +49,20 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
      */
     private static final String PROPAGATION_UNLIMITED = "propagation=unlimited";
 
+    private static final BaggageEntryMetadata PROPAGATION_UNLIMITED_METADATA = BaggageEntryMetadata
+        .create(PROPAGATION_UNLIMITED);
+
     private static final InternalLogger log = InternalLoggerFactory.getInstance(BaggageTextMapPropagator.class);
 
     private final List<String> remoteFields;
+
+    /**
+     * {@link #remoteFields} as an array so that the hot paths can iterate it without
+     * allocating an iterator, and can match names with
+     * {@link String#equalsIgnoreCase(String)} instead of allocating lower-cased copies on
+     * every call.
+     */
+    private final String[] remoteFieldNames;
 
     private final BaggageManager baggageManager;
 
@@ -61,7 +72,8 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
      * @param baggageManager baggage manager
      */
     public BaggageTextMapPropagator(List<String> remoteFields, BaggageManager baggageManager) {
-        this.remoteFields = remoteFields;
+        this.remoteFields = Collections.unmodifiableList(new ArrayList<>(remoteFields));
+        this.remoteFieldNames = this.remoteFields.toArray(new String[0]);
         this.baggageManager = baggageManager;
     }
 
@@ -72,41 +84,50 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
 
     @Override
     public <C> void inject(Context context, @Nullable C carrier, TextMapSetter<C> setter) {
-        List<Map.Entry<String, String>> baggageEntries = applicableBaggageEntries();
-        baggageEntries.forEach(e -> setter.set(carrier, e.getKey(), e.getValue()));
+        if (this.remoteFieldNames.length == 0) {
+            return;
+        }
+        Map<String, String> allBaggage = this.baggageManager.getAllBaggage();
+        for (Map.Entry<String, String> entry : allBaggage.entrySet()) {
+            String key = entry.getKey();
+            // the baggage key casing wins over the configured remote field casing
+            if (isRemoteField(key)) {
+                setter.set(carrier, key, entry.getValue());
+            }
+        }
     }
 
-    private List<Map.Entry<String, String>> applicableBaggageEntries() {
-        Map<String, String> allBaggage = this.baggageManager.getAllBaggage();
-        List<String> lowerCaseKeys = this.remoteFields.stream().map(String::toLowerCase).collect(Collectors.toList());
-        return allBaggage.entrySet()
-            .stream()
-            .filter(e -> lowerCaseKeys.contains(e.getKey().toLowerCase()))
-            .collect(Collectors.toList());
+    private boolean isRemoteField(String key) {
+        for (String remoteFieldName : this.remoteFieldNames) {
+            if (remoteFieldName.equalsIgnoreCase(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public <C> Context extract(Context context, @Nullable C carrier, TextMapGetter<C> getter) {
         BaggageBuilder newBaggage = Baggage.fromContext(context).toBuilder();
+        // only materialized when debug logging is enabled
+        Map<String, String> debugEntries = log.isDebugEnabled() ? new LinkedHashMap<>() : null;
 
-        Map<String, String> carierEntries = extractFromCarrier(carrier, getter);
-        carierEntries
-            .forEach((key, value) -> newBaggage.put(key, value, BaggageEntryMetadata.create(PROPAGATION_UNLIMITED)));
-
-        return context.with(newBaggage.build());
-    }
-
-    private <C> Map<String, String> extractFromCarrier(@Nullable C carrier, TextMapGetter<C> getter) {
-        Map<String, String> carierEntries = this.remoteFields.stream()
-            .map(s -> new SimpleEntry<>(s, getter.get(carrier, s)))
-            .filter(e -> e.getValue() != null)
-            .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-
-        if (log.isDebugEnabled()) {
-            log.debug("Will propagate new baggage context for entries " + carierEntries);
+        for (String remoteFieldName : this.remoteFieldNames) {
+            String value = getter.get(carrier, remoteFieldName);
+            if (value == null) {
+                continue;
+            }
+            newBaggage.put(remoteFieldName, value, PROPAGATION_UNLIMITED_METADATA);
+            if (debugEntries != null) {
+                debugEntries.put(remoteFieldName, value);
+            }
         }
 
-        return carierEntries;
+        if (debugEntries != null) {
+            log.debug("Will propagate new baggage context for entries " + debugEntries);
+        }
+
+        return context.with(newBaggage.build());
     }
 
 }

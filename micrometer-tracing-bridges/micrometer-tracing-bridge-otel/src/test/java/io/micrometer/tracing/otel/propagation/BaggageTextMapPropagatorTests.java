@@ -98,8 +98,8 @@ class BaggageTextMapPropagatorTests {
 
         Map<String, String> carrier = injectWithCurrentBaggage(baggageTextMapPropagator, baggage);
 
-        BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("foo", "bar"),
-                BDDAssertions.entry("foo2", "bar2"));
+        BDDAssertions.then(carrier)
+            .containsOnly(BDDAssertions.entry("foo", "bar"), BDDAssertions.entry("foo2", "bar2"));
     }
 
     @Test
@@ -159,6 +159,21 @@ class BaggageTextMapPropagatorTests {
         BDDAssertions.then(Baggage.fromContext(extracted).asMap()).containsOnlyKeys("lorem");
         BDDAssertions.then(Objects.requireNonNull(Baggage.fromContext(extracted).asMap().get("lorem")).getValue())
             .isEqualTo("ipsum");
+    }
+
+    @Test
+    void should_tolerate_duplicate_remote_fields() {
+        List<String> remoteFields = Arrays.asList("foo", "foo");
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields,
+                new OtelBaggageManager(new OtelCurrentTraceContext(), remoteFields, emptyList()));
+
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("foo", "bar");
+
+        Context extracted = propagator.extract(Context.root(), carrier, textMapGetter(remoteFields));
+
+        BDDAssertions.then(Objects.requireNonNull(Baggage.fromContext(extracted).asMap().get("foo")).getValue())
+            .isEqualTo("bar");
     }
 
     @Test
