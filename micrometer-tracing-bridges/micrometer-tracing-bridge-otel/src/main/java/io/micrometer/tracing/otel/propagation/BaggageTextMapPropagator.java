@@ -108,19 +108,28 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
 
     @Override
     public <C> Context extract(Context context, @Nullable C carrier, TextMapGetter<C> getter) {
-        BaggageBuilder newBaggage = Baggage.fromContext(context).toBuilder();
-        // only materialized when debug logging is enabled
-        Map<String, String> debugEntries = log.isDebugEnabled() ? new LinkedHashMap<>() : null;
+        // both are only materialized once there is something to propagate
+        BaggageBuilder newBaggage = null;
+        Map<String, String> debugEntries = null;
 
         for (String remoteFieldName : this.remoteFieldNames) {
             String value = getter.get(carrier, remoteFieldName);
             if (value == null) {
                 continue;
             }
+            if (newBaggage == null) {
+                newBaggage = Baggage.fromContext(context).toBuilder();
+                debugEntries = log.isDebugEnabled() ? new LinkedHashMap<>() : null;
+            }
             newBaggage.put(remoteFieldName, value, PROPAGATION_UNLIMITED_METADATA);
             if (debugEntries != null) {
                 debugEntries.put(remoteFieldName, value);
             }
+        }
+
+        if (newBaggage == null) {
+            // nothing to propagate, leave the context untouched
+            return context;
         }
 
         if (debugEntries != null) {

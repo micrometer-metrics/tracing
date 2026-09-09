@@ -162,6 +162,17 @@ class BaggageTextMapPropagatorTests {
     }
 
     @Test
+    void should_not_attach_baggage_when_nothing_was_extracted() {
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("unrelated", "value");
+
+        Context extracted = baggageTextMapPropagator.extract(Context.root(), carrier, textMapGetter);
+
+        BDDAssertions.then(extracted).isSameAs(Context.root());
+        BDDAssertions.then(Baggage.fromContextOrNull(extracted)).isNull();
+    }
+
+    @Test
     void should_tolerate_duplicate_remote_fields() {
         List<String> remoteFields = Arrays.asList("foo", "foo");
         BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields,
