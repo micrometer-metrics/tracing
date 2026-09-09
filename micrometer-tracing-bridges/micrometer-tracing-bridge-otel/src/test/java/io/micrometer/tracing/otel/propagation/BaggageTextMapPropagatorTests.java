@@ -21,6 +21,7 @@ import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.baggage.BaggageEntry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import org.assertj.core.api.BDDAssertions;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,6 +85,100 @@ class BaggageTextMapPropagatorTests {
         Map<String, BaggageEntry> extractedBaggage = Baggage.fromContext(extracted).asMap();
         BDDAssertions.then(extractedBaggage).doesNotContainKey("current-key");
         BDDAssertions.then(Objects.requireNonNull(extractedBaggage.get("foo")).getValue()).isEqualTo("bar");
+    }
+
+    @Test
+    void should_return_remote_fields_as_fields() {
+        BDDAssertions.then(baggageTextMapPropagator.fields()).containsExactlyElementsOf(REMOTE_FIELDS);
+    }
+
+    @Test
+    void should_inject_matching_baggage_entries_into_carrier() {
+        Baggage baggage = Baggage.builder().put("foo", "bar").put("foo2", "bar2").build();
+
+        Map<String, String> carrier = injectWithCurrentBaggage(baggageTextMapPropagator, baggage);
+
+        BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("foo", "bar"),
+                BDDAssertions.entry("foo2", "bar2"));
+    }
+
+    @Test
+    void should_inject_nothing_when_no_baggage_key_matches_a_remote_field() {
+        Baggage baggage = Baggage.builder().put("unrelated", "value").build();
+
+        Map<String, String> carrier = injectWithCurrentBaggage(baggageTextMapPropagator, baggage);
+
+        BDDAssertions.then(carrier).isEmpty();
+    }
+
+    @Test
+    void should_inject_nothing_when_no_remote_fields_are_configured() {
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(emptyList(),
+                new OtelBaggageManager(new OtelCurrentTraceContext(), emptyList(), emptyList()));
+        Baggage baggage = Baggage.builder().put("foo", "bar").build();
+
+        Map<String, String> carrier = injectWithCurrentBaggage(propagator, baggage);
+
+        BDDAssertions.then(carrier).isEmpty();
+    }
+
+    @Test
+    void should_match_remote_fields_against_baggage_keys_ignoring_case() {
+        List<String> remoteFields = Collections.singletonList("Foo");
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields,
+                new OtelBaggageManager(new OtelCurrentTraceContext(), remoteFields, emptyList()));
+        Baggage baggage = Baggage.builder().put("foo", "bar").build();
+
+        Map<String, String> carrier = injectWithCurrentBaggage(propagator, baggage);
+
+        BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("foo", "bar"));
+    }
+
+    @Test
+    void should_inject_using_the_baggage_key_casing_not_the_remote_field_casing() {
+        List<String> remoteFields = Collections.singletonList("foo");
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields,
+                new OtelBaggageManager(new OtelCurrentTraceContext(), remoteFields, emptyList()));
+        Baggage baggage = Baggage.builder().put("FOO", "bar").build();
+
+        Map<String, String> carrier = injectWithCurrentBaggage(propagator, baggage);
+
+        BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("FOO", "bar"));
+    }
+
+    @Test
+    void should_leave_baggage_unchanged_when_carrier_has_no_matching_fields() {
+        Baggage baggage = Baggage.builder().put("lorem", "ipsum").build();
+        Context parent = Context.root().with(baggage);
+
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("unrelated", "value");
+
+        Context extracted = baggageTextMapPropagator.extract(parent, carrier, textMapGetter);
+
+        BDDAssertions.then(Baggage.fromContext(extracted).asMap()).containsOnlyKeys("lorem");
+        BDDAssertions.then(Objects.requireNonNull(Baggage.fromContext(extracted).asMap().get("lorem")).getValue())
+            .isEqualTo("ipsum");
+    }
+
+    @Test
+    void should_extract_nothing_when_carrier_is_null() {
+        Context extracted = baggageTextMapPropagator.extract(Context.root(), null, textMapGetter);
+
+        BDDAssertions.then(Baggage.fromContext(extracted).isEmpty()).isTrue();
+    }
+
+    private Map<String, String> injectWithCurrentBaggage(BaggageTextMapPropagator propagator, Baggage baggage) {
+        TextMapSetter<Map<String, String>> setter = (target, key, value) -> {
+            if (target != null) {
+                target.put(key, value);
+            }
+        };
+        return Context.root().with(baggage).wrapSupplier(() -> {
+            Map<String, String> carrier = new HashMap<>();
+            propagator.inject(Context.root(), carrier, setter);
+            return carrier;
+        }).get();
     }
 
     private TextMapGetter<Map<String, String>> textMapGetter(final List<String> remoteFields) {
