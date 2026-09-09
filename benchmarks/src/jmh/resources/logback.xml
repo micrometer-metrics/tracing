@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logback defaults to DEBUG on the root logger when no configuration is present, which makes
+  guarded `log.debug(...)` calls in the code under test actually format and write to the console.
+  That turns a propagation benchmark into a console-I/O benchmark. Production runs with debug
+  disabled, so keep it disabled here too.
+-->
+<configuration>
+    <root level="WARN"/>
+</configuration>
