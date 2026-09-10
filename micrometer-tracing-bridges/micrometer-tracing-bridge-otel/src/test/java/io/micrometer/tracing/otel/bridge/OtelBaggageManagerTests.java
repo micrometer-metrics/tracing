@@ -27,6 +27,7 @@ import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 
 class OtelBaggageManagerTests {
@@ -61,6 +62,32 @@ class OtelBaggageManagerTests {
                 BDDAssertions.then(baggage).isNotNull();
                 BDDAssertions.then(baggage.get()).isEqualTo("bar");
             }
+        }
+    }
+
+    @Test
+    void should_prefer_trace_context_baggage_over_current_context_baggage() {
+        Span span = otelTracer.spanBuilder("foo").startSpan();
+        Context traceContextContext = Context.root()
+            .with(io.opentelemetry.api.baggage.Baggage.builder()
+                .put("conflict", "fromTraceContext")
+                .put("onlyTraceContext", "t")
+                .build());
+        OtelTraceContext traceContext = new OtelTraceContext(traceContextContext, span.getSpanContext(), span);
+
+        Context current = Context.root()
+            .with(io.opentelemetry.api.baggage.Baggage.builder()
+                .put("conflict", "fromCurrentContext")
+                .put("onlyCurrentContext", "c")
+                .build());
+
+        try (Scope scope = current.makeCurrent()) {
+            Map<String, String> allBaggage = otelBaggageManager.getAllBaggage(traceContext);
+
+            BDDAssertions.then(allBaggage)
+                .containsEntry("onlyTraceContext", "t")
+                .containsEntry("onlyCurrentContext", "c")
+                .containsEntry("conflict", "fromTraceContext");
         }
     }
 
