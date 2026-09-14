@@ -59,8 +59,6 @@ public class OtelBaggageManager implements BaggageManager {
      */
     private final String[] remoteFieldNames;
 
-    private final List<String> baggageFields;
-
     private final List<String> tagFields;
 
     /**
@@ -75,13 +73,6 @@ public class OtelBaggageManager implements BaggageManager {
         this.remoteFields = remoteFields;
         this.remoteFieldNames = remoteFields.toArray(new String[0]);
         this.tagFields = tagFields;
-        this.baggageFields = baggageFields(tagFields, remoteFields);
-    }
-
-    private static List<String> baggageFields(List<String> tagFields, List<String> remoteFields) {
-        Set<String> combined = new HashSet<>(tagFields);
-        combined.addAll(remoteFields);
-        return new ArrayList<>(combined);
     }
 
     @Override

@@ -42,7 +42,7 @@ import static java.util.Collections.emptyList;
  */
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Fork(1)
+@Fork(2)
 @Warmup(iterations = 3, time = 1)
 @Measurement(iterations = 5, time = 1)
 public class BaggageTextMapPropagatorBenchmark {
@@ -97,8 +97,6 @@ public class BaggageTextMapPropagatorBenchmark {
 
         BaggageTextMapPropagator propagator;
 
-        TextMapSetter<Map<String, String>> setter;
-
         private io.opentelemetry.context.Scope scope;
 
         @Setup(Level.Trial)
@@ -106,7 +104,6 @@ public class BaggageTextMapPropagatorBenchmark {
         public void setup() {
             List<String> remoteFields = this.scenario == InjectScenario.NO_REMOTE_FIELDS ? emptyList() : REMOTE_FIELDS;
             this.propagator = propagator(remoteFields);
-            this.setter = Map::put;
             this.scope = Context.root().with(baggage(this.scenario)).makeCurrent();
         }
 
@@ -137,13 +134,13 @@ public class BaggageTextMapPropagatorBenchmark {
     @State(Scope.Benchmark)
     public static class ExtractState {
 
-        BaggageTextMapPropagator propagator;
+        BaggageTextMapPropagator propagator = propagator(REMOTE_FIELDS);
 
-        TextMapGetter<Map<String, String>> getter;
+        TextMapGetter<Map<String, String>> getter = textMapGetter(REMOTE_FIELDS);
 
-        Context root;
+        Context root = Context.root();
 
-        Context contextWithBaggage;
+        Context contextWithBaggage = Context.root().with(Baggage.builder().put("lorem", "ipsum").build());
 
         Map<String, String> matchingCarrier;
 
@@ -151,11 +148,6 @@ public class BaggageTextMapPropagatorBenchmark {
 
         @Setup(Level.Trial)
         public void setup() {
-            this.propagator = propagator(REMOTE_FIELDS);
-            this.getter = textMapGetter(REMOTE_FIELDS);
-            this.root = Context.root();
-            this.contextWithBaggage = Context.root().with(Baggage.builder().put("lorem", "ipsum").build());
-
             this.matchingCarrier = new HashMap<>();
             this.matchingCarrier.put("foo", "bar");
             this.matchingCarrier.put("foo2", "bar2");
@@ -171,7 +163,7 @@ public class BaggageTextMapPropagatorBenchmark {
     @Benchmark
     public Map<String, String> inject(InjectState state) {
         Map<String, String> localCarrier = new HashMap<>();
-        state.propagator.inject(Context.root(), localCarrier, state.setter);
+        state.propagator.inject(Context.root(), localCarrier, Map::put);
         return localCarrier;
     }
 

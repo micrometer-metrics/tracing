@@ -1,8 +1,11 @@
 dependencies {
     jmh project(':micrometer-tracing-bridge-brave')
+//    jmh 'io.micrometer:micrometer-tracing-bridge-brave:1.8.0-M1'
     jmh project(':micrometer-tracing-bridge-otel')
+//    jmh 'io.micrometer:micrometer-tracing-bridge-otel:1.8.0-M1'
     jmh libs.jmh
     jmh 'io.zipkin.brave:brave-tests'
+//    jmh 'io.zipkin.brave:brave-tests:6.3.1'
 
     jmh libs.logback
 
