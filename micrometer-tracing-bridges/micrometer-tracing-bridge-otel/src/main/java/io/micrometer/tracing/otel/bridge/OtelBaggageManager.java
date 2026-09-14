@@ -61,6 +61,8 @@ public class OtelBaggageManager implements BaggageManager {
 
     private final List<String> tagFields;
 
+    private final List<String> baggageFields;
+
     /**
      * Creates a new instance of {@link OtelBaggageManager}.
      * @param currentTraceContext current trace context
@@ -73,6 +75,13 @@ public class OtelBaggageManager implements BaggageManager {
         this.remoteFields = remoteFields;
         this.remoteFieldNames = remoteFields.toArray(new String[0]);
         this.tagFields = tagFields;
+        this.baggageFields = baggageFields(tagFields, remoteFields);
+    }
+
+    private static List<String> baggageFields(List<String> tagFields, List<String> remoteFields) {
+        Set<String> combined = new HashSet<>(tagFields);
+        combined.addAll(remoteFields);
+        return new ArrayList<>(combined);
     }
 
     @Override
