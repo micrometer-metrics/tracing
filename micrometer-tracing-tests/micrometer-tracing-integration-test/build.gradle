@@ -5,7 +5,6 @@ plugins {
 dependencies {
 	api project(':micrometer-tracing')
 	api project(':micrometer-tracing-test')
-	api project(':micrometer-tracing-reporter-wavefront')
 	api platform(libs.micrometerBom)
 	api 'io.micrometer:micrometer-core'
 	api 'io.micrometer:micrometer-test'
@@ -41,9 +40,6 @@ dependencies {
 	api('io.zipkin.reporter2:zipkin-sender-amqp-client') {
 		exclude group: 'com.rabbitmq', module: 'amqp-client'
 	}
-
-	// Wavefront
-	api libs.wavefrontReporter
 
 	// Tests
 	implementation(platform(libs.junitBom))

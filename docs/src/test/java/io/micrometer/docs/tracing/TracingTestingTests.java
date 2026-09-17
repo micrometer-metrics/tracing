@@ -88,9 +88,7 @@ class TracingTestingTests {
     class ObservabilitySmokeTest extends SampleTestRunner {
 
         ObservabilitySmokeTest() {
-            super(SampleRunnerConfig.builder().wavefrontApplicationName("my-app").wavefrontServiceName("my-service")
-                    .wavefrontToken("...")
-                    .wavefrontUrl("...")
+            super(SampleRunnerConfig.builder()
                     .zipkinUrl("...") // defaults to localhost:9411
                     .build());
         }
