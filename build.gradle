@@ -102,6 +102,7 @@ subprojects {
 		}
 		if (project.name.contains('benchmarks')) {
 			apply plugin: 'java'
+            apply plugin: 'me.champeau.jmh'
 		} else {
 			apply plugin: 'java-library'
 			dependencies {
@@ -115,7 +116,6 @@ subprojects {
 		apply plugin: 'com.github.hierynomus.license'
 		apply plugin: 'checkstyle'
 		apply plugin: 'io.spring.nohttp'
-		apply plugin: 'me.champeau.jmh'
 
 		java {
 			// It is more idiomatic to define different features for different sets of optional
@@ -144,14 +144,6 @@ subprojects {
 				errorprone(libs.errorprone)
 				errorprone(libs.nullAway)
 			}
-			jmh libs.jmh
-			jmh libs.jmhGeneratorAnnProcess
-			jmhAnnotationProcessor libs.jmhGeneratorAnnProcess
-			jmh 'net.sf.jopt-simple:jopt-simple'
-		}
-
-		jmh {
-			duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 		}
 
 		tasks {
