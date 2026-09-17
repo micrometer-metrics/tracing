@@ -9,7 +9,6 @@ zipkinAws="1.4.0"
 logback = "1.6.3"
 otelInstrumentationBom="2.31.1"
 log4j = "2.26.1"
-wavefrontReporter="1.7.16"
 slf4j = "1.7.36"
 assertj = "3.27.7"
 awaitility = "4.3.0"
@@ -58,7 +57,6 @@ springContext = { module = "org.springframework:spring-context", version.ref = "
 spring-javaformatCheckstyle = { module = "io.spring.javaformat:spring-javaformat-checkstyle", version.ref = "spring-javaformat" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainersJunit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-wavefrontReporter = { module = "com.wavefront:wavefront-internal-reporter-java", version.ref = "wavefrontReporter" }
 wiremock = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
 zipkinAws = { module = "io.zipkin.aws:brave-propagation-aws", version.ref = "zipkinAws" }
 zipkinReporterBom = { module = "io.zipkin.reporter2:zipkin-reporter-bom", version.ref = "zipkinReporterBom" }
