@@ -18,9 +18,12 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -33,6 +36,7 @@ import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,6 +169,54 @@ class OtelSpanBuilderTests {
         map.put("tag1", "value1");
         map.put("tag2", "value2");
         return map;
+    }
+
+    @Test
+    void should_start_span_with_baggage_stored_in_parent_trace_context() {
+        InMemorySpanExporter exporter = InMemorySpanExporter.create();
+        SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+            .addSpanProcessor(new BaggageTaggingSpanProcessor(Arrays.asList("foo", "current")))
+            .addSpanProcessor(SimpleSpanProcessor.create(exporter))
+            .build();
+        io.opentelemetry.api.trace.Tracer tracer = tracerProvider.get("io.micrometer.micrometer-tracing");
+        io.opentelemetry.api.trace.Span parentSpan = tracer.spanBuilder("parent").startSpan();
+        // e.g. what OtelPropagator#extract produces: the baggage lives in the stored
+        // context only
+        Context storedContext = Context.root().with(parentSpan).with(Baggage.builder().put("foo", "bar").build());
+        TraceContext parent = new OtelTraceContext(storedContext, parentSpan.getSpanContext(), parentSpan);
+
+        Span child;
+        try (Scope scope = Baggage.builder().put("current", "value").build().makeCurrent()) {
+            child = new OtelSpanBuilder(tracer).name("child").setParent(parent).start();
+        }
+        child.end();
+
+        SpanData finishedSpan = exporter.getFinishedSpanItems().get(0);
+        then(finishedSpan.getParentSpanId()).isEqualTo(parentSpan.getSpanContext().getSpanId());
+        then(finishedSpan.getAttributes().get(AttributeKey.stringKey("foo"))).isEqualTo("bar");
+        then(finishedSpan.getAttributes().get(AttributeKey.stringKey("current"))).isEqualTo("value");
+    }
+
+    @Test
+    void should_prefer_baggage_stored_in_parent_trace_context_over_current_baggage() {
+        InMemorySpanExporter exporter = InMemorySpanExporter.create();
+        SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+            .addSpanProcessor(new BaggageTaggingSpanProcessor(Collections.singletonList("foo")))
+            .addSpanProcessor(SimpleSpanProcessor.create(exporter))
+            .build();
+        io.opentelemetry.api.trace.Tracer tracer = tracerProvider.get("io.micrometer.micrometer-tracing");
+        io.opentelemetry.api.trace.Span parentSpan = tracer.spanBuilder("parent").startSpan();
+        Context storedContext = Context.root().with(parentSpan).with(Baggage.builder().put("foo", "stored").build());
+        TraceContext parent = new OtelTraceContext(storedContext, parentSpan.getSpanContext(), parentSpan);
+
+        try (Scope scope = Baggage.builder().put("foo", "current").build().makeCurrent()) {
+            new OtelSpanBuilder(tracer).name("child").setParent(parent).start().end();
+        }
+
+        SpanData finishedSpan = exporter.getFinishedSpanItems().get(0);
+        then(finishedSpan.getAttributes().get(AttributeKey.stringKey("foo"))).isEqualTo("stored");
     }
 
 }
