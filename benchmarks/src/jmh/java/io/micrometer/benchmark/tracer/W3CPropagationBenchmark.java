@@ -1,3 +1,4 @@
+// spotless-license-check:ignore
 /*
  * Copyright 2026 VMware, Inc.
  *
