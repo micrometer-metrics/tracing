@@ -10,13 +10,13 @@ buildscript {
 
 	dependencies {
 		classpath libs.plugin.errorprone
-		classpath libs.plugin.license
 		classpath libs.plugin.nebulaRelease
 		classpath libs.plugin.nebulaPublishing
 		classpath libs.plugin.nebulaProject
 		classpath libs.plugin.nebulaInfo
 		classpath libs.plugin.noHttp
 		classpath libs.plugin.javaformat
+		classpath libs.plugin.spotless
 		classpath libs.plugin.jmh
 
 		constraints {
@@ -102,7 +102,7 @@ subprojects {
 		}
 		if (project.name.contains('benchmarks')) {
 			apply plugin: 'java'
-            apply plugin: 'me.champeau.jmh'
+			apply plugin: 'me.champeau.jmh'
 		} else {
 			apply plugin: 'java-library'
 			dependencies {
@@ -113,9 +113,9 @@ subprojects {
 				testRuntimeOnly libs.junitPlatformLauncher
 			}
 		}
-		apply plugin: 'com.github.hierynomus.license'
 		apply plugin: 'checkstyle'
 		apply plugin: 'io.spring.nohttp'
+		apply plugin: 'com.diffplug.spotless'
 
 		java {
 			// It is more idiomatic to define different features for different sets of optional
@@ -143,6 +143,18 @@ subprojects {
 				// Error Prone 2.43.0 requires JDK 21+
 				errorprone(libs.errorprone)
 				errorprone(libs.nullAway)
+			}
+		}
+
+		spotless {
+			java {
+				toggleOffOn()
+			}
+			format 'javaLicenseHeader', {
+				target 'src/**/*.java'
+				targetExclude fileTree(projectDir) { include 'src/**/*.java' }.filter { it.text.startsWith('// spotless-license-check:ignore') }
+				licenseHeaderFile(rootProject.file('gradle/licenseHeader.txt'),
+					'(package|import|public|class|module) |@|\\n/\\*\\*|// spotless-license-check:off')
 			}
 		}
 
@@ -237,19 +249,6 @@ subprojects {
 				maxFailures = 5
 				maxRetries = 3
 			}
-		}
-
-		license {
-			header rootProject.file('gradle/licenseHeader.txt')
-			strictCheck true
-			mapping {
-				java = 'SLASHSTAR_STYLE'
-			}
-			sourceSets = project.sourceSets
-
-			ext.year = Calendar.getInstance().get(Calendar.YEAR)
-			skipExistingHeaders = true
-			exclude '**/*.json' // comments not supported
 		}
 
 		// Publish resolved versions.
