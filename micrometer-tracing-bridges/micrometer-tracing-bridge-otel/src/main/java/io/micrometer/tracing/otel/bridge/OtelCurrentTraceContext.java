@@ -40,7 +40,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
     private static final String TRACING_OTEL_CONTEXT_KEY = "otelTraceContext";
 
-    private static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
+    static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
 
     @Override
     public @Nullable TraceContext context() {
@@ -92,7 +92,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         Context newContext = oldContext.with(fromContext).with(updatedBaggage).with(OTEL_CONTEXT_KEY, otelTraceContext);
         io.opentelemetry.context.Scope newScope = newContext.makeCurrent();
         otelTraceContext.updateContext(newContext);
-        return new WrappedScope(newScope, otelTraceContext, oldContext);
+        return new WrappedScope(newScope, otelTraceContext, oldContext, newContext);
     }
 
     private static Baggage mergeBaggage(Baggage currentBaggage, Baggage oldBaggage) {
@@ -144,20 +144,28 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
         final @Nullable Context oldContext;
 
+        final @Nullable Context newContext;
+
         WrappedScope(io.opentelemetry.context.Scope scope) {
-            this(scope, null, null);
+            this(scope, null, null, null);
         }
 
         WrappedScope(io.opentelemetry.context.Scope scope, @Nullable OtelTraceContext currentOtelTraceContext,
-                @Nullable Context oldContext) {
+                @Nullable Context oldContext, @Nullable Context newContext) {
             this.scope = scope;
             this.currentOtelTraceContext = currentOtelTraceContext;
             this.oldContext = oldContext;
+            this.newContext = newContext;
         }
 
         @Override
         public void close() {
-            if (this.currentOtelTraceContext != null) {
+            // OTel ignores closing a scope that is not the current one, so the newer
+            // context stays on the thread. Restoring the trace context here would point
+            // it at the context captured when its span was created, and on a thread that
+            // never unwinds that context holds the previous trace context, chaining them
+            // without bound.
+            if (this.currentOtelTraceContext != null && Context.current() == this.newContext) {
                 currentOtelTraceContext.updateContext(oldContext);
             }
             this.scope.close();
