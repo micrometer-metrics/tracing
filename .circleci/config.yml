@@ -90,36 +90,17 @@ jobs:
       - gradlew-build:
           command: dockerTest
 
-  deploy:
-    executor: jdk25-executor
-    steps:
-      - checkout
-      - restore_cache:
-          key: gradle-dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-      - run:
-          name: Deployment
-          command: sh ./gradle/deploy.sh
-
 workflows:
-  version: 2
-  build_prs_deploy_snapshots:
+  build_prs:
+    unless:
+      or:
+        - equal: [ main, << pipeline.git.branch >> ]
+        - matches:
+            pattern: '^\d+\.\d+\.x$'
+            value: << pipeline.git.branch >>
     jobs:
       - build-jdk11
       - build-jdk17
       - build-jdk21
       - build-jdk25
       - docker-tests
-      - deploy:
-          context:
-            - deploy
-          requires:
-            - build-jdk11
-            - build-jdk17
-            - build-jdk21
-            - build-jdk25
-            - docker-tests
-          filters:
-            branches:
-              only:
-                - main
-                - /\d+\.\d+\.x/
