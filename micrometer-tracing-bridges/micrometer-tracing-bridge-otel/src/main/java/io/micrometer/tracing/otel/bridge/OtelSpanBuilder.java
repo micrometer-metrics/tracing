@@ -20,7 +20,6 @@ import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.baggage.Baggage;
-import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -267,17 +266,16 @@ class OtelSpanBuilder implements Span.Builder {
      * @return parent context to start the span with
      */
     private static Context parentContext(TraceContext parentTraceContext) {
-        Context parent = OtelTraceContext.toOtelContext(parentTraceContext);
+        Context currentWithParentSpan = OtelTraceContext.toOtelContext(parentTraceContext);
         if (!(parentTraceContext instanceof OtelTraceContext)) {
-            return parent;
+            return currentWithParentSpan;
         }
-        Baggage stored = Baggage.fromContext(((OtelTraceContext) parentTraceContext).context());
-        if (stored.isEmpty()) {
-            return parent;
+        Baggage storedBaggage = Baggage.fromContext(((OtelTraceContext) parentTraceContext).context());
+        if (storedBaggage.isEmpty()) {
+            return currentWithParentSpan;
         }
-        BaggageBuilder merged = Baggage.fromContext(parent).toBuilder();
-        stored.forEach((key, entry) -> merged.put(key, entry.getValue(), entry.getMetadata()));
-        return parent.with(merged.build());
+        Baggage currentBaggage = Baggage.fromContext(currentWithParentSpan);
+        return currentWithParentSpan.with(OtelBaggageManager.merge(currentBaggage, storedBaggage));
     }
 
 }
