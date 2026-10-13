@@ -73,4 +73,4 @@ plugin-javaformat = { module = "io.spring.javaformat:spring-javaformat-gradle-pl
 plugin-jmh = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.3" }
 plugin-spring-antora = { module = "io.spring.gradle.antora:spring-antora-plugin", version = "0.0.1" }
 plugin-antora = { module = "org.antora:gradle-antora-plugin", version = "1.0.0" }
-plugin-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "8.10.3" }
+plugin-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "8.10.4" }
