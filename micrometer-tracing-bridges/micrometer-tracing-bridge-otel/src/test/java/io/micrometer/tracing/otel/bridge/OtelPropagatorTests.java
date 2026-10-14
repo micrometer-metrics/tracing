@@ -42,6 +42,7 @@ class OtelPropagatorTests {
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .addSpanProcessor(SimpleSpanProcessor.create(InMemorySpanExporter.create()))
         .build();
 
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
