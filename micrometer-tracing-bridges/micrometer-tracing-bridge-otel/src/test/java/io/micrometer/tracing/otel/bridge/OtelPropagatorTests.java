@@ -23,7 +23,11 @@ import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -130,6 +134,27 @@ class OtelPropagatorTests {
                 .returns("3e425f2373d89640bde06e8285e7bf88", TraceContext::traceId)
                 .returns("9a5fdefae3abb440", TraceContext::parentId);
         }
+    }
+
+    @Test
+    void should_expose_extracted_baggage_to_span_processors_when_starting_span() {
+        InMemorySpanExporter exporter = InMemorySpanExporter.create();
+        SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+            .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+            .addSpanProcessor(new BaggageTaggingSpanProcessor(Collections.singletonList("foo")))
+            .addSpanProcessor(SimpleSpanProcessor.create(exporter))
+            .build();
+        OtelPropagator propagator = new OtelPropagator(contextPropagators,
+                tracerProvider.get("io.micrometer.micrometer-tracing"));
+        Map<String, String> carrier = new HashMap<>();
+        carrier.put("traceparent", "00-3e425f2373d89640bde06e8285e7bf88-9a5fdefae3abb440-01");
+        carrier.put("baggage", "foo=bar");
+
+        propagator.extract(carrier, Map::get).kind(Span.Kind.SERVER).start().end();
+
+        SpanData finishedSpan = exporter.getFinishedSpanItems().get(0);
+        assertThat(finishedSpan.getTraceId()).isEqualTo("3e425f2373d89640bde06e8285e7bf88");
+        assertThat(finishedSpan.getAttributes().get(AttributeKey.stringKey("foo"))).isEqualTo("bar");
     }
 
 }
