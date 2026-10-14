@@ -19,10 +19,12 @@ import io.micrometer.common.util.StringUtils;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.*;
+import io.opentelemetry.context.Context;
 import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractMap.SimpleEntry;
@@ -228,7 +230,7 @@ class OtelSpanBuilder implements Span.Builder {
     public Span start() {
         SpanBuilder spanBuilder = this.tracer.spanBuilder(StringUtils.isNotEmpty(this.name) ? this.name : "");
         if (this.parentTraceContext != null) {
-            spanBuilder.setParent(OtelTraceContext.toOtelContext(this.parentTraceContext));
+            spanBuilder.setParent(parentContext(this.parentTraceContext));
         }
         if (this.noParent) {
             spanBuilder.setNoParent();
@@ -250,6 +252,30 @@ class OtelSpanBuilder implements Span.Builder {
                     new SpanFromSpanContext(span, span.getSpanContext(), (OtelTraceContext) this.parentTraceContext));
         }
         return OtelSpan.fromOtel(span);
+    }
+
+    /**
+     * Builds the OTel parent {@link Context} for the span that is about to start. Baggage
+     * that is stored in the parent {@link OtelTraceContext} (for example because it was
+     * extracted from a carrier by the {@link OtelPropagator}) but is not yet current on
+     * the thread is added to the parent context, so that it is visible to the SDK (e.g.
+     * {@link BaggageTaggingSpanProcessor} or samplers) when the span starts. Entries
+     * stored in the trace context take precedence over the current baggage, consistent
+     * with {@link OtelCurrentTraceContext#newScope(TraceContext)}.
+     * @param parentTraceContext parent trace context
+     * @return parent context to start the span with
+     */
+    private static Context parentContext(TraceContext parentTraceContext) {
+        Context currentWithParentSpan = OtelTraceContext.toOtelContext(parentTraceContext);
+        if (!(parentTraceContext instanceof OtelTraceContext)) {
+            return currentWithParentSpan;
+        }
+        Baggage storedBaggage = Baggage.fromContext(((OtelTraceContext) parentTraceContext).context());
+        if (storedBaggage.isEmpty()) {
+            return currentWithParentSpan;
+        }
+        Baggage currentBaggage = Baggage.fromContext(currentWithParentSpan);
+        return currentWithParentSpan.with(OtelBaggageManager.merge(currentBaggage, storedBaggage));
     }
 
 }
