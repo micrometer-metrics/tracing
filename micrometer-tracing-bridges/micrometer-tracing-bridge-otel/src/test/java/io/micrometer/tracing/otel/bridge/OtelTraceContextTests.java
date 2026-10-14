@@ -20,7 +20,9 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -29,6 +31,7 @@ class OtelTraceContextTests {
 
     SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
         .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOn())
+        .addSpanProcessor(SimpleSpanProcessor.create(InMemorySpanExporter.create()))
         .build();
 
     OpenTelemetrySdkBuilder openTelemetrySdkBuilder = OpenTelemetrySdk.builder().setTracerProvider(sdkTracerProvider);
@@ -51,6 +54,7 @@ class OtelTraceContextTests {
     void should_return_null_when_spans_not_sampled() { // works differently than Brave
         SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
             .setSampler(io.opentelemetry.sdk.trace.samplers.Sampler.alwaysOff())
+            .addSpanProcessor(SimpleSpanProcessor.create(InMemorySpanExporter.create()))
             .build();
 
         OpenTelemetrySdkBuilder openTelemetrySdkBuilder = OpenTelemetrySdk.builder()

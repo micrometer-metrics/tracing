@@ -7,9 +7,9 @@ dependencies {
 	api libs.slf4j
 	api 'io.micrometer:micrometer-observation'
 
-	api platform(libs.otelInstrumentationBom)
+	api platform(libs.otelBom)
 	api 'io.opentelemetry:opentelemetry-api'
-	api 'io.opentelemetry.semconv:opentelemetry-semconv'
+	api libs.otelSemconv
 	api 'io.opentelemetry:opentelemetry-sdk-common'
 	api 'io.opentelemetry:opentelemetry-sdk-trace'
 	api 'io.opentelemetry:opentelemetry-sdk'
