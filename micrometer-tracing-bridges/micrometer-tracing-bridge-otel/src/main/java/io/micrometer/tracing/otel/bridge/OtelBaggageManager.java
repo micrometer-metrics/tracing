@@ -218,6 +218,18 @@ public class OtelBaggageManager implements BaggageManager {
         return this.remoteFields;
     }
 
+    static Baggage merge(Baggage base, Baggage overrides) {
+        if (base.isEmpty()) {
+            return overrides;
+        }
+        if (overrides.isEmpty()) {
+            return base;
+        }
+        BaggageBuilder builder = base.toBuilder();
+        overrides.forEach((key, entry) -> builder.put(key, entry.getValue(), entry.getMetadata()));
+        return builder.build();
+    }
+
 }
 
 class CompositeBaggage implements io.opentelemetry.api.baggage.Baggage {

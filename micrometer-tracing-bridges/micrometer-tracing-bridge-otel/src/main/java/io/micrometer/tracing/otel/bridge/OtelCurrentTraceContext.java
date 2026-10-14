@@ -23,7 +23,6 @@ import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.baggage.Baggage;
-import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -88,18 +87,11 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         if (sameSpan && sameBaggage) {
             return new WrappedScope(io.opentelemetry.context.Scope.noop());
         }
-        Baggage updatedBaggage = mergeBaggage(currentBaggage, oldBaggage);
+        Baggage updatedBaggage = OtelBaggageManager.merge(currentBaggage, oldBaggage);
         Context newContext = oldContext.with(fromContext).with(updatedBaggage).with(OTEL_CONTEXT_KEY, otelTraceContext);
         io.opentelemetry.context.Scope newScope = newContext.makeCurrent();
         otelTraceContext.updateContext(newContext);
         return new WrappedScope(newScope, otelTraceContext, oldContext);
-    }
-
-    private static Baggage mergeBaggage(Baggage currentBaggage, Baggage oldBaggage) {
-        BaggageBuilder baggageBuilder = currentBaggage.toBuilder();
-        oldBaggage.forEach(
-                (key, baggageEntry) -> baggageBuilder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
-        return baggageBuilder.build();
     }
 
     private boolean sameBaggage(Baggage currentBaggage, Baggage oldBaggage) {
