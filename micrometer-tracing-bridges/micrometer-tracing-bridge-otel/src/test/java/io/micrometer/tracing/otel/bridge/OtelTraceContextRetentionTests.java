@@ -19,6 +19,8 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -40,6 +42,8 @@ import static org.awaitility.Awaitility.await;
 class OtelTraceContextRetentionTests {
 
     private static final int ITERATIONS = 100;
+
+    private static final ContextKey<Integer> OTHER_KEY = ContextKey.named("other");
 
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
         .setTracerProvider(SdkTracerProvider.builder().build())
@@ -119,6 +123,42 @@ class OtelTraceContextRetentionTests {
             }
             if (previous != null) {
                 previous.close();
+            }
+            return traceContexts;
+        });
+    }
+
+    @Test
+    @SuppressWarnings("MustBeClosedChecker")
+    void baggageScopeLeftOpenInSpanScopeShouldNotRetainSpans() throws Exception {
+        thenAtMostOneTraceContextIsRetainedByPooledThread(() -> {
+            List<WeakReference<TraceContext>> traceContexts = new ArrayList<>();
+            for (int i = 0; i < ITERATIONS; i++) {
+                Span span = this.tracer.nextSpan().name("s" + i).start();
+                try (Tracer.SpanInScope scope = this.tracer.withSpan(span)) {
+                    // baggage scope is never closed
+                    this.tracer.createBaggageInScope("foo", "value " + i);
+                }
+                span.end();
+                traceContexts.add(new WeakReference<>(span.context()));
+            }
+            return traceContexts;
+        });
+    }
+
+    @Test
+    @SuppressWarnings("MustBeClosedChecker")
+    void otelContextLeftOpenInSpanScopeShouldNotRetainSpans() throws Exception {
+        thenAtMostOneTraceContextIsRetainedByPooledThread(() -> {
+            List<WeakReference<TraceContext>> traceContexts = new ArrayList<>();
+            for (int i = 0; i < ITERATIONS; i++) {
+                Span span = this.tracer.nextSpan().name("s" + i).start();
+                try (Tracer.SpanInScope scope = this.tracer.withSpan(span)) {
+                    // OTel scope is never closed
+                    Context.current().with(OTHER_KEY, i).makeCurrent();
+                }
+                span.end();
+                traceContexts.add(new WeakReference<>(span.context()));
             }
             return traceContexts;
         });
