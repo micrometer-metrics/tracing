@@ -18,7 +18,6 @@ package io.micrometer.tracing.otel.bridge;
 import org.jspecify.annotations.Nullable;
 import io.micrometer.tracing.*;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.Scope;
 
 import java.util.List;
 import java.util.Map;
@@ -66,28 +65,20 @@ public class OtelTracer implements Tracer {
     }
 
     @Override
-    @SuppressWarnings("MustBeClosedChecker")
     public Span nextSpan(@Nullable Span parent) {
         if (parent == null) {
             return nextSpan();
         }
-        OtelSpan otelSpan = (OtelSpan) parent;
-        Context otelContext = otelSpan.context().context();
-        Scope scope = null;
-        if (otelContext != null && Context.current() != otelContext) { // This shouldn't
-                                                                       // happen
-            scope = otelContext.makeCurrent();
-        }
-        try {
-            return OtelSpan.fromOtel(this.tracer.spanBuilder("")
-                .setParent(OtelTraceContext.toOtelContext(parent.context()))
-                .startSpan());
-        }
-        finally {
-            if (scope != null) {
-                scope.close();
-            }
-        }
+        OtelTraceContext parentTraceContext = ((OtelSpan) parent).context();
+        // The child is based on the parent's stored context (e.g. for its baggage),
+        // without making that context current while the child is started
+        Context parentContext = parentTraceContext.context();
+        io.opentelemetry.api.trace.Span parentSpan = parentTraceContext.span != null ? parentTraceContext.span
+                : io.opentelemetry.api.trace.Span.wrap(parentTraceContext.delegate);
+        io.opentelemetry.api.trace.Span span = this.tracer.spanBuilder("")
+            .setParent(parentSpan.storeInContext(parentContext))
+            .startSpan();
+        return OtelSpan.fromOtel(span, parentContext);
     }
 
     @Override
