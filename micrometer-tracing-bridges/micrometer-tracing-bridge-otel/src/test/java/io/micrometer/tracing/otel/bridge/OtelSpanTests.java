@@ -77,12 +77,11 @@ class OtelSpanTests {
     @Test
     void should_be_equal_when_two_span_delegates_are_equal() {
         Span span = otelTracer.spanBuilder("foo").startSpan();
-        OtelSpan otelSpan = new OtelSpan(span);
-        OtelSpan otelSpanFromSpanContext = new OtelSpan(
-                new SpanFromSpanContext(span, span.getSpanContext(), new OtelTraceContext(span)));
+        OtelSpan otelSpan1 = new OtelSpan(span);
+        OtelSpan otelSpan2 = new OtelSpan(span);
 
-        then(otelSpan).isEqualTo(otelSpanFromSpanContext);
-        then(otelSpanFromSpanContext).isEqualTo(otelSpan);
+        then(otelSpan1).isEqualTo(otelSpan2);
+        then(otelSpan2).isEqualTo(otelSpan1);
     }
 
     @Test

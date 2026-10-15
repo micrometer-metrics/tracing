@@ -248,8 +248,7 @@ class OtelSpanBuilder implements Span.Builder {
         }
         this.annotations.forEach(span::addEvent);
         if (this.parentTraceContext != null) {
-            return OtelSpan.fromOtel(
-                    new SpanFromSpanContext(span, span.getSpanContext(), (OtelTraceContext) this.parentTraceContext));
+            return OtelSpan.fromOtel(span, ((OtelTraceContext) this.parentTraceContext).context());
         }
         return OtelSpan.fromOtel(span);
     }
