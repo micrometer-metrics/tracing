@@ -5,6 +5,10 @@ plugins {
 dependencies {
     api project(':micrometer-tracing')
     api libs.assertj
+    compileOnly platform(libs.junitBom)
+    compileOnly libs.junitJupiter
+    compileOnly platform(libs.reactorBom)
+    compileOnly 'io.projectreactor:reactor-core'
 
     // Tests for tests
     testImplementation libs.logback
@@ -15,7 +19,6 @@ dependencies {
     testImplementation libs.aspectjweaver
 
     testImplementation platform(libs.reactorBom)
-    testImplementation 'io.projectreactor:reactor-core'
     testImplementation 'io.projectreactor:reactor-core-micrometer'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation libs.awaitility
