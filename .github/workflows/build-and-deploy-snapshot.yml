@@ -122,6 +122,27 @@ jobs:
         uses: ./.github/actions/upload-build-reports
         if: ${{ failure() }}
 
+  build-jdk27:
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    if: ${{ github.repository_owner == 'micrometer-metrics' }}
+    steps:
+      - name: "Check Out Code"
+        uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # 7.0.0
+        with:
+          fetch-depth: "0"
+          ref: "${{ github.ref }}"
+      - name: Setup Build
+        uses: ./.github/actions/setup-build
+        with:
+          java-version: 27
+          develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+      - name: Build
+        shell: bash
+        run: ./gradlew build -PtoolchainVersion=27
+      - name: Upload Build Reports
+        uses: ./.github/actions/upload-build-reports
+        if: ${{ failure() }}
+
   docker-tests:
     runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
@@ -146,7 +167,7 @@ jobs:
   deploy:
     runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
-    needs: [ build-jdk25, build-jdk11, build-jdk17, build-jdk21, build-jdk26, docker-tests ]
+    needs: [ build-jdk25, build-jdk11, build-jdk17, build-jdk21, build-jdk26, build-jdk27, docker-tests ]
     steps:
       - name: "Check Out Code"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # 7.0.1
