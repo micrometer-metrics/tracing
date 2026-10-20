@@ -21,7 +21,9 @@ import io.micrometer.tracing.Tracer;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +33,12 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelBaggageInScopeTests {
 
+    // without a span processor, newer SDK versions only create non-recording spans, and
+    // root spans are then all the same invalid span
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
-        .setTracerProvider(SdkTracerProvider.builder().build())
+        .setTracerProvider(SdkTracerProvider.builder()
+            .addSpanProcessor(SimpleSpanProcessor.create(InMemorySpanExporter.create()))
+            .build())
         .build();
 
     OtelCurrentTraceContext currentTraceContext = new OtelCurrentTraceContext();
