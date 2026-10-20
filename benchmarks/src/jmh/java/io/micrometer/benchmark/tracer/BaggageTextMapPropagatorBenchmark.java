@@ -32,12 +32,6 @@ import static java.util.Collections.emptyList;
 /**
  * Benchmarks for {@link BaggageTextMapPropagator}, the OpenTelemetry bridge's
  * one-header-per-field baggage propagator.
- *
- * <p>
- * Note that {@code inject} reads baggage from the <em>current</em> {@link Context} via
- * {@link OtelBaggageManager#getAllBaggage()} rather than from the {@code Context} passed
- * to it, so the inject scenarios below make baggage current for the whole trial. Without
- * that, inject would be measured as a no-op.
  */
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -55,13 +49,13 @@ public class BaggageTextMapPropagatorBenchmark {
      */
     public enum InjectScenario {
 
-        /** Both configured remote fields are present in the current baggage. */
+        /** Both configured remote fields are present in the baggage. */
         MATCHING,
 
         /** No remote fields configured, so nothing can ever be propagated. */
         NO_REMOTE_FIELDS,
 
-        /** Remote fields configured, but the current baggage holds none of them. */
+        /** Remote fields configured, but the baggage holds none of them. */
         NO_MATCHING_BAGGAGE,
 
         /** Many baggage entries present, only two of which are remote fields. */
@@ -96,19 +90,13 @@ public class BaggageTextMapPropagatorBenchmark {
 
         BaggageTextMapPropagator propagator;
 
-        private io.opentelemetry.context.Scope scope;
+        Context context;
 
         @Setup(Level.Trial)
-        @SuppressWarnings("MustBeClosedChecker") // closed in tearDown()
         public void setup() {
             List<String> remoteFields = this.scenario == InjectScenario.NO_REMOTE_FIELDS ? emptyList() : REMOTE_FIELDS;
             this.propagator = propagator(remoteFields);
-            this.scope = Context.root().with(baggage(this.scenario)).makeCurrent();
-        }
-
-        @TearDown(Level.Trial)
-        public void tearDown() {
-            this.scope.close();
+            this.context = Context.root().with(baggage(this.scenario));
         }
 
         private static Baggage baggage(InjectScenario scenario) {
@@ -162,7 +150,7 @@ public class BaggageTextMapPropagatorBenchmark {
     @Benchmark
     public Map<String, String> inject(InjectState state) {
         Map<String, String> localCarrier = new HashMap<>();
-        state.propagator.inject(Context.root(), localCarrier, Map::put);
+        state.propagator.inject(state.context, localCarrier, Map::put);
         return localCarrier;
     }
 

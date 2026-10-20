@@ -19,6 +19,8 @@ import io.micrometer.tracing.*;
 import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
@@ -62,6 +64,20 @@ class OtelPropagatorTests {
                 new BaggageTextMapPropagator(Collections.singletonList("foo"), otelBaggageManager)));
 
     OtelPropagator otelPropagator = new OtelPropagator(contextPropagators, otelTracer);
+
+    @Test
+    void should_inject_baggage_of_passed_context_in_all_baggage_headers() {
+        Context context = Context.root().with(io.opentelemetry.api.baggage.Baggage.builder().put("foo", "bar").build());
+        Context currentContext = Context.root()
+            .with(io.opentelemetry.api.baggage.Baggage.builder().put("foo", "other").build());
+        Map<String, String> carrier = new HashMap<>();
+        try (Scope scope = currentContext.makeCurrent()) {
+            contextPropagators.getTextMapPropagator()
+                .inject(context, carrier, (map, key, value) -> Objects.requireNonNull(map).put(key, value));
+        }
+
+        BDDAssertions.then(carrier).containsEntry("foo", "bar").containsEntry("baggage", "foo=bar");
+    }
 
     @Test
     void should_propagate_context_with_trace_and_baggage() {
