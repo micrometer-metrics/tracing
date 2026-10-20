@@ -20,7 +20,9 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,8 +47,12 @@ class OtelBaggageRetentionTests {
 
     private static final int ITERATIONS = 100;
 
+    // without a span processor, newer SDK versions only create non-recording spans, and
+    // root spans are then all the same invalid span
     OpenTelemetrySdk openTelemetrySdk = OpenTelemetrySdk.builder()
-        .setTracerProvider(SdkTracerProvider.builder().build())
+        .setTracerProvider(SdkTracerProvider.builder()
+            .addSpanProcessor(SimpleSpanProcessor.create(InMemorySpanExporter.create()))
+            .build())
         .build();
 
     OtelCurrentTraceContext currentTraceContext = new OtelCurrentTraceContext();
