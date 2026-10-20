@@ -129,9 +129,10 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
                     baggageEntry.getMetadata()));
 
         baggage = newBaggageBuilder.put(entry().getKey(), value, entry().getMetadata()).build();
-        current = current.with(baggage);
         Context withBaggage = current.with(baggage);
-        ctx.updateContext(withBaggage);
+        // Store the baggage in the trace context's own context, not the thread's, so it
+        // never gets the span and trace context that are current on this thread
+        ctx.updateContext(storedCtx.with(baggage));
         contextWithBaggage.set(withBaggage);
         updateAttributesForBaggage(value, currentSpan);
         Entry previous = entry();
@@ -183,7 +184,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         Context updated = context.with(baggage);
         OtelTraceContext otelTraceContext = this.mutatedTraceContext.get();
         if (otelTraceContext != null) {
-            otelTraceContext.updateContext(updated);
+            otelTraceContext.updateContext(otelTraceContext.context().with(baggage));
         }
         Scope currentScope = updated.makeCurrent();
         this.scope.set(currentScope);
