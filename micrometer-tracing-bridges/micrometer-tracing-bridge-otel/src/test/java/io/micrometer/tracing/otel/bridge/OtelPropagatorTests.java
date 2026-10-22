@@ -61,7 +61,7 @@ class OtelPropagatorTests {
 
     ContextPropagators contextPropagators = ContextPropagators
         .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                new BaggageTextMapPropagator(Collections.singletonList("foo"), otelBaggageManager)));
+                new BaggageTextMapPropagator(Collections.singletonList("foo"))));
 
     OtelPropagator otelPropagator = new OtelPropagator(contextPropagators, otelTracer);
 
