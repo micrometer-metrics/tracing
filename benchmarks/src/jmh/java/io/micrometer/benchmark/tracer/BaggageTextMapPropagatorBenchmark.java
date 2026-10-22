@@ -15,8 +15,6 @@
  */
 package io.micrometer.benchmark.tracer;
 
-import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
-import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
 import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.baggage.BaggageBuilder;
@@ -78,8 +76,7 @@ public class BaggageTextMapPropagatorBenchmark {
     }
 
     private static BaggageTextMapPropagator propagator(List<String> remoteFields) {
-        return new BaggageTextMapPropagator(remoteFields,
-                new OtelBaggageManager(new OtelCurrentTraceContext(), remoteFields, emptyList()));
+        return new BaggageTextMapPropagator(remoteFields);
     }
 
     @State(Scope.Benchmark)

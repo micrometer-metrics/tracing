@@ -101,8 +101,7 @@ public class OtelPropagatorBenchmark {
         public void setup() {
             List<String> remoteFields = this.scenario == InjectScenario.NO_REMOTE_FIELDS ? emptyList() : REMOTE_FIELDS;
             // without a span processor the SDK only creates non-recording spans, and a
-            // root
-            // span is then invalid and not injected
+            // root span is then invalid and not injected
             this.sdk = OpenTelemetrySdk.builder()
                 .setTracerProvider(SdkTracerProvider.builder().addSpanProcessor(new NoopSpanProcessor()).build())
                 .build();
@@ -113,8 +112,7 @@ public class OtelPropagatorBenchmark {
             }, baggageManager);
             ContextPropagators propagators = ContextPropagators
                 .create(TextMapPropagator.composite(W3CTraceContextPropagator.getInstance(),
-                        W3CBaggagePropagator.getInstance(), new BaggageTextMapPropagator(remoteFields,
-                                new OtelBaggageManager(currentTraceContext, remoteFields, emptyList()))));
+                        W3CBaggagePropagator.getInstance(), new BaggageTextMapPropagator(remoteFields)));
             this.propagator = new OtelPropagator(propagators, otelTracer);
 
             this.span = tracer.nextSpan().name("span").start();

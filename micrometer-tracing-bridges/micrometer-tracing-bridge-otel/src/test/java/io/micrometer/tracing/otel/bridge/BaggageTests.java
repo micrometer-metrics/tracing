@@ -102,7 +102,7 @@ class BaggageTests {
 
     ContextPropagators contextPropagators = ContextPropagators
         .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                new BaggageTextMapPropagator(Arrays.asList(KEY_1, OBSERVATION_BAGGAGE_KEY), otelBaggageManager)));
+                new BaggageTextMapPropagator(Arrays.asList(KEY_1, OBSERVATION_BAGGAGE_KEY))));
 
     OtelPropagator propagator = new OtelPropagator(contextPropagators, otelTracer);
 

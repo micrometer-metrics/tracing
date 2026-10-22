@@ -67,12 +67,23 @@ public class BaggageTextMapPropagator implements TextMapPropagator {
     /**
      * Creates a new instance of {@link BaggageTextMapPropagator}.
      * @param remoteFields remote fields
-     * @param baggageManager not used, baggage is injected from the {@link Context} passed
-     * to {@link #inject(Context, Object, TextMapSetter)}
+     * @since 1.8.0
      */
-    public BaggageTextMapPropagator(List<String> remoteFields, BaggageManager baggageManager) {
+    public BaggageTextMapPropagator(List<String> remoteFields) {
         this.remoteFields = Collections.unmodifiableList(new ArrayList<>(remoteFields));
         this.remoteFieldNames = this.remoteFields.toArray(new String[0]);
+    }
+
+    /**
+     * Creates a new instance of {@link BaggageTextMapPropagator}.
+     * @param remoteFields remote fields
+     * @param baggageManager not used, baggage is injected from the {@link Context} passed
+     * to {@link #inject(Context, Object, TextMapSetter)}
+     * @deprecated since 1.8.0 in favor of {@link #BaggageTextMapPropagator(List)}
+     */
+    @Deprecated
+    public BaggageTextMapPropagator(List<String> remoteFields, BaggageManager baggageManager) {
+        this(remoteFields);
     }
 
     @Override
