@@ -24,10 +24,12 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.Objects;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -103,6 +105,46 @@ class OtelBaggageInScopeTests {
         then(this.tracer.currentSpan()).isNull();
         second.end();
         first.end();
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void should_set_baggage_for_trace_context_it_was_obtained_for_instead_of_current_one() {
+        Span span = this.tracer.nextSpan().name("span").start();
+        Span other = this.tracer.nextSpan().name("other").start();
+        this.tracer.createBaggage("foo").set(span.context(), "one");
+        Baggage baggage = Objects.requireNonNull(this.tracer.getBaggage(span.context(), "foo"));
+
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(other); BaggageInScope scope = baggage.makeCurrent("two")) {
+            then(storedBaggage(span, "foo")).isEqualTo("two");
+            then(storedBaggage(other, "foo")).isNull();
+        }
+
+        then(storedBaggage(span, "foo")).isEqualTo("one");
+        then(storedBaggage(other, "foo")).isNull();
+        span.end();
+        other.end();
+    }
+
+    @Test
+    void should_create_baggage_scope_for_trace_context_instead_of_current_one() {
+        Span span = this.tracer.nextSpan().name("span").start();
+        Span other = this.tracer.nextSpan().name("other").start();
+
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(other);
+                BaggageInScope scope = this.tracer.createBaggageInScope(span.context(), "foo", "bar")) {
+            then(storedBaggage(span, "foo")).isEqualTo("bar");
+            then(storedBaggage(other, "foo")).isNull();
+        }
+
+        then(storedBaggage(span, "foo")).isNull();
+        span.end();
+        other.end();
+    }
+
+    private static @Nullable String storedBaggage(Span span, String name) {
+        return io.opentelemetry.api.baggage.Baggage.fromContext(((OtelTraceContext) span.context()).context())
+            .getEntryValue(name);
     }
 
 }

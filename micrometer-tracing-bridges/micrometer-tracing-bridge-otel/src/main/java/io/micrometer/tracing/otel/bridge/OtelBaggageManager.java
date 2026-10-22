@@ -206,13 +206,22 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
-        return baggageWithValue(name, value).makeCurrent(traceContext, value);
+        return baggageWithValue(name, (OtelTraceContext) traceContext, value).makeCurrent(traceContext, value);
     }
 
     private io.micrometer.tracing.Baggage baggageWithValue(String name, @Nullable String value) {
+        return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entryWithValue(name, value));
+    }
+
+    private io.micrometer.tracing.Baggage baggageWithValue(String name, OtelTraceContext traceContext,
+            @Nullable String value) {
+        return new OtelBaggageInScope(this, this.currentTraceContext, traceContext, this.tagFields,
+                entryWithValue(name, value));
+    }
+
+    private Entry entryWithValue(String name, @Nullable String value) {
         BaggageEntryMetadata entryMetadata = isRemoteField(name) ? UNLIMITED_METADATA : NO_METADATA;
-        Entry entry = new Entry(name, value, entryMetadata);
-        return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
+        return new Entry(name, value, entryMetadata);
     }
 
     private boolean isRemoteField(String name) {

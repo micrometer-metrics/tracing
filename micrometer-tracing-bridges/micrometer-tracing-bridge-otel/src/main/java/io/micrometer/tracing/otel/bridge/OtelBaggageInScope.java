@@ -16,8 +16,6 @@
 package io.micrometer.tracing.otel.bridge;
 
 import org.jspecify.annotations.Nullable;
-import io.micrometer.common.util.internal.logging.InternalLogger;
-import io.micrometer.common.util.internal.logging.InternalLoggerFactory;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
@@ -28,7 +26,6 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -39,8 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScope {
 
-    private static final InternalLogger log = InternalLoggerFactory.getInstance(OtelBaggageInScope.class);
-
     private final OtelBaggageManager otelBaggageManager;
 
     private final CurrentTraceContext currentTraceContext;
@@ -48,6 +43,13 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     private final List<String> tagFields;
 
     private final AtomicReference<@Nullable Entry> entry = new AtomicReference<>();
+
+    /**
+     * The trace context this baggage was obtained or created for, if there was one.
+     * {@link #set(String)} and {@link #makeCurrent(String)} use it, instead of the
+     * current trace context.
+     */
+    private final @Nullable OtelTraceContext boundTraceContext;
 
     private final AtomicReference<@Nullable OtelTraceContext> mutatedTraceContext = new AtomicReference<>();
 
@@ -63,6 +65,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
             List<String> tagFields, Entry entry) {
         this.otelBaggageManager = otelBaggageManager;
         this.currentTraceContext = currentTraceContext;
+        this.boundTraceContext = null;
         this.mutatedTraceContext.set((OtelTraceContext) currentTraceContext.context());
         this.tagFields = tagFields;
         this.entry.set(entry);
@@ -75,6 +78,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
             OtelTraceContext traceContext, List<String> tagFields, Entry entry) {
         this.otelBaggageManager = otelBaggageManager;
         this.currentTraceContext = currentTraceContext;
+        this.boundTraceContext = traceContext;
         this.mutatedTraceContext.set(traceContext);
         this.tagFields = tagFields;
         this.entry.set(entry);
@@ -87,10 +91,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public @Nullable String get() {
-        if (entry.get() != null) {
-            return entry.get().value;
-        }
-        return this.otelBaggageManager.currentBaggage().getEntryValue(entry().getKey());
+        return entry().getValue();
     }
 
     @Override
@@ -105,7 +106,11 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     @Override
     @Deprecated
     public io.micrometer.tracing.Baggage set(@Nullable String value) {
-        return doSet(this.currentTraceContext.context(), value);
+        return doSet(traceContextToSetFor(), value);
+    }
+
+    private @Nullable TraceContext traceContextToSetFor() {
+        return this.boundTraceContext != null ? this.boundTraceContext : this.currentTraceContext.context();
     }
 
     private io.micrometer.tracing.Baggage doSet(@Nullable TraceContext context, @Nullable String value) {
@@ -113,10 +118,6 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
             return this;
         }
         OtelTraceContext otelTraceContext = (OtelTraceContext) context;
-        if (!Objects.equals(mutatedTraceContext.get(), otelTraceContext)) {
-            log.trace(
-                    "This is unexpected - someone created baggage when mutatedTraceContext was current and now when makeCurrent() was called a new traceContext is present");
-        }
         Entry previous = entry();
         this.entry.set(new Entry(previous.getKey(), value, previous.getMetadata()));
         mutatedTraceContext.set(otelTraceContext);
@@ -168,7 +169,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public BaggageInScope makeCurrent(@Nullable String value) {
-        return doSet(currentTraceContext.context(), value).makeCurrent();
+        return doSet(traceContextToSetFor(), value).makeCurrent();
     }
 
     @Override
