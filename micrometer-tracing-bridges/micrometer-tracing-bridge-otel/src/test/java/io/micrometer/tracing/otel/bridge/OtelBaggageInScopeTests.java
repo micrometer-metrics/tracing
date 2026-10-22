@@ -15,10 +15,10 @@
  */
 package io.micrometer.tracing.otel.bridge;
 
+import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
@@ -62,7 +62,7 @@ class OtelBaggageInScopeTests {
             Context stored = ((OtelTraceContext) span.context()).context();
             then(io.opentelemetry.api.trace.Span.fromContext(stored))
                 .isNotSameAs(((OtelTraceContext) other.context()).span);
-            then(Baggage.fromContext(stored).getEntryValue("foo")).isEqualTo("bar");
+            then(io.opentelemetry.api.baggage.Baggage.fromContext(stored).getEntryValue("foo")).isEqualTo("bar");
             then(this.tracer.currentSpan()).isEqualTo(other);
             then(this.tracer.getBaggage("foo").get()).isEqualTo("bar");
         }
@@ -80,11 +80,29 @@ class OtelBaggageInScopeTests {
             Context stored = ((OtelTraceContext) span.context()).context();
             then(io.opentelemetry.api.trace.Span.fromContext(stored))
                 .isNotSameAs(((OtelTraceContext) other.context()).span);
-            then(Baggage.fromContext(stored).getEntryValue("foo")).isEqualTo("bar");
+            then(io.opentelemetry.api.baggage.Baggage.fromContext(stored).getEntryValue("foo")).isEqualTo("bar");
         }
         then(this.tracer.getBaggage("foo").get(span.context())).isEqualTo("bar");
         span.end();
         other.end();
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void should_not_make_span_current_that_was_in_scope_when_baggage_was_set() {
+        Span first = this.tracer.nextSpan().name("first").start();
+        Span second = this.tracer.nextSpan().name("second").start();
+        Baggage baggage;
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(first)) {
+            baggage = this.tracer.createBaggage("foo").set("bar");
+        }
+        try (Tracer.SpanInScope ws = this.tracer.withSpan(second); BaggageInScope scope = baggage.makeCurrent()) {
+            then(this.tracer.currentSpan()).isEqualTo(second);
+            then(this.tracer.getBaggage("foo").get()).isEqualTo("bar");
+        }
+        then(this.tracer.currentSpan()).isNull();
+        second.end();
+        first.end();
     }
 
 }
