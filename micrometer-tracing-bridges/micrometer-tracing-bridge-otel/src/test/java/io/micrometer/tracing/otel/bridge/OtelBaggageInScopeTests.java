@@ -29,6 +29,7 @@ import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -387,6 +389,139 @@ class OtelBaggageInScopeTests {
         finally {
             span.end();
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_scope_baggage_for_bound_context_or_current_context(boolean explicitLookup) {
+        Tracer tracer = tracerWithLocaleTagging();
+        Span span = tracer.nextSpan().name("generate-report").start();
+        Span other = tracer.nextSpan().name("handle-request").start();
+        try {
+            OtelTraceContext target = traceContextWithRetainedBaggage(span);
+            OtelTraceContext current = (OtelTraceContext) other.context();
+            current.updateContext(current.context().with(CURRENT_BAGGAGE));
+            io.micrometer.tracing.Baggage baggage = baggageHandle(tracer, span, explicitLookup);
+            Context retainedTarget = target.context();
+            try (Tracer.SpanInScope spanScope = tracer.withSpan(other)) {
+                Context retainedCurrent = current.context();
+                Context previous = Context.current();
+                try (BaggageInScope scope = baggage.makeCurrent("fr-FR")) {
+                    then(storedBaggage(span, "locale")).isEqualTo(explicitLookup ? "fr-FR" : "en-US");
+                    then(storedBaggage(other, "locale")).isEqualTo(explicitLookup ? "de-DE" : "fr-FR");
+                    then(Baggage.current().getEntryValue("locale")).isEqualTo("fr-FR");
+                    then(tracer.currentSpan()).isEqualTo(other);
+                    then(((ReadableSpan) OtelSpan.toOtel(other)).toSpanData()
+                        .getAttributes()
+                        .get(AttributeKey.stringKey("locale"))).isEqualTo("fr-FR");
+                }
+                then(target.context()).isSameAs(retainedTarget);
+                then(current.context()).isSameAs(retainedCurrent);
+                then(Context.current()).isSameAs(previous);
+                then(tracer.currentSpan()).isEqualTo(other);
+            }
+        }
+        finally {
+            other.end();
+            span.end();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    @SuppressWarnings("deprecation")
+    void should_set_baggage_for_bound_context_or_current_context(boolean explicitLookup) {
+        Tracer tracer = tracerWithLocaleTagging();
+        Span span = tracer.nextSpan().name("generate-report").start();
+        Span other = tracer.nextSpan().name("handle-request").start();
+        try {
+            traceContextWithRetainedBaggage(span);
+            OtelTraceContext current = (OtelTraceContext) other.context();
+            current.updateContext(current.context().with(CURRENT_BAGGAGE));
+            io.micrometer.tracing.Baggage baggage = baggageHandle(tracer, span, explicitLookup);
+            try (Tracer.SpanInScope spanScope = tracer.withSpan(other)) {
+                Context previous = Context.current();
+                baggage.set("fr-FR");
+
+                then(storedBaggage(span, "locale")).isEqualTo(explicitLookup ? "fr-FR" : "en-US");
+                then(storedBaggage(other, "locale")).isEqualTo(explicitLookup ? "de-DE" : "fr-FR");
+                then(Context.current()).isSameAs(previous);
+                then(Baggage.current().getEntryValue("locale")).isEqualTo("de-DE");
+                then(tracer.currentSpan()).isEqualTo(other);
+                then(((ReadableSpan) OtelSpan.toOtel(other)).toSpanData()
+                    .getAttributes()
+                    .get(AttributeKey.stringKey("locale"))).isEqualTo("fr-FR");
+            }
+        }
+        finally {
+            other.end();
+            span.end();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    @SuppressWarnings("deprecation")
+    void should_use_explicit_call_context_without_rebinding_baggage_handle(boolean deprecatedSet) {
+        Tracer tracer = tracerWithLocaleTagging();
+        Span span = tracer.nextSpan().name("generate-report").start();
+        Span other = tracer.nextSpan().name("handle-request").start();
+        try {
+            OtelTraceContext target = traceContextWithRetainedBaggage(span);
+            OtelTraceContext current = (OtelTraceContext) other.context();
+            current.updateContext(current.context().with(CURRENT_BAGGAGE));
+            io.micrometer.tracing.Baggage baggage = baggageHandle(tracer, span, true);
+            Context retainedTarget = target.context();
+            try (Tracer.SpanInScope spanScope = tracer.withSpan(other)) {
+                Context previous = Context.current();
+                if (deprecatedSet) {
+                    baggage.set(other.context(), "fr-FR");
+                    then(storedBaggage(span, "locale")).isEqualTo("en-US");
+                    then(storedBaggage(other, "locale")).isEqualTo("fr-FR");
+                    then(Context.current()).isSameAs(previous);
+                }
+                else {
+                    Context retainedCurrent = current.context();
+                    try (BaggageInScope scope = baggage.makeCurrent(other.context(), "fr-FR")) {
+                        then(storedBaggage(span, "locale")).isEqualTo("en-US");
+                        then(storedBaggage(other, "locale")).isEqualTo("fr-FR");
+                        then(tracer.currentSpan()).isEqualTo(other);
+                    }
+                    then(current.context()).isSameAs(retainedCurrent);
+                    then(Context.current()).isSameAs(previous);
+                }
+
+                try (BaggageInScope scope = baggage.makeCurrent("it-IT")) {
+                    then(storedBaggage(span, "locale")).isEqualTo("it-IT");
+                    then(storedBaggage(other, "locale")).isEqualTo(deprecatedSet ? "fr-FR" : "de-DE");
+                    then(Baggage.current().getEntryValue("locale")).isEqualTo("it-IT");
+                    then(tracer.currentSpan()).isEqualTo(other);
+                }
+                then(target.context()).isSameAs(retainedTarget);
+                then(Context.current()).isSameAs(previous);
+            }
+        }
+        finally {
+            other.end();
+            span.end();
+        }
+    }
+
+    private Tracer tracerWithLocaleTagging() {
+        return new OtelTracer(this.openTelemetrySdk.getTracer("baggage-binding"), this.currentTraceContext, event -> {
+        }, new OtelBaggageManager(this.currentTraceContext, Collections.singletonList("locale"),
+                Collections.singletonList("locale")));
+    }
+
+    private io.micrometer.tracing.Baggage baggageHandle(Tracer tracer, Span span, boolean explicitLookup) {
+        try (Tracer.SpanInScope scope = tracer.withSpan(span)) {
+            return explicitLookup ? Objects.requireNonNull(tracer.getBaggage(span.context(), "locale"))
+                    : tracer.getBaggage("locale");
+        }
+    }
+
+    private static @Nullable String storedBaggage(Span span, String name) {
+        return Baggage.fromContext(((OtelTraceContext) span.context()).context()).getEntryValue(name);
     }
 
     private OtelTraceContext traceContextWithRetainedBaggage(Span span) {
