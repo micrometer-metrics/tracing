@@ -75,10 +75,6 @@ public class BaggageTextMapPropagatorBenchmark {
         };
     }
 
-    private static BaggageTextMapPropagator propagator(List<String> remoteFields) {
-        return new BaggageTextMapPropagator(remoteFields);
-    }
-
     @State(Scope.Benchmark)
     public static class InjectState {
 
@@ -92,7 +88,7 @@ public class BaggageTextMapPropagatorBenchmark {
         @Setup(Level.Trial)
         public void setup() {
             List<String> remoteFields = this.scenario == InjectScenario.NO_REMOTE_FIELDS ? emptyList() : REMOTE_FIELDS;
-            this.propagator = propagator(remoteFields);
+            this.propagator = new BaggageTextMapPropagator(remoteFields);
             this.context = Context.root().with(baggage(this.scenario));
         }
 
@@ -118,7 +114,7 @@ public class BaggageTextMapPropagatorBenchmark {
     @State(Scope.Benchmark)
     public static class ExtractState {
 
-        BaggageTextMapPropagator propagator = propagator(REMOTE_FIELDS);
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(REMOTE_FIELDS);
 
         TextMapGetter<Map<String, String>> getter = textMapGetter(REMOTE_FIELDS);
 
