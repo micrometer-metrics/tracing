@@ -102,7 +102,7 @@ class BaggageTests {
 
     ContextPropagators contextPropagators = ContextPropagators
         .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                new BaggageTextMapPropagator(Arrays.asList(KEY_1, OBSERVATION_BAGGAGE_KEY), otelBaggageManager)));
+                new BaggageTextMapPropagator(Arrays.asList(KEY_1, OBSERVATION_BAGGAGE_KEY))));
 
     OtelPropagator propagator = new OtelPropagator(contextPropagators, otelTracer);
 
@@ -175,6 +175,25 @@ class BaggageTests {
                 then(baggageInScope.get()).isEqualTo(VALUE_1);
             }
         }
+    }
+
+    @Test
+    void injectDoesNotKeepTheBaggageWithLegacyApiWithoutScope() {
+        Map<String, String> carrier = new HashMap<>();
+        Propagator.Setter<Map<String, String>> setter = (stringStringMap, key,
+                value) -> Objects.requireNonNull(stringStringMap).put(key, value);
+
+        Span span = tracer.nextSpan().start();
+        try (Tracer.SpanInScope spanInScope = tracer.withSpan(span)) {
+            // only stored with the trace context, not current, so not injected (unlike
+            // with Brave)
+            this.tracer.createBaggage(KEY_1, VALUE_1);
+
+            this.propagator.inject(Objects.requireNonNull(tracer.currentTraceContext().context()), carrier, setter);
+        }
+        span.end();
+
+        then(carrier).doesNotContainKey(KEY_1).doesNotContainKey("baggage");
     }
 
     @Test

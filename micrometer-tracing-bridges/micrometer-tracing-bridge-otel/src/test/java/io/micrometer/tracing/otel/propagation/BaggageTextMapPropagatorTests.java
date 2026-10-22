@@ -41,8 +41,7 @@ class BaggageTextMapPropagatorTests {
 
     @BeforeEach
     void setup() {
-        baggageTextMapPropagator = new BaggageTextMapPropagator(REMOTE_FIELDS,
-                new OtelBaggageManager(new OtelCurrentTraceContext(), REMOTE_FIELDS, emptyList()));
+        baggageTextMapPropagator = new BaggageTextMapPropagator(REMOTE_FIELDS);
         textMapGetter = textMapGetter(REMOTE_FIELDS);
     }
 
@@ -96,28 +95,50 @@ class BaggageTextMapPropagatorTests {
     void should_inject_matching_baggage_entries_into_carrier() {
         Baggage baggage = Baggage.builder().put("foo", "bar").put("foo2", "bar2").build();
 
-        Map<String, String> carrier = injectWithCurrentBaggage(baggageTextMapPropagator, baggage);
+        Map<String, String> carrier = inject(baggageTextMapPropagator, baggage);
 
         BDDAssertions.then(carrier)
             .containsOnly(BDDAssertions.entry("foo", "bar"), BDDAssertions.entry("foo2", "bar2"));
     }
 
     @Test
+    void should_inject_baggage_of_passed_context_instead_of_current_baggage() {
+        Context currentContext = Context.root()
+            .with(Baggage.builder().put("foo", "undesired").put("foo2", "undesired").build());
+        Context context = Context.root().with(Baggage.builder().put("foo", "bar").build());
+
+        Map<String, String> carrier = currentContext.wrapSupplier(() -> inject(baggageTextMapPropagator, context))
+            .get();
+
+        BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("foo", "bar"));
+    }
+
+    @Test
+    void should_not_inject_current_baggage_when_passed_context_has_no_baggage() {
+        Context currentContext = Context.root().with(Baggage.builder().put("foo", "bar").build());
+
+        Map<String, String> carrier = currentContext
+            .wrapSupplier(() -> inject(baggageTextMapPropagator, Context.root()))
+            .get();
+
+        BDDAssertions.then(carrier).isEmpty();
+    }
+
+    @Test
     void should_inject_nothing_when_no_baggage_key_matches_a_remote_field() {
         Baggage baggage = Baggage.builder().put("unrelated", "value").build();
 
-        Map<String, String> carrier = injectWithCurrentBaggage(baggageTextMapPropagator, baggage);
+        Map<String, String> carrier = inject(baggageTextMapPropagator, baggage);
 
         BDDAssertions.then(carrier).isEmpty();
     }
 
     @Test
     void should_inject_nothing_when_no_remote_fields_are_configured() {
-        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(emptyList(),
-                new OtelBaggageManager(new OtelCurrentTraceContext(), emptyList(), emptyList()));
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(emptyList());
         Baggage baggage = Baggage.builder().put("foo", "bar").build();
 
-        Map<String, String> carrier = injectWithCurrentBaggage(propagator, baggage);
+        Map<String, String> carrier = inject(propagator, baggage);
 
         BDDAssertions.then(carrier).isEmpty();
     }
@@ -125,11 +146,10 @@ class BaggageTextMapPropagatorTests {
     @Test
     void should_match_remote_fields_against_baggage_keys_ignoring_case() {
         List<String> remoteFields = Collections.singletonList("Foo");
-        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields,
-                new OtelBaggageManager(new OtelCurrentTraceContext(), remoteFields, emptyList()));
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields);
         Baggage baggage = Baggage.builder().put("foo", "bar").build();
 
-        Map<String, String> carrier = injectWithCurrentBaggage(propagator, baggage);
+        Map<String, String> carrier = inject(propagator, baggage);
 
         BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("foo", "bar"));
     }
@@ -137,11 +157,10 @@ class BaggageTextMapPropagatorTests {
     @Test
     void should_inject_using_the_baggage_key_casing_not_the_remote_field_casing() {
         List<String> remoteFields = Collections.singletonList("foo");
-        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields,
-                new OtelBaggageManager(new OtelCurrentTraceContext(), remoteFields, emptyList()));
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields);
         Baggage baggage = Baggage.builder().put("FOO", "bar").build();
 
-        Map<String, String> carrier = injectWithCurrentBaggage(propagator, baggage);
+        Map<String, String> carrier = inject(propagator, baggage);
 
         BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("FOO", "bar"));
     }
@@ -175,8 +194,7 @@ class BaggageTextMapPropagatorTests {
     @Test
     void should_tolerate_duplicate_remote_fields() {
         List<String> remoteFields = Arrays.asList("foo", "foo");
-        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields,
-                new OtelBaggageManager(new OtelCurrentTraceContext(), remoteFields, emptyList()));
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(remoteFields);
 
         Map<String, String> carrier = new HashMap<>();
         carrier.put("foo", "bar");
@@ -188,23 +206,38 @@ class BaggageTextMapPropagatorTests {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
+    void deprecated_constructor_should_work() {
+        BaggageTextMapPropagator propagator = new BaggageTextMapPropagator(REMOTE_FIELDS,
+                new OtelBaggageManager(new OtelCurrentTraceContext(), REMOTE_FIELDS, emptyList()));
+
+        BDDAssertions.then(propagator.fields()).containsExactlyElementsOf(REMOTE_FIELDS);
+
+        Baggage baggage = Baggage.builder().put("foo", "bar").build();
+        Map<String, String> carrier = inject(propagator, baggage);
+        BDDAssertions.then(carrier).containsOnly(BDDAssertions.entry("foo", "bar"));
+    }
+
+    @Test
     void should_extract_nothing_when_carrier_is_null() {
         Context extracted = baggageTextMapPropagator.extract(Context.root(), null, textMapGetter);
 
         BDDAssertions.then(Baggage.fromContext(extracted).isEmpty()).isTrue();
     }
 
-    private Map<String, String> injectWithCurrentBaggage(BaggageTextMapPropagator propagator, Baggage baggage) {
+    private Map<String, String> inject(BaggageTextMapPropagator propagator, Baggage baggage) {
+        return inject(propagator, Context.root().with(baggage));
+    }
+
+    private Map<String, String> inject(BaggageTextMapPropagator propagator, Context context) {
         TextMapSetter<Map<String, String>> setter = (target, key, value) -> {
             if (target != null) {
                 target.put(key, value);
             }
         };
-        return Context.root().with(baggage).wrapSupplier(() -> {
-            Map<String, String> carrier = new HashMap<>();
-            propagator.inject(Context.root(), carrier, setter);
-            return carrier;
-        }).get();
+        Map<String, String> carrier = new HashMap<>();
+        propagator.inject(context, carrier, setter);
+        return carrier;
     }
 
     private TextMapGetter<Map<String, String>> textMapGetter(final List<String> remoteFields) {
