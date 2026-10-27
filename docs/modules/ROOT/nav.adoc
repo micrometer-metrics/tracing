@@ -3,5 +3,6 @@
 * xref:tracers.adoc[Supported Tracers]
 * xref:reporters.adoc[Supported Reporters]
 * xref:api.adoc[Micrometer Tracing API]
+* xref:context-contracts.adoc[Span and Baggage Scopes]
 * xref:configuring.adoc[Micrometer Observation Configuration]
 * xref:testing.adoc[Testing]

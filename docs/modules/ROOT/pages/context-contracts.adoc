@@ -1,0 +1,65 @@
+= Span and Baggage Scopes
+
+A span's `TraceContext` identifies the span.
+Span scopes select the current span on a thread, while baggage scopes provide temporary baggage values.
+The following behavior applies to the Brave and OpenTelemetry bridges when scopes are closed on the thread that opened them, in reverse order.
+
+== Span Scopes
+
+Creating a span does not make it current.
+Use `Tracer.withSpan(span)` or `CurrentTraceContext.newScope(span.context())` to put it in scope.
+Closing the scope restores the previously current span.
+The span keeps its identity after its scope closes and can be put in scope again.
+
+Ending a span and closing its scope are separate operations.
+Use try-with-resources to close scopes and end the span when its work finishes, as shown in the xref:api.adoc[Tracing API examples].
+
+== Baggage Scopes
+
+Baggage carries named values alongside a trace.
+Configure the baggage fields that your application uses, as described in xref:api.adoc#_micrometer_tracing_baggage_api[the Baggage API documentation].
+
+Use `createBaggageInScope(name, value)` to make a value available within a scope.
+A nested baggage scope for the same name temporarily overrides the outer value.
+Closing the nested scope restores that outer value, including when application code throws an exception.
+A scope for another name preserves the existing entries.
+
+For example, with `foo` configured as a baggage field:
+
+[source,java]
+----
+Span span = tracer.nextSpan().name("work").start();
+try {
+    try (Tracer.SpanInScope spanScope = tracer.withSpan(span)) {
+        try (BaggageInScope outer = tracer.createBaggageInScope("foo", "outer")) {
+            // tracer.getBaggage("foo").get() returns "outer".
+            try (BaggageInScope inner = tracer.createBaggageInScope("foo", "inner")) {
+                // tracer.getBaggage("foo").get() returns "inner".
+            }
+            // tracer.getBaggage("foo").get() returns "outer" again.
+        }
+        // "foo" has the value it had before the outer baggage scope opened.
+    }
+}
+finally {
+    span.end();
+}
+----
+
+Baggage extracted from an incoming request remains associated with the receiving span after a temporary baggage override closes.
+It is available again when that span is put in scope later.
+
+== Baggage Associated with an Explicit Trace Context
+
+`createBaggageInScope(traceContext, name, value)` temporarily associates a value with the supplied trace context, including when that span is not current.
+Opening this baggage scope does not make the associated span current.
+Closing it restores the preceding baggage association.
+
+The association can be read through an explicit-context baggage lookup on another thread while the baggage scope is open.
+This does not transfer the scope to that thread or provide isolation for overlapping baggage updates to the same trace context.
+
+== Thread Boundaries
+
+Opening a span or baggage scope does not automatically make it current on another thread.
+Use the xref:api.adoc[span continuation API] or https://docs.micrometer.io/context-propagation/reference/[Micrometer Context Propagation] to propagate context across thread boundaries.
+Each thread closes the scopes that it opens.
