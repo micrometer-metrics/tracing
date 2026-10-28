@@ -25,23 +25,24 @@ Closing the nested scope restores that outer value.
 Use try-with-resources so that Java closes the scope when the block exits, including when code inside the block throws an exception.
 
 Setting one baggage entry leaves the other entries unchanged.
-For example, setting `bar` within a scope does not change an existing `foo` value.
+For example, setting `locale=fr-FR` within a scope does not change an existing `report.format=pdf` entry.
 
-For example, with `foo` configured as a baggage field:
+The following example uses `locale` to describe work on English and French versions of a report.
+Configure `locale` as a baggage field first.
 
 [source,java]
 ----
-Span span = tracer.nextSpan().name("work").start();
+Span span = tracer.nextSpan().name("generate-report").start();
 try {
     try (Tracer.SpanInScope spanScope = tracer.withSpan(span)) {
-        try (BaggageInScope outer = tracer.createBaggageInScope("foo", "outer")) {
-            // tracer.getBaggage("foo").get() returns "outer".
-            try (BaggageInScope inner = tracer.createBaggageInScope("foo", "inner")) {
-                // tracer.getBaggage("foo").get() returns "inner".
+        try (BaggageInScope english = tracer.createBaggageInScope("locale", "en-US")) {
+            // tracer.getBaggage("locale").get() returns "en-US".
+            try (BaggageInScope french = tracer.createBaggageInScope("locale", "fr-FR")) {
+                // tracer.getBaggage("locale").get() returns "fr-FR".
             }
-            // tracer.getBaggage("foo").get() returns "outer" again.
+            // tracer.getBaggage("locale").get() returns "en-US" again.
         }
-        // "foo" has the value it had before the outer baggage scope opened.
+        // The previous "locale" value is restored.
     }
 }
 finally {
@@ -53,8 +54,8 @@ finally {
 
 Baggage extracted from an incoming request is retained with the receiving span.
 Whenever you put that span in scope, its retained baggage is available through `tracer.getBaggage(...)`.
-For example, if the request supplied `foo=request`, closing a baggage scope that temporarily sets `foo=temporary` restores `foo=request`.
-If you close the span's scope and later open a new scope for the same span, `tracer.getBaggage("foo").get()` returns `request` again.
+For example, if the request supplied `locale=en-US`, closing a baggage scope that temporarily sets `locale=fr-FR` restores `locale=en-US`.
+If you close the span's scope and later open a new scope for the same span, `tracer.getBaggage("locale").get()` returns `en-US` again.
 
 == Baggage Associated with an Explicit Trace Context
 
