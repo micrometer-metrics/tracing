@@ -1,0 +1,74 @@
+= Span and Baggage Scopes
+
+A span scope makes a span current, so code can find it through `Tracer.currentSpan()`.
+A baggage scope temporarily sets a value for a named baggage entry.
+This page describes the scope behavior shared by the Brave and OpenTelemetry bridges.
+
+== Span Scopes
+
+Creating a span does not make it current.
+Use `Tracer.withSpan(span)` or `CurrentTraceContext.newScope(span.context())` to put it in scope.
+Closing the scope restores the previously current span.
+Closing a span's scope does not end that span or change its trace ID or span ID.
+You can make the same span current again by opening another scope for it.
+
+End the span separately when its work finishes, as shown in the xref:api.adoc[Tracing API examples].
+
+== Baggage Scopes
+
+Baggage carries named values alongside a trace.
+Configure the baggage fields that your application uses, as described in xref:api.adoc#_micrometer_tracing_baggage_api[the Baggage API documentation].
+
+Use `createBaggageInScope(name, value)` to make a value available within a scope.
+A nested baggage scope for the same name temporarily overrides the outer value.
+Closing the nested scope restores that outer value.
+Use try-with-resources so that Java closes the scope when the block exits, including when code inside the block throws an exception.
+
+Setting one baggage entry leaves the other entries unchanged.
+For example, setting `locale=fr-FR` within a scope does not change an existing `report.format=pdf` entry.
+
+The following example uses `locale` to describe work on English and French versions of a report.
+Configure `locale` as a baggage field first.
+
+[source,java]
+----
+Span span = tracer.nextSpan().name("generate-report").start();
+try {
+    try (Tracer.SpanInScope spanScope = tracer.withSpan(span)) {
+        try (BaggageInScope english = tracer.createBaggageInScope("locale", "en-US")) {
+            // tracer.getBaggage("locale").get() returns "en-US".
+            try (BaggageInScope french = tracer.createBaggageInScope("locale", "fr-FR")) {
+                // tracer.getBaggage("locale").get() returns "fr-FR".
+            }
+            // tracer.getBaggage("locale").get() returns "en-US" again.
+        }
+        // The previous "locale" value is restored.
+    }
+}
+finally {
+    span.end();
+}
+----
+
+== Baggage Retained by a Span
+
+Baggage extracted from an incoming request is retained with the receiving span.
+Whenever you put that span in scope, its retained baggage is available through `tracer.getBaggage(...)`.
+For example, if the request supplied `locale=en-US`, closing a baggage scope that temporarily sets `locale=fr-FR` restores `locale=en-US`.
+If you close the span's scope and later open a new scope for the same span, `tracer.getBaggage("locale").get()` returns `en-US` again.
+
+== Baggage Associated with an Explicit Trace Context
+
+`createBaggageInScope(traceContext, name, value)` temporarily associates a value with the supplied trace context, including when that span is not current.
+Opening this baggage scope does not make the associated span current.
+Closing it restores the preceding baggage association.
+
+The association can be read through an explicit-context baggage lookup on another thread while the baggage scope is open.
+This does not transfer the scope to that thread or provide isolation for overlapping baggage updates to the same trace context.
+
+== Context Propagation
+
+When continuing work on another thread, use the xref:api.adoc[span continuation API] or https://docs.micrometer.io/context-propagation/reference/[Micrometer Context Propagation] to make the appropriate span and baggage current for that work.
+
+You must close each scope you open on the same thread that opened it.
+Close nested scopes in reverse order, as try-with-resources does in the example above.
