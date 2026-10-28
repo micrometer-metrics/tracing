@@ -19,6 +19,8 @@ import io.micrometer.tracing.*;
 import io.micrometer.tracing.otel.propagation.BaggageTextMapPropagator;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
@@ -59,9 +61,75 @@ class OtelPropagatorTests {
 
     ContextPropagators contextPropagators = ContextPropagators
         .create(TextMapPropagator.composite(W3CBaggagePropagator.getInstance(), W3CTraceContextPropagator.getInstance(),
-                new BaggageTextMapPropagator(Collections.singletonList("foo"), otelBaggageManager)));
+                new BaggageTextMapPropagator(Collections.singletonList("foo"))));
 
     OtelPropagator otelPropagator = new OtelPropagator(contextPropagators, otelTracer);
+
+    @Test
+    void should_inject_baggage_of_passed_context_in_all_baggage_headers() {
+        Context context = Context.root().with(io.opentelemetry.api.baggage.Baggage.builder().put("foo", "bar").build());
+        Context currentContext = Context.root()
+            .with(io.opentelemetry.api.baggage.Baggage.builder().put("foo", "other").build());
+        Map<String, String> carrier = new HashMap<>();
+        try (Scope scope = currentContext.makeCurrent()) {
+            contextPropagators.getTextMapPropagator()
+                .inject(context, carrier, (map, key, value) -> Objects.requireNonNull(map).put(key, value));
+        }
+
+        BDDAssertions.then(carrier).containsEntry("foo", "bar").containsEntry("baggage", "foo=bar");
+    }
+
+    @Test
+    void should_inject_current_baggage_when_native_scope_overrides_trace_context_baggage() {
+        Tracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
+        }, otelBaggageManager);
+        Span span = otelPropagator.extract(Collections.singletonMap("baggage", "foo=retained"), Map::get).start();
+        Map<String, String> carrier = new HashMap<>();
+        try {
+            try (Tracer.SpanInScope scope = tracer.withSpan(span);
+                    Scope baggage = io.opentelemetry.api.baggage.Baggage.current()
+                        .toBuilder()
+                        .put("foo", "current")
+                        .build()
+                        .makeCurrent()) {
+                assertThat(tracer.getBaggage("foo").get(span.context())).isEqualTo("retained");
+
+                otelPropagator.inject(span.context(), carrier,
+                        (map, key, value) -> Objects.requireNonNull(map).put(key, value));
+
+                assertThat(carrier).containsEntry("foo", "current").containsEntry("baggage", "foo=current");
+                assertThat(tracer.currentSpan()).isEqualTo(span);
+            }
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    @Test
+    void should_inject_current_baggage_when_baggage_scope_targets_another_span() {
+        Tracer tracer = new OtelTracer(otelTracer, otelCurrentTraceContext, event -> {
+        }, otelBaggageManager);
+        Span span = otelPropagator.extract(Collections.singletonMap("baggage", "foo=retained"), Map::get).start();
+        Span other = tracer.nextSpan().start();
+        Map<String, String> carrier = new HashMap<>();
+        try {
+            try (Tracer.SpanInScope scope = tracer.withSpan(span);
+                    BaggageInScope baggage = tracer.createBaggageInScope(other.context(), "foo", "current")) {
+                assertThat(tracer.getBaggage("foo").get(span.context())).isEqualTo("retained");
+
+                otelPropagator.inject(span.context(), carrier,
+                        (map, key, value) -> Objects.requireNonNull(map).put(key, value));
+
+                assertThat(carrier).containsEntry("foo", "current").containsEntry("baggage", "foo=current");
+                assertThat(tracer.currentSpan()).isEqualTo(span);
+            }
+        }
+        finally {
+            other.end();
+            span.end();
+        }
+    }
 
     @Test
     void should_propagate_context_with_trace_and_baggage() {
