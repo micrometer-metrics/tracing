@@ -1,18 +1,18 @@
 = Span and Baggage Scopes
 
-A span's `TraceContext` identifies the span.
-Span scopes select the current span on a thread, while baggage scopes provide temporary baggage values.
-The following behavior applies to the Brave and OpenTelemetry bridges when scopes are closed on the thread that opened them, in reverse order.
+A span scope makes a span current, so code can find it through `Tracer.currentSpan()`.
+A baggage scope temporarily sets a value for a named baggage entry.
+This page describes the scope behavior shared by the Brave and OpenTelemetry bridges.
 
 == Span Scopes
 
 Creating a span does not make it current.
 Use `Tracer.withSpan(span)` or `CurrentTraceContext.newScope(span.context())` to put it in scope.
 Closing the scope restores the previously current span.
-The span keeps its identity after its scope closes and can be put in scope again.
+Closing a span's scope does not end that span or change its trace ID or span ID.
+You can make the same span current again by opening another scope for it.
 
-Ending a span and closing its scope are separate operations.
-Use try-with-resources to close scopes and end the span when its work finishes, as shown in the xref:api.adoc[Tracing API examples].
+End the span separately when its work finishes, as shown in the xref:api.adoc[Tracing API examples].
 
 == Baggage Scopes
 
@@ -21,8 +21,11 @@ Configure the baggage fields that your application uses, as described in xref:ap
 
 Use `createBaggageInScope(name, value)` to make a value available within a scope.
 A nested baggage scope for the same name temporarily overrides the outer value.
-Closing the nested scope restores that outer value, including when application code throws an exception.
-A scope for another name preserves the existing entries.
+Closing the nested scope restores that outer value.
+Use try-with-resources so that Java closes the scope when the block exits, including when code inside the block throws an exception.
+
+Setting one baggage entry leaves the other entries unchanged.
+For example, setting `bar` within a scope does not change an existing `foo` value.
 
 For example, with `foo` configured as a baggage field:
 
@@ -46,8 +49,12 @@ finally {
 }
 ----
 
-Baggage extracted from an incoming request remains associated with the receiving span after a temporary baggage override closes.
-It is available again when that span is put in scope later.
+== Baggage Retained by a Span
+
+Baggage extracted from an incoming request is retained with the receiving span.
+Whenever you put that span in scope, its retained baggage is available through `tracer.getBaggage(...)`.
+For example, if the request supplied `foo=request`, closing a baggage scope that temporarily sets `foo=temporary` restores `foo=request`.
+If you close the span's scope and later open a new scope for the same span, `tracer.getBaggage("foo").get()` returns `request` again.
 
 == Baggage Associated with an Explicit Trace Context
 
@@ -58,8 +65,9 @@ Closing it restores the preceding baggage association.
 The association can be read through an explicit-context baggage lookup on another thread while the baggage scope is open.
 This does not transfer the scope to that thread or provide isolation for overlapping baggage updates to the same trace context.
 
-== Thread Boundaries
+== Context Propagation
 
-Opening a span or baggage scope does not automatically make it current on another thread.
-Use the xref:api.adoc[span continuation API] or https://docs.micrometer.io/context-propagation/reference/[Micrometer Context Propagation] to propagate context across thread boundaries.
-Each thread closes the scopes that it opens.
+When continuing work on another thread, use the xref:api.adoc[span continuation API] or https://docs.micrometer.io/context-propagation/reference/[Micrometer Context Propagation] to make the appropriate span and baggage current for that work.
+
+You must close each scope you open on the same thread that opened it.
+Close nested scopes in reverse order, as try-with-resources does in the example above.
