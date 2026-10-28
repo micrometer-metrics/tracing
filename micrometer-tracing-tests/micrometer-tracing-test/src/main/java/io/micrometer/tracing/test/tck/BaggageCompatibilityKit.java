@@ -228,7 +228,7 @@ public abstract class BaggageCompatibilityKit {
         }
         then(getTracer().currentSpan()).isNull();
         then(getTracer().getAllBaggage()).isEmpty();
-        then(carrier).as("Trace and baggage must have been injected").containsValue(value);
+        then(carrier).as("separate baggage header must have been injected").containsValue(value);
         Span extracted = getPropagator().extract(carrier, Map::get).name("extracted").start();
         then(extracted.context().traceId()).isEqualTo(remote.context().traceId());
         then(extracted.context().spanId()).isNotEqualTo(remote.context().spanId());
