@@ -19,7 +19,9 @@ import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.baggage.BaggageEntryMetadata;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
@@ -27,6 +29,8 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Collections;
 
@@ -211,6 +215,93 @@ class OtelBaggageInScopeTests {
             }
         }
         finally {
+            span.end();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    @SuppressWarnings("deprecation")
+    void should_restore_latest_set_value_after_scoping_another_value(boolean explicit) {
+        Span span = this.tracer.nextSpan().name("generate-report").start();
+        try {
+            try (Tracer.SpanInScope spanScope = this.tracer.withSpan(span)) {
+                OtelTraceContext context = (OtelTraceContext) span.context();
+                io.micrometer.tracing.Baggage baggage = this.tracer.createBaggage("locale", "en-US");
+                Context retained = context.context();
+                Context current = Context.current();
+                try (BaggageInScope scope = explicit ? baggage.makeCurrent(context, "fr-FR")
+                        : baggage.makeCurrent("fr-FR")) {
+                    then(Baggage.current().getEntryValue("locale")).isEqualTo("fr-FR");
+                    then(Baggage.fromContext(context.context()).getEntryValue("locale")).isEqualTo("fr-FR");
+                }
+                then(context.context()).isSameAs(retained);
+                then(Baggage.fromContext(context.context()).getEntryValue("locale")).isEqualTo("en-US");
+                then(Context.current()).isSameAs(current);
+            }
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    @Test
+    void should_prefer_current_baggage_metadata_when_values_are_equal() {
+        Span span = this.tracer.nextSpan().name("generate-report").start();
+        try {
+            OtelTraceContext context = (OtelTraceContext) span.context();
+            context.updateContext(context.context()
+                .with(Baggage.builder()
+                    .put("report.format", "pdf", BaggageEntryMetadata.create("source=incoming"))
+                    .put("report.id", "report-123")
+                    .build()));
+            Baggage current = Baggage.builder()
+                .put("report.format", "pdf", BaggageEntryMetadata.create("source=application"))
+                .build();
+            Baggage expected = current.toBuilder().put("report.id", "report-123").put("locale", "fr-FR").build();
+            Context retained = context.context();
+            try (Scope scope = current.makeCurrent()) {
+                try (BaggageInScope baggage = this.tracer.createBaggageInScope(context, "locale", "fr-FR")) {
+                    then(Baggage.current().asMap()).isEqualTo(expected.asMap());
+                    then(Baggage.fromContext(context.context()).asMap()).isEqualTo(expected.asMap());
+                }
+                then(context.context()).isSameAs(retained);
+                then(Baggage.current()).isSameAs(current);
+            }
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    @Test
+    void should_preserve_distinct_context_entries_when_both_contexts_have_the_same_baggage() {
+        Span span = this.tracer.nextSpan().name("generate-report").start();
+        Span other = this.tracer.nextSpan().name("other-report").start();
+        try {
+            ContextKey<String> requestOrigin = ContextKey.named("request-origin");
+            OtelTraceContext context = traceContextWithRetainedBaggage(span);
+            context.updateContext(context.context().with(requestOrigin, "incoming"));
+            Context retained = context.context();
+            try (Tracer.SpanInScope spanScope = this.tracer.withSpan(other);
+                    Scope scope = Context.current()
+                        .with(RETAINED_BAGGAGE)
+                        .with(requestOrigin, "background")
+                        .makeCurrent()) {
+                Context current = Context.current();
+                try (BaggageInScope baggage = this.tracer.createBaggageInScope(context, "locale", "fr-FR")) {
+                    then(Baggage.fromContext(context.context()).getEntryValue("locale")).isEqualTo("fr-FR");
+                    then(Baggage.current().getEntryValue("locale")).isEqualTo("fr-FR");
+                    then(context.context().get(requestOrigin)).isEqualTo("incoming");
+                    then(Context.current().get(requestOrigin)).isEqualTo("background");
+                    then(this.tracer.currentSpan()).isEqualTo(other);
+                }
+                then(context.context()).isSameAs(retained);
+                then(Context.current()).isSameAs(current);
+            }
+        }
+        finally {
+            other.end();
             span.end();
         }
     }

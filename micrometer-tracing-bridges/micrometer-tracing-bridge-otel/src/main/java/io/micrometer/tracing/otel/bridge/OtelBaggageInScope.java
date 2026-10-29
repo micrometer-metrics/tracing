@@ -109,8 +109,22 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     private io.micrometer.tracing.Baggage doSet(@Nullable TraceContext context, @Nullable String value) {
+        OtelTraceContext otelTraceContext = updateEntry(context, value);
+        if (otelTraceContext != null) {
+            Context retained = otelTraceContext.context();
+            otelTraceContext.updateContext(retained.with(baggageWithEntry(retained, Context.current())));
+            updateAttributesForBaggage(value, Span.current());
+        }
+        return this;
+    }
+
+    /**
+     * Prepares the value and restoration point without storing baggage, so setting and
+     * activating a value together only needs one merge.
+     */
+    private @Nullable OtelTraceContext updateEntry(@Nullable TraceContext context, @Nullable String value) {
         if (context == null) {
-            return this;
+            return null;
         }
         OtelTraceContext otelTraceContext = (OtelTraceContext) context;
         if (!Objects.equals(mutatedTraceContext.get(), otelTraceContext)) {
@@ -121,30 +135,28 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         this.entry.set(new Entry(previous.getKey(), value, previous.getMetadata()));
         mutatedTraceContext.set(otelTraceContext);
         previousStoredContext.set(otelTraceContext.context());
-        storeInTraceContext(otelTraceContext, baggageWithEntry(otelTraceContext));
-        updateAttributesForBaggage(value, Span.current());
-        return this;
+        return otelTraceContext;
     }
 
     /**
      * The baggage of the trace context, overridden by the baggage that is current on this
      * thread, overridden by this entry.
      */
-    private Baggage baggageWithEntry(@Nullable OtelTraceContext traceContext) {
+    @SuppressWarnings("ReferenceEquality")
+    private Baggage baggageWithEntry(Context retainedContext, Context currentContext) {
         Entry entry = entry();
-        BaggageBuilder builder = traceContext != null ? Baggage.fromContext(traceContext.context()).toBuilder()
-                : Baggage.builder();
-        Baggage.current()
-            .forEach((key, baggageEntry) -> builder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
+        Baggage retained = Baggage.fromContext(retainedContext);
+        Baggage current = Baggage.fromContext(currentContext);
+        BaggageBuilder builder;
+        if (retained == current || retained.isEmpty()) {
+            builder = current.toBuilder();
+        }
+        else {
+            builder = retained.toBuilder();
+            current
+                .forEach((key, baggageEntry) -> builder.put(key, baggageEntry.getValue(), baggageEntry.getMetadata()));
+        }
         return builder.put(entry.getKey(), entry.getValue(), entry.getMetadata()).build();
-    }
-
-    /**
-     * Stores the baggage in the trace context's own context, not in the thread's, so that
-     * it never gets the span and trace context that are current on this thread.
-     */
-    private static void storeInTraceContext(OtelTraceContext traceContext, Baggage baggage) {
-        traceContext.updateContext(traceContext.context().with(baggage));
     }
 
     private void updateAttributesForBaggage(@Nullable String value, Span currentSpan) {
@@ -168,25 +180,36 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public BaggageInScope makeCurrent(@Nullable String value) {
-        return doSet(currentTraceContext.context(), value).makeCurrent();
+        return makeCurrent(updateEntry(currentTraceContext.context(), value) != null);
     }
 
     @Override
     public BaggageInScope makeCurrent(TraceContext traceContext, @Nullable String value) {
-        return doSet(traceContext, value).makeCurrent();
+        return makeCurrent(updateEntry(traceContext, value) != null);
     }
 
     @Override
-    @SuppressWarnings("MustBeClosedChecker")
     public BaggageInScope makeCurrent() {
+        return makeCurrent(false);
+    }
+
+    @SuppressWarnings({ "MustBeClosedChecker", "ReferenceEquality" })
+    private BaggageInScope makeCurrent(boolean tagCurrentSpan) {
+        Context current = Context.current();
         OtelTraceContext otelTraceContext = this.mutatedTraceContext.get();
-        Baggage baggage = baggageWithEntry(otelTraceContext);
+        Context retained = otelTraceContext != null ? otelTraceContext.context() : current;
+        Baggage baggage = baggageWithEntry(retained, current);
+        Context withBaggage = current.with(baggage);
         if (otelTraceContext != null) {
-            // already set by doSet if the baggage was set before it was made current
-            previousStoredContext.compareAndSet(null, otelTraceContext.context());
-            storeInTraceContext(otelTraceContext, baggage);
+            // Keep the context from before a preceding set, if any.
+            previousStoredContext.compareAndSet(null, retained);
+            // Equal baggage does not imply equal spans or other context entries.
+            otelTraceContext.updateContext(retained == current ? withBaggage : retained.with(baggage));
         }
-        this.scope.set(Context.current().with(baggage).makeCurrent());
+        if (tagCurrentSpan) {
+            updateAttributesForBaggage(entry().getValue(), Span.current());
+        }
+        this.scope.set(withBaggage.makeCurrent());
         return this;
     }
 
