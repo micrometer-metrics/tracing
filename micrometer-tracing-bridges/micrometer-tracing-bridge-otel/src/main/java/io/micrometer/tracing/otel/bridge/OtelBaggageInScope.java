@@ -183,6 +183,8 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         Context updated = context.with(baggage);
         OtelTraceContext otelTraceContext = this.mutatedTraceContext.get();
         if (otelTraceContext != null) {
+            // already set if doSet was called, otherwise restore this context on close
+            this.contextWithoutBaggage.compareAndSet(null, otelTraceContext.context());
             otelTraceContext.updateContext(updated);
         }
         Scope currentScope = updated.makeCurrent();

@@ -24,7 +24,6 @@ import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 
@@ -39,7 +38,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
     private static final String TRACING_OTEL_CONTEXT_KEY = "otelTraceContext";
 
-    private static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
+    static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
 
     @Override
     public @Nullable TraceContext context() {
@@ -50,9 +49,6 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         Span currentSpan = Span.current();
         if (Span.getInvalid().equals(currentSpan)) {
             return null;
-        }
-        if (currentSpan instanceof SpanFromSpanContext) {
-            return ((SpanFromSpanContext) currentSpan).parentTraceContext;
         }
         return new OtelTraceContext(currentSpan);
     }
@@ -72,30 +68,20 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
             return new WrappedScope(io.opentelemetry.context.Scope.noop());
         }
         Context current = Context.current();
-        Context oldContext = otelTraceContext.context();
-        // Check if there's a span in the static OTel context
+        // The stored context can be replaced by OtelBaggageInScope with one that does not
+        // contain this span, so store it again (no-op if it is already there)
+        Context spanContext = otelTraceContext.storeInContext(otelTraceContext.context());
         Span spanFromCurrentCtx = Span.fromContext(current);
-        // Check if there's a span in the ctx attached to TraceContext
-        Span spanFromCtxOnNewSpan = Span.fromContext(otelTraceContext.context());
-        SpanContext spanContext = otelTraceContext.delegate;
-        boolean sameSpan = spanFromCurrentCtx.getSpanContext().equals(spanFromCtxOnNewSpan.getSpanContext())
-                && spanFromCurrentCtx.getSpanContext().equals(spanContext);
-        SpanFromSpanContext fromContext = new SpanFromSpanContext(otelTraceContext.span, spanContext, otelTraceContext);
+        boolean sameSpan = spanFromCurrentCtx.getSpanContext().equals(otelTraceContext.delegate);
         Baggage currentBaggage = Baggage.fromContext(current);
-        Baggage oldBaggage = Baggage.fromContext(oldContext);
-        boolean sameBaggage = sameBaggage(currentBaggage, oldBaggage);
-        if (sameSpan && sameBaggage) {
+        Baggage spanBaggage = Baggage.fromContext(spanContext);
+        if (sameSpan && currentBaggage.equals(spanBaggage)) {
             return new WrappedScope(io.opentelemetry.context.Scope.noop());
         }
-        Baggage updatedBaggage = OtelBaggageManager.merge(currentBaggage, oldBaggage);
-        Context newContext = oldContext.with(fromContext).with(updatedBaggage).with(OTEL_CONTEXT_KEY, otelTraceContext);
+        Baggage updatedBaggage = OtelBaggageManager.merge(currentBaggage, spanBaggage);
+        Context newContext = spanContext.with(updatedBaggage);
         io.opentelemetry.context.Scope newScope = newContext.makeCurrent();
-        otelTraceContext.updateContext(newContext);
-        return new WrappedScope(newScope, otelTraceContext, oldContext);
-    }
-
-    private boolean sameBaggage(Baggage currentBaggage, Baggage oldBaggage) {
-        return currentBaggage.equals(oldBaggage);
+        return new WrappedScope(newScope);
     }
 
     @Override
@@ -132,26 +118,12 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
         final io.opentelemetry.context.Scope scope;
 
-        final @Nullable OtelTraceContext currentOtelTraceContext;
-
-        final @Nullable Context oldContext;
-
         WrappedScope(io.opentelemetry.context.Scope scope) {
-            this(scope, null, null);
-        }
-
-        WrappedScope(io.opentelemetry.context.Scope scope, @Nullable OtelTraceContext currentOtelTraceContext,
-                @Nullable Context oldContext) {
             this.scope = scope;
-            this.currentOtelTraceContext = currentOtelTraceContext;
-            this.oldContext = oldContext;
         }
 
         @Override
         public void close() {
-            if (this.currentOtelTraceContext != null) {
-                currentOtelTraceContext.updateContext(oldContext);
-            }
             this.scope.close();
         }
 
