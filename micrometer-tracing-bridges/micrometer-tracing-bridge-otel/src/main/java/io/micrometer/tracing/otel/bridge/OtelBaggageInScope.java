@@ -160,8 +160,11 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     private void updateAttributesForBaggage(@Nullable String value, Span currentSpan) {
-        if (this.tagFields.stream().anyMatch(s -> s.equalsIgnoreCase(entry().getKey()))) {
-            currentSpan.setAttribute(entry().getKey(), value);
+        for (String tagField : this.tagFields) {
+            if (tagField.equalsIgnoreCase(entry().getKey())) {
+                currentSpan.setAttribute(entry().getKey(), value);
+                return;
+            }
         }
     }
 
