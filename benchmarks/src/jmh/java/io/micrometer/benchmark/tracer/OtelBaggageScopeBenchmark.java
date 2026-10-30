@@ -24,16 +24,22 @@ import io.micrometer.tracing.otel.bridge.OtelSpan;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.baggage.BaggageBuilder;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
+import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.openjdk.jmh.annotations.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -54,6 +60,9 @@ public class OtelBaggageScopeBenchmark {
         @Param({ "true", "false" })
         public boolean recording;
 
+        @Param({ "empty", "first", "last", "absent" })
+        public String tagMatch;
+
         OpenTelemetrySdk sdk;
 
         Tracer tracer;
@@ -73,8 +82,7 @@ public class OtelBaggageScopeBenchmark {
                 .build();
             OtelCurrentTraceContext currentTraceContext = new OtelCurrentTraceContext();
             this.tracer = new OtelTracer(this.sdk.getTracer("baggage-benchmark"), currentTraceContext, event -> {
-            }, new OtelBaggageManager(currentTraceContext, Collections.singletonList("locale"),
-                    Collections.emptyList()));
+            }, new OtelBaggageManager(currentTraceContext, Collections.singletonList("locale"), tagFields()));
 
             BaggageBuilder builder = Baggage.builder();
             if (this.existingEntries == 8) {
@@ -100,6 +108,21 @@ public class OtelBaggageScopeBenchmark {
             validate(true);
         }
 
+        private List<String> tagFields() {
+            switch (this.tagMatch) {
+                case "empty":
+                    return Collections.emptyList();
+                case "first":
+                    return new ArrayList<>(Arrays.asList("LOCALE", "tenant.id", "service.region", "workflow.name"));
+                case "last":
+                    return new ArrayList<>(Arrays.asList("tenant.id", "service.region", "workflow.name", "LOCALE"));
+                case "absent":
+                    return new ArrayList<>(Arrays.asList("tenant.id", "service.region", "workflow.name", "report.id"));
+                default:
+                    throw new IllegalStateException(this.tagMatch);
+            }
+        }
+
         private void validate(boolean explicit) {
             try (Tracer.SpanInScope spanScope = this.tracer.withSpan(this.span);
                     BaggageInScope baggage = explicit
@@ -111,6 +134,15 @@ public class OtelBaggageScopeBenchmark {
                         || current.size() != Math.max(1, this.existingEntries) || currentSpan == null
                         || !this.span.context().spanId().equals(currentSpan.context().spanId())) {
                     throw new IllegalStateException("Incorrect baggage scope fixture");
+                }
+            }
+            if (this.recording) {
+                String taggedLocale = ((ReadableSpan) OtelSpan.toOtel(this.span)).toSpanData()
+                    .getAttributes()
+                    .get(AttributeKey.stringKey("locale"));
+                String expectedTag = "first".equals(this.tagMatch) || "last".equals(this.tagMatch) ? "fr-FR" : null;
+                if (!Objects.equals(taggedLocale, expectedTag)) {
+                    throw new IllegalStateException("Incorrect baggage tag fixture");
                 }
             }
             if (Context.current() != this.originalContext) {

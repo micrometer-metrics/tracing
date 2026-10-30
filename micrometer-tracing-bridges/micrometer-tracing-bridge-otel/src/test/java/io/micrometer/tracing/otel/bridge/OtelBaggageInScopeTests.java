@@ -36,6 +36,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Collections;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -350,6 +352,39 @@ class OtelBaggageInScopeTests {
         }
         finally {
             other.end();
+            span.end();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_use_tag_fields_configured_when_manager_was_created(boolean explicit) {
+        List<String> tagFields = new ArrayList<>(Collections.singletonList("locale"));
+        Tracer taggingTracer = new OtelTracer(this.openTelemetrySdk.getTracer("baggage-tagging"),
+                this.currentTraceContext, event -> {
+                }, new OtelBaggageManager(this.currentTraceContext, Collections.emptyList(), tagFields));
+        tagFields.clear();
+        tagFields.add("tenant.id");
+
+        Span span = taggingTracer.nextSpan().name("generate-report").start();
+        try (Tracer.SpanInScope spanScope = taggingTracer.withSpan(span)) {
+            try (BaggageInScope locale = explicit
+                    ? taggingTracer.createBaggageInScope(span.context(), "locale", "fr-FR")
+                    : taggingTracer.createBaggageInScope("locale", "fr-FR");
+                    BaggageInScope tenant = explicit
+                            ? taggingTracer.createBaggageInScope(span.context(), "tenant.id", "tenant-123")
+                            : taggingTracer.createBaggageInScope("tenant.id", "tenant-123")) {
+                then(Baggage.current().getEntryValue("locale")).isEqualTo("fr-FR");
+                then(Baggage.current().getEntryValue("tenant.id")).isEqualTo("tenant-123");
+                then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData()
+                    .getAttributes()
+                    .get(AttributeKey.stringKey("locale"))).isEqualTo("fr-FR");
+                then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData()
+                    .getAttributes()
+                    .get(AttributeKey.stringKey("tenant.id"))).isNull();
+            }
+        }
+        finally {
             span.end();
         }
     }

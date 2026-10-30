@@ -57,21 +57,24 @@ public class OtelBaggageManager implements BaggageManager {
      */
     private final String[] remoteFieldNames;
 
-    private final List<String> tagFields;
+    private final String[] tagFields;
 
     private final List<String> baggageFields;
 
     /**
      * Creates a new instance of {@link OtelBaggageManager}.
+     * <p>
+     * Tag field names are copied on construction. Subsequent changes to {@code tagFields}
+     * do not affect tagging.
      * @param currentTraceContext current trace context
-     * @param remoteFields remote fields names
-     * @param tagFields tag fields names
+     * @param remoteFields names of baggage fields to propagate remotely
+     * @param tagFields names of baggage fields to add as span tags
      */
     public OtelBaggageManager(CurrentTraceContext currentTraceContext, List<String> remoteFields,
             List<String> tagFields) {
         this.currentTraceContext = currentTraceContext;
         this.remoteFieldNames = remoteFields.toArray(new String[0]);
-        this.tagFields = tagFields;
+        this.tagFields = tagFields.toArray(new String[0]);
         this.baggageFields = baggageFields(tagFields, remoteFields);
     }
 
