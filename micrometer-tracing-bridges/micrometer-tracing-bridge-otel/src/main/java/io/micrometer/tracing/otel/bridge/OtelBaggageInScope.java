@@ -199,7 +199,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @SuppressWarnings({ "MustBeClosedChecker", "ReferenceEquality" })
-    private BaggageInScope makeCurrent(boolean tagCurrentSpan) {
+    BaggageInScope makeCurrent(boolean tagCurrentSpan) {
         Context current = Context.current();
         OtelTraceContext otelTraceContext = this.mutatedTraceContext.get();
         Context retained = otelTraceContext != null ? otelTraceContext.context() : current;
