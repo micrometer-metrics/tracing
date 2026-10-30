@@ -57,21 +57,24 @@ public class OtelBaggageManager implements BaggageManager {
      */
     private final String[] remoteFieldNames;
 
-    private final List<String> tagFields;
+    private final String[] tagFields;
 
     private final List<String> baggageFields;
 
     /**
      * Creates a new instance of {@link OtelBaggageManager}.
+     * <p>
+     * Tag field names are copied on construction. Subsequent changes to {@code tagFields}
+     * do not affect tagging.
      * @param currentTraceContext current trace context
-     * @param remoteFields remote fields names
-     * @param tagFields tag fields names
+     * @param remoteFields names of baggage fields to propagate remotely
+     * @param tagFields names of baggage fields to add as span tags
      */
     public OtelBaggageManager(CurrentTraceContext currentTraceContext, List<String> remoteFields,
             List<String> tagFields) {
         this.currentTraceContext = currentTraceContext;
         this.remoteFieldNames = remoteFields.toArray(new String[0]);
-        this.tagFields = tagFields;
+        this.tagFields = tagFields.toArray(new String[0]);
         this.baggageFields = baggageFields(tagFields, remoteFields);
     }
 
@@ -179,7 +182,7 @@ public class OtelBaggageManager implements BaggageManager {
         return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
     }
 
-    private io.micrometer.tracing.Baggage otelBaggage(OtelTraceContext otelTraceContext, Entry entry) {
+    private OtelBaggageInScope otelBaggage(OtelTraceContext otelTraceContext, Entry entry) {
         return new OtelBaggageInScope(this, this.currentTraceContext, otelTraceContext, this.tagFields, entry);
     }
 
@@ -203,13 +206,16 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
-        return baggageWithValue(name, value).makeCurrent(traceContext, value);
+        return otelBaggage((OtelTraceContext) traceContext, baggageEntry(name, value)).makeCurrent(true);
     }
 
     private io.micrometer.tracing.Baggage baggageWithValue(String name, @Nullable String value) {
+        return otelBaggage(baggageEntry(name, value));
+    }
+
+    private Entry baggageEntry(String name, @Nullable String value) {
         BaggageEntryMetadata entryMetadata = isRemoteField(name) ? UNLIMITED_METADATA : NO_METADATA;
-        Entry entry = new Entry(name, value, entryMetadata);
-        return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
+        return new Entry(name, value, entryMetadata);
     }
 
     private boolean isRemoteField(String name) {

@@ -27,7 +27,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,7 +45,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     private final CurrentTraceContext currentTraceContext;
 
-    private final List<String> tagFields;
+    private final String[] tagFields;
 
     private final AtomicReference<@Nullable Entry> entry = new AtomicReference<>();
 
@@ -60,7 +60,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     private final AtomicReference<@Nullable Scope> scope = new AtomicReference<>();
 
     OtelBaggageInScope(OtelBaggageManager otelBaggageManager, CurrentTraceContext currentTraceContext,
-            List<String> tagFields, Entry entry) {
+            String[] tagFields, Entry entry) {
         this.otelBaggageManager = otelBaggageManager;
         this.currentTraceContext = currentTraceContext;
         this.mutatedTraceContext.set((OtelTraceContext) currentTraceContext.context());
@@ -72,7 +72,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     OtelBaggageInScope(OtelBaggageManager otelBaggageManager, CurrentTraceContext currentTraceContext,
-            OtelTraceContext traceContext, List<String> tagFields, Entry entry) {
+            OtelTraceContext traceContext, String[] tagFields, Entry entry) {
         this.otelBaggageManager = otelBaggageManager;
         this.currentTraceContext = currentTraceContext;
         this.mutatedTraceContext.set(traceContext);
@@ -160,8 +160,11 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     private void updateAttributesForBaggage(@Nullable String value, Span currentSpan) {
-        if (this.tagFields.stream().anyMatch(s -> s.equalsIgnoreCase(entry().getKey()))) {
-            currentSpan.setAttribute(entry().getKey(), value);
+        for (String tagField : this.tagFields) {
+            if (tagField.equalsIgnoreCase(entry().getKey())) {
+                currentSpan.setAttribute(entry().getKey(), value);
+                return;
+            }
         }
     }
 
@@ -196,7 +199,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
     }
 
     @SuppressWarnings({ "MustBeClosedChecker", "ReferenceEquality" })
-    private BaggageInScope makeCurrent(boolean tagCurrentSpan) {
+    BaggageInScope makeCurrent(boolean tagCurrentSpan) {
         Context current = Context.current();
         OtelTraceContext otelTraceContext = this.mutatedTraceContext.get();
         Context retained = otelTraceContext != null ? otelTraceContext.context() : current;
@@ -230,7 +233,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public String toString() {
-        return "OtelBaggageInScope{" + "tagFields=" + tagFields + ", entry=" + entry + '}';
+        return "OtelBaggageInScope{" + "tagFields=" + Arrays.toString(tagFields) + ", entry=" + entry + '}';
     }
 
 }
