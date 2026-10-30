@@ -50,10 +50,8 @@ public class OtelBaggageManager implements BaggageManager {
 
     private final CurrentTraceContext currentTraceContext;
 
-    private final List<String> remoteFields;
-
     /**
-     * {@link #remoteFields} as an array so that lookups can use
+     * Remote field names as an array so that lookups can use
      * {@link String#equalsIgnoreCase(String)} instead of allocating lower-cased copies on
      * every call.
      */
@@ -72,7 +70,6 @@ public class OtelBaggageManager implements BaggageManager {
     public OtelBaggageManager(CurrentTraceContext currentTraceContext, List<String> remoteFields,
             List<String> tagFields) {
         this.currentTraceContext = currentTraceContext;
-        this.remoteFields = remoteFields;
         this.remoteFieldNames = remoteFields.toArray(new String[0]);
         this.tagFields = tagFields;
         this.baggageFields = baggageFields(tagFields, remoteFields);
@@ -226,7 +223,7 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public List<String> getBaggageFields() {
-        return this.remoteFields;
+        return this.baggageFields;
     }
 
     static Baggage merge(Baggage base, Baggage overrides) {
