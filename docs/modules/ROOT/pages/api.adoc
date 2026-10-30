@@ -65,6 +65,16 @@ IMPORTANT: For Brave, remember to set up the `PropagationFactory` so that it con
 include::{include-java}/tracing/TracingApiTests.java[tags=baggage_brave_setup,indent=0]
 -----
 
+=== Baggage Tags with OpenTelemetry
+
+Fields configured in `OtelBaggageManager`'s `tagFields` are applied as tags to the current span when their baggage value is set or put in scope.
+Retrieving baggage with `getBaggage(...)` or reading its value with `get()` does not tag the span.
+Calling `makeCurrent()` on an existing baggage handle applies its configured tag to the span that is current when the scope is opened.
+Closing the baggage scope restores the previous baggage; it does not restore the span's previous tag value.
+
+To tag spans with baggage already present when they start, configure a `BaggageTaggingSpanProcessor` on the OpenTelemetry `SdkTracerProvider`.
+This also covers baggage extracted from incoming requests, without requiring a baggage lookup in application code.
+
 === Baggage with Micrometer Observation API
 
 If you're using Micrometer Observation API, there's no notion of baggage. If you set up a `BaggageManager` to have the baggage fields configured, we will assume that when the Observation gets put in scope, whatever low and high cardinality keys are set on the Observation will be put in scope as baggage (assuming that their names match with the configuration on the `BaggageManager`). Below you can find example of such setup with OpenTelemetry `BaggageManager`.

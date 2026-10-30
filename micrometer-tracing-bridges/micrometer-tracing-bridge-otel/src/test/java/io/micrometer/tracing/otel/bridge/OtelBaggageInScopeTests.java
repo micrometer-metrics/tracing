@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -317,6 +318,93 @@ class OtelBaggageInScopeTests {
 
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
+    void should_not_tag_current_span_when_reading_baggage(boolean explicit) {
+        Tracer taggingTracer = taggingTracer();
+        Span span = taggingTracer.nextSpan().name("generate-report").start();
+        span.tag("locale", "custom");
+        try (Tracer.SpanInScope spanScope = taggingTracer.withSpan(span);
+                Scope current = CURRENT_BAGGAGE.makeCurrent()) {
+            io.micrometer.tracing.Baggage locale = explicit
+                    ? Objects.requireNonNull(taggingTracer.getBaggage(span.context(), "locale"))
+                    : taggingTracer.getBaggage("locale");
+            io.micrometer.tracing.Baggage format = explicit
+                    ? Objects.requireNonNull(taggingTracer.getBaggage(span.context(), "report.format"))
+                    : taggingTracer.getBaggage("report.format");
+
+            then(locale.get()).isEqualTo("de-DE");
+            then(format.get()).isEqualTo("html");
+            then(taggingTracer.getAllBaggage()).containsEntry("locale", "de-DE").containsEntry("report.format", "html");
+            then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData().getAttributes().asMap())
+                .isEqualTo(Collections.singletonMap(AttributeKey.stringKey("locale"), "custom"));
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_tag_current_span_when_activating_existing_baggage(boolean explicit) {
+        Tracer taggingTracer = taggingTracer();
+        Span span = taggingTracer.nextSpan().name("generate-report").start();
+        try (Tracer.SpanInScope spanScope = taggingTracer.withSpan(span);
+                Scope current = CURRENT_BAGGAGE.makeCurrent()) {
+            io.micrometer.tracing.Baggage baggage = explicit
+                    ? Objects.requireNonNull(taggingTracer.getBaggage(span.context(), "locale"))
+                    : taggingTracer.getBaggage("locale");
+            then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData().getAttributes().isEmpty()).isTrue();
+            Context previous = Context.current();
+            OtelTraceContext target = (OtelTraceContext) span.context();
+            Context retained = target.context();
+
+            try (BaggageInScope scope = baggage.makeCurrent()) {
+                then(Baggage.current().getEntryValue("locale")).isEqualTo("de-DE");
+                then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData()
+                    .getAttributes()
+                    .get(AttributeKey.stringKey("locale"))).isEqualTo("de-DE");
+            }
+            then(Context.current()).isSameAs(previous);
+            then(target.context()).isSameAs(retained);
+            then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData()
+                .getAttributes()
+                .get(AttributeKey.stringKey("locale"))).isEqualTo("de-DE");
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_tag_span_current_at_baggage_activation(boolean explicit) {
+        Tracer taggingTracer = taggingTracer();
+        Span first = taggingTracer.nextSpan().name("prepare-report").start();
+        Span second = taggingTracer.nextSpan().name("generate-report").start();
+        try {
+            io.micrometer.tracing.Baggage baggage;
+            try (Tracer.SpanInScope spanScope = taggingTracer.withSpan(first);
+                    Scope current = CURRENT_BAGGAGE.makeCurrent()) {
+                baggage = explicit ? Objects.requireNonNull(taggingTracer.getBaggage(first.context(), "locale"))
+                        : taggingTracer.getBaggage("locale");
+            }
+            try (Tracer.SpanInScope spanScope = taggingTracer.withSpan(second);
+                    BaggageInScope scope = baggage.makeCurrent()) {
+                then(taggingTracer.currentSpan()).isEqualTo(second);
+                then(Baggage.current().getEntryValue("locale")).isEqualTo("de-DE");
+                then(((ReadableSpan) OtelSpan.toOtel(first)).toSpanData().getAttributes().isEmpty()).isTrue();
+                then(((ReadableSpan) OtelSpan.toOtel(second)).toSpanData()
+                    .getAttributes()
+                    .get(AttributeKey.stringKey("locale"))).isEqualTo("de-DE");
+            }
+        }
+        finally {
+            second.end();
+            first.end();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
     void should_tag_current_span_once_before_attaching_baggage(boolean explicit) {
         Tracer taggingTracer = new OtelTracer(this.openTelemetrySdk.getTracer("baggage-tagging"),
                 this.currentTraceContext, event -> {
@@ -387,6 +475,12 @@ class OtelBaggageInScopeTests {
         finally {
             span.end();
         }
+    }
+
+    private Tracer taggingTracer() {
+        return new OtelTracer(this.openTelemetrySdk.getTracer("baggage-tagging"), this.currentTraceContext, event -> {
+        }, new OtelBaggageManager(this.currentTraceContext, Collections.singletonList("locale"),
+                Arrays.asList("LOCALE", "report.format")));
     }
 
     private OtelTraceContext traceContextWithRetainedBaggage(Span span) {
