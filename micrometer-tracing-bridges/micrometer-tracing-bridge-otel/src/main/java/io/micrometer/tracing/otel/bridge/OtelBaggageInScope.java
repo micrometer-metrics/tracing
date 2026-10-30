@@ -180,12 +180,14 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public BaggageInScope makeCurrent(@Nullable String value) {
-        return makeCurrent(updateEntry(currentTraceContext.context(), value) != null);
+        boolean entryUpdated = updateEntry(currentTraceContext.context(), value) != null;
+        return makeCurrent(entryUpdated);
     }
 
     @Override
     public BaggageInScope makeCurrent(TraceContext traceContext, @Nullable String value) {
-        return makeCurrent(updateEntry(traceContext, value) != null);
+        updateEntry(traceContext, value);
+        return makeCurrent(true);
     }
 
     @Override
