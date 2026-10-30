@@ -106,6 +106,10 @@ public class OtelBaggageManager implements BaggageManager {
         return toMap(baggage((OtelTraceContext) traceContext));
     }
 
+    @Nullable TraceContext currentTraceContext() {
+        return this.currentTraceContext.context();
+    }
+
     CompositeBaggage currentBaggage() {
         return baggage((OtelTraceContext) currentTraceContext.context());
     }
@@ -179,11 +183,11 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     private io.micrometer.tracing.Baggage otelBaggage(Entry entry) {
-        return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
+        return new OtelBaggageInScope(this, this.tagFields, entry);
     }
 
     private OtelBaggageInScope otelBaggage(OtelTraceContext otelTraceContext, Entry entry) {
-        return new OtelBaggageInScope(this, this.currentTraceContext, otelTraceContext, this.tagFields, entry);
+        return new OtelBaggageInScope(this, otelTraceContext, this.tagFields, entry);
     }
 
     @Override
