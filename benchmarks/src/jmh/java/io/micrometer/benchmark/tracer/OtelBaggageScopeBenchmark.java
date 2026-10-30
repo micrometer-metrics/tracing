@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class OtelBaggageScopeBenchmark {
 
-    @State(org.openjdk.jmh.annotations.Scope.Thread)
+    @State(Scope.Thread)
     public static class BaggageState {
 
         @Param({ "0", "8" })
