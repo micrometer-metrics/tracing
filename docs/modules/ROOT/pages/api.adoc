@@ -65,6 +65,35 @@ IMPORTANT: For Brave, remember to set up the `PropagationFactory` so that it con
 include::{include-java}/tracing/TracingApiTests.java[tags=baggage_brave_setup,indent=0]
 -----
 
+=== Baggage Tags
+
+Both the Brave and OpenTelemetry bridges support copying selected baggage values to span tags.
+Configure the desired field names through the `tagFields` constructor argument of `BraveBaggageManager` or `OtelBaggageManager`.
+Remote propagation and span tagging are configured separately: configuring a remote field does not by itself configure a span tag.
+
+When a span is in scope, `createBaggageInScope(name, value)` applies the value as a tag to that span if the field is configured for tagging.
+Retrieving baggage with `getBaggage(...)` or reading its value with `get()` does not tag the span.
+
+For example, with `locale` configured as a tag field and a span already in scope:
+
+[source,java]
+----
+try (BaggageInScope baggage = tracer.createBaggageInScope("locale", "fr-FR")) {
+    // The span is tagged with locale=fr-FR, and the baggage is available here.
+}
+----
+
+Closing the baggage scope restores the previous baggage; it does not restore the span's previous tag value.
+If a nested baggage scope changes the same tag, that tag retains the nested value after the scope closes.
+
+NOTE: Tagging through an existing baggage handle differs between bridges.
+Brave captures the current span when the handle is obtained and uses that span when setting a value; its no-argument `makeCurrent()` does not apply tags.
+OpenTelemetry applies tags to the span current when a value is set or the handle is put in scope, including through no-argument `makeCurrent()`.
+Use `createBaggageInScope(name, value)` at the point of use for the common behavior shown above.
+
+With OpenTelemetry, configure a `BaggageTaggingSpanProcessor` on the `SdkTracerProvider` to tag spans with baggage already present when they start.
+This also covers baggage extracted from incoming requests, without requiring a baggage lookup in application code.
+
 === Baggage with Micrometer Observation API
 
 If you're using Micrometer Observation API, there's no notion of baggage. If you set up a `BaggageManager` to have the baggage fields configured, we will assume that when the Observation gets put in scope, whatever low and high cardinality keys are set on the Observation will be put in scope as baggage (assuming that their names match with the configuration on the `BaggageManager`). Below you can find example of such setup with OpenTelemetry `BaggageManager`.
