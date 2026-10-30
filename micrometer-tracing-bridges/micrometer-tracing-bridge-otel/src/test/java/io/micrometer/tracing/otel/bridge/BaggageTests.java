@@ -45,6 +45,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
@@ -310,6 +312,45 @@ class BaggageTests {
         then(spanData.getAttributes().get(AttributeKey.stringKey(KEY_1))).isEqualTo(TAG_VALUE);
         then(spanData.getAttributes().get(AttributeKey.stringKey(OBSERVATION_BAGGAGE_KEY)))
             .isEqualTo(OBSERVATION_BAGGAGE_VALUE);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_scope_observation_key_values_for_tag_only_baggage(boolean highCardinality) {
+        OtelBaggageManager baggageManager = new OtelBaggageManager(this.otelCurrentTraceContext,
+                Collections.singletonList("request.channel"), Arrays.asList("request.channel", "report.format"));
+        Tracer baggageTracer = new OtelTracer(this.otelTracer, this.otelCurrentTraceContext, event -> {
+        }, baggageManager);
+        ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(new DefaultTracingObservationHandler(baggageTracer));
+        Observation observation = Observation.createNotStarted("generate-report", registry)
+            .lowCardinalityKeyValue("request.channel", "web");
+        if (highCardinality) {
+            observation.highCardinalityKeyValue("report.format", "pdf");
+        }
+        else {
+            observation.lowCardinalityKeyValue("report.format", "pdf");
+        }
+        observation.start();
+        io.opentelemetry.context.Context previous = io.opentelemetry.context.Context.current();
+        try (Scope scope = observation.openScope()) {
+            then(io.opentelemetry.api.baggage.Baggage.current().getEntryValue("report.format")).isEqualTo("pdf");
+            then(baggageTracer.getBaggage("report.format").get()).isEqualTo("pdf");
+            then(baggageTracer.getBaggageFields()).containsExactlyInAnyOrder("request.channel", "report.format");
+
+            Map<String, String> carrier = new HashMap<>();
+            TextMapPropagator
+                .composite(W3CBaggagePropagator.getInstance(),
+                        new BaggageTextMapPropagator(Collections.singletonList("request.channel")))
+                .inject(io.opentelemetry.context.Context.current(), carrier,
+                        (headers, name, value) -> Objects.requireNonNull(headers).put(name, value));
+            then(carrier).containsEntry("request.channel", "web").doesNotContainKey("report.format");
+            then(carrier.get("baggage")).contains("report.format=pdf");
+        }
+        finally {
+            observation.stop();
+        }
+        then(io.opentelemetry.context.Context.current()).isSameAs(previous);
     }
 
     @Test
