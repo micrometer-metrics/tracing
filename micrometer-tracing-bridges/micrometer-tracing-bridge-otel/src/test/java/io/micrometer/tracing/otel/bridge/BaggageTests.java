@@ -39,6 +39,7 @@ import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.assertj.core.api.Assertions;
@@ -335,7 +336,13 @@ class BaggageTests {
         io.opentelemetry.context.Context previous = io.opentelemetry.context.Context.current();
         try (Scope scope = observation.openScope()) {
             then(io.opentelemetry.api.baggage.Baggage.current().getEntryValue("report.format")).isEqualTo("pdf");
-            then(baggageTracer.getBaggage("report.format").get()).isEqualTo("pdf");
+            Span span = Objects.requireNonNull(baggageTracer.currentSpan());
+            then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData()
+                .getAttributes()
+                .get(AttributeKey.stringKey("report.format"))).isEqualTo("pdf");
+            // Use an explicit-context read to avoid tagging through the baggage lookup.
+            then(Objects.requireNonNull(baggageTracer.getBaggage(span.context(), "report.format")).get())
+                .isEqualTo("pdf");
             then(baggageTracer.getBaggageFields()).containsExactlyInAnyOrder("request.channel", "report.format");
 
             Map<String, String> carrier = new HashMap<>();
@@ -351,6 +358,9 @@ class BaggageTests {
             observation.stop();
         }
         then(io.opentelemetry.context.Context.current()).isSameAs(previous);
+        then(this.spanExporter.getFinishedSpanItems()).hasSize(1);
+        SpanData spanData = this.spanExporter.getFinishedSpanItems().get(0);
+        then(spanData.getAttributes().get(AttributeKey.stringKey("report.format"))).isEqualTo("pdf");
     }
 
     @Test
