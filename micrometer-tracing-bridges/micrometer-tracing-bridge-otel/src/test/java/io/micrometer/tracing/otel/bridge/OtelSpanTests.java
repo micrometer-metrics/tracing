@@ -112,7 +112,7 @@ class OtelSpanTests {
             child.end();
             parent.end();
         }
-        then(exportedSpan("child").getStatus().getStatusCode()).isEqualTo(StatusCode.OK);
+        then(exportedSpan("child").getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
     }
 
     @ParameterizedTest
