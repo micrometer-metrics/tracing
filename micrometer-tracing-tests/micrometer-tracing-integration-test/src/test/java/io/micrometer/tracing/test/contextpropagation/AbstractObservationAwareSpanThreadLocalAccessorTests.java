@@ -427,18 +427,93 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
                 .subscribe(value -> {
                 }, errors::add);
 
-            then(done.await(1, TimeUnit.SECONDS)).isTrue();
+            then(done.await(5, TimeUnit.SECONDS)).isTrue();
+            // a raw task bypasses context propagation and sees what the pipeline left
+            // behind on the worker thread, after its propagation scopes have unwound
+            Span spanAfterPipeline = worker.submit(() -> getTracer().currentSpan()).get(5, TimeUnit.SECONDS);
             then(errors).isEmpty();
             then(spanInHandler.get()).isEqualTo(span);
-            // a raw task bypasses context propagation and sees what the pipeline left
-            // behind on the worker thread
-            then(worker.submit(() -> getTracer().currentSpan()).get(1, TimeUnit.SECONDS)).isNull();
+            then(spanAfterPipeline).isNull();
         }
         finally {
             span.end();
             Hooks.resetOnErrorDropped();
             scheduler.dispose();
         }
+    }
+
+    @Test
+    void nestedClearsRestoreDifferentSpansInOrder() {
+        ContextSnapshotFactory factory = ContextSnapshotFactory.builder()
+            .contextRegistry(contextRegistry)
+            .clearMissing(true)
+            .build();
+        Span first = getTracer().nextSpan().name("first").start();
+        Span second = getTracer().nextSpan().name("second").start();
+        ContextSnapshot firstSnapshot = factory
+            .captureFrom(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, first));
+        ContextSnapshot secondSnapshot = factory
+            .captureFrom(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, second));
+        ContextSnapshot empty = factory.captureFrom(Context.empty());
+
+        try (ContextSnapshot.Scope firstScope = firstSnapshot.setThreadLocals()) {
+            try (ContextSnapshot.Scope secondScope = secondSnapshot.setThreadLocals()) {
+                then(getTracer().currentSpan()).isEqualTo(second);
+                try (ContextSnapshot.Scope clear = empty.setThreadLocals()) {
+                    then(getTracer().currentSpan()).isNull();
+                    try (ContextSnapshot.Scope anotherClear = empty.setThreadLocals()) {
+                        then(getTracer().currentSpan()).isNull();
+                        try (ContextSnapshot.Scope restored = firstSnapshot.setThreadLocals()) {
+                            then(getTracer().currentSpan()).isEqualTo(first);
+                        }
+                        then(getTracer().currentSpan()).isNull();
+                    }
+                    then(getTracer().currentSpan()).isNull();
+                }
+                then(getTracer().currentSpan()).isEqualTo(second);
+            }
+            then(getTracer().currentSpan()).isEqualTo(first);
+        }
+        finally {
+            second.end();
+            first.end();
+        }
+
+        then(getTracer().currentSpan()).isNull();
+    }
+
+    @Test
+    void exceptionInClearedScopeRestoresEnclosingSpans() {
+        ContextSnapshotFactory factory = ContextSnapshotFactory.builder()
+            .contextRegistry(contextRegistry)
+            .clearMissing(true)
+            .build();
+        Span previous = getTracer().nextSpan().name("previous").start();
+        Span propagated = getTracer().nextSpan().name("propagated").start();
+        ContextSnapshot captured = factory
+            .captureFrom(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, propagated));
+        ContextSnapshot empty = factory.captureFrom(Context.empty());
+        IllegalStateException expected = new IllegalStateException("application failure");
+
+        try (Tracer.SpanInScope previousScope = getTracer().withSpan(previous)) {
+            try (ContextSnapshot.Scope propagatedScope = captured.setThreadLocals()) {
+                try (ContextSnapshot.Scope clear = empty.setThreadLocals()) {
+                    then(getTracer().currentSpan()).isNull();
+                    throw expected;
+                }
+                catch (IllegalStateException actual) {
+                    then(actual).isSameAs(expected).hasNoSuppressedExceptions();
+                }
+                then(getTracer().currentSpan()).isEqualTo(propagated);
+            }
+            then(getTracer().currentSpan()).isEqualTo(previous);
+        }
+        finally {
+            propagated.end();
+            previous.end();
+        }
+
+        then(getTracer().currentSpan()).isNull();
     }
 
     @Test

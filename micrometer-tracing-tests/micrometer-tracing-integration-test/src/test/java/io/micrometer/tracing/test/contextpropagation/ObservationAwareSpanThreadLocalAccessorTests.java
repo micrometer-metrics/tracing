@@ -86,6 +86,18 @@ class ObservationAwareSpanThreadLocalAccessorTests {
                     "Simple tracer doesn't restore the previous span when a null scope is closed");
         }
 
+        @Override
+        void nestedClearsRestoreDifferentSpansInOrder() {
+            Assumptions.assumeFalse(true,
+                    "Simple tracer doesn't restore the previous span when a null scope is closed");
+        }
+
+        @Override
+        void exceptionInClearedScopeRestoresEnclosingSpans() {
+            Assumptions.assumeFalse(true,
+                    "Simple tracer doesn't restore the previous span when a null scope is closed");
+        }
+
     }
 
     @Nested
