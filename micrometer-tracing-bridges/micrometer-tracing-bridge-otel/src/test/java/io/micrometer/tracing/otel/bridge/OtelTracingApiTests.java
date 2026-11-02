@@ -33,6 +33,8 @@ import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.slf4j.MDC;
 
 import java.util.*;
@@ -411,13 +413,30 @@ class OtelTracingApiTests {
         then(tracer.currentSpan()).isNull();
     }
 
-    @Test
-    void should_set_ok_status_for_span() {
-        this.tracer.nextSpan().end();
+    @ParameterizedTest
+    @EnumSource(StatusCode.class)
+    void should_preserve_status_when_ending_span(StatusCode statusCode) {
+        Span span = this.tracer.nextSpan();
+        OtelSpan.toOtel(span).setStatus(statusCode);
+
+        span.end();
 
         SpanData spanData = spanExporter.getFinishedSpanItems().get(0);
         assertThat(spanData).isNotNull();
-        then(spanData.getStatus()).isEqualTo(StatusData.ok());
+        then(spanData.getStatus()).isEqualTo(StatusData.create(statusCode, ""));
+    }
+
+    @Test
+    void should_leave_status_unset_for_spans_in_same_trace() {
+        Span parent = this.tracer.nextSpan().name("parent").start();
+        this.tracer.nextSpan(parent).name("child").start().end();
+        this.tracer.spanBuilder().setParent(parent.context()).name("builder child").start().end();
+        parent.end();
+
+        then(spanExporter.getFinishedSpanItems()).hasSize(3).allSatisfy(spanData -> {
+            then(spanData.getTraceId()).isEqualTo(parent.context().traceId());
+            then(spanData.getStatus()).isEqualTo(StatusData.unset());
+        });
     }
 
     @Test
@@ -434,13 +453,17 @@ class OtelTracingApiTests {
         assertThat(spanData.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "something went wrong"));
     }
 
-    @Test
-    void should_set_ok_status_for_timed_span() {
-        this.tracer.nextSpan().end(1, TimeUnit.SECONDS);
+    @ParameterizedTest
+    @EnumSource(StatusCode.class)
+    void should_preserve_status_when_ending_timed_span(StatusCode statusCode) {
+        Span span = this.tracer.nextSpan();
+        OtelSpan.toOtel(span).setStatus(statusCode);
+
+        span.end(1, TimeUnit.SECONDS);
 
         SpanData spanData = spanExporter.getFinishedSpanItems().get(0);
         assertThat(spanData).isNotNull();
-        then(spanData.getStatus()).isEqualTo(StatusData.ok());
+        then(spanData.getStatus()).isEqualTo(StatusData.create(statusCode, ""));
     }
 
     @Test
@@ -457,13 +480,17 @@ class OtelTracingApiTests {
         assertThat(spanData.getStatus()).isEqualTo(StatusData.create(StatusCode.ERROR, "something went wrong"));
     }
 
-    @Test
-    void should_set_ok_status_for_scoped_span() {
-        this.tracer.startScopedSpan("scoped").end();
+    @ParameterizedTest
+    @EnumSource(StatusCode.class)
+    void should_preserve_status_when_ending_scoped_span(StatusCode statusCode) {
+        ScopedSpan span = this.tracer.startScopedSpan("scoped");
+        io.opentelemetry.api.trace.Span.current().setStatus(statusCode);
+
+        span.end();
 
         SpanData spanData = spanExporter.getFinishedSpanItems().get(0);
         assertThat(spanData).isNotNull();
-        then(spanData.getStatus()).isEqualTo(StatusData.ok());
+        then(spanData.getStatus()).isEqualTo(StatusData.create(statusCode, ""));
     }
 
     @Test
