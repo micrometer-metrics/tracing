@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class OtelTraceContext implements TraceContext {
 
-    final AtomicReference<@Nullable Context> otelContext;
+    final AtomicReference<Context> otelContext;
 
     final SpanContext delegate;
 
@@ -127,8 +127,7 @@ public class OtelTraceContext implements TraceContext {
     }
 
     Context context() {
-        Context ctx = this.otelContext.get();
-        return ctx != null ? ctx : Context.root();
+        return this.otelContext.get();
     }
 
     SpanContext spanContext() {
@@ -152,7 +151,7 @@ public class OtelTraceContext implements TraceContext {
         return context.with(OtelCurrentTraceContext.OTEL_CONTEXT_KEY, this);
     }
 
-    void updateContext(@Nullable Context context) {
+    void updateContext(Context context) {
         this.otelContext.set(context);
     }
 
