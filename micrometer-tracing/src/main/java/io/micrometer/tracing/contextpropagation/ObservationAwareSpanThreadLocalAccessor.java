@@ -158,7 +158,11 @@ public class ObservationAwareSpanThreadLocalAccessor implements ThreadLocalAcces
         if (log.isTraceEnabled()) {
             log.trace("Null scope created");
         }
-        spanAction.setScope(scope);
+        // Each setValue call is paired with its own restore call, so keep the null scope
+        // separate from the scope of the span that is being hidden
+        SpanAction newSpanAction = new SpanAction(spanActions, spanAction);
+        spanActions.put(Thread.currentThread(), newSpanAction);
+        newSpanAction.setScope(scope);
     }
 
     @Override

@@ -74,6 +74,30 @@ class ObservationAwareSpanThreadLocalAccessorTests {
             Assumptions.assumeFalse(true, "Simple tracer doesn't support baggage propagation");
         }
 
+        @Override
+        void nestedClearDoesNotLoseOuterSpanScope() {
+            Assumptions.assumeFalse(true,
+                    "Simple tracer doesn't restore the previous span when a null scope is closed");
+        }
+
+        @Override
+        void reactorSubscriberWithoutSpanDoesNotLeakSpanToWorkerThread() {
+            Assumptions.assumeFalse(true,
+                    "Simple tracer doesn't restore the previous span when a null scope is closed");
+        }
+
+        @Override
+        void nestedClearsRestoreDifferentSpansInOrder() {
+            Assumptions.assumeFalse(true,
+                    "Simple tracer doesn't restore the previous span when a null scope is closed");
+        }
+
+        @Override
+        void exceptionInClearedScopeRestoresEnclosingSpans() {
+            Assumptions.assumeFalse(true,
+                    "Simple tracer doesn't restore the previous span when a null scope is closed");
+        }
+
     }
 
     @Nested

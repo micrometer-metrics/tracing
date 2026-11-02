@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
 
@@ -52,6 +53,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
@@ -375,6 +377,143 @@ abstract class AbstractObservationAwareSpanThreadLocalAccessorTests {
             .block();
 
         assertThat(tenant).isEqualTo("tenantValue");
+    }
+
+    @Test
+    void nestedClearDoesNotLoseOuterSpanScope() {
+        ContextSnapshotFactory factory = ContextSnapshotFactory.builder()
+            .contextRegistry(contextRegistry)
+            .clearMissing(true)
+            .build();
+        Span span = getTracer().nextSpan().name("parent").start();
+        ContextSnapshot withSpan = factory.captureFrom(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, span));
+        ContextSnapshot withoutSpan = factory.captureFrom(Context.empty());
+
+        try (ContextSnapshot.Scope outer = withSpan.setThreadLocals()) {
+            try (ContextSnapshot.Scope inner = withSpan.setThreadLocals()) {
+                try (ContextSnapshot.Scope cleared = withoutSpan.setThreadLocals()) {
+                    then(getTracer().currentSpan()).isNull();
+                }
+                then(getTracer().currentSpan()).isEqualTo(span);
+            }
+            then(getTracer().currentSpan()).isEqualTo(span);
+        }
+        finally {
+            span.end();
+        }
+
+        then(getTracer().currentSpan()).isNull();
+    }
+
+    @Test
+    void reactorSubscriberWithoutSpanDoesNotLeakSpanToWorkerThread() throws Exception {
+        ExecutorService worker = Executors.newSingleThreadExecutor();
+        Scheduler scheduler = Schedulers.fromExecutorService(worker);
+        List<Throwable> errors = new CopyOnWriteArrayList<>();
+        Hooks.onErrorDropped(errors::add);
+        Span span = getTracer().nextSpan().name("parent").start();
+        try {
+            CountDownLatch done = new CountDownLatch(1);
+            AtomicReference<Span> spanInHandler = new AtomicReference<>();
+
+            // the subscriber's Reactor Context has no span, so the span is cleared while
+            // it is still in scope
+            Mono.just("hello").publishOn(scheduler).<String>handle((value, sink) -> {
+                spanInHandler.set(getTracer().currentSpan());
+                sink.next(value);
+            })
+                .contextWrite(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, span))
+                .doFinally(signal -> done.countDown())
+                .subscribe(value -> {
+                }, errors::add);
+
+            then(done.await(5, TimeUnit.SECONDS)).isTrue();
+            // a raw task bypasses context propagation and sees what the pipeline left
+            // behind on the worker thread, after its propagation scopes have unwound
+            Span spanAfterPipeline = worker.submit(() -> getTracer().currentSpan()).get(5, TimeUnit.SECONDS);
+            then(errors).isEmpty();
+            then(spanInHandler.get()).isEqualTo(span);
+            then(spanAfterPipeline).isNull();
+        }
+        finally {
+            span.end();
+            Hooks.resetOnErrorDropped();
+            scheduler.dispose();
+        }
+    }
+
+    @Test
+    void nestedClearsRestoreDifferentSpansInOrder() {
+        ContextSnapshotFactory factory = ContextSnapshotFactory.builder()
+            .contextRegistry(contextRegistry)
+            .clearMissing(true)
+            .build();
+        Span first = getTracer().nextSpan().name("first").start();
+        Span second = getTracer().nextSpan().name("second").start();
+        ContextSnapshot firstSnapshot = factory
+            .captureFrom(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, first));
+        ContextSnapshot secondSnapshot = factory
+            .captureFrom(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, second));
+        ContextSnapshot empty = factory.captureFrom(Context.empty());
+
+        try (ContextSnapshot.Scope firstScope = firstSnapshot.setThreadLocals()) {
+            try (ContextSnapshot.Scope secondScope = secondSnapshot.setThreadLocals()) {
+                then(getTracer().currentSpan()).isEqualTo(second);
+                try (ContextSnapshot.Scope clear = empty.setThreadLocals()) {
+                    then(getTracer().currentSpan()).isNull();
+                    try (ContextSnapshot.Scope anotherClear = empty.setThreadLocals()) {
+                        then(getTracer().currentSpan()).isNull();
+                        try (ContextSnapshot.Scope restored = firstSnapshot.setThreadLocals()) {
+                            then(getTracer().currentSpan()).isEqualTo(first);
+                        }
+                        then(getTracer().currentSpan()).isNull();
+                    }
+                    then(getTracer().currentSpan()).isNull();
+                }
+                then(getTracer().currentSpan()).isEqualTo(second);
+            }
+            then(getTracer().currentSpan()).isEqualTo(first);
+        }
+        finally {
+            second.end();
+            first.end();
+        }
+
+        then(getTracer().currentSpan()).isNull();
+    }
+
+    @Test
+    void exceptionInClearedScopeRestoresEnclosingSpans() {
+        ContextSnapshotFactory factory = ContextSnapshotFactory.builder()
+            .contextRegistry(contextRegistry)
+            .clearMissing(true)
+            .build();
+        Span previous = getTracer().nextSpan().name("previous").start();
+        Span propagated = getTracer().nextSpan().name("propagated").start();
+        ContextSnapshot captured = factory
+            .captureFrom(Context.of(ObservationAwareSpanThreadLocalAccessor.KEY, propagated));
+        ContextSnapshot empty = factory.captureFrom(Context.empty());
+        IllegalStateException expected = new IllegalStateException("application failure");
+
+        try (Tracer.SpanInScope previousScope = getTracer().withSpan(previous)) {
+            try (ContextSnapshot.Scope propagatedScope = captured.setThreadLocals()) {
+                try (ContextSnapshot.Scope clear = empty.setThreadLocals()) {
+                    then(getTracer().currentSpan()).isNull();
+                    throw expected;
+                }
+                catch (IllegalStateException actual) {
+                    then(actual).isSameAs(expected).hasNoSuppressedExceptions();
+                }
+                then(getTracer().currentSpan()).isEqualTo(propagated);
+            }
+            then(getTracer().currentSpan()).isEqualTo(previous);
+        }
+        finally {
+            propagated.end();
+            previous.end();
+        }
+
+        then(getTracer().currentSpan()).isNull();
     }
 
     @Test
