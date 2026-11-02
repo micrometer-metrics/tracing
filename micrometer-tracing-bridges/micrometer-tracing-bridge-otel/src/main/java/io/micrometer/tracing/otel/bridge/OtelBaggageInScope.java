@@ -66,9 +66,6 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
         this.mutatedTraceContext.set((OtelTraceContext) currentTraceContext.context());
         this.tagFields = tagFields;
         this.entry.set(entry);
-        if (entry.value != null) {
-            updateAttributesForBaggage(entry.value, Span.current());
-        }
     }
 
     OtelBaggageInScope(OtelBaggageManager otelBaggageManager, CurrentTraceContext currentTraceContext,
