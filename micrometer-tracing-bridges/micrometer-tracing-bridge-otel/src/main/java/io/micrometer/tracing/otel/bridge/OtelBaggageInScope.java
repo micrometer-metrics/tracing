@@ -192,7 +192,7 @@ class OtelBaggageInScope implements io.micrometer.tracing.Baggage, BaggageInScop
 
     @Override
     public BaggageInScope makeCurrent() {
-        return makeCurrent(true);
+        return makeCurrent(false);
     }
 
     @SuppressWarnings({ "MustBeClosedChecker", "ReferenceEquality" })

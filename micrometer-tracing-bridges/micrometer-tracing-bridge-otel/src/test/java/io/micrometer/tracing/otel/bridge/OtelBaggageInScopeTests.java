@@ -344,7 +344,7 @@ class OtelBaggageInScopeTests {
 
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
-    void should_tag_current_span_when_activating_existing_baggage(boolean explicit) {
+    void should_not_tag_current_span_when_activating_existing_baggage(boolean explicit) {
         Tracer taggingTracer = taggingTracer();
         Span span = taggingTracer.nextSpan().name("generate-report").start();
         try (Tracer.SpanInScope spanScope = taggingTracer.withSpan(span);
@@ -359,15 +359,11 @@ class OtelBaggageInScopeTests {
 
             try (BaggageInScope scope = baggage.makeCurrent()) {
                 then(Baggage.current().getEntryValue("locale")).isEqualTo("de-DE");
-                then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData()
-                    .getAttributes()
-                    .get(AttributeKey.stringKey("locale"))).isEqualTo("de-DE");
+                then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData().getAttributes().isEmpty()).isTrue();
             }
             then(Context.current()).isSameAs(previous);
             then(target.context()).isSameAs(retained);
-            then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData()
-                .getAttributes()
-                .get(AttributeKey.stringKey("locale"))).isEqualTo("de-DE");
+            then(((ReadableSpan) OtelSpan.toOtel(span)).toSpanData().getAttributes().isEmpty()).isTrue();
         }
         finally {
             span.end();
@@ -376,7 +372,7 @@ class OtelBaggageInScopeTests {
 
     @ParameterizedTest
     @ValueSource(booleans = { false, true })
-    void should_tag_span_current_at_baggage_activation(boolean explicit) {
+    void should_not_tag_span_current_at_baggage_activation(boolean explicit) {
         Tracer taggingTracer = taggingTracer();
         Span first = taggingTracer.nextSpan().name("prepare-report").start();
         Span second = taggingTracer.nextSpan().name("generate-report").start();
@@ -392,9 +388,7 @@ class OtelBaggageInScopeTests {
                 then(taggingTracer.currentSpan()).isEqualTo(second);
                 then(Baggage.current().getEntryValue("locale")).isEqualTo("de-DE");
                 then(((ReadableSpan) OtelSpan.toOtel(first)).toSpanData().getAttributes().isEmpty()).isTrue();
-                then(((ReadableSpan) OtelSpan.toOtel(second)).toSpanData()
-                    .getAttributes()
-                    .get(AttributeKey.stringKey("locale"))).isEqualTo("de-DE");
+                then(((ReadableSpan) OtelSpan.toOtel(second)).toSpanData().getAttributes().isEmpty()).isTrue();
             }
         }
         finally {

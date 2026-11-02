@@ -69,10 +69,15 @@ include::{include-java}/tracing/TracingApiTests.java[tags=baggage_brave_setup,in
 
 Both the Brave and OpenTelemetry bridges support copying selected baggage values to span tags.
 Configure the desired field names through the `tagFields` constructor argument of `BraveBaggageManager` or `OtelBaggageManager`.
+Names are matched case-insensitively.
 Remote propagation and span tagging are configured separately: configuring a remote field does not by itself configure a span tag.
 
+IMPORTANT: With Brave, a tag field must also be registered as a baggage field in the `BaggagePropagation` factory, as shown in the Brave setup example above.
+If it is not registered, the value cannot be stored and the span is silently not tagged.
+
 When a span is in scope, `createBaggageInScope(name, value)` applies the value as a tag to that span if the field is configured for tagging.
-Retrieving baggage with `getBaggage(...)` or reading its value with `get()` does not tag the span.
+This is the recommended way to tag spans, so create baggage in scope at the point where you need it.
+Retrieving baggage with `getBaggage(...)`, reading its value with `get()`, and activating an existing baggage handle with `makeCurrent()` do not tag the span.
 
 For example, with `locale` configured as a tag field and a span already in scope:
 
@@ -86,13 +91,9 @@ try (BaggageInScope baggage = tracer.createBaggageInScope("locale", "fr-FR")) {
 Closing the baggage scope restores the previous baggage; it does not restore the span's previous tag value.
 If a nested baggage scope changes the same tag, that tag retains the nested value after the scope closes.
 
-NOTE: Tagging through an existing baggage handle differs between bridges.
-Brave captures the current span when the handle is obtained and uses that span when setting a value; its no-argument `makeCurrent()` does not apply tags.
-OpenTelemetry applies tags to the span current when a value is set or the handle is put in scope, including through no-argument `makeCurrent()`.
-Use `createBaggageInScope(name, value)` at the point of use for the common behavior shown above.
-
 With OpenTelemetry, configure a `BaggageTaggingSpanProcessor` on the `SdkTracerProvider` to tag spans with baggage already present when they start.
 This also covers baggage extracted from incoming requests, without requiring a baggage lookup in application code.
+The Brave bridge has no equivalent of this processor.
 
 === Baggage with Micrometer Observation API
 

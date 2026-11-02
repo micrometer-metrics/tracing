@@ -178,7 +178,7 @@ public class OtelBaggageManager implements BaggageManager {
         return null;
     }
 
-    private io.micrometer.tracing.Baggage otelBaggage(Entry entry) {
+    private OtelBaggageInScope otelBaggage(Entry entry) {
         return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
     }
 
@@ -201,7 +201,7 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public BaggageInScope createBaggageInScope(String name, String value) {
-        return baggageWithValue(name, value).makeCurrent();
+        return otelBaggage(baggageEntry(name, value)).makeCurrent(true);
     }
 
     @Override
