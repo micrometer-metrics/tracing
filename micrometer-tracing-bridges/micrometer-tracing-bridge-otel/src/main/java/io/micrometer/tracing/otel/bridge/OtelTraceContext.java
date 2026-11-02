@@ -40,31 +40,17 @@ public class OtelTraceContext implements TraceContext {
     final @Nullable Span span;
 
     OtelTraceContext(@Nullable Context context, SpanContext delegate, @Nullable Span span) {
-        this(new AtomicReference<>(context == null ? Context.current() : context), delegate, span);
-    }
-
-    OtelTraceContext(AtomicReference<@Nullable Context> context, SpanContext delegate, @Nullable Span span) {
-        this.otelContext = context;
         this.delegate = delegate;
         this.span = span;
+        this.otelContext = new AtomicReference<>(storeInContext(context == null ? Context.current() : context));
     }
 
     OtelTraceContext(SpanContext delegate, @Nullable Span span) {
-        this.otelContext = context(span);
-        this.delegate = delegate;
-        this.span = span;
+        this(Context.current(), delegate, span);
     }
 
     OtelTraceContext(Span span) {
-        this(context(span), span.getSpanContext(), span);
-    }
-
-    private static AtomicReference<@Nullable Context> context(@Nullable Span span) {
-        if (span instanceof SpanFromSpanContext) {
-            Context contextFromParent = ((SpanFromSpanContext) span).parentTraceContext.context();
-            return new AtomicReference<>(contextFromParent);
-        }
-        return new AtomicReference<>(Context.current());
+        this(span.getSpanContext(), span);
     }
 
     /**
@@ -114,10 +100,8 @@ public class OtelTraceContext implements TraceContext {
 
     @Override
     public @Nullable String parentId() {
-        Span spanContextSpanOrSpan = this.span instanceof SpanFromSpanContext ? ((SpanFromSpanContext) this.span).span
-                : this.span;
-        if (spanContextSpanOrSpan instanceof ReadableSpan) {
-            ReadableSpan readableSpan = (ReadableSpan) spanContextSpanOrSpan;
+        if (this.span instanceof ReadableSpan) {
+            ReadableSpan readableSpan = (ReadableSpan) this.span;
             String parentSpanId = readableSpan.toSpanData().getParentSpanId();
             if (Objects.equals(Span.getInvalid().getSpanContext().getSpanId(), parentSpanId)) {
                 return null;
@@ -149,6 +133,23 @@ public class OtelTraceContext implements TraceContext {
 
     SpanContext spanContext() {
         return this.delegate;
+    }
+
+    /**
+     * Stores this trace context and its span in the given context. Returns the given
+     * context unchanged if both are already stored in it.
+     * @param base context to store this trace context in
+     * @return context containing this trace context and its span
+     */
+    Context storeInContext(Context base) {
+        Context context = base;
+        if (this.span != null) {
+            context = this.span.storeInContext(context);
+        }
+        else if (!Span.fromContext(context).getSpanContext().equals(this.delegate)) {
+            context = context.with(Span.wrap(this.delegate));
+        }
+        return context.with(OtelCurrentTraceContext.OTEL_CONTEXT_KEY, this);
     }
 
     void updateContext(@Nullable Context context) {
