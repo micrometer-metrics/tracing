@@ -65,7 +65,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     public Scope newScope(@Nullable TraceContext context) {
         OtelTraceContext otelTraceContext = (OtelTraceContext) context;
         if (otelTraceContext == null) {
-            return new WrappedScope(io.opentelemetry.context.Scope.noop());
+            return Scope.NOOP;
         }
         Context current = Context.current();
         Context spanContext = otelTraceContext.context();
@@ -74,12 +74,12 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
         Baggage currentBaggage = Baggage.fromContext(current);
         Baggage spanBaggage = Baggage.fromContext(spanContext);
         if (sameSpan && currentBaggage.equals(spanBaggage)) {
-            return new WrappedScope(io.opentelemetry.context.Scope.noop());
+            return Scope.NOOP;
         }
         Baggage updatedBaggage = OtelBaggageManager.merge(currentBaggage, spanBaggage);
         Context newContext = spanContext.with(updatedBaggage);
         io.opentelemetry.context.Scope newScope = newContext.makeCurrent();
-        return new WrappedScope(newScope);
+        return wrapScope(newScope);
     }
 
     @Override
@@ -87,9 +87,13 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
     public Scope maybeScope(@Nullable TraceContext context) {
         if (context == null) {
             io.opentelemetry.context.Scope scope = Context.root().makeCurrent();
-            return new WrappedScope(scope);
+            return wrapScope(scope);
         }
         return newScope(context);
+    }
+
+    private static Scope wrapScope(io.opentelemetry.context.Scope scope) {
+        return scope == io.opentelemetry.context.Scope.noop() ? Scope.NOOP : new WrappedScope(scope);
     }
 
     @Override

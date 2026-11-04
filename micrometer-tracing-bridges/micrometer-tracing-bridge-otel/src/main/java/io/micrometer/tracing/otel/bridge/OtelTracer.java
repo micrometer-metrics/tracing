@@ -30,6 +30,9 @@ import java.util.Map;
  */
 public class OtelTracer implements Tracer {
 
+    private static final SpanInScope NOOP_SCOPE = () -> {
+    };
+
     private final io.opentelemetry.api.trace.Tracer tracer;
 
     private final BaggageManager otelBaggageManager;
@@ -85,7 +88,7 @@ public class OtelTracer implements Tracer {
     public Tracer.SpanInScope withSpan(@Nullable Span span) {
         TraceContext traceContext = traceContext(span);
         CurrentTraceContext.Scope scope = this.otelCurrentTraceContext.maybeScope(traceContext);
-        return new WrappedSpanInScope(scope);
+        return scope == CurrentTraceContext.Scope.NOOP ? NOOP_SCOPE : new WrappedSpanInScope(scope);
     }
 
     private TraceContext traceContext(@Nullable Span span) {
