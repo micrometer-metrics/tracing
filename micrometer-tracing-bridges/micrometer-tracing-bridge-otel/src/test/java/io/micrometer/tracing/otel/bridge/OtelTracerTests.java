@@ -20,6 +20,7 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -60,6 +61,43 @@ class OtelTracerTests {
     @AfterEach
     void close() {
         this.openTelemetrySdk.close();
+    }
+
+    @Test
+    void clearingScopeShouldRestoreBaggageAndNativeDataWithoutAnActiveSpan() {
+        ContextKey<String> origin = ContextKey.named("request-origin");
+        Context original = Context.root()
+            .with(origin, "incoming")
+            .with(Baggage.builder().put("locale", "fr-FR").build());
+        try (io.opentelemetry.context.Scope scope = original.makeCurrent()) {
+            then(this.tracer.currentSpan()).isNull();
+            try (io.micrometer.tracing.CurrentTraceContext.Scope clearing = this.otelCurrentTraceContext
+                .maybeScope(null)) {
+                then(Context.current()).isSameAs(Context.root());
+                then(Baggage.current().isEmpty()).isTrue();
+            }
+            then(Context.current()).isSameAs(original);
+            then(Baggage.current().getEntryValue("locale")).isEqualTo("fr-FR");
+        }
+    }
+
+    @Test
+    void closingRedundantScopeShouldNotRestoreAnOlderSpan() {
+        Span parent = this.tracer.nextSpan().name("parent");
+        Span child = this.tracer.nextSpan().name("child");
+        try (Tracer.SpanInScope outer = this.tracer.withSpan(parent)) {
+            Tracer.SpanInScope redundant = this.tracer.withSpan(parent);
+            try (Tracer.SpanInScope inner = this.tracer.withSpan(child)) {
+                redundant.close();
+                then(this.tracer.currentSpan()).isEqualTo(child);
+            }
+            then(this.tracer.currentSpan()).isEqualTo(parent);
+        }
+        finally {
+            child.end();
+            parent.end();
+        }
+        then(this.tracer.currentSpan()).isNull();
     }
 
     @Test
