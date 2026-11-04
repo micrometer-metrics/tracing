@@ -86,24 +86,25 @@ public class OtelBaggageManager implements BaggageManager {
 
     @Override
     public Map<String, String> getAllBaggage() {
-        return toMap(currentBaggage());
-    }
-
-    private Map<String, String> toMap(CompositeBaggage compositeBaggage) {
-        Map<String, BaggageEntry> entries = compositeBaggage.asMap();
-        Map<String, String> baggage = new HashMap<>((int) (entries.size() / 0.75f) + 1);
-        for (Map.Entry<String, BaggageEntry> entry : entries.entrySet()) {
-            baggage.put(entry.getKey(), entry.getValue().getValue());
-        }
-        return baggage;
+        return toMap((OtelTraceContext) this.currentTraceContext.context());
     }
 
     @Override
     public Map<String, String> getAllBaggage(@Nullable TraceContext traceContext) {
-        if (traceContext == null) {
-            return getAllBaggage();
+        return traceContext == null ? getAllBaggage() : toMap((OtelTraceContext) traceContext);
+    }
+
+    private Map<String, String> toMap(@Nullable OtelTraceContext traceContext) {
+        Baggage current = Baggage.current();
+        Map<String, String> baggage = new HashMap<>();
+        current.forEach((key, entry) -> baggage.put(key, entry.getValue()));
+        if (traceContext != null) {
+            Baggage retained = Baggage.fromContext(traceContext.context());
+            if (retained != current) {
+                retained.forEach((key, entry) -> baggage.put(key, entry.getValue()));
+            }
         }
-        return toMap(baggage((OtelTraceContext) traceContext));
+        return baggage;
     }
 
     CompositeBaggage currentBaggage() {
@@ -112,7 +113,7 @@ public class OtelBaggageManager implements BaggageManager {
 
     private CompositeBaggage baggage(@Nullable OtelTraceContext traceContext) {
         Context current = Context.current();
-        if (traceContext == null || traceContext.context() == null) {
+        if (traceContext == null) {
             return new CompositeBaggage(current);
         }
         // entries from the trace context override the ones from the current context
@@ -139,18 +140,11 @@ public class OtelBaggageManager implements BaggageManager {
     @Override
     public io.micrometer.tracing.@Nullable Baggage getBaggage(TraceContext traceContext, String name) {
         OtelTraceContext context = (OtelTraceContext) traceContext;
-        LinkedList<Context> stack = new LinkedList<>();
         Context current = Context.current();
         Context traceContextContext = context.context();
-        stack.addFirst(current);
-        if (!Objects.equals(current, traceContextContext)) {
-            stack.addFirst(traceContextContext);
-        }
-        Context ctx = removeFirst(stack);
-        Entry entry = null;
-        while (ctx != null && entry == null) {
-            entry = getBaggage(name, Baggage.fromContext(ctx));
-            ctx = removeFirst(stack);
+        Entry entry = getBaggage(name, Baggage.fromContext(traceContextContext));
+        if (entry == null && !Objects.equals(current, traceContextContext)) {
+            entry = getBaggage(name, Baggage.fromContext(current));
         }
         if (entry != null) {
             return otelBaggage(context, entry);
@@ -162,10 +156,6 @@ public class OtelBaggageManager implements BaggageManager {
         OtelTraceContext context = traceContext;
         Context ctx = context.context();
         return getBaggage(name, Baggage.fromContext(ctx));
-    }
-
-    @Nullable Context removeFirst(Deque<Context> stack) {
-        return stack.isEmpty() ? null : stack.removeFirst();
     }
 
     private @Nullable Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
