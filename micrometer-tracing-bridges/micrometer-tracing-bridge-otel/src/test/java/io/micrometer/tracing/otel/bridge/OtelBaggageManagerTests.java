@@ -19,6 +19,10 @@ import io.micrometer.tracing.Baggage;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.TraceContext;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
+import io.opentelemetry.api.baggage.BaggageEntryMetadata;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -40,6 +44,92 @@ class OtelBaggageManagerTests {
 
     OtelBaggageManager otelBaggageManager = new OtelBaggageManager(new OtelCurrentTraceContext(),
             Collections.emptyList(), Collections.emptyList());
+
+    @Test
+    void should_use_retained_values_for_implicit_and_null_context_bulk_reads() {
+        OtelTraceContext target = traceContext(
+                io.opentelemetry.api.baggage.Baggage.builder().put("locale", "fr-FR").build());
+        Context current = target.context()
+            .with(io.opentelemetry.api.baggage.Baggage.builder()
+                .put("locale", "en-US")
+                .put("request.channel", "web")
+                .build());
+        try (Scope scope = current.makeCurrent()) {
+            BDDAssertions.then(this.otelBaggageManager.getAllBaggage())
+                .containsEntry("locale", "fr-FR")
+                .containsEntry("request.channel", "web");
+            BDDAssertions.then(this.otelBaggageManager.getAllBaggage(null))
+                .isEqualTo(this.otelBaggageManager.getAllBaggage());
+        }
+    }
+
+    @Test
+    void should_preserve_differently_cased_keys_in_bulk_reads() {
+        OtelTraceContext target = traceContext(
+                io.opentelemetry.api.baggage.Baggage.builder().put("Locale", "fr-FR").build());
+        Context current = Context.root()
+            .with(io.opentelemetry.api.baggage.Baggage.builder().put("locale", "en-US").build());
+        try (Scope scope = current.makeCurrent()) {
+            BDDAssertions.then(this.otelBaggageManager.getAllBaggage(target))
+                .hasSize(2)
+                .containsEntry("Locale", "fr-FR")
+                .containsEntry("locale", "en-US");
+        }
+    }
+
+    @Test
+    void should_prefer_retained_lookup_then_fall_back_to_current_baggage_and_preserve_metadata() {
+        BaggageEntryMetadata metadata = BaggageEntryMetadata.create("propagation=unlimited");
+        OtelTraceContext target = traceContext(
+                io.opentelemetry.api.baggage.Baggage.builder().put("Locale", "fr-FR", metadata).build());
+        Context current = Context.root()
+            .with(io.opentelemetry.api.baggage.Baggage.builder()
+                .put("locale", "en-US")
+                .put("request.channel", "web", metadata)
+                .build());
+        try (Scope scope = current.makeCurrent()) {
+            Baggage retained = Objects.requireNonNull(this.otelBaggageManager.getBaggage(target, "LOCALE"));
+            BDDAssertions.then(retained.name()).isEqualTo("Locale");
+            BDDAssertions.then(retained.get()).isEqualTo("fr-FR");
+            BDDAssertions.then(this.otelBaggageManager.getBaggage(target, "missing")).isNull();
+            try (BaggageInScope baggage = retained.makeCurrent()) {
+                BDDAssertions
+                    .then(Objects.requireNonNull(io.opentelemetry.api.baggage.Baggage.current().asMap().get("Locale"))
+                        .getMetadata())
+                    .isEqualTo(metadata);
+            }
+            Baggage fallback = Objects.requireNonNull(this.otelBaggageManager.getBaggage(target, "REQUEST.CHANNEL"));
+            BDDAssertions.then(fallback.get()).isEqualTo("web");
+            try (BaggageInScope baggage = fallback.makeCurrent()) {
+                BDDAssertions
+                    .then(Objects
+                        .requireNonNull(io.opentelemetry.api.baggage.Baggage.current().asMap().get("request.channel"))
+                        .getMetadata())
+                    .isEqualTo(metadata);
+            }
+            BDDAssertions.then(Context.current()).isSameAs(current);
+        }
+    }
+
+    @Test
+    void should_return_independent_mutable_maps_for_empty_and_populated_baggage() {
+        try (Scope scope = Context.root().makeCurrent()) {
+            Map<String, String> empty = this.otelBaggageManager.getAllBaggage();
+            empty.put("locale", "fr-FR");
+            BDDAssertions.then(this.otelBaggageManager.getAllBaggage()).isEmpty();
+            OtelTraceContext target = traceContext(
+                    io.opentelemetry.api.baggage.Baggage.builder().put("locale", "en-US").build());
+            Map<String, String> values = this.otelBaggageManager.getAllBaggage(target);
+            values.put("locale", "fr-FR");
+            BDDAssertions.then(this.otelBaggageManager.getAllBaggage(target)).containsEntry("locale", "en-US");
+        }
+    }
+
+    private static OtelTraceContext traceContext(io.opentelemetry.api.baggage.Baggage baggage) {
+        Span span = Span.wrap(SpanContext.create("4bf92f3577b34da6a3ce929d0e0e4736", "00f067aa0ba902b7",
+                TraceFlags.getSampled(), TraceState.getDefault()));
+        return new OtelTraceContext(Context.root().with(baggage), span.getSpanContext(), span);
+    }
 
     @Test
     void should_return_null_baggage_when_there_is_no_baggage_attached_to_a_trace_context() {
