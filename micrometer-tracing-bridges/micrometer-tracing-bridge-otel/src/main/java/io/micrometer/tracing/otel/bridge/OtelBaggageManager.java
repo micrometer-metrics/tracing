@@ -95,16 +95,16 @@ public class OtelBaggageManager implements BaggageManager {
     }
 
     private Map<String, String> toMap(@Nullable OtelTraceContext traceContext) {
-        Baggage current = Baggage.current();
-        Map<String, String> baggage = new HashMap<>();
-        current.forEach((key, entry) -> baggage.put(key, entry.getValue()));
+        Baggage baggage = Baggage.current();
+        Map<String, String> map = new HashMap<>();
+        baggage.forEach((key, entry) -> map.put(key, entry.getValue()));
         if (traceContext != null) {
             Baggage retained = Baggage.fromContext(traceContext.context());
-            if (retained != current) {
-                retained.forEach((key, entry) -> baggage.put(key, entry.getValue()));
+            if (retained != baggage) {
+                retained.forEach((key, entry) -> map.put(key, entry.getValue()));
             }
         }
-        return baggage;
+        return map;
     }
 
     CompositeBaggage currentBaggage() {
