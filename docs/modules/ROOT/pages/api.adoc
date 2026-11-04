@@ -47,6 +47,18 @@ The following example shows how to create a Micrometer Tracing `Tracer` by using
 include::{include-java}/tracing/TracingApiTests.java[tags=otel_setup,indent=0]
 -----
 
+IMPORTANT: To enable log correlation (SLF4J MDC propagation of `traceId` and `spanId`), you must also register the `EventPublishingContextWrapper` with OTel's `ContextStorage` **once at application startup**.
+Without this step, `Slf4JEventListener` and `Slf4JBaggageEventListener` will not fire, and MDC will not contain trace/span IDs even though the `OtelTracer` is otherwise configured correctly.
+
+[source,java]
+-----
+// Call this once when your application starts (e.g., in a @Configuration class or main())
+ContextStorage.addWrapper(new EventPublishingContextWrapper(eventPublisher));
+-----
+
+NOTE: In a Spring Boot application with `micrometer-tracing-bridge-otel` on the classpath, this is handled automatically by autoconfiguration.
+You only need this manual step in non-Boot setups.
+
 == Micrometer Tracing Baggage API
 
 Traces connect from application to application by using header propagation. Besides trace identifiers, other properties (called `Baggage`) can also be passed along with the request.
