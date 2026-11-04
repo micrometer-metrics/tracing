@@ -18,6 +18,7 @@ package io.micrometer.tracing.otel.bridge;
 import io.micrometer.tracing.Link;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -217,6 +218,25 @@ class OtelSpanBuilderTests {
 
         SpanData finishedSpan = exporter.getFinishedSpanItems().get(0);
         then(finishedSpan.getAttributes().get(AttributeKey.stringKey("foo"))).isEqualTo("stored");
+    }
+
+    @Test
+    void should_not_capture_current_context_when_no_parent() {
+        Span parent = tracer.nextSpan().name("parent").start();
+        try (Tracer.SpanInScope scope = tracer.withSpan(parent);
+                Scope baggageScope = Baggage.builder().put("foo", "bar").build().makeCurrent()) {
+            Span childNoParent = tracer.spanBuilder().setNoParent().name("no-parent").start();
+
+            then(childNoParent.context().traceId()).isNotEqualTo(parent.context().traceId());
+            then(childNoParent.context().parentId()).isNull();
+            Context context = ((OtelTraceContext) childNoParent.context()).context();
+            then(io.opentelemetry.api.trace.Span.fromContext(context).getSpanContext().getSpanId())
+                .isNotEqualTo(parent.context().spanId());
+            then(Baggage.fromContext(context).isEmpty()).isTrue();
+
+            childNoParent.end();
+        }
+        parent.end();
     }
 
 }
