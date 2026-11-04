@@ -140,7 +140,7 @@ public class OtelTraceContext implements TraceContext {
      * @param base context to store this trace context in
      * @return context containing this trace context and its span
      */
-    Context storeInContext(Context base) {
+    private Context storeInContext(Context base) {
         Context context = base;
         if (this.span != null) {
             context = this.span.storeInContext(context);
