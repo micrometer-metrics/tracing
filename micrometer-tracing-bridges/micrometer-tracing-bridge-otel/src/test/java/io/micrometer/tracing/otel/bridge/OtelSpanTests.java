@@ -19,6 +19,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.extension.trace.propagation.B3Propagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -28,8 +29,13 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -77,12 +83,74 @@ class OtelSpanTests {
     @Test
     void should_be_equal_when_two_span_delegates_are_equal() {
         Span span = otelTracer.spanBuilder("foo").startSpan();
-        OtelSpan otelSpan = new OtelSpan(span);
-        OtelSpan otelSpanFromSpanContext = new OtelSpan(
-                new SpanFromSpanContext(span, span.getSpanContext(), new OtelTraceContext(span)));
+        OtelSpan otelSpan1 = new OtelSpan(span);
+        OtelSpan otelSpan2 = new OtelSpan(span);
 
-        then(otelSpan).isEqualTo(otelSpanFromSpanContext);
-        then(otelSpanFromSpanContext).isEqualTo(otelSpan);
+        then(otelSpan1).isEqualTo(otelSpan2);
+        then(otelSpan2).isEqualTo(otelSpan1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_expose_sdk_span_and_preserve_span_identity_for_parented_spans(boolean extracted) {
+        OtelTracer tracer = bridgeTracer();
+        io.micrometer.tracing.Span parent = tracer.nextSpan().name("parent").start();
+        io.micrometer.tracing.Span child = parentedSpan(tracer, parent, extracted);
+        try {
+            Span nativeSpan = OtelSpan.toOtel(child);
+            then(nativeSpan).isInstanceOf(ReadableSpan.class);
+            then(child.context().parentId()).isEqualTo(parent.context().spanId());
+            try (io.micrometer.tracing.Tracer.SpanInScope scope = tracer.withSpan(child)) {
+                io.micrometer.tracing.Span current = Objects.requireNonNull(tracer.currentSpan());
+                then(Span.current()).isSameAs(nativeSpan);
+                then(current).isEqualTo(child).hasSameHashCodeAs(child);
+                then(child).isEqualTo(current);
+                then(child).isEqualTo(OtelSpan.fromOtel(nativeSpan));
+            }
+        }
+        finally {
+            child.end();
+            parent.end();
+        }
+        then(exportedSpan("child").getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_preserve_error_status_for_parented_spans(boolean extracted) {
+        OtelTracer tracer = bridgeTracer();
+        io.micrometer.tracing.Span parent = tracer.nextSpan().name("parent").start();
+        io.micrometer.tracing.Span child = parentedSpan(tracer, parent, extracted);
+        child.error(new IllegalStateException("report generation failed")).end();
+        parent.end();
+
+        then(exportedSpan("child").getStatus())
+            .isEqualTo(StatusData.create(StatusCode.ERROR, "report generation failed"));
+    }
+
+    private OtelTracer bridgeTracer() {
+        OtelCurrentTraceContext context = new OtelCurrentTraceContext();
+        return new OtelTracer(this.otelTracer, context, event -> {
+        }, new OtelBaggageManager(context, Collections.emptyList(), Collections.emptyList()));
+    }
+
+    private io.micrometer.tracing.Span parentedSpan(OtelTracer tracer, io.micrometer.tracing.Span parent,
+            boolean extracted) {
+        if (extracted) {
+            OtelPropagator propagator = new OtelPropagator(this.openTelemetrySdk.getPropagators(), this.otelTracer);
+            Map<String, String> carrier = Collections.singletonMap("b3",
+                    parent.context().traceId() + "-" + parent.context().spanId() + "-1");
+            return propagator.extract(carrier, Map::get).name("child").start();
+        }
+        return tracer.spanBuilder().setParent(parent.context()).name("child").start();
+    }
+
+    private SpanData exportedSpan(String name) {
+        return this.arrayListSpanProcessor.getFinishedSpanItems()
+            .stream()
+            .filter(span -> span.getName().equals(name))
+            .findFirst()
+            .orElseThrow(AssertionError::new);
     }
 
     @Test

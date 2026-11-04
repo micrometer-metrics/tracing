@@ -477,6 +477,26 @@ class OtelBaggageInScopeTests {
                 Arrays.asList("LOCALE", "report.format")));
     }
 
+    @Test
+    @SuppressWarnings("deprecation")
+    void should_retain_baggage_set_with_deprecated_api_after_span_scope_closes() {
+        Span span = this.tracer.nextSpan().name("generate-report").start();
+        try {
+            try (Tracer.SpanInScope scope = this.tracer.withSpan(span)) {
+                this.tracer.createBaggage("locale", "fr-FR");
+            }
+            OtelTraceContext context = (OtelTraceContext) span.context();
+            then(Baggage.fromContext(context.context()).getEntryValue("locale")).isEqualTo("fr-FR");
+            try (Tracer.SpanInScope scope = this.tracer.withSpan(span)) {
+                then(Baggage.current().getEntryValue("locale")).isEqualTo("fr-FR");
+            }
+            then(Baggage.fromContext(context.context()).getEntryValue("locale")).isEqualTo("fr-FR");
+        }
+        finally {
+            span.end();
+        }
+    }
+
     private OtelTraceContext traceContextWithRetainedBaggage(Span span) {
         OtelTraceContext context = (OtelTraceContext) span.context();
         context.updateContext(context.context().with(RETAINED_BAGGAGE));
