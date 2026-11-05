@@ -29,7 +29,6 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
-import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
@@ -69,8 +68,6 @@ public class OtelBaggageScopeBenchmark {
 
         Span span;
 
-        io.micrometer.tracing.Baggage handle;
-
         Context originalContext;
 
         @Setup(Level.Trial)
@@ -106,9 +103,6 @@ public class OtelBaggageScopeBenchmark {
                 throw new IllegalStateException("Invalid SDK recording configuration");
             }
 
-            try (Tracer.SpanInScope scope = this.tracer.withSpan(this.span)) {
-                this.handle = this.tracer.getBaggage("locale");
-            }
             validate(false);
             validate(true);
         }
@@ -166,8 +160,22 @@ public class OtelBaggageScopeBenchmark {
 
     }
 
+    @State(Scope.Thread)
+    public static class ExistingHandleState extends BaggageState {
+
+        io.micrometer.tracing.Baggage handle;
+
+        @Setup(Level.Trial)
+        public void setupHandle() {
+            try (Tracer.SpanInScope scope = this.tracer.withSpan(this.span)) {
+                this.handle = this.tracer.getBaggage("locale");
+            }
+        }
+
+    }
+
     @Benchmark
-    public String existingHandleBaggageScope(BaggageState state) {
+    public String existingHandleBaggageScope(ExistingHandleState state) {
         try (Tracer.SpanInScope spanScope = state.tracer.withSpan(state.span);
                 BaggageInScope baggage = state.handle.makeCurrent(state.span.context(), "fr-FR")) {
             return baggage.get();
