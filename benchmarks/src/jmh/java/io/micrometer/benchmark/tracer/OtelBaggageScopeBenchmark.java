@@ -69,6 +69,8 @@ public class OtelBaggageScopeBenchmark {
 
         Span span;
 
+        io.micrometer.tracing.Baggage handle;
+
         Context originalContext;
 
         @Setup(Level.Trial)
@@ -104,6 +106,9 @@ public class OtelBaggageScopeBenchmark {
                 throw new IllegalStateException("Invalid SDK recording configuration");
             }
 
+            try (Tracer.SpanInScope scope = this.tracer.withSpan(this.span)) {
+                this.handle = this.tracer.getBaggage("locale");
+            }
             validate(false);
             validate(true);
         }
@@ -159,6 +164,14 @@ public class OtelBaggageScopeBenchmark {
             }
         }
 
+    }
+
+    @Benchmark
+    public String existingHandleBaggageScope(BaggageState state) {
+        try (Tracer.SpanInScope spanScope = state.tracer.withSpan(state.span);
+                BaggageInScope baggage = state.handle.makeCurrent(state.span.context(), "fr-FR")) {
+            return baggage.get();
+        }
     }
 
     @Benchmark

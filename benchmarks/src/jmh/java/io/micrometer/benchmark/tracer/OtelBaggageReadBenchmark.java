@@ -43,6 +43,8 @@ public class OtelBaggageReadBenchmark {
 
         OtelSpan span;
 
+        io.micrometer.tracing.Baggage handle;
+
         io.opentelemetry.context.Scope scope;
 
         @Setup
@@ -74,6 +76,7 @@ public class OtelBaggageReadBenchmark {
                 active = active.with(Baggage.builder().put("locale", "en-US").put("request.channel", "web").build());
             }
             this.scope = active.makeCurrent();
+            this.handle = this.manager.getBaggage("locale");
             Map<String, String> expected = this.manager.getAllBaggage(this.span.context());
             if (expected.size() != ("empty".equals(this.source) ? 0 : "different".equals(this.source) ? 9 : 8)
                     || (!"empty".equals(this.source) && !"fr-FR".equals(expected.get("locale")))) {
@@ -86,6 +89,21 @@ public class OtelBaggageReadBenchmark {
             this.scope.close();
         }
 
+    }
+
+    @Benchmark
+    public io.micrometer.tracing.Baggage implicitLookup(ReadState state) {
+        return state.manager.getBaggage("locale");
+    }
+
+    @Benchmark
+    public String contextValueRead(ReadState state) {
+        return state.handle.get(state.span.context());
+    }
+
+    @Benchmark
+    public String cachedValueRead(ReadState state) {
+        return state.handle.get();
     }
 
     @Benchmark
