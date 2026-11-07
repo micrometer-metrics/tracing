@@ -29,10 +29,12 @@ import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 import java.util.Collections;
 import java.util.Arrays;
@@ -85,6 +87,81 @@ class OtelBaggageInScopeTests {
     @AfterEach
     void close() {
         this.openTelemetrySdk.close();
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = "fr-FR")
+    void should_preserve_name_and_metadata_across_nullable_value_updates(@Nullable String value) {
+        Span span = this.tracer.nextSpan().name("generate-report");
+        BaggageEntryMetadata metadata = BaggageEntryMetadata.create("propagation=unlimited");
+        OtelTraceContext context = (OtelTraceContext) span.context();
+        context.updateContext(context.context().with(Baggage.builder().put("Locale", "en-US", metadata).build()));
+        io.micrometer.tracing.Baggage handle = Objects.requireNonNull(this.tracer.getBaggage(context, "locale"));
+        try (Tracer.SpanInScope spanScope = this.tracer.withSpan(span)) {
+            try (BaggageInScope baggage = handle.makeCurrent(context, value)) {
+                then(handle.name()).isEqualTo("Locale");
+                then(handle.get()).isEqualTo(value);
+                // Native baggage ignores a null put; the handle still remembers null.
+                then(handle.get(context)).isEqualTo(value == null ? "en-US" : value);
+            }
+            then(handle.get()).isEqualTo(value);
+            then(handle.get(context)).isEqualTo("en-US");
+            try (BaggageInScope baggage = handle.makeCurrent(context, "de-DE")) {
+                then(Objects.requireNonNull(Baggage.current().asMap().get("Locale")).getMetadata()).isEqualTo(metadata);
+                then(handle.name()).isEqualTo("Locale");
+                then(handle.get()).isEqualTo("de-DE");
+            }
+            then(handle.get(context)).isEqualTo("en-US");
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    @Test
+    void should_keep_handle_value_separate_from_later_context_updates() {
+        Span span = this.tracer.nextSpan().name("generate-report");
+        try (Tracer.SpanInScope spanScope = this.tracer.withSpan(span)) {
+            io.micrometer.tracing.Baggage handle = this.tracer.getBaggage("locale");
+            try (BaggageInScope outer = handle.makeCurrent(span.context(), "en-US")) {
+                io.micrometer.tracing.Baggage other = Objects
+                    .requireNonNull(this.tracer.getBaggage(span.context(), "locale"));
+                try (BaggageInScope inner = other.makeCurrent(span.context(), "fr-FR")) {
+                    then(handle.get()).isEqualTo("en-US");
+                    then(handle.get(span.context())).isEqualTo("fr-FR");
+                }
+                then(handle.get()).isEqualTo("en-US");
+                then(handle.get(span.context())).isEqualTo("en-US");
+            }
+            then(handle.get()).isEqualTo("en-US");
+            then(handle.get(span.context())).isNull();
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    @Test
+    void should_keep_value_updates_on_current_context_for_explicitly_obtained_handles() {
+        Span span = this.tracer.nextSpan().name("generate-report");
+        Span other = this.tracer.nextSpan().name("handle-request");
+        try {
+            OtelTraceContext original = traceContextWithRetainedBaggage(span);
+            OtelTraceContext current = (OtelTraceContext) other.context();
+            io.micrometer.tracing.Baggage handle = Objects.requireNonNull(this.tracer.getBaggage(original, "locale"));
+            try (Tracer.SpanInScope spanScope = this.tracer.withSpan(other);
+                    BaggageInScope baggage = handle.makeCurrent("fr-FR")) {
+                then(Baggage.fromContext(original.context()).getEntryValue("locale")).isEqualTo("en-US");
+                then(Baggage.fromContext(current.context()).getEntryValue("locale")).isEqualTo("fr-FR");
+                then(this.tracer.currentSpan()).isEqualTo(other);
+            }
+            then(Baggage.fromContext(current.context()).getEntryValue("locale")).isNull();
+        }
+        finally {
+            other.end();
+            span.end();
+        }
     }
 
     @Test

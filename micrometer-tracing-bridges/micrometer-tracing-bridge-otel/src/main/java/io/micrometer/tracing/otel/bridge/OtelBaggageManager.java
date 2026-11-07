@@ -27,9 +27,6 @@ import io.opentelemetry.api.baggage.BaggageEntryMetadata;
 import io.opentelemetry.context.Context;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-
-import static java.util.Collections.unmodifiableMap;
 
 /**
  * OpenTelemetry implementation of a {@link BaggageManager}.
@@ -107,34 +104,24 @@ public class OtelBaggageManager implements BaggageManager {
         return map;
     }
 
-    CompositeBaggage currentBaggage() {
-        return baggage((OtelTraceContext) currentTraceContext.context());
-    }
-
-    private CompositeBaggage baggage(@Nullable OtelTraceContext traceContext) {
-        Context current = Context.current();
-        if (traceContext == null) {
-            return new CompositeBaggage(current);
+    private Map<String, BaggageEntry> currentBaggageEntries() {
+        OtelTraceContext traceContext = (OtelTraceContext) this.currentTraceContext.context();
+        // Preserve exact-key merging before the case-insensitive lookup.
+        Map<String, BaggageEntry> entries = new HashMap<>();
+        Baggage.current().forEach(entries::put);
+        if (traceContext != null) {
+            Baggage.fromContext(traceContext.context()).forEach(entries::put);
         }
-        // entries from the trace context override the ones from the current context
-        return new CompositeBaggage(current, traceContext.context());
+        return entries;
     }
 
     @Override
     public io.micrometer.tracing.Baggage getBaggage(String name) {
-        Entry entry = getBaggage(name, currentBaggage());
-        return createNewEntryIfMissing(name, entry);
-    }
-
-    io.micrometer.tracing.Baggage createNewEntryIfMissing(String name, @Nullable Entry entry) {
+        Map.Entry<String, BaggageEntry> entry = findEntry(name, currentBaggageEntries());
         if (entry == null) {
             return createBaggage(name);
         }
-        return otelBaggage(entry);
-    }
-
-    private @Nullable Entry getBaggage(String name, io.opentelemetry.api.baggage.Baggage baggage) {
-        return entryForName(name, baggage);
+        return otelBaggage((OtelTraceContext) this.currentTraceContext.context(), entry);
     }
 
     @Override
@@ -142,9 +129,9 @@ public class OtelBaggageManager implements BaggageManager {
         OtelTraceContext context = (OtelTraceContext) traceContext;
         Context current = Context.current();
         Context traceContextContext = context.context();
-        Entry entry = getBaggage(name, Baggage.fromContext(traceContextContext));
+        Map.Entry<String, BaggageEntry> entry = findEntry(name, Baggage.fromContext(traceContextContext).asMap());
         if (entry == null && !Objects.equals(current, traceContextContext)) {
-            entry = getBaggage(name, Baggage.fromContext(current));
+            entry = findEntry(name, Baggage.fromContext(current).asMap());
         }
         if (entry != null) {
             return otelBaggage(context, entry);
@@ -152,28 +139,25 @@ public class OtelBaggageManager implements BaggageManager {
         return null;
     }
 
-    @Nullable Entry getEntry(OtelTraceContext traceContext, String name) {
-        OtelTraceContext context = traceContext;
-        Context ctx = context.context();
-        return getBaggage(name, Baggage.fromContext(ctx));
+    @Nullable String getValue(OtelTraceContext traceContext, String name) {
+        Map.Entry<String, BaggageEntry> entry = findEntry(name, Baggage.fromContext(traceContext.context()).asMap());
+        return entry != null ? entry.getValue().getValue() : null;
     }
 
-    private @Nullable Entry entryForName(String name, io.opentelemetry.api.baggage.Baggage baggage) {
-        for (Map.Entry<String, BaggageEntry> entry : baggage.asMap().entrySet()) {
+    private static Map.@Nullable Entry<String, BaggageEntry> findEntry(String name, Map<String, BaggageEntry> entries) {
+        for (Map.Entry<String, BaggageEntry> entry : entries.entrySet()) {
             if (entry.getKey().equalsIgnoreCase(name)) {
-                BaggageEntry value = entry.getValue();
-                return new Entry(entry.getKey(), value.getValue(), value.getMetadata());
+                return entry;
             }
         }
         return null;
     }
 
-    private OtelBaggageInScope otelBaggage(Entry entry) {
-        return new OtelBaggageInScope(this, this.currentTraceContext, this.tagFields, entry);
-    }
-
-    private OtelBaggageInScope otelBaggage(OtelTraceContext otelTraceContext, Entry entry) {
-        return new OtelBaggageInScope(this, this.currentTraceContext, otelTraceContext, this.tagFields, entry);
+    private OtelBaggageInScope otelBaggage(@Nullable OtelTraceContext traceContext,
+            Map.Entry<String, BaggageEntry> entry) {
+        BaggageEntry value = entry.getValue();
+        return new OtelBaggageInScope(this, this.currentTraceContext, traceContext, this.tagFields, entry.getKey(),
+                value.getValue(), value.getMetadata());
     }
 
     @Override
@@ -185,27 +169,26 @@ public class OtelBaggageManager implements BaggageManager {
     @Override
     @Deprecated
     public io.micrometer.tracing.Baggage createBaggage(String name, @Nullable String value) {
-        io.micrometer.tracing.Baggage baggage = baggageWithValue(name, value);
+        io.micrometer.tracing.Baggage baggage = otelBaggage((OtelTraceContext) this.currentTraceContext.context(), name,
+                value);
         return baggage.set(value);
     }
 
     @Override
     public BaggageInScope createBaggageInScope(String name, String value) {
-        return otelBaggage(baggageEntry(name, value)).makeCurrent(true);
+        return otelBaggage((OtelTraceContext) this.currentTraceContext.context(), name, value).makeCurrent(true);
     }
 
     @Override
     public BaggageInScope createBaggageInScope(TraceContext traceContext, String name, String value) {
-        return otelBaggage((OtelTraceContext) traceContext, baggageEntry(name, value)).makeCurrent(true);
+        return otelBaggage((OtelTraceContext) traceContext, name, value).makeCurrent(true);
     }
 
-    private io.micrometer.tracing.Baggage baggageWithValue(String name, @Nullable String value) {
-        return otelBaggage(baggageEntry(name, value));
-    }
-
-    private Entry baggageEntry(String name, @Nullable String value) {
+    private OtelBaggageInScope otelBaggage(@Nullable OtelTraceContext traceContext, String name,
+            @Nullable String value) {
         BaggageEntryMetadata entryMetadata = isRemoteField(name) ? UNLIMITED_METADATA : NO_METADATA;
-        return new Entry(name, value, entryMetadata);
+        return new OtelBaggageInScope(this, this.currentTraceContext, traceContext, this.tagFields, name, value,
+                entryMetadata);
     }
 
     private boolean isRemoteField(String name) {
@@ -232,99 +215,6 @@ public class OtelBaggageManager implements BaggageManager {
         BaggageBuilder builder = base.toBuilder();
         overrides.forEach((key, entry) -> builder.put(key, entry.getValue(), entry.getMetadata()));
         return builder.build();
-    }
-
-}
-
-class CompositeBaggage implements io.opentelemetry.api.baggage.Baggage {
-
-    private final Map<String, BaggageEntry> baggageEntries;
-
-    /**
-     * @param contexts contexts to merge, in increasing order of precedence - given parent
-     * baggage {@code foo=bar} and child baggage {@code foo=baz}, the child wins
-     */
-    CompositeBaggage(Context... contexts) {
-        Map<String, BaggageEntry> map = new HashMap<>();
-        for (Context context : contexts) {
-            Baggage.fromContext(context)
-                .forEach((key, value) -> map.put(key, new Entry(key, value.getValue(), value.getMetadata())));
-        }
-        this.baggageEntries = unmodifiableMap(map);
-    }
-
-    @Override
-    public int size() {
-        return this.baggageEntries.size();
-    }
-
-    @Override
-    public void forEach(BiConsumer<? super String, ? super BaggageEntry> consumer) {
-        this.baggageEntries.forEach(consumer);
-    }
-
-    @Override
-    public Map<String, BaggageEntry> asMap() {
-        return this.baggageEntries;
-    }
-
-    @Override
-    public @Nullable String getEntryValue(String entryKey) {
-        BaggageEntry entry = this.baggageEntries.get(entryKey);
-        return entry != null ? entry.getValue() : null;
-    }
-
-    @Override
-    public BaggageBuilder toBuilder() {
-        return Baggage.builder();
-    }
-
-}
-
-class Entry implements BaggageEntry {
-
-    final String key;
-
-    final @Nullable String value;
-
-    final BaggageEntryMetadata entryMetadata;
-
-    Entry(String key, @Nullable String value, BaggageEntryMetadata entryMetadata) {
-        this.key = key;
-        this.value = value;
-        this.entryMetadata = entryMetadata;
-    }
-
-    public String getKey() {
-        return this.key;
-    }
-
-    @Override
-    public @Nullable String getValue() {
-        return this.value;
-    }
-
-    @Override
-    public BaggageEntryMetadata getMetadata() {
-        return this.entryMetadata;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        Entry entry = (Entry) o;
-        return Objects.equals(this.key, entry.key) && Objects.equals(this.value, entry.value)
-                && Objects.equals(this.entryMetadata, entry.entryMetadata);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.key, this.value, this.entryMetadata);
     }
 
 }

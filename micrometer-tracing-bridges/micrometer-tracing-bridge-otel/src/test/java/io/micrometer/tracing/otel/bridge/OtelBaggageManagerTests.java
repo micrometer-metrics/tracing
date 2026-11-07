@@ -29,6 +29,8 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import org.assertj.core.api.BDDAssertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Collections;
 import java.util.Map;
@@ -44,6 +46,23 @@ class OtelBaggageManagerTests {
 
     OtelBaggageManager otelBaggageManager = new OtelBaggageManager(new OtelCurrentTraceContext(),
             Collections.emptyList(), Collections.emptyList());
+
+    @ParameterizedTest
+    @ValueSource(strings = { "locale", "LOCALE" })
+    void should_preserve_implicit_lookup_selection_for_differently_cased_keys(String currentName) {
+        OtelTraceContext target = traceContext(
+                io.opentelemetry.api.baggage.Baggage.builder().put("locale", "fr-FR").build());
+        Context current = target.context()
+            .with(io.opentelemetry.api.baggage.Baggage.builder().put(currentName, "en-US").build());
+        try (Scope scope = current.makeCurrent()) {
+            Baggage implicit = this.otelBaggageManager.getBaggage("LoCaLe");
+            BDDAssertions.then(implicit.name()).isEqualTo(currentName);
+            BDDAssertions.then(implicit.get()).isEqualTo("LOCALE".equals(currentName) ? "en-US" : "fr-FR");
+            Baggage explicit = Objects.requireNonNull(this.otelBaggageManager.getBaggage(target, "LoCaLe"));
+            BDDAssertions.then(explicit.name()).isEqualTo("locale");
+            BDDAssertions.then(explicit.get()).isEqualTo("fr-FR");
+        }
+    }
 
     @Test
     void should_use_retained_values_for_implicit_and_null_context_bulk_reads() {
