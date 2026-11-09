@@ -79,11 +79,13 @@ class OtelSpanBuilder implements Span.Builder {
     @Override
     public Span.Builder setParent(TraceContext context) {
         this.parentTraceContext = context;
+        this.noParent = false;
         return this;
     }
 
     @Override
     public Span.Builder setNoParent() {
+        this.parentTraceContext = null;
         this.noParent = true;
         return this;
     }
@@ -250,6 +252,9 @@ class OtelSpanBuilder implements Span.Builder {
         if (this.parentTraceContext != null) {
             return OtelSpan.fromOtel(
                     new SpanFromSpanContext(span, span.getSpanContext(), (OtelTraceContext) this.parentTraceContext));
+        }
+        if (this.noParent) {
+            return OtelSpan.fromOtel(span, Context.root());
         }
         return OtelSpan.fromOtel(span);
     }
