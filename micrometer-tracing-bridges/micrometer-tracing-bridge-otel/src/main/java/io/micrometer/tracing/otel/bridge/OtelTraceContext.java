@@ -47,16 +47,30 @@ public class OtelTraceContext implements TraceContext {
         this.otelContext = context;
         this.delegate = delegate;
         this.span = span;
+        replaceTraceContextInContext();
     }
 
     OtelTraceContext(SpanContext delegate, @Nullable Span span) {
         this.otelContext = context(span);
         this.delegate = delegate;
         this.span = span;
+        replaceTraceContextInContext();
     }
 
     OtelTraceContext(Span span) {
         this(context(span), span.getSpanContext(), span);
+    }
+
+    /**
+     * The captured context holds the trace context that was current when it was captured.
+     * Replace it with this one, so that trace contexts don't keep references to each
+     * other (e.g. on a thread where a scope was closed out of order).
+     */
+    private void replaceTraceContextInContext() {
+        Context context = this.otelContext.get();
+        if (context != null) {
+            this.otelContext.set(context.with(OtelCurrentTraceContext.OTEL_CONTEXT_KEY, this));
+        }
     }
 
     private static AtomicReference<@Nullable Context> context(@Nullable Span span) {

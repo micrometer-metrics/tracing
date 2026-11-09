@@ -39,7 +39,7 @@ public class OtelCurrentTraceContext implements CurrentTraceContext {
 
     private static final String TRACING_OTEL_CONTEXT_KEY = "otelTraceContext";
 
-    private static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
+    static final ContextKey<OtelTraceContext> OTEL_CONTEXT_KEY = ContextKey.named(TRACING_OTEL_CONTEXT_KEY);
 
     @Override
     public @Nullable TraceContext context() {
