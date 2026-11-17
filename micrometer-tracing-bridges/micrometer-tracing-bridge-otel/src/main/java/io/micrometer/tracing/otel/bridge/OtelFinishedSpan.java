@@ -301,7 +301,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
     @Override
     public FinishedSpan setLocalServiceName(String localServiceName) {
-        this.spanData.resources.put(SERVICE_NAME, localServiceName);
+        this.spanData.resource = this.spanData.resource.toBuilder().put(SERVICE_NAME, localServiceName).build();
         return this;
     }
 
@@ -369,7 +369,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
         final Map<AttributeKey, Object> tags = new HashMap<>();
 
-        final Map<AttributeKey, Object> resources = new HashMap<>();
+        Resource resource;
 
         final List<EventData> events = new ArrayList<>();
 
@@ -383,7 +383,7 @@ public class OtelFinishedSpan implements FinishedSpan {
             delegate.getAttributes().forEach(this.tags::put);
             this.events.addAll(delegate.getEvents());
             this.links.addAll(delegate.getLinks());
-            this.resources.putAll(delegate.getResource().getAttributes().asMap());
+            this.resource = delegate.getResource();
         }
 
         @Override
@@ -432,11 +432,7 @@ public class OtelFinishedSpan implements FinishedSpan {
 
         @Override
         public Resource getResource() {
-            AttributesBuilder builder = Attributes.builder();
-            for (Map.Entry<AttributeKey, Object> entry : this.resources.entrySet()) {
-                builder = builder.put(entry.getKey(), entry.getValue());
-            }
-            return Resource.create(builder.build());
+            return this.resource;
         }
 
     }
