@@ -28,6 +28,7 @@ import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
+import io.opentelemetry.sdk.testing.trace.TestSpanData;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
@@ -39,9 +40,13 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static org.assertj.core.api.BDDAssertions.then;
 
 class OtelFinishedSpanTests {
+
+    private static final String SCHEMA_URL = "https://opentelemetry.io/schemas/1.24.0";
 
     @Test
     void should_set_name() {
@@ -135,6 +140,42 @@ class OtelFinishedSpanTests {
         span.setRemoteServiceName("bar");
 
         then(span.getRemoteServiceName()).isEqualTo("bar");
+    }
+
+    @Test
+    void should_keep_resource_instance_and_schema_url() {
+        Resource resource = Resource.create(Attributes.of(SERVICE_NAME, "foo", stringKey("bar"), "baz"), SCHEMA_URL);
+        SpanData spanData = OtelFinishedSpan.toOtel(OtelFinishedSpan.fromOtel(spanDataWithResource(resource)));
+
+        then(spanData.getResource()).isSameAs(resource);
+        then(spanData.getResource().getSchemaUrl()).isEqualTo(SCHEMA_URL);
+    }
+
+    @Test
+    void should_set_local_service_name() {
+        Resource resource = Resource.create(Attributes.of(SERVICE_NAME, "foo", stringKey("bar"), "baz"), SCHEMA_URL);
+        FinishedSpan span = OtelFinishedSpan.fromOtel(spanDataWithResource(resource));
+        then(span.getLocalServiceName()).isEqualTo("foo");
+
+        span.setLocalServiceName("qux");
+
+        then(span.getLocalServiceName()).isEqualTo("qux");
+        Resource changed = OtelFinishedSpan.toOtel(span).getResource();
+        then(changed.getAttributes().asMap()).hasSize(2).containsEntry(stringKey("bar"), "baz");
+        then(changed.getSchemaUrl()).isEqualTo(SCHEMA_URL);
+        then(changed).isSameAs(OtelFinishedSpan.toOtel(span).getResource());
+    }
+
+    private static SpanData spanDataWithResource(Resource resource) {
+        return TestSpanData.builder()
+            .setName("foo")
+            .setKind(SpanKind.INTERNAL)
+            .setStartEpochNanos(1)
+            .setEndEpochNanos(2)
+            .setHasEnded(true)
+            .setStatus(StatusData.unset())
+            .setResource(resource)
+            .build();
     }
 
     @Test
