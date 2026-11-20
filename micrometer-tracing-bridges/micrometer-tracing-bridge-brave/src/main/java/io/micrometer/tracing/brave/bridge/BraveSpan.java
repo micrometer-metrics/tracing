@@ -32,6 +32,8 @@ public class BraveSpan implements Span {
 
     final brave.Span delegate;
 
+    private @Nullable BraveTraceContext braveTraceContext;
+
     /**
      * Creates a new instance of {@link BraveSpan}.
      * @param delegate Brave {@link BraveSpan}
@@ -68,8 +70,12 @@ public class BraveSpan implements Span {
     }
 
     @Override
-    public TraceContext context() {
-        return new BraveTraceContext(this.delegate.context());
+    public synchronized TraceContext context() {
+        // Resolve lazily so that wrapping a current span does not materialize it.
+        if (this.braveTraceContext == null) {
+            this.braveTraceContext = new BraveTraceContext(this.delegate.context());
+        }
+        return this.braveTraceContext;
     }
 
     @Override
