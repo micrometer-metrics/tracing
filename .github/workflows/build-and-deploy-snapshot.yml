@@ -16,7 +16,7 @@ env:
   ORG_GRADLE_PROJECT_COMMERCIAL_ARTIFACTORY_PASSWORD: ${{ startsWith(github.ref_name, 'release/') && secrets.COMMERCIAL_ARTIFACTORY_PASSWORD || '' }}
 jobs:
   build-jdk21:
-    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu-latest-4-16-usw1' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
     steps:
       - name: "Check Out Code"
@@ -37,7 +37,7 @@ jobs:
         if: ${{ failure() }}
 
   build-jdk11:
-    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu-latest-4-16-usw1' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
     steps:
       - name: "Check Out Code"
@@ -60,7 +60,7 @@ jobs:
         if: ${{ failure() }}
 
   build-jdk17:
-    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu-latest-4-16-usw1' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
     steps:
       - name: "Check Out Code"
@@ -81,7 +81,7 @@ jobs:
         if: ${{ failure() }}
 
   build-jdk25:
-    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu-latest-4-16-usw1' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
     steps:
       - name: "Check Out Code"
@@ -102,7 +102,7 @@ jobs:
         if: ${{ failure() }}
 
   build-jdk26:
-    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu-latest-4-16-usw1' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
     steps:
       - name: "Check Out Code"
@@ -123,7 +123,7 @@ jobs:
         if: ${{ failure() }}
 
   docker-tests:
-    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu-latest-4-16-usw1' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
     steps:
       - name: "Check Out Code"
@@ -144,7 +144,7 @@ jobs:
         if: ${{ failure() }}
 
   deploy:
-    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu22-4-16' || 'ubuntu-latest' }}
+    runs-on: ${{ startsWith(github.ref_name, 'release/') && 'ubuntu-latest-4-16-usw1' || 'ubuntu-latest' }}
     if: ${{ github.repository_owner == 'micrometer-metrics' }}
     needs: [ build-jdk25, build-jdk11, build-jdk17, build-jdk21, build-jdk26, docker-tests ]
     steps:
