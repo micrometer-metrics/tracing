@@ -20,7 +20,14 @@ import brave.test.TestSpanHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import io.micrometer.tracing.TraceContext;
+
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,6 +40,74 @@ class BraveSpanTest {
     @AfterEach
     void cleanup() {
         tracing.close();
+    }
+
+    @Test
+    void should_reuse_trace_context() {
+        brave.Span delegate = tracing.tracer().nextSpan();
+        BraveSpan span = new BraveSpan(delegate);
+        TraceContext context = span.context();
+
+        assertThat(span.context()).isSameAs(context);
+        assertThat(BraveTraceContext.toBrave(context)).isSameAs(delegate.context());
+        assertThat(context.traceId()).isEqualTo(delegate.context().traceIdString());
+        assertThat(context.spanId()).isEqualTo(delegate.context().spanIdString());
+    }
+
+    @Test
+    void should_reuse_trace_context_across_threads() throws Exception {
+        BraveSpan span = new BraveSpan(tracing.tracer().nextSpan());
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        Callable<TraceContext> lookup = () -> {
+            ready.countDown();
+            start.await();
+            return span.context();
+        };
+
+        try {
+            Future<TraceContext> first = executor.submit(lookup);
+            Future<TraceContext> second = executor.submit(lookup);
+            ready.await();
+            start.countDown();
+
+            assertThat(first.get()).isSameAs(second.get()).isSameAs(span.context());
+        }
+        finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void should_not_materialize_current_span_before_abandon() {
+        brave.Span delegate = tracing.tracer().nextSpan().start();
+        try (brave.Tracer.SpanInScope ignored = tracing.tracer().withSpanInScope(delegate)) {
+            brave.Span currentSpan = tracing.tracer().currentSpan();
+            assertThat(currentSpan).isNotNull();
+
+            new BraveSpan(currentSpan).abandon();
+        }
+        delegate.finish();
+
+        assertThat(handler.spans()).hasSize(1);
+        assertThat(handler.get(0).id()).isEqualTo(delegate.context().spanIdString());
+    }
+
+    @Test
+    void should_abandon_current_span_after_accessing_context() {
+        brave.Span delegate = tracing.tracer().nextSpan().start();
+        try (brave.Tracer.SpanInScope ignored = tracing.tracer().withSpanInScope(delegate)) {
+            brave.Span currentSpan = tracing.tracer().currentSpan();
+            assertThat(currentSpan).isNotNull();
+            BraveSpan span = new BraveSpan(currentSpan);
+
+            span.context();
+            span.abandon();
+        }
+        delegate.finish();
+
+        assertThat(handler.spans()).isEmpty();
     }
 
     @Test
