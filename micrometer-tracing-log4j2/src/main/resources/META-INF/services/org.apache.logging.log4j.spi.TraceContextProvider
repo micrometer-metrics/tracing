@@ -1,0 +1,1 @@
+io.micrometer.tracing.log4j2.MicrometerTraceContextProvider
